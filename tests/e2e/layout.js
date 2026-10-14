@@ -385,6 +385,53 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await c.close();
   }
 
+  // ================= menu icons + mega menu
+  {
+    const c = await newCtx({ viewport: { width: 1280, height: 800 } });
+    const p = await c.newPage();
+    await p.goto(B + '/?lang=zh');
+    const items = p.locator('#site-nav .menu > li');
+    ok((await items.locator(':scope > a > .ic.has-ic svg').count()) === 3, 'menu icons: 3 top-level items show the icon chosen in the menu editor');
+    const first = await items.first().locator('a').evaluate((a) => { const ic = a.querySelector('.ic'); const t = a.querySelector('.t'); return ic.getBoundingClientRect().right <= t.getBoundingClientRect().left + 1 && getComputedStyle(ic).display !== 'none'; });
+    ok(first, 'menu icon sits in front of the text and is visible on the top bar');
+    ok((await items.last().locator('.ic').count()) === 1 && !(await items.last().locator('.ic').isVisible()), 'an item without an icon shows no icon on the top bar (initial badge only in drawer / sidebar)');
+    const mega = p.locator('#site-nav .menu > li.mcupr-mega');
+    ok((await mega.count()) === 1 && /mega-cols-3/.test(await mega.getAttribute('class')), 'mega item carries its column count');
+    ok(!(await mega.locator('> .sub-menu').isVisible()), 'mega panel starts closed');
+    await mega.locator('> .submenu-toggle').click();
+    const panel = mega.locator('> .sub-menu');
+    const g = await panel.evaluate((el) => { const cs = getComputedStyle(el); const r = el.getBoundingClientRect(); return { display: cs.display, cols: cs.gridTemplateColumns.split(' ').length, left: Math.round(r.left), right: Math.round(r.right), top: Math.round(r.top) }; });
+    ok(g.display === 'grid' && g.cols === 3, 'mega panel: a 3-column grid');
+    ok(g.left >= 0 && g.right <= 1280 && g.right - g.left > 900, 'mega panel spans the header and stays on screen (' + g.left + '..' + g.right + ')');
+    ok((await panel.locator('> li.menu-item-has-children > a').allTextContents()).map((x) => x.trim()).join('|') === '本科|研究生', 'mega panel: second-level items with children are the column headings');
+    ok((await panel.locator('> li > .sub-menu').first().isVisible()) && (await panel.locator('> li > .sub-menu a').count()) === 5, 'mega panel: the links under each heading are always visible');
+    ok(/面向在职人员的短期课程/.test(await text(p, '#site-nav .menu .d')), 'mega panel: description printed under its link');
+    ok(!(await panel.locator('.submenu-toggle').first().isVisible()), 'mega panel: no toggle buttons inside it');
+    await p.screenshot({ path: shot('layout-mega.png') });
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe with the mega menu open: ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    r.violations.forEach((v) => console.log('   ', v.id, v.nodes.slice(0, 2).map((x) => x.target.join(' ')).join(' || ')));
+    await p.keyboard.press('Escape');
+    ok(!(await panel.isVisible()), 'Esc closes the mega panel');
+    await mega.locator('> .submenu-toggle').click();
+    await p.mouse.click(40, 700);
+    ok(!(await panel.isVisible()), 'a click outside closes it');
+    await p.evaluate(() => { document.documentElement.setAttribute('data-menu', 'side'); });
+    await p.waitForTimeout(300);
+    const sideMega = p.locator('#site-nav .menu > li.mcupr-mega');
+    await sideMega.locator('> .submenu-toggle').click();
+    ok((await sideMega.locator('> .sub-menu').evaluate((el) => getComputedStyle(el).display)) !== 'grid', 'sidebar: the mega item is a normal nested list (no grid)');
+    ok((await sideMega.locator('.ic.has-ic').count()) >= 2, 'sidebar: icons still shown');
+    await p.evaluate(() => { document.documentElement.setAttribute('data-menu', 'top'); });
+    await p.setViewportSize({ width: 800, height: 800 });
+    await p.waitForTimeout(300);
+    await p.click('.nav-toggle');
+    await p.locator('#site-nav .mcupr-mega > .submenu-toggle').click();
+    ok((await p.locator('#site-nav .mcupr-mega > .sub-menu').evaluate((el) => getComputedStyle(el).display)) !== 'grid', 'drawer: accordion, not a grid');
+    await c.close();
+  }
+
   await br.close();
   finish();
   async function text(p, sel) { return p.evaluate((s) => (document.querySelector(s) || {}).textContent || '', sel); }
