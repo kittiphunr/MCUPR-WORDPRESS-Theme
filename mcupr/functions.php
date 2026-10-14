@@ -16,6 +16,7 @@ require_once MCUPR_DIR . '/inc/translations.php';
 require_once MCUPR_DIR . '/inc/customizer.php';
 require_once MCUPR_DIR . '/inc/template-tags.php';
 require_once MCUPR_DIR . '/inc/elementor.php';
+require_once MCUPR_DIR . '/inc/plugins.php';
 
 function mcupr_setup() {
 	load_theme_textdomain( 'mcupr', MCUPR_DIR . '/languages' );
@@ -41,9 +42,13 @@ function mcupr_setup() {
 
 	// One main menu per language (falls back to the default language's menu).
 	$locations = array();
-	foreach ( mcupr_languages() as $code => $l ) {
-		/* translators: %s: language name */
-		$locations[ 'primary_' . $code ] = sprintf( __( 'Main menu (%s)', 'mcupr' ), $l['name'] );
+	if ( mcupr_has_polylang() ) {
+		$locations['primary'] = __( 'Main menu (Polylang adds one per language)', 'mcupr' );
+	} else {
+		foreach ( mcupr_ui_languages() as $code => $l ) {
+			/* translators: %s: language name */
+			$locations[ 'primary_' . $code ] = sprintf( __( 'Main menu (%s)', 'mcupr' ), $l['name'] );
+		}
 	}
 	$locations['utility'] = __( 'Utility bar links (students, staff, alumni…)', 'mcupr' );
 	$locations['quick']  = __( 'Quick links', 'mcupr' );
@@ -108,7 +113,7 @@ add_filter( 'body_class', 'mcupr_body_class' );
 
 /** Longer, more useful excerpt for Thai/CJK text (no spaces between words). */
 add_filter( 'excerpt_length', static function () {
-	return in_array( mcupr_lang(), array( 'zh', 'ja', 'th' ), true ) ? 60 : 30;
+	return in_array( mcupr_ui_lang(), array( 'zh', 'ja', 'th' ), true ) ? 60 : 30;
 } );
 add_filter( 'excerpt_more', static function () {
 	return '…';

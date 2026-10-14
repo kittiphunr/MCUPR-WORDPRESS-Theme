@@ -19,6 +19,10 @@ function mcupr_tr_meta( $post_id, $lang, $field ) {
 /** Language actually shown for this post (falls back to default if no translation). */
 function mcupr_post_lang( $post_id = 0 ) {
 	$post_id = $post_id ? $post_id : get_the_ID();
+	if ( mcupr_has_polylang() && function_exists( 'pll_get_post_language' ) ) {
+		$slug = $post_id ? pll_get_post_language( $post_id, 'slug' ) : '';
+		return $slug ? $slug : mcupr_lang();
+	}
 	$lang    = mcupr_lang();
 	$default = mcupr_default_lang();
 	if ( $lang === $default || ! $post_id ) {
@@ -29,13 +33,16 @@ function mcupr_post_lang( $post_id = 0 ) {
 }
 
 function mcupr_is_translated( $post_id = 0 ) {
+	if ( mcupr_has_polylang() ) {
+		return true; // Polylang serves separate, already-translated posts.
+	}
 	return mcupr_post_lang( $post_id ) === mcupr_lang();
 }
 
 /* ---------------------------------------------------------------- Front end */
 
 function mcupr_filter_title( $title, $post_id = 0 ) {
-	if ( is_admin() || ! $post_id ) {
+	if ( is_admin() || ! $post_id || mcupr_has_polylang() ) {
 		return $title;
 	}
 	$lang = mcupr_lang();
@@ -48,7 +55,7 @@ function mcupr_filter_title( $title, $post_id = 0 ) {
 add_filter( 'the_title', 'mcupr_filter_title', 10, 2 );
 
 function mcupr_filter_document_title( $parts ) {
-	if ( is_singular() && ! is_admin() ) {
+	if ( is_singular() && ! is_admin() && ! mcupr_has_polylang() ) {
 		$tr = mcupr_tr_meta( get_queried_object_id(), mcupr_lang(), 'title' );
 		if ( $tr && mcupr_lang() !== mcupr_default_lang() ) {
 			$parts['title'] = $tr;
@@ -62,7 +69,7 @@ function mcupr_filter_document_title( $parts ) {
 add_filter( 'document_title_parts', 'mcupr_filter_document_title' );
 
 function mcupr_filter_content( $content ) {
-	if ( is_admin() || ! in_the_loop() ) {
+	if ( is_admin() || ! in_the_loop() || mcupr_has_polylang() ) {
 		return $content;
 	}
 	$lang = mcupr_lang();
@@ -76,7 +83,7 @@ add_filter( 'the_content', 'mcupr_filter_content', 1 );
 
 function mcupr_filter_excerpt( $excerpt, $post = null ) {
 	$post = get_post( $post );
-	if ( is_admin() || ! $post ) {
+	if ( is_admin() || ! $post || mcupr_has_polylang() ) {
 		return $excerpt;
 	}
 	$lang = mcupr_lang();
@@ -95,6 +102,9 @@ add_filter( 'get_the_excerpt', 'mcupr_filter_excerpt', 10, 2 );
 /* -------------------------------------------------------------------- Admin */
 
 function mcupr_add_meta_box() {
+	if ( mcupr_has_polylang() ) {
+		return; // Polylang translates posts as separate posts.
+	}
 	foreach ( mcupr_translatable_post_types() as $type ) {
 		add_meta_box( 'mcupr_translations', __( 'Translations (EN / 中文 / 日本語 / ไทย)', 'mcupr' ), 'mcupr_meta_box', $type, 'normal', 'default' );
 	}
