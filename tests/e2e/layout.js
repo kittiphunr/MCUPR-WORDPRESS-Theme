@@ -36,7 +36,7 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await p.goto(B + '/');
     ok((await css(p, 'body', 'backgroundColor')) === 'rgb(241, 245, 249)', 'slate canvas behind white cards');
     ok((await css(p, '#masthead', 'position')) === 'sticky', 'sticky header');
-    ok((await p.locator('#masthead .brand .badge-logo').count()) === 1, 'badge logo (no logo uploaded)');
+    ok((await p.locator('#masthead .brand img[src$="assets/img/mcu-logo.svg"]').count()) === 1, 'default logo: the university emblem (no logo uploaded)');
     ok((await css(p, 'body', 'fontFamily')).startsWith('Sarabun'), 'Sarabun is the UI font');
     ok(await p.evaluate(() => document.fonts.check('16px Sarabun')), 'Sarabun font file loads (self-hosted)');
     await p.goto(B + post(1));
