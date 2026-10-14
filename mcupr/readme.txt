@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.11.0 =
+* Ring around the sidebar expand button: a runner while the page loads, then the scroll progress.
+
 = 1.10.3 =
 * Collapsed sidebar expand button is a perfect circle.
 
