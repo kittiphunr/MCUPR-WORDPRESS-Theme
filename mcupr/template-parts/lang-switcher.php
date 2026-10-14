@@ -1,6 +1,6 @@
 <?php
 /**
- * Language choices shown in the language dialog (links come from Polylang when active).
+ * Language choices shown in the language dialog.
  *
  * @package MCUPR
  */
@@ -8,18 +8,8 @@
 defined( 'ABSPATH' ) || exit;
 $cur   = mcupr_lang();
 $items = array();
-if ( mcupr_has_polylang() ) {
-	foreach ( (array) pll_the_languages( array( 'raw' => 1, 'hide_if_empty' => 0 ) ) as $slug => $l ) {
-		$items[ $slug ] = array(
-			'label' => $l['name'],
-			'html'  => str_replace( '_', '-', $l['locale'] ),
-			'url'   => $l['url'],
-		);
-	}
-} else {
-	foreach ( mcupr_languages() as $code => $l ) {
-		$items[ $code ] = array( 'label' => $l['label'], 'html' => $l['html'], 'url' => mcupr_lang_url( $code ) );
-	}
+foreach ( mcupr_languages() as $code => $l ) {
+	$items[ $code ] = array( 'label' => $l['label'], 'html' => $l['html'], 'url' => mcupr_lang_url( $code ) );
 }
 ?>
 <ul class="m-0 flex list-none flex-wrap gap-3 p-0" aria-label="<?php echo esc_attr( mcupr_t( 'language' ) ); ?>">

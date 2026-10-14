@@ -7,7 +7,6 @@
 
 get_header();
 
-if ( ! mcupr_elementor_location( 'archive' ) ) :
 	get_template_part( 'template-parts/band', null, array( 'title' => esc_html( mcupr_t( 'search_for' ) ) . ': <span class=\'text-link\'>' . esc_html( get_search_query() ) . '</span>', 'description' => '', 'chips' => false ) );
 	?>
 <div class="wrap mt-10">
@@ -31,6 +30,4 @@ if ( ! mcupr_elementor_location( 'archive' ) ) :
 	<?php endif; ?>
 </div>
 <?php
-endif;
-
 get_footer();

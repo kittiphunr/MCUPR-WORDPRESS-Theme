@@ -2,12 +2,8 @@
 /**
  * Language support.
  *
- * Two modes:
- *  1. Polylang (free plugin) active  -> Polylang owns languages, URLs, content
- *     translation, menus and hreflang. The theme only supplies UI strings for
- *     th / en / zh / ja (other languages fall back to English).
- *  2. Standalone (no plugin)         -> built-in switcher (?lang=xx + cookie)
- *     and a per-post "Translations" meta box (inc/translations.php).
+ * Built-in switcher (?lang=xx + cookie) and a per-post "Translations" meta box
+ * (inc/translations.php). UI strings ship for th / en / zh / ja.
  *
  * @package MCUPR
  */
@@ -24,35 +20,12 @@ function mcupr_ui_languages() {
 	);
 }
 
-/** Is the Polylang plugin (free) providing multilingual features? */
-function mcupr_has_polylang() {
-	return function_exists( 'pll_current_language' ) && function_exists( 'pll_the_languages' );
-}
-
 /** Languages active on this site (key = language slug). */
 function mcupr_languages() {
-	if ( mcupr_has_polylang() ) {
-		$out = array();
-		foreach ( (array) pll_the_languages( array( 'raw' => 1, 'hide_if_empty' => 0 ) ) as $slug => $l ) {
-			$out[ $slug ] = array(
-				'label'  => $l['name'],
-				'name'   => $l['name'],
-				'html'   => str_replace( '_', '-', $l['locale'] ),
-				'locale' => $l['locale'],
-				'url'    => $l['url'],
-			);
-		}
-		if ( $out ) {
-			return $out;
-		}
-	}
 	return apply_filters( 'mcupr_languages', mcupr_ui_languages() );
 }
 
 function mcupr_default_lang() {
-	if ( mcupr_has_polylang() && function_exists( 'pll_default_language' ) && pll_default_language() ) {
-		return pll_default_language();
-	}
 	$lang = get_theme_mod( 'mcupr_default_lang', 'th' );
 	return isset( mcupr_ui_languages()[ $lang ] ) ? $lang : 'th';
 }
@@ -60,12 +33,8 @@ function mcupr_default_lang() {
 /** Language (slug) of the current request. */
 function mcupr_lang() {
 	static $current = null;
-	if ( null !== $current && ! mcupr_has_polylang() ) {
+	if ( null !== $current ) {
 		return $current;
-	}
-	if ( mcupr_has_polylang() ) {
-		$slug = pll_current_language();
-		return $slug ? $slug : mcupr_default_lang();
 	}
 	$langs   = mcupr_languages();
 	$current = mcupr_default_lang();
@@ -96,10 +65,10 @@ function mcupr_ui_lang() {
 	return mcupr_normalize_ui_lang( mcupr_lang() );
 }
 
-/** Remember the chosen language (functional cookie, 1 year) – standalone mode only. */
+/** Remember the chosen language (functional cookie, 1 year). */
 function mcupr_remember_lang() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( mcupr_has_polylang() || is_admin() || empty( $_GET['lang'] ) || headers_sent() ) {
+	if ( is_admin() || empty( $_GET['lang'] ) || headers_sent() ) {
 		return;
 	}
 	setcookie(
@@ -137,21 +106,17 @@ function mcupr_e( $key ) {
 
 /** Home URL in the current language. */
 function mcupr_home_url() {
-	return function_exists( 'pll_home_url' ) ? pll_home_url() : home_url( '/' );
+	return home_url( '/' );
 }
 
 /** URL of the current page in another language (standalone mode). */
 function mcupr_lang_url( $code ) {
-	if ( mcupr_has_polylang() ) {
-		$langs = mcupr_languages();
-		return isset( $langs[ $code ]['url'] ) ? esc_url( $langs[ $code ]['url'] ) : esc_url( mcupr_home_url() );
-	}
 	return esc_url( add_query_arg( 'lang', $code ) );
 }
 
-/** <html lang="…"> – standalone mode (Polylang sets its own). */
+/** <html lang="…">. */
 function mcupr_language_attributes( $output ) {
-	if ( is_admin() || mcupr_has_polylang() ) {
+	if ( is_admin() ) {
 		return $output;
 	}
 	$langs  = mcupr_languages();
@@ -164,11 +129,8 @@ function mcupr_language_attributes( $output ) {
 }
 add_filter( 'language_attributes', 'mcupr_language_attributes' );
 
-/** hreflang alternates – standalone mode (Polylang prints its own). */
+/** hreflang alternates. */
 function mcupr_hreflang() {
-	if ( mcupr_has_polylang() ) {
-		return;
-	}
 	foreach ( mcupr_languages() as $code => $l ) {
 		printf(
 			'<link rel="alternate" hreflang="%s" href="%s" />' . "\n",
