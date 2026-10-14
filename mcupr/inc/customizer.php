@@ -129,11 +129,15 @@ function mcupr_customize_register( $wp_customize ) {
 	$wp_customize->add_section( 'mcupr_display', array( 'title' => __( 'MCUPR: Animation, news & reading', 'mcupr' ), 'priority' => 33 ) );
 	$wp_customize->add_setting( 'mcupr_menu_layout', array( 'default' => 'top', 'sanitize_callback' => static function ( $v ) { return in_array( $v, array( 'side', 'hybrid' ), true ) ? $v : 'top'; } ) );
 	$wp_customize->add_control( 'mcupr_menu_layout', array( 'section' => 'mcupr_display', 'label' => __( 'Menu position (default for new visitors – each visitor can change it)', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'top' => __( 'Top navigation bar', 'mcupr' ), 'side' => __( 'Sidebar (left)', 'mcupr' ), 'hybrid' => __( 'Hybrid: floating top bar + icon rail on the left', 'mcupr' ) ) ) );
+	$wp_customize->add_setting( 'mcupr_cat_zones', array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
+	$wp_customize->add_control( 'mcupr_cat_zones', array( 'section' => 'mcupr_display', 'label' => __( 'Category zones for the news browser (one per line: Zone name: slug, slug, …). Leave empty to group by parent category.', 'mcupr' ), 'type' => 'textarea' ) );
 	$wp_customize->add_setting( 'mcupr_credit_name', array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
-	$wp_customize->add_control( 'mcupr_credit_name', array( 'section' => 'mcupr_org', 'label' => __( 'Site credit: made by (shown in the footer and the About dialog)', 'mcupr' ), 'type' => 'text' ) );
+	$wp_customize->add_control( 'mcupr_credit_name', array( 'section' => 'mcupr_org', 'label' => __( 'Site credit: made by (leave empty to use the built-in creator, with photo and contacts)', 'mcupr' ), 'type' => 'text' ) );
 	$wp_customize->add_setting( 'mcupr_credit_url', array( 'default' => '', 'sanitize_callback' => 'esc_url_raw' ) );
 	$wp_customize->add_control( 'mcupr_credit_url', array( 'section' => 'mcupr_org', 'label' => __( 'Site credit link (optional)', 'mcupr' ), 'type' => 'url' ) );
 	foreach ( array(
+		'credit_en'    => array( __( 'Site credit: name in English (optional)', 'mcupr' ), 'sanitize_text_field', 'text' ),
+		'credit_github' => array( __( 'Site credit: GitHub / profile link (optional)', 'mcupr' ), 'esc_url_raw', 'url' ),
 		'credit_role'  => array( __( 'Site credit: role (e.g. Computer officer)', 'mcupr' ), 'sanitize_text_field', 'text' ),
 		'credit_tag'   => array( __( 'Site credit: short tagline (e.g. Network · Server · Full-Stack)', 'mcupr' ), 'sanitize_text_field', 'text' ),
 		'credit_email' => array( __( 'Site credit: email', 'mcupr' ), 'sanitize_email', 'email' ),
@@ -144,6 +148,8 @@ function mcupr_customize_register( $wp_customize ) {
 		$wp_customize->add_setting( 'mcupr_' . $key, array( 'default' => '', 'sanitize_callback' => $def[1] ) );
 		$wp_customize->add_control( 'mcupr_' . $key, array( 'section' => 'mcupr_org', 'label' => $def[0], 'type' => $def[2] ) );
 	}
+	$wp_customize->add_setting( 'mcupr_credit_hide', array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+	$wp_customize->add_control( 'mcupr_credit_hide', array( 'section' => 'mcupr_org', 'label' => __( 'Hide the site credit (footer card and About dialog developer section)', 'mcupr' ), 'type' => 'checkbox' ) );
 	$wp_customize->add_setting( 'mcupr_credit_photo', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
 	$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'mcupr_credit_photo', array( 'section' => 'mcupr_org', 'label' => __( 'Site credit: photo (optional, shown round)', 'mcupr' ), 'mime_type' => 'image' ) ) );
 	foreach ( mcupr_ui_languages() as $code => $l ) {

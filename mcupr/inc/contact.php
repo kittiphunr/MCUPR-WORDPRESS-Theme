@@ -112,40 +112,86 @@ function mcupr_contact_list() {
 }
 
 /**
- * The site creator's card for the footer (Customizer → organisation: "Site credit …"): photo or initial,
- * name, role, short tagline and contact links. Prints nothing until a name is entered.
+ * The site creator shown in the footer card and the About dialog. Like the
+ * BDA-MCU-PHRAE project it ships with the creator's name, role, contacts and
+ * photo built in; every field can be overridden in the Customizer, and the
+ * whole credit can be switched off (mcupr_credit_hide).
+ *
+ * @return array|null Null when hidden.
  */
-function mcupr_credit_card() {
+function mcupr_credit() {
+	if ( get_theme_mod( 'mcupr_credit_hide', false ) ) {
+		return null;
+	}
+	$g    = static function ( $k, $d ) {
+		$v = trim( (string) get_theme_mod( 'mcupr_credit_' . $k, '' ) );
+		return '' !== $v ? $v : $d;
+	};
 	$name = trim( (string) get_theme_mod( 'mcupr_credit_name', '' ) );
-	if ( '' === $name ) {
+	$own  = '' !== $name; // a custom name means a different creator: drop the built-in contacts.
+	$d    = $own ? array( 'en' => '', 'role' => '', 'tag' => '', 'email' => '', 'tel' => '', 'url' => '', 'github' => '' ) : array(
+		'en'     => 'Kittiphun Ruttanakorn',
+		'role'   => 'นักวิชาการคอมพิวเตอร์',
+		'tag'    => 'Network · Server · Full-Stack',
+		'email'  => 'kittiphun.rut@mcu.ac.th',
+		'tel'    => '089-955-4194',
+		'url'    => 'https://kittiphunr.github.io/',
+		'github' => 'https://github.com/kittiphunr',
+	);
+	$photo = (int) get_theme_mod( 'mcupr_credit_photo', 0 );
+	return array(
+		'name'   => $own ? $name : 'นายกิตติพันธ์ รัตนคร',
+		'en'     => $g( 'en', $d['en'] ),
+		'role'   => $g( 'role', $d['role'] ),
+		'tag'    => $g( 'tag', $d['tag'] ),
+		'email'  => $g( 'email', $d['email'] ),
+		'tel'    => $g( 'tel', $d['tel'] ),
+		'url'    => $g( 'url', $d['url'] ),
+		'github' => $g( 'github', $d['github'] ),
+		'photo'  => $photo,
+		'img'    => $photo && wp_get_attachment_image_src( $photo, 'thumbnail' ) ? 'attachment' : ( $own ? '' : 'bundled' ),
+	);
+}
+
+/** The creator's round photo (custom attachment, else the bundled one, else the initial). */
+function mcupr_credit_photo_html( $c, $class ) {
+	if ( 'attachment' === $c['img'] ) {
+		return wp_get_attachment_image( $c['photo'], 'thumbnail', false, array( 'alt' => $c['name'], 'class' => $class, 'loading' => 'lazy', 'decoding' => 'async' ) );
+	}
+	if ( 'bundled' === $c['img'] ) {
+		return '<img class="' . esc_attr( $class ) . '" src="' . esc_url( get_theme_file_uri( 'assets/img/developer.jpg' ) ) . '" alt="' . esc_attr( $c['name'] ) . '" width="88" height="88" loading="lazy" decoding="async">';
+	}
+	return '<span class="' . esc_attr( $class ) . ' ' . esc_attr( $class ) . '-initial fcredit-in" aria-hidden="true">' . esc_html( mb_substr( $c['name'], 0, 1 ) ) . '</span>';
+}
+
+/** Footer card with the creator's photo and contacts. */
+function mcupr_credit_card() {
+	$c = mcupr_credit();
+	if ( ! $c ) {
 		return;
 	}
-	$role  = (string) get_theme_mod( 'mcupr_credit_role', '' );
-	$tag   = (string) get_theme_mod( 'mcupr_credit_tag', '' );
-	$email = (string) get_theme_mod( 'mcupr_credit_email', '' );
-	$tel   = (string) get_theme_mod( 'mcupr_credit_tel', '' );
-	$url   = (string) get_theme_mod( 'mcupr_credit_url', '' );
-	$photo = (int) get_theme_mod( 'mcupr_credit_photo', 0 );
 	echo '<section class="fcredit" aria-labelledby="fcredit-t"><h2 class="fcredit-h" id="fcredit-t">' . esc_html( mcupr_t( 'about_dev' ) ) . '</h2><div class="fcredit-b">';
-	if ( $photo && wp_get_attachment_image_src( $photo, 'thumbnail' ) ) {
-		echo wp_get_attachment_image( $photo, 'thumbnail', false, array( 'alt' => '', 'class' => 'fcredit-ph', 'loading' => 'lazy', 'decoding' => 'async' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
-	} else {
-		echo '<span class="fcredit-ph fcredit-in" aria-hidden="true">' . esc_html( mb_substr( $name, 0, 1 ) ) . '</span>';
+	echo mcupr_credit_photo_html( $c, 'fcredit-ph' ); // phpcs:ignore WordPress.Security.EscapeOutput
+	echo '<div class="fcredit-t"><p class="fcredit-n">' . ( $c['url'] ? '<a href="' . esc_url( $c['url'] ) . '" rel="noopener">' . esc_html( $c['name'] ) . '</a>' : esc_html( $c['name'] ) ) . '</p>';
+	if ( '' !== $c['en'] ) {
+		echo '<p class="fcredit-e">' . esc_html( $c['en'] ) . '</p>';
 	}
-	echo '<div class="fcredit-t"><p class="fcredit-n">' . ( $url ? '<a href="' . esc_url( $url ) . '" rel="noopener">' . esc_html( $name ) . '</a>' : esc_html( $name ) ) . '</p>';
-	if ( '' !== $role ) {
-		echo '<p class="fcredit-r">' . esc_html( $role ) . ' · ' . esc_html( mcupr_org_name() ) . '</p>';
+	if ( '' !== $c['role'] ) {
+		echo '<p class="fcredit-r">' . esc_html( $c['role'] ) . ' · ' . esc_html( mcupr_org_name() ) . '</p>';
 	}
-	if ( '' !== $tag ) {
-		echo '<p class="fcredit-g">' . esc_html( $tag ) . '</p>';
+	if ( '' !== $c['tag'] ) {
+		echo '<p class="fcredit-g">' . esc_html( $c['tag'] ) . '</p>';
 	}
-	if ( $email || $tel ) {
+	if ( $c['email'] || $c['tel'] || $c['github'] ) {
 		echo '<p class="fcredit-c">';
-		if ( $email ) {
-			echo '<a href="mailto:' . esc_attr( $email ) . '">' . mcupr_icon( 'mail', 16 ) . esc_html( $email ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		if ( $c['email'] ) {
+			echo '<a href="mailto:' . esc_attr( $c['email'] ) . '">' . mcupr_icon( 'mail', 16 ) . esc_html( $c['email'] ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		}
-		if ( $tel ) {
-			echo '<a href="tel:' . esc_attr( preg_replace( '/[^0-9+]/', '', $tel ) ) . '">' . mcupr_icon( 'phone', 16 ) . esc_html( $tel ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		if ( $c['tel'] ) {
+			echo '<a href="tel:' . esc_attr( preg_replace( '/[^0-9+]/', '', $c['tel'] ) ) . '">' . mcupr_icon( 'phone', 16 ) . esc_html( $c['tel'] ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		}
+		if ( $c['github'] ) {
+			echo '<a href="' . esc_url( $c['github'] ) . '" target="_blank" rel="noopener noreferrer">' . mcupr_icon( 'link', 16 ) . esc_html( preg_replace( '#^https?://#', '', untrailingslashit( $c['github'] ) ) ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		}
 		echo '</p>';
 	}
