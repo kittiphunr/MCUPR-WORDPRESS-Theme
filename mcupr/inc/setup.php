@@ -62,3 +62,14 @@ add_filter( 'excerpt_more', static function () {
 
 /** "Category: News" -> "News" (the prefix is English-only; the band title says enough). */
 add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
+
+/** Browser-tab icon: the emblem, until a Site Icon is set in the Customizer. */
+add_action(
+	'wp_head',
+	static function () {
+		if ( ! has_site_icon() ) {
+			echo '<link rel="icon" type="image/svg+xml" href="' . esc_url( MCUPR_URI . '/assets/img/mcu-logo.svg' ) . '">' . "\n";
+		}
+	},
+	2
+);
