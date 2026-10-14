@@ -15,6 +15,11 @@ wp_install( 'MCU Test', 'admin', 'a@example.com', true, '', 'pass1234!', 'th' );
 switch_theme( 'mcupr' );
 update_option( 'permalink_structure', '/%postname%/' );
 
+// MCUPR_NO_FIXTURES=1: a clean install (used by the starter-import test)
+if ( getenv( 'MCUPR_NO_FIXTURES' ) ) {
+	return;
+}
+
 // ---- posts
 $ids = array();
 for ( $i = 1; $i <= 10; $i++ ) {
