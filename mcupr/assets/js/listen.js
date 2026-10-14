@@ -19,7 +19,9 @@
 	var playBtn = root.querySelector('[data-listen-play]');
 	var playLabel = root.querySelector('[data-listen-play-label]');
 	var stopBtn = root.querySelector('[data-listen-stop]');
-	var rateSel = root.querySelector('[data-listen-rate]');
+	var rateInputs = [].slice.call(root.querySelectorAll('[data-listen-rate]'));
+	var rateGroup = root.querySelector('[data-listen-rates]');
+	var rateValue = function () { var c = rateInputs.filter(function (i) { return i.checked; })[0]; return c ? c.value : '1'; };
 	var RATE_KEY = 'mcupr_rate';
 	var T = function (k) { return root.getAttribute('data-t-' + k) || ''; };
 
@@ -28,7 +30,7 @@
 	var synth = window.speechSynthesis;
 	if (!synth || typeof window.SpeechSynthesisUtterance === 'undefined') {
 		if (playBtn) { playBtn.hidden = true; }
-		if (rateSel) { rateSel.closest('label').hidden = true; }
+		if (rateGroup) { rateGroup.hidden = true; }
 		say(T('unsupported'));
 		return;
 	}
@@ -38,7 +40,7 @@
 
 	try {
 		var saved = localStorage.getItem(RATE_KEY);
-		if (saved && rateSel) { rateSel.value = saved; }
+		if (saved) { rateInputs.forEach(function (i) { i.checked = i.value === saved; }); }
 	} catch (e) { /* ignore */ }
 
 	var LANG_MAP = { th: 'th-TH', en: 'en-US', zh: 'zh-CN', ja: 'ja-JP' };
@@ -123,7 +125,7 @@
 		var lang = speechLang();
 		var u = new window.SpeechSynthesisUtterance(item.text);
 		u.lang = lang;
-		u.rate = parseFloat(rateSel ? rateSel.value : '1') || 1;
+		u.rate = parseFloat(rateValue()) || 1;
 		var v = pickVoice(lang);
 		if (v.voice) { u.voice = v.voice; }
 		var mine = ++token;
@@ -177,12 +179,12 @@
 		});
 	}
 	if (stopBtn) { stopBtn.addEventListener('click', function () { finish(false); }); }
-	if (rateSel) {
-		rateSel.addEventListener('change', function () {
-			try { localStorage.setItem(RATE_KEY, rateSel.value); } catch (e) { /* ignore */ }
+	rateInputs.forEach(function (i) {
+		i.addEventListener('change', function () {
+			try { localStorage.setItem(RATE_KEY, rateValue()); } catch (e) { /* ignore */ }
 			if (state === 'playing') { token++; synth.cancel(); speakNext(); } // continue the current chunk at the new speed
 		});
-	}
+	});
 
 	window.addEventListener('pagehide', function () { synth.cancel(); });
 	document.addEventListener('keydown', function (e) {
