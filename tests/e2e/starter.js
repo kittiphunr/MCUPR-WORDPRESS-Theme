@@ -41,6 +41,25 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   }
   await p.setViewportSize({ width: 1366, height: 900 });
 
+  // top bar proportions + the icon of the active item stays visible (>= 3:1 against its pill) in every colour mode
+  await p.setViewportSize({ width: 1440, height: 900 });
+  const lum = (c) => { const v = c.match(/[\d.]+/g).slice(0, 3).map((x) => { x = x / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  for (const mode of ['light', 'dark', 'contrast']) {
+    await p.goto(B + '/about/');
+    await p.evaluate((m) => { const r = document.documentElement; if (m === 'dark') { r.setAttribute('data-theme', 'dark'); } if (m === 'contrast') { r.setAttribute('data-contrast', 'high'); } }, mode);
+    const r = await p.evaluate(() => {
+      const a = document.querySelector('.site-nav .menu > .current-menu-ancestor > a, .site-nav .menu > .current-menu-item > a');
+      const ic = a.querySelector('.ic');
+      return { icon: getComputedStyle(ic).color, pill: getComputedStyle(a).backgroundColor, text: getComputedStyle(a).color, shown: ic.getBoundingClientRect().width > 8 };
+    });
+    ok(r.shown && ratio(r.icon, r.pill) >= 3, mode + ': icon of the active menu item is visible on its pill (' + ratio(r.icon, r.pill).toFixed(1) + ':1)');
+  }
+  await p.goto(B + '/about/');
+  const hs = await p.evaluate(() => ({ util: document.querySelector('.utility-menu').closest('div.bg-bar').getBoundingClientRect().height, utilFont: parseFloat(getComputedStyle(document.querySelector('.utility-menu a')).fontSize), navFont: parseFloat(getComputedStyle(document.querySelector('.site-nav .menu > li > a')).fontSize) }));
+  ok(hs.util <= 42, 'utility bar is compact (' + Math.round(hs.util) + 'px)');
+  ok(hs.utilFont < hs.navFont, 'utility links are smaller than the main menu (' + hs.utilFont + 'px < ' + hs.navFont + 'px)');
+
   // only one dropdown / mega panel open at a time
   await p.setViewportSize({ width: 1440, height: 900 });
   await p.goto(B + '/');
