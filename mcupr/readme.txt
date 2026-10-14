@@ -30,6 +30,12 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.2.2 =
+* Page band extends up to the top bar under the floating header.
+
+= 1.2.1 =
+* Top bar proportions (compact utility bar, tighter main menu, icon-only All menu button below 1600px), icon of the active menu item readable.
+
 = 1.2.0 =
 * Full-screen menu (All menu button), one open menu panel at a time, refined mega menu.
 = 1.1.0 =
