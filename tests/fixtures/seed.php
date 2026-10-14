@@ -23,6 +23,8 @@ for ( $i = 1; $i <= 10; $i++ ) {
 		'post_content' => "<p>เนื้อหาข่าวทดสอบหมายเลข $i สำหรับธีม MCUPR</p>",
 		'post_excerpt' => "สรุปข่าว $i",
 		'post_status'  => 'publish',
+		// distinct times, like a real site (older WordPress finds previous/next posts only by date)
+		'post_date'    => gmdate( 'Y-m-d H:i:s', time() - ( 11 - $i ) * 60 ),
 	) );
 }
 update_post_meta( $ids[1], '_mcupr_en_title', 'Test news 1' );
