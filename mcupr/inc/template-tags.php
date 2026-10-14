@@ -277,6 +277,7 @@ function mcupr_section_pages( $post_id ) {
 
 /** Centered status card (404, no results): round icon, title, text, optional extra HTML. */
 function mcupr_state_card( $icon, $title, $text = '', $extra = '', $tag = 'h1' ) {
+	$tag = in_array( $tag, array( 'h1', 'h2', 'h3' ), true ) ? $tag : 'h2';
 	echo '<div class="state-card"><span class="st-ic">' . mcupr_icon( $icon, 34 ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	echo '<' . $tag . '>' . esc_html( $title ) . '</' . $tag . '>';
 	if ( $text ) {
