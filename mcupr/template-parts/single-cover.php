@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 <article data-layout="cover" id="post-<?php the_ID(); ?>" <?php post_class( 'pb-4' ); ?>>
 	<header class="mcu-wheel relative isolate flex min-h-[22rem] items-end overflow-hidden bg-neutral-800 text-white min-[900px]:min-h-[30rem]"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<?php if ( has_post_thumbnail() ) : ?>
-			<span class="noimg:hidden absolute inset-0 -z-20" aria-hidden="true"><?php the_post_thumbnail( 'full', array( 'alt' => '', 'class' => 'size-full object-cover', 'fetchpriority' => 'high' ) ); ?></span>
+			<span class="noimg:hidden absolute inset-0 -z-20" aria-hidden="true"><?php the_post_thumbnail( 'mcupr-hero', array( 'alt' => '', 'class' => 'size-full object-cover', 'sizes' => '100vw', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></span>
 		<?php endif; ?>
 		<span class="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/55 to-black/20" aria-hidden="true"></span>
 		<div class="wrap pt-24 pb-8 [&_nav]:text-white/90 [&_nav_a]:!text-white">

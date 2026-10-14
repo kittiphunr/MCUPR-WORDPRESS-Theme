@@ -170,7 +170,28 @@
 		apply();
 	}
 
-	/* ---------------------------------------------------------------- SweetAlert2 */
+	/* ---------------------------------------------------------------- SweetAlert2 (loaded on first use) */
+	var swalPromise = null;
+	function loadSwal() {
+		if (window.Swal) { return Promise.resolve(window.Swal); }
+		if (!swalPromise) {
+			swalPromise = new Promise(function (resolve, reject) {
+				var el = document.createElement('script');
+				el.src = i18n.swalUrl;
+				el.onload = function () { resolve(window.Swal); };
+				el.onerror = function () { swalPromise = null; reject(new Error('SweetAlert2 failed to load')); };
+				document.head.appendChild(el);
+			});
+		}
+		return swalPromise;
+	}
+	/* warm it up the moment a visitor reaches for a dialog button, so the click feels instant */
+	['#a11y-toggle', '#lang-toggle', '#search-toggle', '#about-toggle', '[data-open-about]'].forEach(function (sel) {
+		$$(sel).forEach(function (el) {
+			['pointerenter', 'focus', 'touchstart'].forEach(function (ev) { el.addEventListener(ev, function () { loadSwal().catch(function () {}); }, { once: true, passive: true }); });
+		});
+	});
+
 	function swalBase(extra) {
 		var base = {
 			buttonsStyling: false,
@@ -199,25 +220,27 @@
 			window.setTimeout(function () { live.textContent = msg; }, 30);
 			return;
 		}
-		if (!window.Swal || window.Swal.isVisible()) { return; }
-		window.Swal.fire(swalBase({
-			toast: true,
-			position: 'bottom-end',
-			icon: 'success',
-			title: msg,
-			showConfirmButton: false,
-			timer: 1800,
-			customClass: { popup: 'swal-toast', title: 'swal-title' }
-		}));
+		loadSwal().then(function (Swal) {
+			if (Swal.isVisible()) { return; }
+			Swal.fire(swalBase({
+				toast: true,
+				position: 'bottom-end',
+				icon: 'success',
+				title: msg,
+				showConfirmButton: false,
+				timer: 1800,
+				customClass: { popup: 'swal-toast', title: 'swal-title' }
+			}));
+		}).catch(function () { /* no toast without the library */ });
 	}
 
 	/* Open a <template id="…"> in a SweetAlert2 dialog. */
 	function openDialog(tplId, opts) {
 		var tpl = document.getElementById(tplId);
-		if (!tpl || !window.Swal) { return false; }
+		if (!tpl) { return false; }
 		var box = document.createElement('div');
 		box.appendChild(tpl.content.cloneNode(true));
-		window.Swal.fire(swalBase(Object.assign({
+		loadSwal().then(function (Swal) { Swal.fire(swalBase(Object.assign({
 			html: box,
 			showConfirmButton: false,
 			showCloseButton: true,
@@ -226,7 +249,7 @@
 			keydownListenerCapture: true, // Esc / Tab keep working even if focus fell to <body> (e.g. a button was hidden)
 			customClass: { popup: 'swal-popup swal-modal', title: 'swal-title', htmlContainer: '!m-0 !p-0 !text-left', closeButton: 'swal-close' },
 			willOpen: function () { sync(); }
-		}, opts)));
+		}, opts))); }).catch(function () { /* library blocked: nothing to open */ });
 		return true;
 	}
 
@@ -816,29 +839,15 @@
 		if (spatialMove(dir)) { e.preventDefault(); }
 	});
 
-	/* ---------------------------------------------------------------- cookie / PDPA notice */
-	function esc(t) {
-		var d = document.createElement('div');
-		d.textContent = t;
-		return d.innerHTML;
-	}
-
-	var seen = false;
-	try { seen = localStorage.getItem(CONSENT_KEY) === '1'; } catch (e) { /* ignore */ }
-	if (!seen && window.Swal && i18n.cookieMsg) {
-		var link = i18n.cookieLink ? ' <a href="' + esc(i18n.cookieLink) + '" target="_blank" rel="noopener">' + esc(i18n.cookiePolicy) + '</a>' : '';
-		window.Swal.fire(swalBase({
-			position: 'bottom-end',
-			backdrop: false,
-			grow: false,
-			icon: 'info',
-			title: i18n.cookieTitle,
-			html: esc(i18n.cookieMsg) + link,
-			confirmButtonText: i18n.cookieOk,
-			allowOutsideClick: false,
-			allowEscapeKey: false
-		})).then(function () {
+	/* ---------------------------------------------------------------- cookie / PDPA notice
+	   The banner is plain HTML in the footer, shown by CSS while <html class="needs-consent"> (set before
+	   first paint by the inline head script), so it costs no JavaScript or library download. */
+	var cookieBox = $('#cookie-notice');
+	var cookieOk = cookieBox && $('[data-cookie-ok]', cookieBox);
+	if (cookieOk) {
+		cookieOk.addEventListener('click', function () {
 			try { localStorage.setItem(CONSENT_KEY, '1'); } catch (e) { /* ignore */ }
+			root.classList.remove('needs-consent');
 		});
 	}
 
