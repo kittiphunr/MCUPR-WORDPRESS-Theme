@@ -1174,3 +1174,16 @@ html[data-contrast] .fb-views button[aria-checked="true"] { border: 2px solid va
 }
 @keyframes sb-run { to { stroke-dashoffset: -100; } }
 @media print { .sb-ring { display: none; } }
+
+/* ===== Accessibility dialog: the extra options as icon tiles ===== */
+.opt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.75rem, 1fr)); gap: .6rem; padding: .35rem 0 1.4rem; }
+.opt { position: relative; display: block; }
+.opt-b { display: grid; place-items: center; width: 100%; aspect-ratio: 1; min-height: 3.5rem; border: 2px solid var(--control, var(--border)); border-radius: 1.1rem; background: var(--bg); color: var(--text-2); cursor: pointer; transition: background-color .15s, color .15s, border-color .15s; }
+.opt-b:hover { background: var(--tint); border-color: var(--primary); }
+.opt input:checked + .opt-b { border-color: var(--primary); background: var(--primary); color: var(--on-primary); }
+.opt input:checked + .opt-b:hover { background: var(--primary); }
+.opt::after { content: attr(data-tip); position: absolute; z-index: 5; left: 50%; bottom: calc(100% + .35rem); transform: translateX(-50%); width: max-content; max-width: 14rem; padding: .35rem .7rem; border-radius: .6rem; background: var(--text); color: var(--bg); font-size: .85rem; font-weight: 600; line-height: 1.35; text-align: center; opacity: 0; pointer-events: none; transition: opacity .12s; }
+.opt:hover::after, .opt:has(input:focus-visible)::after { opacity: 1; }
+.opt:nth-child(-n+2)::after { left: 0; transform: none; }
+.opt:nth-last-child(-n+2)::after { left: auto; right: 0; transform: none; }
+html[data-motion="1"] .opt::after, html[data-motion="1"] .opt-b { transition: none; }
