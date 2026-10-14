@@ -12,7 +12,7 @@ get_header();
 		the_post();
 		get_template_part( 'template-parts/single', mcupr_post_layout() );
 		if ( comments_open() || get_comments_number() ) {
-			echo '<div class="narrow mt-12">';
+			echo '<div class="mx-auto mt-12 w-[min(100%-1.5rem,48rem)] min-[400px]:w-[min(100%-2rem,48rem)]">';
 			comments_template();
 			echo '</div>';
 		}

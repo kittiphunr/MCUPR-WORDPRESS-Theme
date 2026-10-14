@@ -9,9 +9,9 @@
 defined( 'ABSPATH' ) || exit;
 $url   = get_permalink();
 $title = wp_strip_all_tags( get_the_title() );
-$btn   = 'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-line bg-bg px-3 text-fg no-underline hover:border-primary hover:text-link';
+$btn   = 'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-full border-0 bg-transparent px-4 font-semibold text-fg2 no-underline hover:bg-tint hover:text-link';
 ?>
-<div class="no-print flex flex-wrap items-center gap-2" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'article_tools' ) ); ?>">
+<div class="no-print pill-tabs !flex items-center" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'article_tools' ) ); ?>">
 	<a class="<?php echo esc_attr( $btn ); ?>" href="<?php echo esc_url( 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode( $url ) ); ?>" target="_blank" rel="noopener noreferrer">Facebook<span class="sr-only"> – <?php mcupr_e( 'share' ); ?></span></a>
 	<a class="<?php echo esc_attr( $btn ); ?>" href="<?php echo esc_url( 'https://social-plugins.line.me/lineit/share?url=' . rawurlencode( $url ) ); ?>" target="_blank" rel="noopener noreferrer">LINE<span class="sr-only"> – <?php mcupr_e( 'share' ); ?></span></a>
 	<button type="button" class="<?php echo esc_attr( $btn ); ?>" data-copy-link="<?php echo esc_url( $url ); ?>" data-copied="<?php echo esc_attr( mcupr_t( 'link_copied' ) ); ?>"><?php mcupr_e( 'copy_link' ); ?></button>
