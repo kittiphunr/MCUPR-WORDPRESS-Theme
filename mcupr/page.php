@@ -47,7 +47,7 @@ get_header();
 		<?php if ( $has_side ) : ?>
 			<aside class="no-print min-[1000px]:sticky min-[1000px]:top-6 min-[1000px]:self-start" <?php echo $section ? 'aria-labelledby="section-title"' : 'aria-label="' . esc_attr( mcupr_t( 'in_section' ) ) . '"'; ?>>
 				<?php if ( $section ) : ?>
-				<div class="rounded-2xl border border-line bg-bg p-5">
+				<div class="soft-card p-5">
 					<h2 id="section-title" class="mcu-title mb-4 text-xl font-bold"><?php mcupr_e( 'in_section' ); ?></h2>
 					<ul class="m-0 list-none p-0">
 						<li><a class="flex min-h-11 items-center rounded-lg px-2 font-bold text-fg no-underline hover:bg-surface <?php echo get_the_ID() === $root ? 'bg-tint' : ''; ?>" href="<?php echo esc_url( get_permalink( $root ) ); ?>" <?php echo get_the_ID() === $root ? 'aria-current="page"' : ''; ?>><?php echo esc_html( get_the_title( $root ) ); ?></a></li>

@@ -6,7 +6,7 @@
  */
 
 defined( 'ABSPATH' ) || exit;
-$box = 'rounded-2xl border border-line bg-bg p-5';
+$box = 'soft-card p-5';
 ?>
 <div class="wrap">
 	<?php mcupr_breadcrumb(); ?>

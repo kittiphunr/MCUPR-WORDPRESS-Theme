@@ -22,10 +22,10 @@ $chips = ! isset( $args['chips'] ) || $args['chips'];
 			$cur        = is_category() ? get_queried_object_id() : 0;
 			?>
 			<nav class="mt-6" aria-label="<?php echo esc_attr( mcupr_t( 'news_categories' ) ); ?>">
-				<ul class="m-0 flex list-none flex-wrap gap-2 p-0">
-					<li><a class="inline-flex min-h-11 items-center rounded-full border-2 border-line bg-bg px-4 font-semibold text-fg no-underline hover:border-primary aria-[current]:border-primary aria-[current]:bg-primary aria-[current]:text-on-primary" href="<?php echo esc_url( $posts_page ); ?>" <?php echo $cur || ! is_home() ? '' : 'aria-current="page"'; ?>><?php mcupr_e( 'all_cats' ); ?></a></li>
+				<ul class="pill-tabs m-0 list-none">
+					<li class="contents"><a href="<?php echo esc_url( $posts_page ); ?>" <?php echo $cur || ! is_home() ? '' : 'aria-current="page"'; ?>><?php mcupr_e( 'all_cats' ); ?></a></li>
 					<?php foreach ( get_categories( array( 'hide_empty' => true ) ) as $c ) : ?>
-						<li><a class="inline-flex min-h-11 items-center rounded-full border-2 border-line bg-bg px-4 font-semibold text-fg no-underline hover:border-primary aria-[current]:border-primary aria-[current]:bg-primary aria-[current]:text-on-primary" href="<?php echo esc_url( get_category_link( $c ) ); ?>" <?php echo (int) $c->term_id === $cur ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $c->name ); ?></a></li>
+						<li class="contents"><a href="<?php echo esc_url( get_category_link( $c ) ); ?>" <?php echo (int) $c->term_id === $cur ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $c->name ); ?></a></li>
 					<?php endforeach; ?>
 				</ul>
 			</nav>
