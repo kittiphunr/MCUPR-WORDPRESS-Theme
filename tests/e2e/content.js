@@ -521,6 +521,21 @@ const speechStub = (speakMs) => `(() => {
     await c2.close();
   }
 
+  // ================= Review fixes: language cookie header, canonical og:url
+  {
+    const c = await newCtx();
+    const p = await c.newPage();
+    const res = await p.goto(B + '/?lang=en');
+    const sc = (await res.headersArray()).filter((h) => h.name.toLowerCase() === 'set-cookie' && /mcupr_lang/.test(h.value)).map((h) => h.value).join(' | ');
+    ok(/mcupr_lang=en/.test(sc) && /samesite=lax/i.test(sc) && /httponly/i.test(sc), 'language cookie: value, HttpOnly, SameSite=Lax ' + sc.slice(0, 60));
+    await p.goto(B + '/category/' + encodeURIComponent('ข่าวประชาสัมพันธ์') + '/');
+    const og = await p.getAttribute('meta[property="og:url"]', 'content');
+    ok(og.startsWith(B + '/category/') && !og.includes('/category/category/'), 'og:url of a category is its own URL once: ' + og);
+    await p.goto(B + '/');
+    ok((await p.getAttribute('meta[property="og:url"]', 'content')) === B + '/', 'og:url of the home page is the site root');
+    await c.close();
+  }
+
   await br.close();
   finish();
 })();

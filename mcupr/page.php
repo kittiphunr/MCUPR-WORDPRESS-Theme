@@ -73,8 +73,8 @@ get_header();
 					<h2 id="section-title" class="mcu-title mb-4 text-xl font-bold"><?php mcupr_e( 'in_section' ); ?></h2>
 					<ul class="side-tabs">
 						<li><a class="font-bold" href="<?php echo esc_url( get_permalink( $root ) ); ?>" <?php echo get_the_ID() === $root ? 'aria-current="page"' : ''; ?>><?php echo esc_html( get_the_title( $root ) ); ?></a></li>
-						<?php foreach ( $section as $p ) : ?>
-							<li><a style="margin-left: <?php echo esc_attr( 0.75 * count( get_post_ancestors( $p->ID ) ) ); ?>rem" href="<?php echo esc_url( get_permalink( $p ) ); ?>" <?php echo get_the_ID() === $p->ID ? 'aria-current="page"' : ''; ?>><?php echo esc_html( get_the_title( $p ) ); ?></a></li>
+						<?php foreach ( $section as $sp ) : ?>
+							<li><a style="margin-left: <?php echo esc_attr( 0.75 * count( get_post_ancestors( $sp->ID ) ) ); ?>rem" href="<?php echo esc_url( get_permalink( $sp ) ); ?>" <?php echo get_the_ID() === $sp->ID ? 'aria-current="page"' : ''; ?>><?php echo esc_html( get_the_title( $sp ) ); ?></a></li>
 						<?php endforeach; ?>
 					</ul>
 				</div>
