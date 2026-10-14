@@ -63,6 +63,7 @@ function mcupr_count_view() {
 		add_post_meta( $id, '_mcupr_views', 1, true );
 	}
 	wp_cache_delete( $id, 'post_meta' );
+	mcupr_stats_hit();
 }
 add_action( 'template_redirect', 'mcupr_count_view', 20 );
 
