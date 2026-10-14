@@ -532,3 +532,21 @@ html:not([data-menu="side"]) .site-header > .wrap { padding-left: 1.25rem; paddi
 	html[data-menu="hybrid"] .site-nav { top: 5.25rem; }
 	html[data-menu="hybrid"] .site-nav .sb-brand, html[data-menu="hybrid"] .site-nav .sb-foot { display: none; }
 }
+
+/* ===== Top-bar menu: one row that fits ("More" dropdown for what does not) ===== */
+@media (min-width: 1100px) {
+	html[data-menu="top"] #masthead > .wrap { grid-template-columns: minmax(0, max-content) minmax(0, 1fr) auto; }
+	html[data-menu="top"] #masthead .brand { max-width: min(30vw, 24rem); }
+	html[data-menu="top"] .site-nav { min-width: 0; }
+	html[data-menu="top"] .site-nav .menu { flex-wrap: nowrap; justify-content: center; gap: .125rem; }
+	html[data-menu="top"] .site-nav .menu > li { flex-wrap: nowrap; flex: none; }
+	html[data-menu="top"] .site-nav .menu > li > a { white-space: nowrap; padding-inline: clamp(.6rem, .85vw, 1.1rem); }
+	html[data-menu="top"] .site-nav .menu > li > .submenu-toggle { min-width: 1.75rem; margin-left: -.3rem; }
+	html[data-menu="top"] .site-nav .menu-more > .more-btn { gap: .35rem; padding-inline: clamp(.7rem, 1vw, 1.1rem); border-radius: 9999px; font-weight: 600; font-size: .92rem; color: var(--text-2); white-space: nowrap; margin-left: 0; }
+	html[data-menu="top"] .site-nav .menu-more > .more-btn:hover, html[data-menu="top"] .site-nav .menu-more.is-open > .more-btn { background: var(--tint); color: var(--link); }
+	html[data-menu="top"] .site-nav .menu-more.has-current > .more-btn { background: var(--primary); color: var(--on-primary); box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 38%, transparent); }
+	html[data-menu="top"] .site-nav .menu-more > .sub-menu { left: auto; right: 0; min-width: 16rem; }
+	html[data-menu="top"] .site-nav .menu-more .sub-menu .sub-menu { left: auto; right: 100%; }
+	html[data-menu="top"] .site-nav .menu-more .sub-menu li > a { white-space: normal; }
+}
+html[data-tv="1"] #masthead .brand { min-height: 4rem; }  /* TV: the logo link is a target too (remote-control focus) */

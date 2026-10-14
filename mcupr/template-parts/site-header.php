@@ -25,7 +25,7 @@ $name = mcupr_org_name();
 				<span class="badge-logo" aria-hidden="true"><?php echo mcupr_icon( 'cap', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 			<?php endif; ?>
 			<span class="flex min-w-0 flex-col leading-tight">
-				<b class="truncate text-base font-bold"><?php echo esc_html( $name ); ?></b>
+				<b class="line-clamp-2 text-base leading-snug font-bold"><?php echo esc_html( $name ); ?></b>
 				<?php if ( $alt ) : ?>
 					<small class="truncate text-xs text-muted" lang="<?php echo esc_attr( 'th' === mcupr_ui_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></small>
 				<?php endif; ?>
