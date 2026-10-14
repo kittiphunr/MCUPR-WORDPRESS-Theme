@@ -62,5 +62,6 @@ $name = mcupr_org_name();
 		</nav>
 	</div>
 </header>
+<script>(function(){var h=document.getElementById('masthead');if(h){var m=parseFloat(getComputedStyle(h).marginTop)||0;document.documentElement.style.setProperty('--hdr-h',(h.offsetHeight+m)+'px');}})();</script>
 <div id="nav-overlay" class="fixed inset-0 z-[25] bg-black/50 opacity-0 transition-opacity duration-300 [&:not(.is-open)]:pointer-events-none min-[1100px]:hidden" aria-hidden="true" hidden></div>
 <button type="button" id="nav-fab" class="nav-fab" aria-controls="site-nav" aria-expanded="false" aria-label="<?php echo esc_attr( mcupr_t( 'open_menu' ) ); ?>"><?php echo mcupr_icon( 'panel', 24 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
