@@ -56,9 +56,9 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(r.shown && ratio(r.icon, r.pill) >= 3, mode + ': icon of the active menu item is visible on its pill (' + ratio(r.icon, r.pill).toFixed(1) + ':1)');
   }
   await p.goto(B + '/about/');
+  await p.click('[data-util-toggle]');
   const hs = await p.evaluate(() => ({ util: document.querySelector('.hdr-util a').getBoundingClientRect().height, utilFont: parseFloat(getComputedStyle(document.querySelector('.hdr-util a')).fontSize), navFont: parseFloat(getComputedStyle(document.querySelector('.site-nav .menu > li > a')).fontSize) }));
-  ok(hs.util <= 42 && (await p.locator('.bg-bar').count()) === 0, 'no black bar; the utility links are compact capsule links (' + Math.round(hs.util) + 'px)');
-  ok(hs.utilFont < hs.navFont, 'utility links are smaller than the main menu (' + hs.utilFont + 'px < ' + hs.navFont + 'px)');
+  ok((await p.locator('.bg-bar').count()) === 0 && hs.util >= 36 && hs.util <= 48, 'no black bar; the quick links are easy-to-hit rows in a panel (' + Math.round(hs.util) + 'px)');
 
   // the page band runs up to the top of the page (the floating header sits on it; there is no black bar)
   for (const [w, u] of [[1440, '/about/'], [390, '/about/'], [1440, '/?s=a']]) {
@@ -164,7 +164,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   await p.evaluate(() => document.documentElement.removeAttribute('data-theme'));
 
   // layout v2: side / hybrid = ONE sidebar card as tall as its menu + a rounded content frame; no black bar (its links join the header)
-  for (const [mode, min] of [['side', '0'], ['side', '1'], ['hybrid', '1']]) {
+  for (const [mode, min] of [['side', '0'], ['side', '1']]) {
     const bc = await br.newContext({ viewport: { width: 1500, height: 900 }, reducedMotion: 'reduce' });
     await bc.addInitScript(([m, mn]) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); localStorage.setItem('mcupr_sbmin', mn); } catch (e) { /* frame */ } }, [mode, min]);
     const bp = await bc.newPage();
@@ -180,7 +180,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       const cur = document.querySelector('.site-nav .menu > .current-menu-item > a');
       const cr = cur ? cur.getBoundingClientRect() : null;
       const hdr = document.getElementById('masthead').getBoundingClientRect();
-      return { navTop: nr.top, navBottom: nr.bottom, navLeft: nr.left, navRight: nr.right, lastBottom: last.bottom, frameLeft: pr.left, frameTop: pr.top, frameRight: pr.right, vw: innerWidth, vh: innerHeight, radius: parseFloat(getComputedStyle(page).borderTopLeftRadius), barShown: !!bar && getComputedStyle(bar).display !== 'none', utilShown: !!util && util.offsetParent !== null, utilLinks: util ? util.querySelectorAll('a').length : 0, cur: cr && { w: cr.width, h: cr.height, l: cr.left, r: cr.right, br: parseFloat(getComputedStyle(cur).borderTopLeftRadius) }, hdrRight: hdr.right, overflow: document.documentElement.scrollWidth > innerWidth + 1, brand: !!document.querySelector('.sb-brand') && document.querySelector('.sb-brand').offsetParent !== null };
+      return { navTop: nr.top, navBottom: nr.bottom, navLeft: nr.left, navRight: nr.right, lastBottom: last.bottom, frameLeft: pr.left, frameTop: pr.top, frameRight: pr.right, vw: innerWidth, vh: innerHeight, radius: parseFloat(getComputedStyle(page).borderTopLeftRadius), barShown: !!bar && getComputedStyle(bar).display !== 'none', utilShown: !!document.querySelector('[data-util-toggle]') && document.querySelector('[data-util-toggle]').offsetParent !== null, utilLinks: util ? util.querySelectorAll('a').length : 0, cur: cr && { w: cr.width, h: cr.height, l: cr.left, r: cr.right, br: parseFloat(getComputedStyle(cur).borderTopLeftRadius) }, hdrRight: hdr.right, overflow: document.documentElement.scrollWidth > innerWidth + 1, brand: !!document.querySelector('.sb-brand') && document.querySelector('.sb-brand').offsetParent !== null };
     });
     const tag = mode + (min === '1' ? ' collapsed' : ' expanded');
     ok(g.navLeft >= 8 && g.navTop >= 8 && g.navTop <= 16, tag + ': the sidebar card floats at the top-left with a margin (' + Math.round(g.navLeft) + ', ' + Math.round(g.navTop) + ')');
@@ -201,11 +201,11 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     const t = await tp.evaluate(() => {
       const r = (s) => document.querySelector(s).getBoundingClientRect();
       const bg = (s) => getComputedStyle(document.querySelector(s)).backgroundColor;
-      return { brand: r('#masthead .brand'), nav: r('.site-nav'), tools: r('#masthead .wrap > div'), brandBg: bg('#masthead .brand'), navBg: bg('.site-nav'), toolsBg: bg('#masthead .wrap > div'), hdrBg: bg('#masthead'), bar: document.querySelector('.bg-bar') ? 'present' : 'none', util: document.querySelector('.hdr-util') && document.querySelector('.hdr-util').offsetParent !== null };
+      return { brand: r('#masthead .brand'), nav: r('.site-nav'), tools: r('#masthead .wrap > div'), brandBg: bg('#masthead .brand'), navBg: bg('.site-nav'), toolsBg: bg('#masthead .wrap > div'), hdrBg: bg('#masthead'), bar: document.querySelector('.bg-bar') ? 'present' : 'none', util: !!document.querySelector('[data-util-toggle]') && document.querySelector('[data-util-toggle]').offsetParent !== null };
     });
     ok(t.nav.left - t.brand.right >= 8 && t.tools.left - t.nav.right >= 8, 'top menu: brand, menu and tools are three separate floating capsules (gaps ' + Math.round(t.nav.left - t.brand.right) + ' / ' + Math.round(t.tools.left - t.nav.right) + 'px)');
     ok(t.brandBg !== 'rgba(0, 0, 0, 0)' && t.navBg !== 'rgba(0, 0, 0, 0)' && t.toolsBg !== 'rgba(0, 0, 0, 0)' && t.hdrBg === 'rgba(0, 0, 0, 0)', 'top menu: each capsule has its own background; the bar behind them is transparent');
-    ok(t.bar === 'none' && t.util, 'top menu: no black bar; the utility links are in the tools capsule');
+    ok(t.bar === 'none' && t.util, 'top menu: no black bar; the quick links are tucked into a button in the tools capsule');
     await tc.close();
   }
   // ---------- Finder-style news browser: zones, folders, tags apart, view switcher, filter, phones
@@ -306,7 +306,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   // ---------- sidebar button ring: loading runner, then scroll progress
   {
     const rc = await br.newContext({ viewport: { width: 1366, height: 800 } });
-    await rc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'hybrid' })); } catch (e) { /* frame */ } });
+    await rc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); } catch (e) { /* frame */ } });
     const rp = await rc.newPage();
     await rp.goto(B + '/print-long/');
     await rp.waitForLoadState('load');
@@ -332,7 +332,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(Math.abs(ex.w - ex.fw) <= 1 && ex.bar >= 99, 'ring: follows the button when the sidebar is expanded');
     await rc.close();
     const rm = await br.newContext({ viewport: { width: 1366, height: 800 }, reducedMotion: 'reduce' });
-    await rm.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'hybrid' })); } catch (e) { /* frame */ } });
+    await rm.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); } catch (e) { /* frame */ } });
     const rmp = await rm.newPage();
     await rmp.goto(B + '/print-long/');
     await rmp.evaluate(() => document.documentElement.classList.add('page-loading'));
@@ -347,7 +347,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await op.goto(B + '/');
     await op.click('#a11y-toggle'); await op.waitForSelector('.swal2-popup');
     await op.click('.swal2-popup summary');
-    const tiles = await op.$$eval('.opt', (a) => a.map((l) => ({ svg: !!l.querySelector('.opt-b svg'), name: l.getAttribute('data-tip'), sr: (l.querySelector('.sr-only:not(input)') || {}).textContent, w: l.querySelector('.opt-b').getBoundingClientRect().width, h: l.querySelector('.opt-b').getBoundingClientRect().height })));
+    const tiles = await op.$$eval('.opt-grid .opt', (a) => a.map((l) => ({ svg: !!l.querySelector('.opt-b svg'), name: l.getAttribute('data-tip'), sr: (l.querySelector('.sr-only:not(input)') || {}).textContent, w: l.querySelector('.opt-b').getBoundingClientRect().width, h: l.querySelector('.opt-b').getBoundingClientRect().height })));
     ok(tiles.length === 8 && tiles.every((t) => t.svg && t.name && t.sr === t.name && t.w >= 44 && Math.abs(t.w - t.h) <= 1), 'options: 8 square icon tiles (>= 44px) with an icon, a tooltip and a screen-reader name');
     ok((await op.locator('.opt-grid label:has-text("โหมดสีเทา")').count()) === 1 && (await op.locator('.opt-grid .opt-b').first().innerText()).trim() !== undefined, 'options: no visible text labels, only icons');
     await op.check('input[data-pref=underline]', { force: true });
@@ -360,6 +360,47 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await op.focus('input[data-pref=tv]'); await op.keyboard.press('Space');
     ok((await op.evaluate(() => document.documentElement.dataset.tv)) === '1', 'options: tiles work from the keyboard');
     await oc.close();
+  }
+  // ---------- menu refresh: quick-links button, clearer hover, full-screen menu in both modes
+  for (const mode of ['top', 'side']) {
+    const mc = await br.newContext({ viewport: { width: 1366, height: 768 }, reducedMotion: 'reduce' });
+    await mc.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* frame */ } }, mode);
+    const mp2 = await mc.newPage();
+    await mp2.goto(B + '/about/');
+    ok(await mp2.evaluate(() => document.documentElement.dataset.menu) === mode, mode + ': mode applied');
+    // quick links: one button, closed by default, opens a panel, closes with Esc and outside click
+    ok((await mp2.locator('[data-util-toggle]').isVisible()) && (await mp2.locator('.util-panel').isHidden()) && (await mp2.locator('[data-util-toggle]').getAttribute('aria-expanded')) === 'false', mode + ': quick links are tucked into one button (closed)');
+    await mp2.click('[data-util-toggle]');
+    ok((await mp2.locator('.util-panel').isVisible()) && (await mp2.locator('.util-panel a').count()) >= 3 && (await mp2.locator('[data-util-toggle]').getAttribute('aria-expanded')) === 'true', mode + ': the button opens the list of quick links');
+    const pr = await mp2.evaluate(() => { const r = document.querySelector('.util-panel').getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.bottom <= innerHeight; });
+    ok(pr, mode + ': the panel stays inside the window');
+    await mp2.keyboard.press('Escape');
+    ok(await mp2.locator('.util-panel').isHidden(), mode + ': Esc closes it');
+    await mp2.click('[data-util-toggle]'); await mp2.mouse.click(600, 500);
+    ok(await mp2.locator('.util-panel').isHidden(), mode + ': a click outside closes it');
+    // hover is clear: a visible fill and outline on the hovered item
+    const item = mp2.locator('.site-nav .menu > li:not(.current-menu-item):not(.current-menu-ancestor) > a').first();
+    const before = await item.evaluate((a) => getComputedStyle(a).backgroundColor);
+    await item.hover(); await mp2.waitForTimeout(250);
+    const after = await item.evaluate((a) => { const s = getComputedStyle(a); return [s.backgroundColor, s.boxShadow]; });
+    ok(after[0] !== before && after[1] !== 'none', mode + ': hovering a menu item gives a clear fill and outline (' + after[0] + ')');
+    // full-screen menu: button present in both modes, fits one screen, filter works, quick links strip
+    ok(await mp2.locator('[data-fs-open]').isVisible(), mode + ': the "All menu" button is shown');
+    await mp2.click('[data-fs-open]'); await mp2.waitForSelector('#fs-menu:not([hidden])'); await mp2.waitForTimeout(300);
+    const fit = await mp2.evaluate(() => { const m = document.getElementById('fs-menu'); return [m.scrollHeight, m.clientHeight]; });
+    ok(fit[0] <= fit[1] + 1, mode + ': the full-screen menu fits one screen at 1366x768 without scrolling (' + fit.join('/') + ')');
+    ok((await mp2.locator('#fs-menu .fs-quick a').count()) >= 3, mode + ': quick links strip at the foot of the full-screen menu');
+    const visible = () => mp2.$$eval('#fs-menu .fs-list > li', (a) => a.filter((l) => !l.hidden).length);
+    const all = await visible();
+    await mp2.fill('[data-fs-find]', 'ทุน');
+    const some = await visible();
+    ok(some >= 1 && some < all && (await mp2.locator('#fs-menu .fs-none').isHidden()), mode + ': the filter narrows the cards (' + all + ' -> ' + some + ')');
+    await mp2.fill('[data-fs-find]', 'zzzzzz');
+    ok((await visible()) === 0 && (await mp2.locator('#fs-menu .fs-none').isVisible()), mode + ': a filter with no match says so');
+    await mp2.fill('[data-fs-find]', '');
+    ok((await visible()) === all, mode + ': clearing the filter restores the cards');
+    await mp2.screenshot({ path: shot('menu-fullscreen-' + mode + '.png') });
+    await mc.close();
   }
   // works & awards (own categories), administration chart, attachments, views
   await p.goto(B + '/works/');

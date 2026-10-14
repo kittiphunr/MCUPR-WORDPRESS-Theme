@@ -437,7 +437,7 @@ const speechStub = (speakMs) => `(() => {
     await p.click('#a11y-toggle'); await p.waitForSelector('.swal2-popup');
     ok((await p.locator('.swal2-popup .settings-group').count()) === 3, 'settings: three groups (display, text, accessibility)');
     ok((await p.locator('.swal2-popup .settings-group h3.eyebrow').allTextContents()).join('|') === 'การแสดงผล|ตัวอักษร|การเข้าถึง', 'settings: group labels in Thai');
-    ok((await p.locator('.swal2-popup .settings-group [data-pref=menu]').count()) === 3 && (await p.locator('.swal2-popup .settings-group [data-font-level]').count()) === 5 && (await p.locator('.swal2-popup .settings-group [data-contrast-switch]').count()) === 1, 'settings: every control sits in its group');
+    ok((await p.locator('.swal2-popup .settings-group [data-pref=menu]').count()) === 2 && (await p.locator('.swal2-popup .settings-group [data-font-level]').count()) === 5 && (await p.locator('.swal2-popup .settings-group [data-contrast-switch]').count()) === 1, 'settings: every control sits in its group');
     ok((await p.locator('.swal2-popup').evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))) >= 24, 'settings: dialog has large rounded corners');
     await p.addScriptTag({ content: axeSource() });
     const r = await p.evaluate(() => axe.run(document.querySelector('.swal2-popup'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
