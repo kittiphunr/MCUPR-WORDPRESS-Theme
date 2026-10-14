@@ -446,6 +446,29 @@ const speechStub = (speakMs) => `(() => {
     await c.close();
   }
 
+  // ================= Home page polish
+  {
+    const c = await newCtx({ viewport: { width: 1280, height: 900 } });
+    const p = await c.newPage();
+    await p.goto(B + '/');
+    const tops = await p.locator('#news-slider > article').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().top)));
+    ok(tops.length >= 3 && new Set(tops).size === 1, 'slider: cards sit in one horizontal row ' + tops.join(','));
+    ok(await p.locator('#news-slider').evaluate((el) => el.scrollWidth > el.clientWidth && getComputedStyle(el).overflowX !== 'visible'), 'slider: track scrolls horizontally');
+    await p.click('[data-carousel-next]');
+    await p.waitForTimeout(700);
+    ok((await p.locator('#news-slider').evaluate((el) => el.scrollLeft)) > 100, 'slider: next button scrolls the track');
+    ok((await p.locator('#featured-title .stat-ic').count()) === 1 && (await p.locator('#news-title .stat-ic').count()) === 1, 'sections: headings have round icons');
+    ok((await p.locator('#news-title').locator('xpath=ancestor::section//nav[@aria-label]//li').count()) >= 2, 'news: category pill tabs next to the heading');
+    ok((await p.locator('[aria-labelledby=news-title] article').first().evaluate((el) => el.classList.contains('min-[900px]:col-span-2'))), 'news: first card is the large featured one');
+    const cta = await p.locator('section[aria-label] a.rounded-full').last().evaluate((a) => { const s = getComputedStyle(a.closest('div')); return [s.backgroundColor, s.color]; });
+    ok(cta[0] !== 'rgba(0, 0, 0, 0)' && cta[0] !== cta[1], 'banner: solid brand colour with contrasting text ' + cta);
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe on the polished home page: ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    r.violations.forEach((v) => console.log('   ', v.id, v.nodes.slice(0, 2).map((x) => x.target.join(' ')).join(' || ')));
+    await c.close();
+  }
+
   await br.close();
   finish();
 })();

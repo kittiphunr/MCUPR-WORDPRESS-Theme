@@ -168,6 +168,11 @@
 	.side-tabs { @apply m-0 grid list-none gap-1 p-0; }
 	.side-tabs a { @apply flex min-h-11 items-center rounded-full px-4 font-semibold text-fg2 no-underline hover:bg-tint; }
 	.side-tabs a[aria-current] { background: var(--primary); color: var(--on-primary); box-shadow: 0 6px 14px color-mix(in srgb, var(--primary) 35%, transparent); }
+	/* Horizontal scroll-snap row (home news slider) */
+	.snap-row { @apply flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:thin]; }
+	.snap-row > * { @apply snap-start; }
+	.slide-btn { @apply grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-bg text-lg text-fg; box-shadow: var(--shadow-soft); border: 1px solid var(--edge); }
+	.slide-btn:hover { background: var(--primary); color: var(--on-primary); }
 	.lift { transition: transform .18s, box-shadow .18s; }
 	.lift:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgb(15 23 42 / .13); }
 	html[data-contrast] .lift:hover, html[data-motion] .lift:hover { transform: none; }
