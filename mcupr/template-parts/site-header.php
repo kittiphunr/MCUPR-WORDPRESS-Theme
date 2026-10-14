@@ -12,8 +12,8 @@ $alt  = mcupr_alt_name();
 $over = mcupr_header_over_hero();
 ?>
 <header id="masthead" class="<?php echo $over ? 'absolute inset-x-0 z-30 bg-gradient-to-b from-black/70 to-transparent text-white' : 'border-b border-line bg-bg'; ?> print:hidden">
-	<div class="wrap flex items-center justify-between gap-4 py-4">
-		<a class="flex items-center gap-4 no-underline <?php echo $over ? 'text-white' : 'text-fg'; ?>" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
+	<div class="wrap flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4">
+		<a class="flex min-w-0 flex-1 items-center gap-4 no-underline <?php echo $over ? 'text-white' : 'text-fg'; ?>" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
 			<?php
 			if ( has_custom_logo() ) {
 				echo wp_get_attachment_image( get_theme_mod( 'custom_logo' ), 'full', false, array( 'class' => 'h-14 w-auto min-[900px]:h-16', 'alt' => '' ) );
@@ -27,7 +27,7 @@ $over = mcupr_header_over_hero();
 			</span>
 		</a>
 
-		<button type="button" class="nav-toggle btn min-[900px]:hidden" aria-expanded="false" aria-controls="site-nav">
+		<button type="button" class="nav-toggle btn shrink-0 whitespace-nowrap min-[900px]:hidden" aria-expanded="false" aria-controls="site-nav">
 			<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
 			<span><?php mcupr_e( 'menu' ); ?></span>
 		</button>

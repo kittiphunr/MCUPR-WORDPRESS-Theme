@@ -15,6 +15,7 @@ $checks = array(
 	'cursor'    => 'big_cursor',
 	'motion'    => 'reduce_motion',
 	'images'    => 'hide_images',
+	'tv'        => 'tv_mode',
 );
 $radio_groups = array(
 	'theme'    => array(
@@ -38,7 +39,7 @@ $input    = 'size-[1.4rem] accent-primary';
 			<button type="button" class="btn-tool" data-close-panel><?php mcupr_e( 'close' ); ?></button>
 		</div>
 
-		<div class="my-4 grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
+		<div class="my-4 grid grid-cols-[repeat(auto-fit,minmax(min(14rem,100%),1fr))] gap-4">
 			<?php foreach ( $radio_groups as $pref => $group ) : ?>
 				<fieldset class="<?php echo esc_attr( $fieldset ); ?>">
 					<legend class="<?php echo esc_attr( $legend ); ?>"><?php mcupr_e( $group['label'] ); ?></legend>
