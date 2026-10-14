@@ -303,6 +303,42 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     } else { console.log('  (poppler not installed: PDF page checks skipped)'); }
     await pc.close();
   }
+  // ---------- sidebar button ring: loading runner, then scroll progress
+  {
+    const rc = await br.newContext({ viewport: { width: 1366, height: 800 } });
+    await rc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'hybrid' })); } catch (e) { /* frame */ } });
+    const rp = await rc.newPage();
+    await rp.goto(B + '/print-long/');
+    await rp.waitForLoadState('load');
+    const st = () => rp.evaluate(() => ({ loading: document.documentElement.classList.contains('page-loading'), spin: getComputedStyle(document.querySelector('.sb-ring-spin')).opacity, anim: getComputedStyle(document.querySelector('.sb-ring-spin')).animationName, bar: parseFloat(document.querySelector('.sb-ring-bar').style.strokeDasharray), vis: getComputedStyle(document.querySelector('.sb-ring-bar')).visibility, w: document.querySelector('.sb-ring').getBoundingClientRect().width, fw: document.querySelector('.sb-foot').getBoundingClientRect().width, h: document.querySelector('.sb-ring').getBoundingClientRect().height, fh: document.querySelector('.sb-foot').getBoundingClientRect().height }));
+    let s0 = await st();
+    ok(!s0.loading && s0.spin === '0' && s0.vis === 'hidden', 'ring: once the page has loaded the runner is gone and nothing is drawn at the top');
+    ok(Math.abs(s0.w - s0.fw) <= 1 && Math.abs(s0.h - s0.fh) <= 1, 'ring: it wraps the expand button exactly (' + Math.round(s0.w) + 'x' + Math.round(s0.h) + ')');
+    await rp.evaluate(() => document.documentElement.classList.add('page-loading'));
+    s0 = await st();
+    ok(s0.spin === '1' && s0.anim === 'sb-run', 'ring: while loading a runner circles the button');
+    await rp.evaluate(() => document.documentElement.classList.remove('page-loading'));
+    await rp.evaluate(() => window.scrollTo(0, (document.documentElement.scrollHeight - innerHeight) / 2));
+    await rp.waitForTimeout(300);
+    const mid = await st();
+    ok(mid.bar > 40 && mid.bar < 60, 'ring: halfway down the page the outline is about half full (' + mid.bar + '%)');
+    await rp.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await rp.waitForTimeout(300);
+    const end = await st();
+    ok(end.bar >= 99, 'ring: at the end of the page the outline is full (' + end.bar + '%)');
+    await rp.click('[data-sb-toggle]');
+    await rp.waitForTimeout(500);
+    const ex = await st();
+    ok(Math.abs(ex.w - ex.fw) <= 1 && ex.bar >= 99, 'ring: follows the button when the sidebar is expanded');
+    await rc.close();
+    const rm = await br.newContext({ viewport: { width: 1366, height: 800 }, reducedMotion: 'reduce' });
+    await rm.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'hybrid' })); } catch (e) { /* frame */ } });
+    const rmp = await rm.newPage();
+    await rmp.goto(B + '/print-long/');
+    await rmp.evaluate(() => document.documentElement.classList.add('page-loading'));
+    ok((await rmp.evaluate(() => getComputedStyle(document.querySelector('.sb-ring-spin')).animationName)) === 'none', 'ring: no spinning with reduced motion');
+    await rm.close();
+  }
   // works & awards (own categories), administration chart, attachments, views
   await p.goto(B + '/works/');
   ok((await p.$$('.work-card')).length === 3, '/works/ lists the 3 sample works');

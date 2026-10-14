@@ -1082,7 +1082,7 @@
 		var brandText = brandLink.lastElementChild;
 		var fitBrand = function () {
 			if (!brandText || brandText === brandLink.firstElementChild) { return; }
-			if (window.innerWidth >= 700) { brandLink.classList.remove('is-compact'); return; }
+			if (window.innerWidth >= 700) { brandLink.classList.remove('is-compact'); brandLink.removeAttribute('aria-label'); return; }
 			brandLink.classList.remove('is-compact');
 			var b = $('b', brandText);
 			var cut = false;
@@ -1091,11 +1091,45 @@
 			});
 			if (brandLink.getBoundingClientRect().right > (brandLink.parentNode.getBoundingClientRect().right + 1)) { cut = true; }
 			brandLink.classList.toggle('is-compact', cut);
+			/* only the logo is left: the link needs a name of its own (otherwise the visible text is its name) */
+			if (cut) { brandLink.setAttribute('aria-label', brandLink.getAttribute('data-name') || ''); } else { brandLink.removeAttribute('aria-label'); }
 		};
 		fitBrand();
 		if (window.ResizeObserver) { new ResizeObserver(fitBrand).observe(document.documentElement); } else { window.addEventListener('resize', fitBrand); }
 		if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fitBrand); }
 	}
+
+	/* ---- ring around the sidebar's expand button: a runner while the page loads, then the scroll progress ---- */
+	var ringFoot = $('.sb-foot');
+	var ring = ringFoot && $('.sb-ring', ringFoot);
+	if (ring) {
+		var rects = $$('rect', ring);
+		var barRect = $('.sb-ring-bar', ring);
+		var sizeRing = function () {
+			var w = ringFoot.offsetWidth, h = ringFoot.offsetHeight;
+			if (!w || !h) { return; }
+			ring.setAttribute('width', w); ring.setAttribute('height', h);
+			rects.forEach(function (r) {
+				r.setAttribute('x', 1.5); r.setAttribute('y', 1.5);
+				r.setAttribute('width', w - 3); r.setAttribute('height', h - 3);
+				r.setAttribute('rx', (Math.min(w, h) - 3) / 2);
+			});
+		};
+		var ringTick = false;
+		var drawRing = function () {
+			ringTick = false;
+			var max = document.documentElement.scrollHeight - window.innerHeight;
+			var p = max > 0 ? Math.max(0, Math.min(1, window.pageYOffset / max)) : 0;
+			barRect.style.strokeDasharray = (p * 100).toFixed(2) + ' 100';
+			barRect.style.visibility = p < 0.005 ? 'hidden' : 'visible'; /* no dot at the very top */
+		};
+		sizeRing(); drawRing();
+		if (window.ResizeObserver) { new ResizeObserver(function () { sizeRing(); drawRing(); }).observe(ringFoot); } else { window.addEventListener('resize', sizeRing); }
+		window.addEventListener('scroll', function () { if (!ringTick) { ringTick = true; window.requestAnimationFrame(drawRing); } }, { passive: true });
+	}
+	/* the "loading" state (set in <head>) ends when the page has finished loading */
+	var doneLoading = function () { root.classList.remove('page-loading'); };
+	if (document.readyState === 'complete') { doneLoading(); } else { window.addEventListener('load', doneLoading); }
 
 	apply();
 	reveal();
