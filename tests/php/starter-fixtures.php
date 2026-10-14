@@ -50,4 +50,15 @@ foreach ( array(
 ) as $i => $pd ) {
 	wp_insert_post( array( 'post_title' => $pd[0], 'post_status' => 'publish', 'post_content' => 'ข้อความตัวอย่าง', 'post_category' => array( $kids[ $pd[1] ] ), 'tags_input' => $pd[2], 'post_date' => gmdate( 'Y-m-d H:i:s', time() - ( $i + 1 ) * 3600 ) ) );
 }
+// printing: a long post (several A4 pages) and letterhead graphics
+$para = '';
+for ( $i = 1; $i <= 40; $i++ ) { $para .= "<p>ย่อหน้าที่ $i ของข่าวยาวสำหรับทดสอบการพิมพ์ ข้อความตัวอย่างเพื่อให้เนื้อหาไหลต่อไปยังหน้ากระดาษถัดไปหลายหน้า และตรวจว่าหัวกระดาษกับท้ายกระดาษพิมพ์ซ้ำทุกแผ่น โดยเนื้อหาไม่ทับกราฟิก</p>\n"; }
+$long = wp_insert_post( array( 'post_title' => 'ข่าวยาวสำหรับทดสอบการพิมพ์', 'post_name' => 'print-long', 'post_status' => 'publish', 'post_content' => $para ) );
+foreach ( array( 'head' => array( 2480, 425, array( 200, 40, 90 ) ), 'foot' => array( 2480, 236, array( 30, 100, 160 ) ) ) as $k => $d ) {
+	$im = imagecreatetruecolor( $d[0], $d[1] ); imagefill( $im, 0, 0, imagecolorallocate( $im, $d[2][0], $d[2][1], $d[2][2] ) );
+	$u  = wp_upload_bits( "e2e-print-$k.jpg", null, '' ); imagejpeg( $im, $u['file'], 70 );
+	$aid = wp_insert_attachment( array( 'post_mime_type' => 'image/jpeg', 'post_title' => "print $k", 'post_status' => 'inherit' ), $u['file'] );
+	wp_update_attachment_metadata( $aid, wp_generate_attachment_metadata( $aid, $u['file'] ) );
+	set_theme_mod( "mcupr_print_{$k}_img", $aid );
+}
 echo "ok $id\n";
