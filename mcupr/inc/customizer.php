@@ -49,6 +49,20 @@ function mcupr_customize_register( $wp_customize ) {
 		$wp_customize->add_setting( "mcupr_popular_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
 		$wp_customize->add_control( "mcupr_popular_{$code}", array( 'section' => 'mcupr_home', 'label' => sprintf( /* translators: %s: language */ __( 'Popular searches, comma separated (%s)', 'mcupr' ), $l['name'] ), 'type' => 'text' ) );
 	}
+	// Home sections
+	$wp_customize->add_setting( 'mcupr_home_about_page', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
+	$wp_customize->add_control( 'mcupr_home_about_page', array( 'section' => 'mcupr_home', 'label' => __( '“About us” button links to this page (the intro block uses the About text from Organisation & languages)', 'mcupr' ), 'type' => 'dropdown-pages', 'allow_addition' => false ) );
+	$cat_choices = array( 0 => __( '— automatic (most used) —', 'mcupr' ) );
+	foreach ( get_categories( array( 'hide_empty' => false ) ) as $cat ) {
+		$cat_choices[ $cat->term_id ] = $cat->name;
+	}
+	for ( $i = 1; $i <= 3; $i++ ) {
+		$wp_customize->add_setting( 'mcupr_home_cat_' . $i, array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
+		/* translators: %d: block number */
+		$wp_customize->add_control( 'mcupr_home_cat_' . $i, array( 'section' => 'mcupr_home', 'label' => sprintf( __( 'News by category: block %d', 'mcupr' ), $i ), 'type' => 'select', 'choices' => $cat_choices ) );
+	}
+	$wp_customize->add_setting( 'mcupr_home_cats_on', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+	$wp_customize->add_control( 'mcupr_home_cats_on', array( 'section' => 'mcupr_home', 'label' => __( 'Show the “news by category” blocks on the home page', 'mcupr' ), 'type' => 'checkbox' ) );
 	$wp_customize->add_setting( 'mcupr_cta_url', array( 'default' => '', 'sanitize_callback' => 'esc_url_raw' ) );
 	$wp_customize->add_control( 'mcupr_cta_url', array( 'section' => 'mcupr_home', 'label' => __( 'Bottom banner link (optional)', 'mcupr' ), 'type' => 'url' ) );
 
