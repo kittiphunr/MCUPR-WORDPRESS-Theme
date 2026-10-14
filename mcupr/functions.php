@@ -51,16 +51,33 @@ function mcupr_setup() {
 add_action( 'after_setup_theme', 'mcupr_setup' );
 
 function mcupr_assets() {
-	wp_enqueue_style( 'mcupr', get_stylesheet_uri(), array(), MCUPR_VERSION );
+	// Tailwind CSS build (npm run build) – see src/input.css.
+	wp_enqueue_style( 'mcupr', MCUPR_URI . '/assets/css/tailwind.css', array(), MCUPR_VERSION );
 	wp_add_inline_style( 'mcupr', mcupr_custom_css() );
-	wp_enqueue_script( 'mcupr', MCUPR_URI . '/assets/js/main.js', array(), MCUPR_VERSION, array( 'in_footer' => true, 'strategy' => 'defer' ) );
+
+	// SweetAlert2, self-hosted (no third-party requests).
+	wp_enqueue_script( 'mcupr-swal', MCUPR_URI . '/assets/vendor/sweetalert2.all.min.js', array(), '11.26.25', array( 'in_footer' => true, 'strategy' => 'defer' ) );
+	wp_enqueue_script( 'mcupr', MCUPR_URI . '/assets/js/main.js', array( 'mcupr-swal' ), MCUPR_VERSION, array( 'in_footer' => true, 'strategy' => 'defer' ) );
+
+	$cookie_url = mcupr_policy_url( 'cookie' ) ? mcupr_policy_url( 'cookie' ) : mcupr_policy_url( 'privacy' );
 	wp_localize_script(
 		'mcupr',
 		'mcuprI18n',
 		array(
-			'fontSize' => mcupr_t( 'status_font' ),
-			'reset'    => mcupr_t( 'status_reset' ),
-			'submenu'  => mcupr_t( 'submenu' ),
+			'fontSize'    => mcupr_t( 'status_font' ),
+			'reset'       => mcupr_t( 'status_reset' ),
+			'submenu'     => mcupr_t( 'submenu' ),
+			'cookieTitle' => mcupr_t( 'cookie_title' ),
+			'cookieMsg'   => mcupr_t( 'cookie_msg' ),
+			'cookieOk'    => mcupr_t( 'cookie_ok' ),
+			'cookieLink'  => $cookie_url ? esc_url( $cookie_url ) : '',
+			'cookiePolicy' => mcupr_t( 'cookie_policy' ),
+			'cancel'      => mcupr_t( 'cancel' ),
+			'resetQ'      => mcupr_t( 'reset_q' ),
+			'resetQTxt'   => mcupr_t( 'reset_q_txt' ),
+			'resetAll'    => mcupr_t( 'reset_all' ),
+			'searchEmpty' => mcupr_t( 'search_empty' ),
+			'ok'          => mcupr_t( 'cookie_ok' ),
 		)
 	);
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {

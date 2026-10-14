@@ -9,15 +9,15 @@ defined( 'ABSPATH' ) || exit;
 $part_lang = mcupr_part_lang_attr();
 $heading   = isset( $args['heading'] ) && 'h2' === $args['heading'] ? 'h2' : 'h3';
 ?>
-<article id="post-<?php the_ID(); ?>" <?php post_class( 'card' ); ?>>
+<article id="post-<?php the_ID(); ?>" <?php post_class( 'flex flex-col overflow-hidden rounded-lg border border-line bg-bg' ); ?>>
 	<?php if ( has_post_thumbnail() ) : ?>
-		<a class="card__thumb" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
-			<?php the_post_thumbnail( 'mcupr-card', array( 'alt' => '', 'loading' => 'lazy' ) ); ?>
+		<a class="noimg:hidden" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
+			<?php the_post_thumbnail( 'mcupr-card', array( 'alt' => '', 'loading' => 'lazy', 'class' => 'block aspect-[16/10] w-full object-cover' ) ); ?>
 		</a>
 	<?php endif; ?>
-	<div class="card__body"<?php echo $part_lang; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
-		<p class="card__meta"><?php mcupr_date(); ?></p>
-		<<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?> class="card__title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
-		<div class="card__excerpt"><?php the_excerpt(); ?></div>
+	<div class="px-4 pt-4 pb-5"<?php echo $part_lang; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+		<p class="mb-1 text-sm text-muted"><?php mcupr_date(); ?></p>
+		<<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?> class="mb-2 text-lg font-bold leading-snug"><a class="text-fg" href="<?php the_permalink(); ?>"><?php the_title(); ?></a></<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+		<div class="text-muted [&_p]:m-0"><?php the_excerpt(); ?></div>
 	</div>
 </article>
