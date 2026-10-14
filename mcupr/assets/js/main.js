@@ -242,7 +242,11 @@
 			return;
 		}
 		if (t.closest('#about-toggle, [data-open-about]')) {
-			openDialog('tpl-about', { title: i18n.aboutTitle, width: 'min(100% - 1rem, 34rem)' });
+			openDialog('tpl-about', {
+				title: i18n.aboutTitle, // kept for screen readers; the dialog shows its own header (logo + name)
+				width: 'min(100% - 1rem, 36rem)',
+				customClass: { popup: 'swal-popup swal-modal', title: 'sr-only', htmlContainer: '!m-0 !p-0 !text-left', closeButton: 'swal-close' }
+			});
 			return;
 		}
 		if (t.closest('#lang-toggle')) {
