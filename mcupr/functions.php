@@ -27,6 +27,7 @@ require_once MCUPR_DIR . '/inc/customizer.php';
 require_once MCUPR_DIR . '/inc/layout-meta.php';
 require_once MCUPR_DIR . '/inc/dates.php';
 require_once MCUPR_DIR . '/inc/template-tags.php';
+require_once MCUPR_DIR . '/inc/menus.php';
 require_once MCUPR_DIR . '/inc/seo.php';
 require_once MCUPR_DIR . '/inc/shortcodes.php';
 require_once MCUPR_DIR . '/inc/widgets.php';
