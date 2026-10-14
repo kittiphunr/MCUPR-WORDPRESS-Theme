@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.12.0 =
+* Menu refresh: hybrid layout removed, menu position as icons, clearer hover, quick links tucked into a button, full-screen menu in both modes (one screen, filter, quick links).
+
 = 1.11.1 =
 * Accessibility dialog: the extra options are icon tiles with tooltips.
 
