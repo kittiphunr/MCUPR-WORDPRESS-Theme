@@ -28,6 +28,8 @@ $checks = array(
 ?>
 <template id="tpl-a11y">
 	<div class="text-left text-fg" data-a11y-dialog>
+		<section class="settings-group" aria-labelledby="sg-display">
+			<h3 id="sg-display" class="eyebrow"><?php mcupr_e( 'grp_display' ); ?></h3>
 		<fieldset class="<?php echo esc_attr( $row ); ?> m-0 border-x-0 border-t-0 px-0">
 			<legend class="float-left mr-3 p-0 text-lg font-semibold"><?php mcupr_e( 'menu_layout' ); ?></legend>
 			<div class="seg" role="radiogroup">
@@ -36,7 +38,6 @@ $checks = array(
 				<?php endforeach; ?>
 			</div>
 		</fieldset>
-
 		<div class="<?php echo esc_attr( $row ); ?> !block">
 			<span id="sc-label" class="mb-3 block text-lg font-semibold"><?php mcupr_e( 'site_colors' ); ?></span>
 			<div class="flex flex-wrap items-center gap-2.5" role="radiogroup" aria-labelledby="sc-label" data-color-group>
@@ -51,7 +52,28 @@ $checks = array(
 			</div>
 			<p class="mt-3 mb-0 text-sm text-muted"><?php mcupr_e( 'color_note' ); ?></p>
 		</div>
+		<fieldset class="<?php echo esc_attr( $row ); ?> m-0 border-x-0 border-t-0 px-0">
+			<legend class="float-left mr-3 p-0 text-lg font-semibold"><?php mcupr_e( 'theme' ); ?></legend>
+			<div class="flex flex-wrap gap-2">
+				<?php foreach ( array( 'auto' => 'theme_auto', 'light' => 'theme_light', 'dark' => 'theme_dark' ) as $v => $label ) : ?>
+					<label class="relative"><input class="peer sr-only" type="radio" name="mcupr-theme" data-pref="theme" value="<?php echo esc_attr( $v ); ?>"><span class="<?php echo esc_attr( $pill ); ?>"><?php mcupr_e( $label ); ?></span></label>
+				<?php endforeach; ?>
+			</div>
+		</fieldset>
+		<div class="<?php echo esc_attr( $row ); ?>">
+			<span id="an-label" class="text-lg font-semibold"><?php mcupr_e( 'animations' ); ?></span>
+			<div class="flex items-center gap-3">
+				<span data-motion-state class="text-fg"><?php mcupr_e( 'on' ); ?></span>
+				<button type="button" role="switch" aria-checked="true" aria-labelledby="an-label" data-motion-switch
+					class="relative h-9 w-16 cursor-pointer rounded-full border-2 border-line bg-line p-0 transition-colors aria-checked:border-primary aria-checked:bg-primary">
+					<span class="absolute top-0.5 left-0.5 size-7 rounded-full bg-bg shadow transition-transform [[aria-checked=true]>&]:translate-x-7" aria-hidden="true"></span>
+				</button>
+			</div>
+		</div>
+		</section>
 
+		<section class="settings-group" aria-labelledby="sg-text">
+			<h3 id="sg-text" class="eyebrow"><?php mcupr_e( 'grp_text' ); ?></h3>
 		<div class="<?php echo esc_attr( $row ); ?>">
 			<span id="fs-label" class="text-lg font-semibold"><?php mcupr_e( 'font_size' ); ?></span>
 			<div class="flex flex-wrap items-center gap-2" role="radiogroup" aria-labelledby="fs-label">
@@ -63,7 +85,10 @@ $checks = array(
 				<?php endforeach; ?>
 			</div>
 		</div>
+		</section>
 
+		<section class="settings-group" aria-labelledby="sg-access">
+			<h3 id="sg-access" class="eyebrow"><?php mcupr_e( 'grp_access' ); ?></h3>
 		<div class="<?php echo esc_attr( $row ); ?>">
 			<span id="hc-label" class="text-lg font-semibold"><?php mcupr_e( 'high_contrast' ); ?></span>
 			<div class="flex items-center gap-3">
@@ -80,27 +105,6 @@ $checks = array(
 				<label class="relative"><input class="peer sr-only" type="radio" name="mcupr-contrast" data-pref="contrast" value="<?php echo esc_attr( $v ); ?>"><span class="<?php echo esc_attr( $pill ); ?>"><?php mcupr_e( $label ); ?></span></label>
 			<?php endforeach; ?>
 		</fieldset>
-
-		<div class="<?php echo esc_attr( $row ); ?>">
-			<span id="an-label" class="text-lg font-semibold"><?php mcupr_e( 'animations' ); ?></span>
-			<div class="flex items-center gap-3">
-				<span data-motion-state class="text-fg"><?php mcupr_e( 'on' ); ?></span>
-				<button type="button" role="switch" aria-checked="true" aria-labelledby="an-label" data-motion-switch
-					class="relative h-9 w-16 cursor-pointer rounded-full border-2 border-line bg-line p-0 transition-colors aria-checked:border-primary aria-checked:bg-primary">
-					<span class="absolute top-0.5 left-0.5 size-7 rounded-full bg-bg shadow transition-transform [[aria-checked=true]>&]:translate-x-7" aria-hidden="true"></span>
-				</button>
-			</div>
-		</div>
-
-		<fieldset class="<?php echo esc_attr( $row ); ?> m-0 border-x-0 border-t-0 px-0">
-			<legend class="float-left mr-3 p-0 text-lg font-semibold"><?php mcupr_e( 'theme' ); ?></legend>
-			<div class="flex flex-wrap gap-2">
-				<?php foreach ( array( 'auto' => 'theme_auto', 'light' => 'theme_light', 'dark' => 'theme_dark' ) as $v => $label ) : ?>
-					<label class="relative"><input class="peer sr-only" type="radio" name="mcupr-theme" data-pref="theme" value="<?php echo esc_attr( $v ); ?>"><span class="<?php echo esc_attr( $pill ); ?>"><?php mcupr_e( $label ); ?></span></label>
-				<?php endforeach; ?>
-			</div>
-		</fieldset>
-
 		<details class="border-b border-line py-3">
 			<summary class="flex min-h-11 cursor-pointer items-center text-lg font-semibold"><?php mcupr_e( 'more_options' ); ?></summary>
 			<div class="grid gap-x-6 min-[480px]:grid-cols-2">
@@ -112,6 +116,7 @@ $checks = array(
 				<?php endforeach; ?>
 			</div>
 		</details>
+		</section>
 
 		<div class="flex flex-wrap items-center justify-between gap-3 pt-4">
 			<p class="m-0 text-sm text-muted" role="status" data-a11y-status></p>
