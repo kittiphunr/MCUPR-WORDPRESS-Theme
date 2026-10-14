@@ -29,6 +29,9 @@ SweetAlert2: MIT License.
 
 == Changelog ==
 
+
+= 1.2.0 =
+* Full-screen menu (All menu button), one open menu panel at a time, refined mega menu.
 = 1.1.0 =
 * Starter import (pages + menus), speed improvements, 'More' menu opens inline, duplicate-import clean-up.
 
