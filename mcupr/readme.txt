@@ -30,6 +30,15 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.10.3 =
+* Collapsed sidebar expand button is a perfect circle.
+
+= 1.10.2 =
+* Collapsed sidebar card is a true pill (full semicircle ends).
+
+= 1.10.1 =
+* News browser: sub-category folders are equal squares.
+
 = 1.10.0 =
 * Print posts and pages on A4 with an editable letterhead: header and footer graphics on every sheet, background image, text letterhead fallback, per-post switch.
 
