@@ -27,7 +27,7 @@ defined( 'ABSPATH' ) || exit;
 </nav>
 
 <?php if ( has_nav_menu( 'utility' ) ) : ?>
-	<div class="bg-bar text-[.9375rem] text-on-bar print:hidden">
+	<div class="bg-bar text-[.8125rem] text-on-bar print:hidden">
 		<div class="wrap">
 			<?php
 			wp_nav_menu(
