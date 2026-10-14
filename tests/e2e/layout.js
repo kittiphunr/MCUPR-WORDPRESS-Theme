@@ -430,6 +430,8 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await p.locator('#site-nav .mcupr-mega > .submenu-toggle').click();
     ok((await p.locator('#site-nav .mcupr-mega > .sub-menu').evaluate((el) => getComputedStyle(el).display)) !== 'grid', 'drawer: accordion, not a grid');
     await c.close();
+  }
+
   // ================= About dialog in the Precision QC layout
   {
     const mods = { mcupr_credit_name: 'ผู้พัฒนาทดสอบ', mcupr_credit_role: 'นักวิชาการ', mcupr_credit_tag: 'Full-Stack', mcupr_credit_email: 'dev@example.org', mcupr_credit_tel: '089-000-0000', mcupr_credit_url: 'https://example.org/', mcupr_org_email: 'info@example.org', mcupr_org_tel: '054-000-000' };
