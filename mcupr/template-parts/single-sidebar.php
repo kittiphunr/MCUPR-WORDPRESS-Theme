@@ -64,6 +64,7 @@ $box = 'rounded-2xl border border-line bg-bg p-5';
 					<?php endforeach; ?>
 				</ul>
 			</section>
+			<?php mcupr_widget_area( 'sidebar-news', 'space-y-6' ); ?>
 		</aside>
 	</div>
 </div>
