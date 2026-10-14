@@ -18,8 +18,8 @@ require_once MCUPR_DIR . '/inc/customizer.php';
 require_once MCUPR_DIR . '/inc/layout-meta.php';
 require_once MCUPR_DIR . '/inc/dates.php';
 require_once MCUPR_DIR . '/inc/template-tags.php';
-require_once MCUPR_DIR . '/inc/elementor.php';
-require_once MCUPR_DIR . '/inc/plugins.php';
+require_once MCUPR_DIR . '/inc/seo.php';
+require_once MCUPR_DIR . '/inc/shortcodes.php';
 require_once MCUPR_DIR . '/inc/widgets.php';
 
 function mcupr_setup() {
@@ -46,13 +46,9 @@ function mcupr_setup() {
 
 	// One main menu per language (falls back to the default language's menu).
 	$locations = array();
-	if ( mcupr_has_polylang() ) {
-		$locations['primary'] = __( 'Main menu (Polylang adds one per language)', 'mcupr' );
-	} else {
-		foreach ( mcupr_ui_languages() as $code => $l ) {
-			/* translators: %s: language name */
-			$locations[ 'primary_' . $code ] = sprintf( __( 'Main menu (%s)', 'mcupr' ), $l['name'] );
-		}
+	foreach ( mcupr_ui_languages() as $code => $l ) {
+		/* translators: %s: language name */
+		$locations[ 'primary_' . $code ] = sprintf( __( 'Main menu (%s)', 'mcupr' ), $l['name'] );
 	}
 	$locations['utility'] = __( 'Utility bar links (students, staff, alumni…)', 'mcupr' );
 	$locations['quick']  = __( 'Quick links', 'mcupr' );

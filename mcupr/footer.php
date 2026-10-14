@@ -1,6 +1,6 @@
 <?php
 /**
- * Footer: Elementor Pro "Footer" template, or the default dark footer with
+ * Footer: widget columns, links and
  * the policy links expected of government websites.
  * (The cookie / PDPA notice is shown with SweetAlert2 from assets/js/main.js.)
  *
@@ -19,9 +19,9 @@ $policy = array(
 $address = mcupr_text_mod( 'mcupr_address' );
 $alt     = mcupr_alt_name();
 ?>
+<?php mcupr_slot( 'footer_before' ); ?>
 </main>
 
-<?php if ( ! mcupr_elementor_location( 'footer' ) ) : ?>
 <footer id="colophon" class="site-footer mt-16 border-t border-line bg-bg text-fg print:hidden" tabindex="-1">
 	<?php if ( has_nav_menu( 'footer' ) ) : ?>
 		<div class="wrap border-b border-line py-10">
@@ -80,7 +80,6 @@ $alt     = mcupr_alt_name();
 		</div>
 	</div>
 </footer>
-<?php endif; ?>
 
 <button type="button" id="back-to-top" class="btn fixed right-4 bottom-4 z-40 hidden shadow-lg print:hidden" aria-label="<?php echo esc_attr( mcupr_t( 'back_top' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'back_top' ) ); ?>">
 	<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
