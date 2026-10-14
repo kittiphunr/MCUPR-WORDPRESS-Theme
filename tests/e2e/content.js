@@ -119,7 +119,7 @@ const speechStub = (speakMs) => `(() => {
   const probe = (p) => p.evaluate(() => {
     const cs = getComputedStyle(document.documentElement); const s = document.createElement('a'); s.href = '#'; s.className = 'btn'; document.body.appendChild(s);
     const l = document.createElement('a'); l.href = '#'; l.id = 'probe-link'; document.body.appendChild(l);
-    const o = { primary: cs.getPropertyValue('--primary').trim(), btnBg: getComputedStyle(s).backgroundColor, btnFg: getComputedStyle(s).color, link: getComputedStyle(l).color, bg: getComputedStyle(document.body).backgroundColor, bar: getComputedStyle(document.querySelector('#colophon')).backgroundColor, barFg: getComputedStyle(document.querySelector('#colophon')).color, canvas: getComputedStyle(document.body).backgroundColor };
+    const o = { primary: cs.getPropertyValue('--primary').trim(), btnBg: getComputedStyle(s).backgroundColor, btnFg: getComputedStyle(s).color, link: getComputedStyle(l).color, bg: getComputedStyle(document.body).backgroundColor, bar: getComputedStyle(document.querySelector('#colophon .soft-card')).backgroundColor, barFg: getComputedStyle(document.querySelector('#colophon')).color, canvas: getComputedStyle(document.body).backgroundColor };
     s.remove(); l.remove(); return o;
   });
   for (const [name, mods] of [
@@ -359,6 +359,33 @@ const speechStub = (speakMs) => `(() => {
     await p2.goto(B + '/?s=test');
     ok(/noindex/.test((await p2.getAttribute('meta[name=robots]', 'content')) || ''), 'search results are noindex (WordPress core)');
     await c2.close();
+  }
+
+  // ================= Certify Hub polish: soft cards, status cards, pill tabs, stats, footer card
+  {
+    const c = await newCtx({}, { mcupr_slot_home_top: '[mcupr_stats items="users|12,500|นักศึกษา"]' });
+    const p = await c.newPage();
+    await p.goto(B + '/');
+    ok((await p.locator('[data-slot=home_top] .stat').count()) === 1 && /12,500/.test(await text(p, '[data-slot=home_top] .stat b')), 'stats: [mcupr_stats] prints round-icon number tiles');
+    const card = await p.locator('#content article.soft-card').first().evaluate((el) => { const s = getComputedStyle(el); return [s.borderTopColor, s.borderRadius, s.boxShadow !== 'none']; });
+    ok(parseFloat(card[1]) >= 20 && card[2] && /rgba\(0, 0, 0, 0\)|transparent/.test(card[0]), 'cards: borderless, rounded, soft shadow (light mode) ' + card);
+    ok((await p.locator('#colophon .soft-card').count()) === 1, 'footer: one rounded card');
+    await p.goto(B + '/category/' + encodeURIComponent('ข่าวประชาสัมพันธ์') + '/');
+    ok(!/Category:/.test(await text(p, 'main h1')), 'archive title has no English "Category:" prefix');
+    ok((await p.locator('.pill-tabs [aria-current]').count()) === 1, 'category chips: pill tab group with the current one marked');
+    await p.goto(B + '/no-such-page-xyz/');
+    ok((await p.locator('.state-card .st-ic svg').count()) === 1 && (await p.locator('.state-card h1').count()) === 1, '404: centered status card with round icon');
+    await p.goto(B + '/?s=zzzzqqqq');
+    ok((await p.locator('.state-card h2').count()) === 1, 'no results: status card');
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe on the status card page: ' + (r.violations.map((v) => v.id).join(', ') || '0 violations'));
+    await c.close();
+    const d = await newCtx({ colorScheme: 'dark' });
+    const pd = await d.newPage();
+    await pd.goto(B + '/');
+    ok((await pd.locator('#content article.soft-card').first().evaluate((el) => getComputedStyle(el).borderTopColor)) !== 'rgba(0, 0, 0, 0)', 'dark mode: cards get a hairline edge instead of a shadow');
+    await d.close();
   }
 
   await br.close();
