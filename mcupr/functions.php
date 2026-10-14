@@ -20,6 +20,7 @@ require_once MCUPR_DIR . '/inc/dates.php';
 require_once MCUPR_DIR . '/inc/template-tags.php';
 require_once MCUPR_DIR . '/inc/elementor.php';
 require_once MCUPR_DIR . '/inc/plugins.php';
+require_once MCUPR_DIR . '/inc/widgets.php';
 
 function mcupr_setup() {
 	load_theme_textdomain( 'mcupr', MCUPR_DIR . '/languages' );
