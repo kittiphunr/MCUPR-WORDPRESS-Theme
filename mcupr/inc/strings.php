@@ -173,6 +173,7 @@ return array(
 	'about_tel' => array( 'โทร', 'Tel', '电话', '電話' ),
 	'about_web' => array( 'เว็บไซต์', 'Website', '网站', 'ウェブサイト' ),
 	'about_build' => array( 'เวอร์ชันธีม', 'Theme version', '主题版本', 'テーマのバージョン' ),
+	'all_menu'       => array( 'เมนูทั้งหมด', 'All menu', '全部菜单', 'すべてのメニュー' ),
 	'more_menu'      => array( 'เพิ่มเติม', 'More', '更多', 'その他' ),
 	'grp_display'    => array( 'การแสดงผล', 'Display', '显示', '表示' ),
 	'grp_text'       => array( 'ตัวอักษร', 'Text', '文字', '文字' ),
