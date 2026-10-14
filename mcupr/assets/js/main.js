@@ -1076,6 +1076,27 @@
 		}
 	}
 
+	/* ---- small screens: when the name beside the logo does not fit, show the logo alone ---- */
+	var brandLink = $('#masthead .brand');
+	if (brandLink) {
+		var brandText = brandLink.lastElementChild;
+		var fitBrand = function () {
+			if (!brandText || brandText === brandLink.firstElementChild) { return; }
+			if (window.innerWidth >= 700) { brandLink.classList.remove('is-compact'); return; }
+			brandLink.classList.remove('is-compact');
+			var b = $('b', brandText);
+			var cut = false;
+			[b, $('small', brandText)].forEach(function (el) {
+				if (el && (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1)) { cut = true; }
+			});
+			if (brandLink.getBoundingClientRect().right > (brandLink.parentNode.getBoundingClientRect().right + 1)) { cut = true; }
+			brandLink.classList.toggle('is-compact', cut);
+		};
+		fitBrand();
+		if (window.ResizeObserver) { new ResizeObserver(fitBrand).observe(document.documentElement); } else { window.addEventListener('resize', fitBrand); }
+		if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fitBrand); }
+	}
+
 	apply();
 	reveal();
 })();

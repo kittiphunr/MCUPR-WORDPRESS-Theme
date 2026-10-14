@@ -18,7 +18,7 @@ $name = mcupr_org_name();
 ?>
 <header id="masthead" class="site-header sticky top-0 z-30 border-b border-line print:hidden">
 	<div class="wrap grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 py-2.5 max-[359px]:grid-cols-1 min-[1100px]:grid-cols-[auto_1fr_auto] min-[1100px]:gap-x-6">
-		<a class="brand flex min-w-0 items-center gap-3 text-fg no-underline" href="<?php echo esc_url( mcupr_home_url() ); ?>" rel="home">
+		<a class="brand flex min-w-0 items-center gap-3 text-fg no-underline" href="<?php echo esc_url( mcupr_home_url() ); ?>" rel="home" aria-label="<?php echo esc_attr( $name ); ?>">
 			<?php if ( $logo ) : ?>
 				<?php echo $logo; // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			<?php else : ?>
