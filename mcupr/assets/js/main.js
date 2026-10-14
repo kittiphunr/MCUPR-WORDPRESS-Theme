@@ -472,6 +472,70 @@
 			});
 		});
 
+		/* Priority+ menu: on the top bar the main menu stays on ONE row; items that do not fit move into a
+		   "More" dropdown (re-measured on resize, font load, text-size / menu-position changes). */
+		var menuUl = $('.menu', nav);
+		var moreLabel = i18n.moreMenu || 'More';
+		var fitting = false;
+		function fitMenu() {
+			if (!menuUl || fitting) { return; }
+			fitting = true;
+			var old = menuUl.querySelector(':scope > .menu-more');
+			if (old) {
+				$$(':scope > .sub-menu > li', old).forEach(function (li) { menuUl.insertBefore(li, old); });
+				old.remove();
+			}
+			if (desktopMq.matches && root.getAttribute('data-menu') === 'top') {
+				var avail = menuUl.clientWidth;
+				var items = $$(':scope > li', menuUl);
+				var used = function () { return items.reduce(function (n, li) { return n + li.getBoundingClientRect().width + 2; }, 0); };
+				if (items.length > 1 && used() > avail + 1) {
+					var more = document.createElement('li');
+					more.className = 'menu-item menu-item-has-children menu-more';
+					var mb = document.createElement('button');
+					mb.type = 'button';
+					mb.className = 'submenu-toggle more-btn';
+					mb.setAttribute('aria-expanded', 'false');
+					mb.innerHTML = '<span>' + moreLabel + '</span><svg width="14" height="14" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+					var sub = document.createElement('ul');
+					sub.className = 'sub-menu';
+					more.appendChild(mb);
+					more.appendChild(sub);
+					menuUl.appendChild(more);
+					mb.addEventListener('click', function () {
+						var open = mb.getAttribute('aria-expanded') !== 'true';
+						mb.setAttribute('aria-expanded', String(open));
+						more.classList.toggle('is-open', open);
+					});
+					var shown = items.slice();
+					while (shown.length > 1 && (shown.reduce(function (n, li) { return n + li.getBoundingClientRect().width + 2; }, 0) + more.getBoundingClientRect().width) > avail) {
+						sub.insertBefore(shown.pop(), sub.firstChild);
+					}
+					more.classList.toggle('has-current', !!sub.querySelector('.current-menu-item, .current_page_item, .current-menu-ancestor'));
+				}
+			}
+			fitting = false;
+		}
+		var fitTimer = 0;
+		var fitSoon = function () { window.clearTimeout(fitTimer); fitTimer = window.setTimeout(fitMenu, 60); };
+		if (menuUl) {
+			fitMenu();
+			if (window.ResizeObserver) { new ResizeObserver(fitSoon).observe(nav); } else { window.addEventListener('resize', fitSoon); }
+			if (window.MutationObserver) { new MutationObserver(fitSoon).observe(root, { attributes: true, attributeFilter: ['data-menu', 'data-font', 'data-tv'] }); }
+			if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fitSoon); }
+			if (desktopMq.addEventListener) { desktopMq.addEventListener('change', fitSoon); }
+		}
+
+		/* click outside closes an open dropdown (desktop) */
+		document.addEventListener('click', function (e) {
+			if (!desktopMq.matches || e.target.closest('.site-nav li.is-open')) { return; }
+			$$('.site-nav li.is-open').forEach(function (li) {
+				li.classList.remove('is-open');
+				var t = li.querySelector(':scope > .submenu-toggle');
+				if (t) { t.setAttribute('aria-expanded', 'false'); }
+			});
+		});
+
 		document.addEventListener('keydown', function (e) {
 			if (e.key !== 'Escape' || (window.Swal && window.Swal.isVisible())) { return; }
 			var openLi = $('li.is-open', nav);
