@@ -126,30 +126,124 @@ $checks = array(
 </template>
 
 <template id="tpl-about">
+	<?php
+	$org        = mcupr_org_name();
+	$about_logo = mcupr_logo( 'header' );
+	$credit     = trim( (string) get_theme_mod( 'mcupr_credit_name', '' ) );
+	$c_url      = get_theme_mod( 'mcupr_credit_url', '' );
+	$c_role     = get_theme_mod( 'mcupr_credit_role', '' );
+	$c_tag      = get_theme_mod( 'mcupr_credit_tag', '' );
+	$c_email    = get_theme_mod( 'mcupr_credit_email', '' );
+	$c_tel      = get_theme_mod( 'mcupr_credit_tel', '' );
+	$c_photo    = (int) get_theme_mod( 'mcupr_credit_photo', 0 );
+	$o_email    = get_theme_mod( 'mcupr_org_email', '' );
+	$o_tel      = get_theme_mod( 'mcupr_org_tel', '' );
+	$about      = mcupr_text_mod( 'mcupr_about' );
+	$addr       = mcupr_text_mod( 'mcupr_address' );
+	$row        = static function ( $label, $value, $href = '', $external = false ) {
+		$inner = $href ? '<a href="' . esc_url( $href ) . '"' . ( $external ? ' target="_blank" rel="noopener noreferrer"' : '' ) . '>' . esc_html( $value ) . '</a>' : esc_html( $value );
+		return '<li><span>' . esc_html( $label ) . '</span>' . $inner . '</li>';
+	};
+	?>
 	<div class="text-left text-fg">
-		<div class="mb-4 flex items-center gap-3">
-			<?php $about_logo = mcupr_logo( 'header' ); echo $about_logo ? $about_logo : '<span class="badge-logo" aria-hidden="true">' . mcupr_icon( 'cap', 22 ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			<div class="leading-tight"><b class="block text-lg"><?php echo esc_html( mcupr_org_name() ); ?></b><?php if ( mcupr_alt_name() ) : ?><span class="text-sm text-muted"><?php echo esc_html( mcupr_alt_name() ); ?></span><?php endif; ?></div>
-		</div>
-		<?php $about = mcupr_text_mod( 'mcupr_about' ); ?>
-		<?php if ( $about ) : ?><p class="mt-0 whitespace-pre-line"><?php echo esc_html( $about ); ?></p><?php endif; ?>
-		<?php $addr = mcupr_text_mod( 'mcupr_address' ); ?>
-		<?php if ( $addr ) : ?><p class="mb-1 font-semibold"><?php mcupr_e( 'contact_us_at' ); ?></p><address class="mb-4 not-italic whitespace-pre-line text-muted"><?php echo esc_html( $addr ); ?></address><?php endif; ?>
-		<ul class="m-0 mb-4 flex list-none flex-wrap gap-2 p-0">
-			<?php foreach ( array( 'privacy' => 'privacy', 'cookie' => 'cookie_policy', 'a11y' => 'a11y_policy', 'sitemap' => 'sitemap', 'contact' => 'contact' ) as $k => $label ) : ?>
-				<?php $u = mcupr_policy_url( $k ); ?>
-				<?php if ( $u ) : ?><li><a class="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-fg no-underline hover:border-primary hover:text-link" href="<?php echo esc_url( $u ); ?>"><?php mcupr_e( $label ); ?></a></li><?php endif; ?>
-			<?php endforeach; ?>
-		</ul>
-		<p class="m-0 text-sm text-muted">
-			<?php
-			$credit = get_theme_mod( 'mcupr_credit_name', '' );
-			if ( $credit ) {
-				echo esc_html( mcupr_t( 'about_credit' ) . ' ' . $credit ) . ' · ';
-			}
-			echo esc_html( mcupr_t( 'theme_credit' ) . ' ' . MCUPR_VERSION );
-			?>
-		</p>
+		<header class="about-head">
+			<?php echo $about_logo ? $about_logo : '<span class="badge-logo" aria-hidden="true">' . mcupr_icon( 'cap', 22 ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput ?>
+			<div class="min-w-0">
+				<p class="m-0 text-xl leading-snug font-bold"><?php echo esc_html( sprintf( mcupr_t( 'about_title' ), $org ) ); ?></p>
+				<?php if ( mcupr_alt_name() ) : ?><p class="m-0 text-sm text-muted"><?php echo esc_html( mcupr_alt_name() ); ?></p><?php endif; ?>
+			</div>
+		</header>
+
+		<?php if ( $credit ) : ?>
+		<section class="about-sec" aria-labelledby="ab-dev">
+			<h3 id="ab-dev"><?php mcupr_e( 'about_dev' ); ?></h3>
+			<div class="dev">
+				<?php if ( $c_photo ) : ?>
+					<?php echo wp_get_attachment_image( $c_photo, 'thumbnail', false, array( 'alt' => '', 'class' => 'dev-photo' ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+				<?php else : ?>
+					<span class="dev-photo dev-photo-initial" aria-hidden="true"><?php echo esc_html( mb_substr( $credit, 0, 1 ) ); ?></span>
+				<?php endif; ?>
+				<div class="min-w-0">
+					<p class="dev-name"><?php echo esc_html( $credit ); ?></p>
+					<?php if ( $c_role ) : ?><p class="dev-role"><?php echo esc_html( $c_role ); ?></p><?php endif; ?>
+					<p class="dev-org"><?php echo esc_html( $org ); ?></p>
+					<?php if ( $c_tag ) : ?><p class="dev-tag"><?php echo esc_html( $c_tag ); ?></p><?php endif; ?>
+				</div>
+			</div>
+			<?php if ( $c_email || $c_tel || $c_url ) : ?>
+				<ul class="dev-contact">
+					<?php
+					echo $c_email ? $row( mcupr_t( 'about_email' ), $c_email, 'mailto:' . $c_email ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+					echo $c_tel ? $row( mcupr_t( 'about_tel' ), $c_tel, 'tel:' . preg_replace( '/[^0-9+]/', '', $c_tel ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+					echo $c_url ? $row( mcupr_t( 'about_web' ), preg_replace( '#^https?://#', '', untrailingslashit( $c_url ) ), $c_url, true ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+					?>
+				</ul>
+			<?php endif; ?>
+		</section>
+		<?php endif; ?>
+
+		<section class="about-sec" aria-labelledby="ab-site">
+			<h3 id="ab-site"><?php mcupr_e( 'about' ); ?></h3>
+			<?php if ( $about ) : ?><p class="whitespace-pre-line"><?php echo esc_html( $about ); ?></p><?php endif; ?>
+			<ul class="about-list">
+				<?php foreach ( array( 'about_f1', 'about_f2', 'about_f3', 'about_f4', 'about_f5' ) as $k ) : ?><li><?php mcupr_e( $k ); ?></li><?php endforeach; ?>
+			</ul>
+			<p class="about-label"><?php mcupr_e( 'about_stack' ); ?></p>
+			<p class="about-stack"><?php foreach ( array( 'WordPress', 'Tailwind CSS', 'SweetAlert2', 'Sarabun', 'WCAG 2.2 AA' ) as $chip ) : ?><span class="chip-gray"><?php echo esc_html( $chip ); ?></span><?php endforeach; ?></p>
+		</section>
+
+		<section class="about-sec" aria-labelledby="ab-tech">
+			<h3 id="ab-tech"><?php mcupr_e( 'about_tech' ); ?></h3>
+			<p class="text-sm text-muted"><?php mcupr_e( 'about_tech_note' ); ?></p>
+			<ul class="about-list">
+				<?php
+				foreach ( array(
+					array( 'WordPress', 'https://wordpress.org/', 'GPLv2+' ),
+					array( 'Tailwind CSS', 'https://tailwindcss.com/', 'MIT' ),
+					array( 'SweetAlert2', 'https://sweetalert2.github.io/', 'MIT' ),
+					array( 'Sarabun (Cadson Demak)', 'https://fonts.google.com/specimen/Sarabun', 'SIL OFL 1.1' ),
+					array( 'Feather Icons', 'https://feathericons.com/', 'MIT' ),
+				) as $r ) :
+					?>
+					<li><a href="<?php echo esc_url( $r[1] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $r[0] ); ?></a> (<?php echo esc_html( $r[2] ); ?>)</li>
+				<?php endforeach; ?>
+			</ul>
+		</section>
+
+		<section class="about-sec" aria-labelledby="ab-rights">
+			<h3 id="ab-rights"><?php mcupr_e( 'about_rights' ); ?></h3>
+			<ul class="about-list">
+				<?php foreach ( array( 'about_r1', 'about_r2', 'about_r3', 'about_r4' ) as $k ) : ?><li><?php mcupr_e( $k ); ?></li><?php endforeach; ?>
+			</ul>
+			<ul class="m-0 flex list-none flex-wrap gap-2 p-0">
+				<?php foreach ( array( 'privacy' => 'privacy', 'cookie' => 'cookie_policy', 'a11y' => 'a11y_policy', 'sitemap' => 'sitemap', 'contact' => 'contact' ) as $k => $label ) : ?>
+					<?php $u = mcupr_policy_url( $k ); ?>
+					<?php if ( $u ) : ?><li><a class="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-fg no-underline hover:border-primary hover:text-link" href="<?php echo esc_url( $u ); ?>"><?php mcupr_e( $label ); ?></a></li><?php endif; ?>
+				<?php endforeach; ?>
+			</ul>
+		</section>
+
+		<section class="about-sec" aria-labelledby="ab-contact">
+			<h3 id="ab-contact"><?php mcupr_e( 'about_contact' ); ?></h3>
+			<p class="mb-1"><b><?php echo esc_html( $org ); ?></b></p>
+			<?php if ( $addr ) : ?><address class="mb-2 not-italic whitespace-pre-line text-muted"><?php echo esc_html( $addr ); ?></address><?php endif; ?>
+			<?php if ( $o_email || $o_tel ) : ?>
+				<ul class="dev-contact">
+					<?php
+					echo $o_email ? $row( mcupr_t( 'about_email' ), $o_email, 'mailto:' . $o_email ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+					echo $o_tel ? $row( mcupr_t( 'about_tel' ), $o_tel, 'tel:' . preg_replace( '/[^0-9+]/', '', $o_tel ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+					?>
+				</ul>
+			<?php endif; ?>
+			<p class="mt-3 mb-0 text-sm text-muted">
+				<?php
+				if ( $credit ) {
+					echo esc_html( mcupr_t( 'about_credit' ) . ' ' . $credit ) . ' · ';
+				}
+				echo esc_html( mcupr_t( 'about_build' ) . ' MCUPR ' . MCUPR_VERSION );
+				?>
+			</p>
+		</section>
 	</div>
 </template>
 
