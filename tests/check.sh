@@ -21,6 +21,13 @@ wp_style=$(sed -n 's/^Requires at least: *//p' mcupr/style.css | tr -d '[:space:
 wp_code=$(sed -n "s/.*MCUPR_MIN_WP', '\([0-9.]*\)'.*/\1/p" mcupr/functions.php)
 [[ "$php_style" == "$php_readme" && "$php_style" == "$php_code" && "$wp_style" == "$wp_code" ]] || { echo "version requirements differ: PHP $php_style/$php_readme/$php_code, WP $wp_style/$wp_code"; exit 1; }
 echo "   PHP >= $php_style, WordPress >= $wp_style"
+echo "== Theme version agrees (style.css, functions.php, package.json, readme.txt)"
+v_style=$(sed -n 's/^Version: *//p' mcupr/style.css | tr -d '[:space:]')
+v_code=$(sed -n "s/.*MCUPR_VERSION', '\([0-9.]*\)'.*/\1/p" mcupr/functions.php)
+v_pkg=$(sed -n 's/^  "version": "\([0-9.]*\)".*/\1/p' package.json)
+v_log=$(sed -n 's/^= \([0-9.]*\) =$/\1/p' mcupr/readme.txt | head -1)
+[[ "$v_style" == "$v_code" && "$v_style" == "$v_pkg" && "$v_style" == "$v_log" ]] || { echo "versions differ: style $v_style, code $v_code, package.json $v_pkg, changelog $v_log (use scripts/bump-version.sh)"; exit 1; }
+echo "   $v_style"
 echo "== PHP-version compatibility (optional: needs phpcs + PHPCompatibility on PATH)"
 if command -v phpcs >/dev/null 2>&1 && phpcs -i | grep -q PHPCompatibility; then
   phpcs --standard=PHPCompatibility --runtime-set testVersion "${php_style}-" --extensions=php --report=summary mcupr

@@ -79,6 +79,7 @@ $imp2 = new WP_Import(); $imp2->fetch_attachments = false;
 ob_start(); $imp2->import( $file ); ob_end_clean();
 $n2 = count( array_filter( get_posts( array( 'post_type' => 'page', 'numberposts' => -1, 'post_status' => 'any' ) ), function ( $p ) { return '' !== get_post_meta( $p->ID, '_mcupr_en_title', true ); } ) );
 t( $n2 === $n1, 'importing twice does not duplicate pages (' . $n2 . ')' );
+t( count( wp_get_nav_menu_items( $loc['primary_th'] ) ) === count( $main ) && count( wp_get_nav_menu_items( $loc['footer'] ) ) === count( $footer ), 'importing twice does not duplicate menu items' );
 
 echo $fails ? "\n$fails FAILED\n" : "\nall passed\n";
 exit( $fails ? 1 : 0 );
