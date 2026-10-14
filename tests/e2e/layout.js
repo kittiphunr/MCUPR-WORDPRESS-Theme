@@ -318,6 +318,8 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     const nav = await p.evaluate(() => { const r = document.querySelector('#site-nav').getBoundingClientRect(); return [Math.round(r.left), Math.round(r.width)]; });
     ok((await css(p, '#site-nav', 'position')) === 'fixed' && nav[0] === 12 && nav[1] <= 90, 'hybrid: slim icon card on the left ' + nav);
     ok((await css(p, 'body', 'paddingLeft')) === '92px', 'hybrid: content offset by the slim rail');
+    const pill = await p.evaluate(() => { const n = document.querySelector('#site-nav'); const f = document.querySelector('#site-nav .sb-foot'); return { w: n.getBoundingClientRect().width, r: parseFloat(getComputedStyle(n).borderTopLeftRadius), fw: f.getBoundingClientRect().width, fh: f.getBoundingClientRect().height, fr: parseFloat(getComputedStyle(f).borderTopLeftRadius) }; });
+    ok(pill.r >= pill.w / 2 && pill.fr >= Math.min(pill.fw, pill.fh) / 2, 'hybrid: the collapsed card and the button are true pills (corners meet in full semicircles) ' + JSON.stringify(pill));
     ok(await p.locator('#site-nav .sb-foot').isVisible(), 'hybrid: the expand button is shown');
     const fb = await p.evaluate(() => { const r = document.querySelector('#site-nav .sb-foot').getBoundingClientRect(); const n = document.querySelector('#site-nav').getBoundingClientRect(); return { gap: Math.round(innerHeight - r.bottom), sep: r.top >= n.bottom }; });
     ok(fb.gap === 12 && fb.sep, 'hybrid: the expand button is its own card pinned to the bottom, apart from the menu card ' + JSON.stringify(fb));
