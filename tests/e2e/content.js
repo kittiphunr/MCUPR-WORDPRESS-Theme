@@ -388,6 +388,43 @@ const speechStub = (speakMs) => `(() => {
     await d.close();
   }
 
+  // ================= Single article + comments polish
+  {
+    const c = await newCtx();
+    const p = await c.newPage();
+    const external = [];
+    p.on('request', (r) => { if (!r.url().startsWith(B)) external.push(r.url()); });
+    await p.goto(B + post(1));
+    ok((await p.locator('#comments.soft-card').count()) === 1 && (await p.locator('#comments-title').count()) === 1, 'comments: soft card with heading');
+    ok(/\(2\)/.test(await text(p, '#comments-title')), 'comments: count shown in the heading');
+    ok((await p.locator('.comment-list > li > .comment-card .comment-bubble').count()) === 1 && (await p.locator('.comment-list .children .comment-bubble').count()) === 1, 'comments: bubble cards, reply nested one level');
+    ok((await p.locator('.comment-list .stat-ic').count()) === 2 && (await p.locator('.comment-list img').count()) === 0, 'comments: initial badges, no Gravatar <img>');
+    ok(/ตอบกลับ/.test(await text(p, '.comment-list')) && /ส่งความคิดเห็น/.test(await p.inputValue('#submit').catch(() => '')) , 'comments: Thai labels (reply, submit)');
+    const fieldRadius = await p.locator('#comment').evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius));
+    ok(fieldRadius >= 16 && (await p.locator('#author').evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))) >= 14, 'comment form: rounded fields');
+    ok((await p.locator('#submit').evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))) >= 20, 'comment form: pill submit button');
+    ok((await p.locator('label[for=comment]').count()) === 1 && (await p.locator('label[for=author]').count()) === 1 && (await p.locator('label[for=email]').count()) === 1, 'comment form: every field has a label');
+    ok((await p.locator('article .pill-tabs a, article .pill-tabs button').count()) >= 4, 'article tools: capsule toolbar');
+    ok((await p.locator('nav a.soft-card[rel=next], nav a.soft-card[rel=prev]').count()) >= 1, 'post navigation: soft cards');
+    ok((await p.locator('article header svg').count()) >= 2, 'article meta: date and reading-time icons');
+    ok(external.every((u) => !/gravatar/.test(u)), 'no request to gravatar.com (PDPA)');
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe on an article with comments: ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    r.violations.forEach((v) => console.log('   ', v.id, v.nodes.slice(0, 2).map((x) => x.target.join(' ')).join(' || ')));
+    await p.goto(B + post(1) + '?lang=en');
+    ok(/Leave a comment/.test(await text(p, '#reply-title')) && /Comments/.test(await text(p, '#comments-title')), 'comments: English heading and form title');
+    ok((await p.getAttribute('#author', 'autocomplete')) === 'name' && /Name/.test(await text(p, 'label[for=author]')), 'comment form: English labels, autocomplete="name"');
+    await c.close();
+    const d = await newCtx({ colorScheme: 'dark' });
+    const pd = await d.newPage();
+    await pd.goto(B + post(1));
+    await pd.addScriptTag({ content: axeSource() });
+    const rd = await pd.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa'] }));
+    ok(rd.violations.length === 0, 'axe (dark) article with comments: ' + (rd.violations.map((v) => v.id).join(', ') || '0 violations'));
+    await d.close();
+  }
+
   await br.close();
   finish();
 })();
