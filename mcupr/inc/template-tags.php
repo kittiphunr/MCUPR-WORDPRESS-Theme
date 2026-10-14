@@ -9,8 +9,7 @@ defined( 'ABSPATH' ) || exit;
 
 /** Menu for the current language, falling back to default language, then pages. */
 function mcupr_primary_menu() {
-	// Polylang gives every location a per-language variant itself.
-	$loc = mcupr_has_polylang() ? 'primary' : 'primary_' . mcupr_lang();
+	$loc = 'primary_' . mcupr_lang();
 	if ( ! has_nav_menu( $loc ) ) {
 		$loc = 'primary_' . mcupr_default_lang();
 	}
@@ -34,7 +33,7 @@ function mcupr_menu_fallback() {
 
 /** Breadcrumb (WCAG: multiple ways to locate pages). */
 function mcupr_breadcrumb( $wrap = true ) {
-	if ( is_front_page() || mcupr_plugin_breadcrumb() ) {
+	if ( is_front_page() ) {
 		return;
 	}
 	$items = array( array( mcupr_t( 'home' ), mcupr_home_url() ) );
@@ -110,7 +109,7 @@ function mcupr_first_category() {
 
 /** Home page shows the hero, so the header floats over it. */
 function mcupr_header_over_hero() {
-	return is_front_page() && ! is_paged() && ! ( is_page() && mcupr_is_elementor_page( get_queried_object_id() ) );
+	return is_front_page() && ! is_paged();
 }
 
 /** Hero background image URL: Customizer image, else the newest post thumbnail. */
@@ -179,7 +178,7 @@ add_filter(
 	3
 );
 
-/** Remember whether the tool buttons were printed (so an Elementor header without them gets a fallback bar). */
+/** Remember whether the tool buttons were printed. */
 function mcupr_tools_rendered( $set = false ) {
 	static $done = false;
 	if ( $set ) {

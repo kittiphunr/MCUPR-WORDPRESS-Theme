@@ -327,6 +327,40 @@ const speechStub = (speakMs) => `(() => {
     await c.close();
   }
 
+  // ================= Shortcode slots, theme shortcodes, built-in SEO
+  {
+    const c = await newCtx({}, {
+      mcupr_slot_header_after: '<p id="s-head">[mcupr_button url="/x/" style="outline"]Go[/mcupr_button]</p>',
+      mcupr_slot_home_top: '[mcupr_news count="2" columns="2"]',
+      mcupr_slot_content_after: '<p id="s-after">after</p>',
+      mcupr_slot_footer_before: '<p id="s-foot">before footer</p>',
+    });
+    const p = await c.newPage();
+    await p.goto(B + '/');
+    ok((await p.locator('[data-slot=header_after] #s-head a[href="/x/"]').count()) === 1, 'slot: shortcode [mcupr_button] runs below the header');
+    ok((await p.locator('[data-slot=home_top] article').count()) === 2, 'slot: [mcupr_news count=2] prints 2 cards on the home page');
+    ok((await p.locator('[data-slot=footer_before] #s-foot').count()) === 1, 'slot: above-footer HTML printed');
+    ok((await p.locator('[data-slot=content_after]').count()) === 0, 'slot: article slot not shown on the home page');
+    await p.goto(B + post(2));
+    ok((await p.locator('[data-slot=content_after] #s-after').count()) === 1, 'slot: after-article HTML printed on a post');
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe with shortcode slots: ' + (r.violations.map((v) => v.id).join(', ') || '0 violations'));
+    await c.close();
+
+    const c2 = await newCtx();
+    const p2 = await c2.newPage();
+    await p2.goto(B + '/');
+    ok((await p2.locator('.mcupr-slot').count()) === 0, 'slots: empty by default print nothing');
+    ok((await p2.locator('meta[property="og:title"]').count()) === 1, 'seo: Open Graph title');
+    await p2.goto(B + post(2));
+    ok((await p2.getAttribute('meta[property="og:type"]', 'content')) === 'article', 'seo: article og:type');
+    ok((await p2.getAttribute('meta[name=description]', 'content')) === 'สรุปข่าว 2', 'seo: description comes from the excerpt');
+    await p2.goto(B + '/?s=test');
+    ok(/noindex/.test((await p2.getAttribute('meta[name=robots]', 'content')) || ''), 'search results are noindex (WordPress core)');
+    await c2.close();
+  }
+
   await br.close();
   finish();
 })();

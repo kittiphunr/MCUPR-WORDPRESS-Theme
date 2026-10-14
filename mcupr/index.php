@@ -7,7 +7,6 @@
 
 get_header();
 
-if ( ! mcupr_elementor_location( 'archive' ) ) :
 	get_template_part( 'template-parts/band', null, array( 'title' => is_home() && ! is_front_page() ? esc_html( single_post_title( '', false ) ) : esc_html( mcupr_t( 'latest_news' ) ), 'description' => '', 'chips' => true ) );
 	?>
 <div class="wrap mt-10">
@@ -31,6 +30,4 @@ if ( ! mcupr_elementor_location( 'archive' ) ) :
 	<?php endif; ?>
 </div>
 <?php
-endif;
-
 get_footer();
