@@ -548,7 +548,7 @@ const speechStub = (speakMs) => `(() => {
     const cat = p.locator('section[aria-label] section').first();
     ok((await cat.locator('li').count()) >= 1 && (await cat.locator('li').count()) <= 3 && (await cat.locator('a[href*="/category/"]').count()) >= 1, 'each block lists up to 3 posts and links to its category');
     ok(!(await p.locator('[id^=cat-]').allTextContents()).some((t) => /Uncategorized/i.test(t)), 'the default "Uncategorized" category is skipped in the automatic choice');
-    ok((await p.locator('#visit-title').count()) === 1 && (await p.locator('a[href="tel:054000000"]').count()) === 1 && (await p.locator('main a[href="mailto:info@example.org"]').count()) === 1 && /123 ถนนทดสอบ/.test(await text(p, '#visit-title + div')), 'contact strip: address, telephone, email');
+    ok((await p.locator('#visit-title').count()) === 1 && (await p.locator('main a[href="tel:054000000"]').count()) === 1 && (await p.locator('main a[href="mailto:info@example.org"]').count()) === 1 && /123 ถนนทดสอบ/.test(await text(p, '#visit-title + div')), 'contact strip: address, telephone, email');
     const allNews = p.locator('#news-title').locator('xpath=ancestor::section//a[contains(@href,"mcupr_all=1")]');
     ok((await allNews.count()) === 1, '"View all news" link works without a Posts page (?mcupr_all=1)');
     await allNews.click();

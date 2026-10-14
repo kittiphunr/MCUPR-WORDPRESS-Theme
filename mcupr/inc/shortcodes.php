@@ -135,12 +135,14 @@ function mcupr_sc_org( $atts ) {
 		case 'alt':
 			return esc_html( (string) mcupr_alt_name() );
 		case 'address':
-			return nl2br( esc_html( (string) mcupr_text_mod( 'mcupr_address' ) ) );
+			$c = mcupr_contact();
+			return nl2br( esc_html( $c['address'] ) );
 		case 'email':
 			$e = get_theme_mod( 'mcupr_org_email', '' );
 			return $e ? '<a href="mailto:' . esc_attr( $e ) . '">' . esc_html( $e ) . '</a>' : '';
 		case 'tel':
-			$t = get_theme_mod( 'mcupr_org_tel', '' );
+			$c = mcupr_contact();
+			$t = $c['tel'];
 			return $t ? '<a href="tel:' . esc_attr( preg_replace( '/[^0-9+]/', '', $t ) ) . '">' . esc_html( $t ) . '</a>' : '';
 		default:
 			return esc_html( mcupr_org_name() );
