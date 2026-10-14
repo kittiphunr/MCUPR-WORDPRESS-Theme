@@ -125,6 +125,7 @@ return array(
 	'news_categories' => array( 'หมวดหมู่ข่าว', 'News categories', '新闻分类', 'ニュースカテゴリー' ),
 	'in_section'    => array( 'ในหมวดนี้', 'In this section', '本栏目', 'このセクション' ),
 	'updated_on'    => array( 'ปรับปรุงล่าสุด', 'Last updated', '最后更新', '最終更新' ),
+	'print_from'    => array( 'พิมพ์จาก', 'Printed from', '打印自', '印刷元' ),
 	'fb_browse'     => array( 'เรียกดูเนื้อหา', 'Browse', '浏览', '閲覧' ),
 	'fb_cats'       => array( 'หมวดหมู่', 'Categories', '分类', 'カテゴリー' ),
 	'fb_tags'       => array( 'แท็ก', 'Tags', '标签', 'タグ' ),
