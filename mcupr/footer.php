@@ -79,7 +79,7 @@ foreach ( $policy as $row ) {
 		</nav>
 		<?php endif; ?>
 	</div>
-	<?php if ( trim( (string) get_theme_mod( 'mcupr_credit_name', '' ) ) !== '' ) : ?>
+	<?php if ( mcupr_credit() ) : ?>
 	<div class="fcredit-wrap px-6"><?php mcupr_credit_card(); ?></div>
 	<?php endif; ?>
 	<div class="border-t border-line py-4 text-[.9375rem] text-muted">

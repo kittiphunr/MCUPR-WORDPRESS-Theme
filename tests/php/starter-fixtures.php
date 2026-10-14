@@ -34,4 +34,20 @@ foreach ( array( 2 => array( 40, 90, 160 ), 3 => array( 20, 120, 80 ) ) as $n =>
 }
 set_theme_mod( 'mcupr_social_facebook', 'https://www.facebook.com/example' );
 set_theme_mod( 'mcupr_social_line', 'https://line.me/R/ti/p/@example' );
+// news browser: a zone (parent category with two children), tags and a few posts
+$par = wp_insert_term( 'วิชาการ', 'category', array( 'slug' => 'academic' ) );
+$par = is_wp_error( $par ) ? (int) get_term_by( 'slug', 'academic', 'category' )->term_id : (int) $par['term_id'];
+$kids = array();
+foreach ( array( 'research' => 'งานวิจัย', 'service' => 'บริการวิชาการ' ) as $slug => $name ) {
+	$t = wp_insert_term( $name, 'category', array( 'slug' => $slug, 'parent' => $par ) );
+	$kids[ $slug ] = is_wp_error( $t ) ? (int) get_term_by( 'slug', $slug, 'category' )->term_id : (int) $t['term_id'];
+}
+foreach ( array(
+	array( 'ผลงานวิจัยดีเด่นประจำปี', 'research', array( 'วิจัย', 'รางวัล' ) ),
+	array( 'โครงการบริการวิชาการแก่ชุมชน', 'service', array( 'ชุมชน', 'โครงการ' ) ),
+	array( 'เปิดรับสมัครทุนวิจัย', 'research', array( 'วิจัย', 'โครงการ' ) ),
+	array( 'อบรมเชิงปฏิบัติการ', 'service', array( 'โครงการ' ) ),
+) as $i => $pd ) {
+	wp_insert_post( array( 'post_title' => $pd[0], 'post_status' => 'publish', 'post_content' => 'ข้อความตัวอย่าง', 'post_category' => array( $kids[ $pd[1] ] ), 'tags_input' => $pd[2], 'post_date' => gmdate( 'Y-m-d H:i:s', time() - ( $i + 1 ) * 3600 ) ) );
+}
 echo "ok $id\n";
