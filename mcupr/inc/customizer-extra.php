@@ -60,7 +60,46 @@ function mcupr_customize_register_extra( $wp_customize ) {
 	$wp_customize->add_setting( 'mcupr_hero_quick', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 	$wp_customize->add_control( 'mcupr_hero_quick', array( 'section' => $sec, 'label' => __( 'Hero: show the quick-link tiles (menu location “Quick links”)', 'mcupr' ), 'type' => 'checkbox' ) );
 
+	// ---- more slides (the first slide is the hero above)
+	$wp_customize->add_setting( 'mcupr_hero_auto', array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+	$wp_customize->add_control( 'mcupr_hero_auto', array( 'section' => $sec, 'label' => __( 'Slides: change slide automatically every 7 seconds (stops when the visitor turns animations off)', 'mcupr' ), 'type' => 'checkbox' ) );
+	foreach ( array( 2, 3 ) as $n ) {
+		$wp_customize->add_setting( "mcupr_hero{$n}_image", array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
+		$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, "mcupr_hero{$n}_image", array( 'section' => $sec, 'label' => sprintf( /* translators: %d: slide number */ __( 'Slide %d: photo (leave empty to use only the slides before it)', 'mcupr' ), $n ), 'mime_type' => 'image' ) ) );
+		foreach ( mcupr_ui_languages() as $code => $l ) {
+			$name = mcupr_admin_lang_name( $l['name'] );
+			foreach ( array(
+				'title' => array( /* translators: 1: slide number, 2: language */ __( 'Slide %1$d: headline (%2$s)', 'mcupr' ), 'text' ),
+				'sub'   => array( /* translators: 1: slide number, 2: language */ __( 'Slide %1$d: short paragraph (%2$s)', 'mcupr' ), 'textarea' ),
+				'btn'   => array( /* translators: 1: slide number, 2: language */ __( 'Slide %1$d: button text (%2$s)', 'mcupr' ), 'text' ),
+			) as $key => $def ) {
+				$wp_customize->add_setting( "mcupr_hero{$n}_{$key}_{$code}", array( 'default' => '', 'sanitize_callback' => 'textarea' === $def[1] ? 'sanitize_textarea_field' : 'sanitize_text_field' ) );
+				$wp_customize->add_control( "mcupr_hero{$n}_{$key}_{$code}", array( 'section' => $sec, 'label' => sprintf( $def[0], $n, $name ), 'type' => $def[1] ) );
+			}
+		}
+		$wp_customize->add_setting( "mcupr_hero{$n}_url", array( 'default' => '', 'sanitize_callback' => 'esc_url_raw' ) );
+		$wp_customize->add_control( "mcupr_hero{$n}_url", array( 'section' => $sec, 'label' => sprintf( /* translators: %d: slide number */ __( 'Slide %d: button link', 'mcupr' ), $n ), 'type' => 'url' ) );
+	}
+
 	$wp_customize->add_setting( 'mcupr_show_views', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 	$wp_customize->add_control( 'mcupr_show_views', array( 'section' => 'mcupr_display', 'label' => __( 'Show the number of views on news, pages, events and works', 'mcupr' ), 'type' => 'checkbox' ) );
 }
 add_action( 'customize_register', 'mcupr_customize_register_extra', 20 );
+
+/** Slides 2 and 3 that have a photo: array of array( image, title, sub, btn, url ). */
+function mcupr_hero_extra_slides() {
+	$out = array();
+	foreach ( array( 2, 3 ) as $n ) {
+		$img = (int) get_theme_mod( "mcupr_hero{$n}_image", 0 );
+		if ( $img && wp_get_attachment_image_src( $img, 'mcupr-hero' ) ) {
+			$out[] = array(
+				'image' => $img,
+				'title' => (string) mcupr_text_mod( "mcupr_hero{$n}_title" ),
+				'sub'   => (string) mcupr_text_mod( "mcupr_hero{$n}_sub" ),
+				'btn'   => (string) mcupr_text_mod( "mcupr_hero{$n}_btn" ),
+				'url'   => (string) get_theme_mod( "mcupr_hero{$n}_url", '' ),
+			);
+		}
+	}
+	return $out;
+}

@@ -63,6 +63,7 @@ foreach ( $policy as $row ) {
 				</div>
 			</div>
 			<?php mcupr_contact_list(); ?>
+			<?php mcupr_social_links(); ?>
 		</div>
 
 		<div class="fmap-col"><?php mcupr_map_card(); ?></div>
