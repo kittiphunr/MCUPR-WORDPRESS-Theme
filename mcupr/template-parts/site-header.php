@@ -33,6 +33,24 @@ $name = mcupr_org_name();
 		</a>
 
 		<div class="flex flex-wrap items-center gap-1.5 min-[1100px]:order-3">
+			<?php if ( has_nav_menu( 'utility' ) ) : ?>
+				<?php // Sidebar / hybrid layouts have no black bar: its links (students, staff, alumni…) are shown here instead. A copy without ids. ?>
+				<?php add_filter( 'nav_menu_item_id', '__return_empty_string' ); ?>
+				<?php
+				wp_nav_menu(
+					array(
+						'theme_location'       => 'utility',
+						'container'            => 'nav',
+						'container_class'      => 'hdr-util',
+						'container_aria_label' => mcupr_t( 'utility_links' ),
+						'menu_id'              => 'utility-menu-header',
+						'menu_class'           => '',
+						'depth'                => 1,
+					)
+				);
+				?>
+				<?php remove_filter( 'nav_menu_item_id', '__return_empty_string' ); ?>
+			<?php endif; ?>
 			<?php if ( get_theme_mod( 'mcupr_fs_menu', true ) ) : ?>
 			<button type="button" class="fs-open" aria-haspopup="dialog" aria-controls="fs-menu" aria-expanded="false" data-fs-open>
 				<?php echo mcupr_icon( 'grid', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'all_menu' ); ?></span>
