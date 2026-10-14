@@ -28,6 +28,7 @@
 	} catch (e) {
 		prefs = {};
 	}
+	if (prefs.menu === 'hybrid') { prefs.menu = 'side'; } /* the hybrid layout was retired: it is the sidebar now */
 
 	function $(sel, ctx) { return (ctx || document).querySelector(sel); }
 	function $$(sel, ctx) { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); }
@@ -116,13 +117,11 @@
 				root.removeAttribute('data-' + k);
 			}
 		});
-		var menuMode = prefs.menu === 'top' || prefs.menu === 'side' || prefs.menu === 'hybrid' ? prefs.menu : (i18n.menuDefault || 'top');
+		var menuMode = prefs.menu === 'top' ? 'top' : (prefs.menu === 'side' || prefs.menu === 'hybrid' ? 'side' : (i18n.menuDefault || 'top'));
 		root.setAttribute('data-menu', menuMode);
 		var sbMin = false;
 		try { sbMin = localStorage.getItem('mcupr_sbmin') === '1'; } catch (err) { /* ignore */ }
-		var sbStored = null;
-		try { sbStored = localStorage.getItem('mcupr_sbmin'); } catch (err2) { /* ignore */ }
-		root.classList.toggle('sb-min', menuMode !== 'top' && (sbMin || (menuMode === 'hybrid' && sbStored !== '0')));
+		root.classList.toggle('sb-min', menuMode !== 'top' && sbMin);
 		applyColors();
 		sync();
 		Cursor.sync();
@@ -667,9 +666,11 @@
 			box.setAttribute('aria-label', i18n.allMenu || 'All menu');
 			box.hidden = true;
 			var site = ($('.brand .t b') || $('.brand') || {}).textContent || '';
-			var head = '<div class="fs-head"><span class="fs-title">' + (i18n.allMenu || 'All menu').replace(/</g, '&lt;') + '</span>'
-				+ '<button type="button" class="fs-close" data-fs-close aria-label="' + (i18n.closeMenu || 'Close').replace(/"/g, '&quot;') + '"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>';
-			box.innerHTML = head + '<nav class="fs-body" aria-label="' + (i18n.allMenu || 'All menu').replace(/"/g, '&quot;') + '"></nav>';
+			var esc = function (t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
+			var head = '<div class="fs-head"><span class="fs-title"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>' + esc(i18n.allMenu || 'All menu') + '</span>'
+				+ '<label class="fs-find"><span class="sr-only">' + esc(i18n.fsFind || 'Search the menu') + '</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" data-fs-find placeholder="' + esc(i18n.fsFind || 'Search the menu') + '" autocomplete="off"></label>'
+				+ '<button type="button" class="fs-close" data-fs-close aria-label="' + esc(i18n.closeMenu || 'Close') + '"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>';
+			box.innerHTML = head + '<nav class="fs-body" aria-label="' + esc(i18n.allMenu || 'All menu') + '"></nav>';
 			var list = document.createElement('ul');
 			list.className = 'fs-list';
 			var top = src.cloneNode(true);
@@ -685,6 +686,46 @@
 			$$('li.is-open', top).forEach(function (li) { li.classList.remove('is-open'); });
 			while (top.firstChild) { list.appendChild(top.firstChild); }
 			$('.fs-body', box).appendChild(list);
+			var none = document.createElement('p');
+			none.className = 'fs-none'; none.hidden = true; none.textContent = i18n.fsNone || '';
+			$('.fs-body', box).appendChild(none);
+			/* the quick links (students, staff, alumni…) as a strip at the foot */
+			var qsrc = $$('.hdr-util a, .nav-util a');
+			if (qsrc.length) {
+				var seen = {};
+				var q = document.createElement('div');
+				q.className = 'fs-quick';
+				q.innerHTML = '<span>' + esc(i18n.quickLinks || '') + '</span>';
+				qsrc.forEach(function (a) {
+					var key = a.getAttribute('href') + '|' + a.textContent.trim();
+					if (seen[key]) { return; }
+					seen[key] = true;
+					var c = document.createElement('a');
+					c.href = a.getAttribute('href'); c.textContent = a.textContent.trim();
+					if (a.target) { c.target = a.target; c.rel = 'noopener'; }
+					q.appendChild(c);
+				});
+				box.appendChild(q);
+			}
+			var find = $('[data-fs-find]', box);
+			find.addEventListener('input', function () {
+				var t = find.value.trim().toLowerCase();
+				var any = false;
+				$$(':scope > li', list).forEach(function (li) {
+					var head1 = ($(':scope > a', li) || {}).textContent || '';
+					var topHit = !t || head1.toLowerCase().indexOf(t) !== -1;
+					var subHit = false;
+					$$('li', li).forEach(function (sub) {
+						var hit = !t || topHit || (sub.textContent || '').toLowerCase().indexOf(t) !== -1;
+						sub.hidden = !hit;
+						if (hit) { subHit = true; }
+					});
+					var show = topHit || subHit;
+					li.hidden = !show;
+					if (show) { any = true; }
+				});
+				none.hidden = any;
+			});
 			box.setAttribute('data-site', site.trim());
 			document.body.appendChild(box);
 			box.addEventListener('click', function (e) {
@@ -1130,6 +1171,20 @@
 	/* the "loading" state (set in <head>) ends when the page has finished loading */
 	var doneLoading = function () { root.classList.remove('page-loading'); };
 	if (document.readyState === 'complete') { doneLoading(); } else { window.addEventListener('load', doneLoading); }
+
+	/* ---- quick links (student / staff / alumni…) tucked into one drop-down button ---- */
+	$$('[data-util]').forEach(function (box) {
+		var btn = $('[data-util-toggle]', box);
+		var panel = $('.util-panel', box);
+		if (!btn || !panel) { return; }
+		var setUtil = function (open) {
+			panel.hidden = !open;
+			btn.setAttribute('aria-expanded', String(open));
+		};
+		btn.addEventListener('click', function (e) { e.stopPropagation(); setUtil(panel.hidden); });
+		document.addEventListener('click', function (e) { if (!panel.hidden && !box.contains(e.target)) { setUtil(false); } });
+		box.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { e.stopPropagation(); setUtil(false); btn.focus(); } });
+	});
 
 	apply();
 	reveal();
