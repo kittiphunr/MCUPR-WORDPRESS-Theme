@@ -274,6 +274,33 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await p.locator('#colophon .fcredit-ph').scrollIntoViewIfNeeded();
     await p.waitForFunction(() => { const i = document.querySelector('#colophon .fcredit-ph'); return i.complete && i.naturalWidth > 0; }, null, { timeout: 5000 }).then(() => ok(true, 'footer: the creator photo loads'), () => ok(false, 'footer: the creator photo loads'));
   }
+  // ---------- A4 print with the letterhead
+  {
+    const pc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    await pc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const pp = await pc.newPage();
+    await pp.goto(B + '/print-long/');
+    ok((await pp.locator('.print-sheet').count()) === 1 && (await pp.locator('.print-sheet').isHidden()), 'print: the letterhead exists but is not shown on screen');
+    await pp.emulateMedia({ media: 'print' });
+    const g = await pp.evaluate(() => { const mm = (n) => n * 96 / 25.4; const r = (s) => document.querySelector(s).getBoundingClientRect(); const h = r('.print-head'), f = r('.print-foot'); return { headH: h.height / mm(1), footH: f.height / mm(1), headPos: getComputedStyle(document.querySelector('.print-head')).position, top: h.top, padTop: parseFloat(getComputedStyle(document.body).paddingTop) / mm(1), padSide: parseFloat(getComputedStyle(document.body).paddingLeft) / mm(1), header: getComputedStyle(document.querySelector('.site-header')).display, tools: !!document.querySelector('.pill-tabs') && getComputedStyle(document.querySelector('.pill-tabs')).display, share: document.querySelector('.share-bar') && getComputedStyle(document.querySelector('.share-bar')).display, imgs: document.querySelectorAll('.print-fill').length }; });
+    ok(Math.abs(g.headH - 36) < 0.6 && Math.abs(g.footH - 20) < 0.6 && g.headPos === 'fixed' && g.top === 0, 'print: header band 36 mm and footer band 20 mm, fixed (repeated on every sheet) ' + JSON.stringify([g.headH, g.footH]));
+    ok(Math.abs(g.padTop - 36) < 0.6 && Math.abs(g.padSide - 18) < 0.6, 'print: the text keeps clear of the header (36 mm) and the side margins (18 mm)');
+    ok(g.header === 'none' && g.tools === 'none' && g.share === 'none' && g.imgs === 2, 'print: site header, share buttons and tools are not printed; header + footer graphics are');
+    const pdf = await pp.pdf({ preferCSSPageSize: true, printBackground: true });
+    const fs = require('fs'); const cp = require('child_process'); const os = require('os'); const path = require('path');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcupr-pdf-')); const file = path.join(dir, 'p.pdf'); fs.writeFileSync(file, pdf);
+    let info = ''; try { info = cp.execFileSync('pdfinfo', [file]).toString(); } catch (e) { /* poppler not installed */ }
+    if (info) {
+      const pages = parseInt((info.match(/Pages:\s+(\d+)/) || [])[1], 10);
+      ok(pages >= 3 && /59[45]\.\d+ x 84[12]\.\d+ pts \(A4\)/.test(info), 'print: a long post prints on several A4 sheets (' + pages + ' pages)');
+      const px = (page, fx, fy) => { const out = cp.execFileSync('pdftoppm', ['-r', '20', '-f', String(page), '-l', String(page), '-singlefile', file, path.join(dir, 'pg')]); const buf = fs.readFileSync(path.join(dir, 'pg.ppm')); const m = buf.toString('latin1', 0, 20).match(/^P6\s+(\d+)\s+(\d+)\s+255\s/); const w = +m[1], h = +m[2], off = m[0].length; const x = Math.floor(w * fx), y = Math.floor(h * fy); const i = off + (y * w + x) * 3; return [buf[i], buf[i + 1], buf[i + 2]]; };
+      const near = (a, b) => a.every((v, i) => Math.abs(v - b[i]) < 40);
+      ok(near(px(1, .5, .02), [200, 40, 90]) && near(px(2, .5, .02), [200, 40, 90]) && near(px(pages, .5, .02), [200, 40, 90]), 'print: the header graphic is on the first, the second and the last sheet');
+      ok(near(px(1, .5, .93), [30, 100, 160]) && near(px(pages, .5, .93), [30, 100, 160]), 'print: the footer graphic is on every sheet too');
+      ok(near(px(2, .02, .5), [255, 255, 255]) && near(px(2, .98, .5), [255, 255, 255]), 'print: the side margins are clear paper');
+    } else { console.log('  (poppler not installed: PDF page checks skipped)'); }
+    await pc.close();
+  }
   // works & awards (own categories), administration chart, attachments, views
   await p.goto(B + '/works/');
   ok((await p.$$('.work-card')).length === 3, '/works/ lists the 3 sample works');
