@@ -28,23 +28,6 @@ defined( 'ABSPATH' ) || exit;
 
 <div id="page" class="site-page">
 <?php mcupr_notice_bar(); ?>
-<?php if ( has_nav_menu( 'utility' ) ) : ?>
-	<div class="bg-bar text-[.8125rem] text-on-bar print:hidden">
-		<div class="wrap">
-			<?php
-			wp_nav_menu(
-				array(
-					'theme_location'       => 'utility',
-					'container'            => 'nav',
-					'container_aria_label' => mcupr_t( 'utility_links' ),
-					'menu_class'           => 'utility-menu',
-					'depth'                => 1,
-				)
-			);
-			?>
-		</div>
-	</div>
-<?php endif; ?>
 
 <?php get_template_part( 'template-parts/site-header' ); ?>
 
