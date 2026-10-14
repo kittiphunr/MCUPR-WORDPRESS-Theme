@@ -160,6 +160,18 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok(fd.violations.length === 0, 'footer axe (dark): ' + (fd.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
   await p.evaluate(() => document.documentElement.removeAttribute('data-theme'));
 
+  // side menu: the left rail's menu card runs the full height of the screen (down to the collapse button)
+  for (const [mode, min, h] of [['side', '0', 900], ['side', '1', 900], ['side', '0', 560], ['hybrid', '1', 900]]) {
+    const sc = await br.newContext({ viewport: { width: 1600, height: h }, reducedMotion: 'reduce' });
+    await sc.addInitScript(([m, mn]) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); localStorage.setItem('mcupr_sbmin', mn); } catch (e) { /* frame */ } }, [mode, min]);
+    const sp = await sc.newPage();
+    await sp.goto(B + '/sitemap/');
+    const g = await sp.evaluate(() => { const cap = document.querySelector('.site-nav > .sb-cap:not(.sb-foot)').getBoundingClientRect(); const f = document.querySelector('.sb-foot').getBoundingClientRect(); const n = document.querySelector('.site-nav').getBoundingClientRect(); return { capBottom: cap.bottom, footTop: f.top, footH: f.height, navBottom: n.bottom, vh: innerHeight }; });
+    const okRail = mode === 'hybrid' ? g.capBottom >= g.vh - 40 : (g.footTop - g.capBottom <= 24 && g.vh - (g.footTop + g.footH) <= 40);
+    ok(okRail, mode + (min === '1' ? ' (collapsed)' : '') + ' menu, ' + h + 'px high: the rail card fills the screen height (card ends at ' + Math.round(g.capBottom) + ' of ' + g.vh + ')');
+    await sc.close();
+  }
+
   // every link in header + footer menus resolves (200) and is not "#"
   const links = [...new Set(await p.$$eval('header a[href], footer a[href]', (a) => a.map((x) => x.href).filter((h) => h.startsWith(location.origin) && !h.includes('#') && !/wp-admin|wp-login|\?lang=|replytocom|feed/.test(h))))];
   const bad = [];

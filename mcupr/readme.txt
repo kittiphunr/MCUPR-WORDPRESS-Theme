@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.4.2 =
+* Side / hybrid menu: the rail's menu card now runs the full height of the screen.
+
 = 1.4.1 =
 * Merged: Recent Posts widget (30-character titles + Read more...) with the footer contact / map.
 = 1.4.0 =
