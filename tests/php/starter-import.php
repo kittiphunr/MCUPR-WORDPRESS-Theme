@@ -73,6 +73,20 @@ $leak = array_filter( $main, function ( $i ) { return (bool) preg_grep( '/^mcupr
 t( ! $leak, 'import tokens are removed from the CSS classes' );
 t( 3 === (int) get_post_meta( reset( $mega )->ID, '_mcupr_menu_cols', true ), 'mega columns stored' );
 
+// administration chart + works
+$units = get_posts( array( 'post_type' => 'mcupr_unit', 'numberposts' => -1, 'post_status' => 'publish' ) );
+t( count( $units ) === 13, '13 sample units of the administration chart (' . count( $units ) . ')' );
+$pres = get_posts( array( 'post_type' => 'mcupr_unit', 'name' => 'unit-pres' ) );
+$vpa  = get_posts( array( 'post_type' => 'mcupr_unit', 'name' => 'unit-vp-acad' ) );
+t( $pres && $vpa && (int) $vpa[0]->post_parent === $pres[0]->ID, 'chart: parents are remapped (academic affairs under the president)' );
+t( strpos( do_shortcode( '[mcupr_orgchart]' ), 'org-d4' ) !== false, 'chart: four levels render' );
+$works = get_posts( array( 'post_type' => 'mcupr_work', 'numberposts' => -1, 'post_status' => 'publish' ) );
+t( count( $works ) === 3 && count( get_terms( array( 'taxonomy' => 'mcupr_work_cat', 'hide_empty' => false ) ) ) === 3, '3 sample works and 3 work categories' );
+t( '' !== mcupr_work_info( $works[0]->ID )['award'] && wp_get_object_terms( $works[0]->ID, 'mcupr_work_cat' ), 'work details and category imported' );
+t( ! wp_get_object_terms( $works[0]->ID, 'category' ), 'imported works carry no news category' );
+$wl = array_filter( $main, function ( $i ) { return '/works/' === substr( untrailingslashit( $i->url ), -7 ) || false !== strpos( $i->url, '/works' ); } );
+t( (bool) $wl, 'the main menu links to /works/' );
+
 // a second import must not duplicate pages
 $n1 = count( $pages );
 $imp2 = new WP_Import(); $imp2->fetch_attachments = false;
