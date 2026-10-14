@@ -31,6 +31,7 @@ get_header();
 						<button type="button" class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border-0 bg-transparent px-4 font-semibold text-fg2 hover:bg-tint hover:text-link" data-print><?php mcupr_e( 'print' ); ?></button>
 					</div>
 					<span class="inline-flex items-center gap-1.5 text-sm text-muted"><?php echo mcupr_icon( 'clock', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php mcupr_e( 'updated_on' ); ?> <?php echo esc_html( mcupr_date_text( get_post_timestamp( null, 'modified' ) ) ); ?></span>
+					<?php echo mcupr_views_html(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				</div>
 			</div>
 			<div id="article-body" class="reader"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
@@ -39,6 +40,7 @@ get_header();
 				wp_link_pages();
 				?>
 			</div>
+		<?php mcupr_attachments(); ?>
 			<?php
 			// On the section's first page: its sub-pages as tiles (Certify Hub "tile" cards).
 			if ( $section && get_the_ID() === $root ) :

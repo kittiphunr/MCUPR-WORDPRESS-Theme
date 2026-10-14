@@ -13,6 +13,8 @@ git clone -q --depth 1 https://github.com/WordPress/wordpress-importer.git "$SIT
 status=0
 php php/starter-import.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
 php php/events.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
+php php/starter-fixtures.php "$SITE_DIR" 2>&1 | grep -v Deprecated
+php php/content-tools.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
 php -S "localhost:${PORT}" -t "$SITE_DIR" >.server.log 2>&1 &
 pid=$!; trap 'kill $pid 2>/dev/null' EXIT
 for _ in $(seq 1 30); do curl -fs "$BASE_URL/" >/dev/null && break; sleep 0.5; done

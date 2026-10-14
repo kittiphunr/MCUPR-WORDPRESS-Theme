@@ -35,7 +35,7 @@ function mcupr_setup() {
 	$locations = array();
 	foreach ( mcupr_ui_languages() as $code => $l ) {
 		/* translators: %s: language name */
-		$locations[ 'primary_' . $code ] = sprintf( __( 'Main menu (%s)', 'mcupr' ), $l['name'] );
+		$locations[ 'primary_' . $code ] = sprintf( __( 'Main menu (%s)', 'mcupr' ), mcupr_admin_lang_name( $l['name'] ) );
 	}
 	$locations['utility'] = __( 'Utility bar links (students, staff, alumni…)', 'mcupr' );
 	$locations['quick']  = __( 'Quick links', 'mcupr' );
