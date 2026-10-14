@@ -31,7 +31,8 @@ $box = 'soft-card p-5';
 				?>
 			</div>
 			<?php the_tags( '<p class="mt-8 flex flex-wrap gap-2 text-sm [&_a]:inline-flex [&_a]:min-h-8 [&_a]:items-center [&_a]:rounded-full [&_a]:bg-tint [&_a]:px-3 [&_a]:no-underline"><span class="sr-only">' . esc_html( mcupr_t( 'tags' ) ) . '</span>', '', '</p>' ); ?>
-			<?php get_template_part( 'template-parts/post-nav' ); ?>
+			<?php get_template_part( 'template-parts/share' ); ?>
+		<?php get_template_part( 'template-parts/post-nav' ); ?>
 		</article>
 
 		<aside class="no-print space-y-6 min-[1000px]:sticky min-[1000px]:top-6 min-[1000px]:self-start" aria-label="<?php echo esc_attr( mcupr_t( 'related' ) ); ?>">
