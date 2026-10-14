@@ -91,6 +91,36 @@ function mcupr_menu_item_save( $menu_id, $item_id ) {
 }
 add_action( 'wp_update_nav_menu_item', 'mcupr_menu_item_save', 10, 2 );
 
+/**
+ * The WordPress Importer drops custom meta of menu items, so the starter file carries the icon / mega settings as
+ * CSS-class tokens ("mcupr-icon-bank", "mcupr-mega-3"). Move them into the real meta when the item is created.
+ */
+function mcupr_menu_item_import_tokens( $menu_id, $item_id, $args = array() ) {
+	if ( empty( $args['menu-item-classes'] ) ) {
+		return;
+	}
+	$classes = is_array( $args['menu-item-classes'] ) ? $args['menu-item-classes'] : preg_split( '/\s+/', (string) $args['menu-item-classes'] );
+	$keep    = array();
+	$paths   = mcupr_icon_paths();
+	$found   = false;
+	foreach ( $classes as $c ) {
+		if ( 0 === strpos( $c, 'mcupr-icon-' ) && isset( $paths[ substr( $c, 11 ) ] ) ) {
+			update_post_meta( $item_id, '_mcupr_menu_icon', substr( $c, 11 ) );
+			$found = true;
+		} elseif ( preg_match( '/^mcupr-mega-([234])$/', $c, $m ) ) {
+			update_post_meta( $item_id, '_mcupr_menu_mega', 1 );
+			update_post_meta( $item_id, '_mcupr_menu_cols', (int) $m[1] );
+			$found = true;
+		} elseif ( '' !== $c ) {
+			$keep[] = $c;
+		}
+	}
+	if ( $found ) {
+		update_post_meta( $item_id, '_menu_item_classes', $keep );
+	}
+}
+add_action( 'wp_update_nav_menu_item', 'mcupr_menu_item_import_tokens', 5, 3 );
+
 /* --------------------------------------------------------------- Front end */
 
 /** Classes: mega flag + column count on top-level items, "has-icon" on any item with an icon. */
@@ -135,4 +165,53 @@ add_filter(
 	},
 	10,
 	4
+);
+
+/* ------------------------------------------------------------ Starter content */
+
+/** A custom link such as "/" or "/news/" means "on this site": works for sites in a sub-folder too. */
+add_filter(
+	'wp_setup_nav_menu_item',
+	static function ( $item ) {
+		if ( ! is_admin() && 'custom' === $item->type && is_string( $item->url ) && 0 === strpos( $item->url, '/' ) && 0 !== strpos( $item->url, '//' ) ) {
+			$item->url = home_url( $item->url );
+		}
+		return $item;
+	}
+);
+
+/**
+ * After the starter file (mcupr/starter/mcupr-starter.xml) was imported: put each imported menu into the
+ * location named by its term meta "_mcupr_location" – only into locations that have no menu yet.
+ */
+function mcupr_assign_imported_menus() {
+	$locations = get_theme_mod( 'nav_menu_locations', array() );
+	$locations = is_array( $locations ) ? $locations : array();
+	$registered = get_registered_nav_menus();
+	$changed    = false;
+	foreach ( get_terms( array( 'taxonomy' => 'nav_menu', 'hide_empty' => false ) ) as $menu ) {
+		$loc = (string) get_term_meta( $menu->term_id, '_mcupr_location', true );
+		if ( $loc && isset( $registered[ $loc ] ) && empty( $locations[ $loc ] ) ) {
+			$locations[ $loc ] = $menu->term_id;
+			$changed           = true;
+		}
+	}
+	if ( $changed ) {
+		set_theme_mod( 'nav_menu_locations', $locations );
+	}
+}
+add_action( 'import_end', 'mcupr_assign_imported_menus' );
+
+/** A menu item whose link is just "#" is a label (e.g. a mega-menu column heading): no href, so it is not a dead link. */
+add_filter(
+	'nav_menu_link_attributes',
+	static function ( $atts, $item ) {
+		if ( 'custom' === $item->type && ( empty( $atts['href'] ) || '#' === $atts['href'] ) ) {
+			unset( $atts['href'] );
+			$atts['class'] = trim( ( isset( $atts['class'] ) ? $atts['class'] : '' ) . ' menu-label' );
+		}
+		return $atts;
+	},
+	10,
+	2
 );
