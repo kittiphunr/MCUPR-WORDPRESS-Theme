@@ -308,6 +308,25 @@ const speechStub = (speakMs) => `(() => {
     await c5.close();
   }
 
+  // ================= Widget areas
+  {
+    const c = await newCtx();
+    const p = await c.newPage();
+    await p.goto(B + '/');
+    ok((await p.locator('[data-area=home-after] .widget').count()) === 1, 'widgets: home area renders its widget');
+    ok((await p.locator('footer [data-area=footer-1] .widget').count()) === 1, 'widgets: footer column 1 renders');
+    ok((await p.locator('[data-area=footer-2], [data-area=footer-3]').count()) === 0, 'widgets: empty areas print nothing');
+    await p.goto(B + '/about/');
+    ok((await p.locator('aside [data-area=sidebar-page] .widget').count()) === 1, 'widgets: page sidebar renders beside the section list');
+    await p.goto(B + post(4));
+    ok((await p.locator('aside [data-area=sidebar-news] .widget').count()) === 3, 'widgets: news sidebar renders search + text + categories');
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe with widgets: ' + (r.violations.map((v) => v.id).join(', ') || '0 violations'));
+    r.violations.forEach((v) => console.log('   ', v.id, v.nodes.slice(0, 2).map((x) => x.target.join(' ')).join(' || ')));
+    await c.close();
+  }
+
   await br.close();
   finish();
 })();
