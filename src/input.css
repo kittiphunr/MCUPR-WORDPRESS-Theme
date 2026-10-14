@@ -287,14 +287,27 @@
 	.nav-links .page-numbers { @apply inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border-2 border-line px-3.5 text-fg no-underline hover:bg-surface; }
 	.nav-links .page-numbers.current { @apply border-primary bg-primary font-bold text-on-primary contrast:border-line; }
 
-	/* Comments (comment_form / wp_list_comments) */
-	.comment-list { @apply list-none space-y-4 p-0; }
-	.comment-list .children { @apply mt-4 list-none pl-6; }
-	.comment-form { @apply space-y-4; }
-	.comment-form label { @apply block font-semibold; }
-	.comment-form input[type="text"], .comment-form input[type="email"], .comment-form input[type="url"], .comment-form textarea { @apply min-h-11 w-full rounded-lg border-2 border-line bg-bg px-3 py-2 text-fg; }
-	.comment-form .submit { @apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border-2 border-transparent bg-primary px-4 py-1.5 font-semibold text-on-primary hover:brightness-110 contrast:border-line; }
-	.comment-reply-title { @apply text-xl font-bold; }
+	/* Comments: bubble cards, pill-shaped form */
+	.comment-list { @apply m-0 list-none space-y-5 p-0; }
+	.comment-list .children { @apply mt-5 list-none space-y-5 pl-4 min-[600px]:pl-12; }
+	.comment-bubble { @apply rounded-3xl rounded-tl-lg bg-surface px-5 py-4; }
+	.comment-list .bypostauthor > .comment-card .comment-bubble { background: var(--tint); }
+	.comment-card .reply a, .comment-card .comment-reply-link { @apply inline-flex min-h-9 items-center rounded-full px-3 text-sm font-semibold text-link no-underline hover:bg-tint; }
+	.comment-respond { @apply mt-8 border-t border-line pt-8; }
+	.comment-list + .comment-respond, .comment-list ~ .comment-respond { @apply mt-8; }
+	.comment-reply-title { @apply mb-3 text-xl font-bold; }
+	.comment-reply-title small { @apply ml-3 text-sm font-normal; }
+	.comment-form { @apply grid gap-4 min-[700px]:grid-cols-2; }
+	.comment-form > * { @apply m-0; }
+	.comment-form .comment-notes, .comment-form .comment-form-comment, .comment-form .comment-form-url, .comment-form .comment-form-cookies-consent, .comment-form .form-submit, .comment-form .logged-in-as { grid-column: 1 / -1; }
+	.comment-form label { @apply mb-1.5 block font-semibold; }
+	.comment-form input[type="text"], .comment-form input[type="email"], .comment-form input[type="url"], .comment-form textarea { @apply min-h-12 w-full rounded-2xl border-2 border-control bg-bg px-4 py-2 text-fg; }
+	.comment-form textarea { @apply min-h-36 rounded-3xl py-3; }
+	.comment-form input:focus-visible, .comment-form textarea:focus-visible { border-color: var(--primary); }
+	.comment-form .comment-form-cookies-consent { @apply flex items-start gap-3; }
+	.comment-form .comment-form-cookies-consent input { @apply mt-1.5 size-5 flex-none; }
+	.comment-form .comment-form-cookies-consent label { @apply m-0 font-normal; }
+	.comment-form .submit { @apply inline-flex min-h-12 min-w-11 cursor-pointer items-center justify-center rounded-full border-2 border-transparent bg-primary px-7 py-1.5 font-semibold text-on-primary shadow-[0_6px_16px_color-mix(in_srgb,var(--primary)_30%,transparent)] hover:brightness-110 contrast:border-line contrast:shadow-none; }
 
 	/* SweetAlert2 skin (classes passed from assets/js/main.js) */
 	.swal-popup { @apply !rounded-2xl !border-2 !border-line !bg-bg !text-fg !font-sans; }
