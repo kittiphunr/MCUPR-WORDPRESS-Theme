@@ -172,6 +172,30 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await sc.close();
   }
 
+  // bento: sidebar card | rounded content frame; collapsed active item is a circle inside the card
+  for (const [mode, min] of [['side', '0'], ['side', '1'], ['hybrid', '1']]) {
+    const bc = await br.newContext({ viewport: { width: 1500, height: 860 }, reducedMotion: 'reduce' });
+    await bc.addInitScript(([m, mn]) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); localStorage.setItem('mcupr_sbmin', mn); } catch (e) { /* frame */ } }, [mode, min]);
+    const bp = await bc.newPage();
+    await bp.goto(B + '/');
+    const g = await bp.evaluate(() => {
+      const nav = document.querySelector('.site-nav').getBoundingClientRect();
+      const card = document.querySelector('.site-nav > .sb-cap:not(.sb-foot)').getBoundingClientRect();
+      const page = document.getElementById('page');
+      const pr = page.getBoundingClientRect();
+      const cur = document.querySelector('.site-nav .menu > .current-menu-item > a');
+      const cr = cur ? cur.getBoundingClientRect() : null;
+      return { navRight: nav.right, cardLeft: card.left, cardRight: card.right, frameLeft: pr.left, frameRight: pr.right, vw: innerWidth, radius: parseFloat(getComputedStyle(page).borderTopLeftCornerRadius || getComputedStyle(page).borderTopLeftRadius), cur: cr && { w: cr.width, h: cr.height, l: cr.left, r: cr.right, br: parseFloat(getComputedStyle(cur).borderTopLeftRadius) }, overflow: document.documentElement.scrollWidth > innerWidth + 1 };
+    });
+    const tag = mode + (min === '1' ? ' collapsed' : ' expanded');
+    ok(g.cardLeft >= 8 && g.navRight - g.cardRight >= 8, tag + ': the menu card keeps a margin to the sidebar edge (left ' + Math.round(g.cardLeft) + 'px, right ' + Math.round(g.navRight - g.cardRight) + 'px)');
+    ok(g.frameLeft - g.cardRight >= 8 && g.vw - g.frameRight >= 8, tag + ': the content frame is separate from the sidebar and from the screen edge');
+    ok(g.radius >= 24, tag + ': the content frame has rounded corners (' + g.radius + 'px)');
+    ok(!g.overflow, tag + ': no horizontal scroll');
+    if (min === '1' && g.cur) { ok(Math.abs(g.cur.w - g.cur.h) <= 1 && g.cur.br >= g.cur.w / 2 - 1 && g.cur.l >= g.cardLeft + 2 && g.cur.r <= g.cardRight - 2, tag + ': the active item is a circle (' + Math.round(g.cur.w) + '×' + Math.round(g.cur.h) + ') inside the card'); }
+    await bc.close();
+  }
+
   // every link in header + footer menus resolves (200) and is not "#"
   const links = [...new Set(await p.$$eval('header a[href], footer a[href]', (a) => a.map((x) => x.href).filter((h) => h.startsWith(location.origin) && !h.includes('#') && !/wp-admin|wp-login|\?lang=|replytocom|feed/.test(h))))];
   const bad = [];
