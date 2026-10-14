@@ -33,6 +33,11 @@ $name = mcupr_org_name();
 		</a>
 
 		<div class="flex flex-wrap items-center gap-1.5 min-[1100px]:order-3">
+			<?php if ( get_theme_mod( 'mcupr_fs_menu', true ) ) : ?>
+			<button type="button" class="fs-open" aria-haspopup="dialog" aria-controls="fs-menu" aria-expanded="false" data-fs-open>
+				<?php echo mcupr_icon( 'grid', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'all_menu' ); ?></span>
+			</button>
+			<?php endif; ?>
 			<?php mcupr_tools_cluster(); ?>
 			<button type="button" class="nav-toggle inline-flex size-11 cursor-pointer items-center justify-center rounded-xl border border-control/60 bg-bg p-0 text-fg2 min-[1100px]:hidden" aria-expanded="false" aria-controls="site-nav" aria-label="<?php echo esc_attr( mcupr_t( 'open_menu' ) ); ?>" data-label-open="<?php echo esc_attr( mcupr_t( 'open_menu' ) ); ?>" data-label-close="<?php echo esc_attr( mcupr_t( 'close_menu' ) ); ?>">
 				<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>

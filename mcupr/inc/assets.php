@@ -53,6 +53,8 @@ function mcupr_assets() {
 			'palettes'    => mcupr_palettes_for_js(),
 			'expandMenu'  => mcupr_t( 'expand_menu' ),
 				'moreMenu'    => mcupr_t( 'more_menu' ),
+			'allMenu'     => mcupr_t( 'all_menu' ),
+			'closeMenu'   => mcupr_t( 'close_menu' ),
 			'collapseMenu' => mcupr_t( 'collapse_menu' ),
 			'aboutTitle'  => mcupr_t( 'about' ),
 			'searchUrl'   => esc_url_raw( add_query_arg( 's', '', mcupr_home_url() ) ),
