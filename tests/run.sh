@@ -18,7 +18,7 @@ trap 'kill "$(cat .server.pid)" 2>/dev/null; rm -f .server.pid' EXIT
 for _ in $(seq 1 30); do curl -fs "$BASE_URL/" >/dev/null && break; sleep 0.5; done
 
 suites=("${@:-functional responsive elementor polylang}")
-[[ $# -eq 0 ]] && suites=(functional effects responsive elementor polylang)
+[[ $# -eq 0 ]] && suites=(functional content effects responsive elementor polylang)
 status=0
 for s in "${suites[@]}"; do
   echo "=== $s ==="

@@ -21,7 +21,6 @@ $checks = array(
 	'readable'  => 'readable_font',
 	'spacing'   => 'text_spacing',
 	'cursor'    => 'big_cursor',
-	'motion'    => 'reduce_motion',
 	'images'    => 'hide_images',
 	'tv'        => 'tv_mode',
 );
@@ -56,6 +55,17 @@ $checks = array(
 				<label class="relative"><input class="peer sr-only" type="radio" name="mcupr-contrast" data-pref="contrast" value="<?php echo esc_attr( $v ); ?>"><span class="<?php echo esc_attr( $pill ); ?>"><?php mcupr_e( $label ); ?></span></label>
 			<?php endforeach; ?>
 		</fieldset>
+
+		<div class="<?php echo esc_attr( $row ); ?>">
+			<span id="an-label" class="text-lg font-semibold"><?php mcupr_e( 'animations' ); ?></span>
+			<div class="flex items-center gap-3">
+				<span data-motion-state class="text-fg"><?php mcupr_e( 'on' ); ?></span>
+				<button type="button" role="switch" aria-checked="true" aria-labelledby="an-label" data-motion-switch
+					class="relative h-9 w-16 cursor-pointer rounded-full border-2 border-line bg-line p-0 transition-colors aria-checked:border-primary aria-checked:bg-primary">
+					<span class="absolute top-0.5 left-0.5 size-7 rounded-full bg-bg shadow transition-transform [[aria-checked=true]>&]:translate-x-7" aria-hidden="true"></span>
+				</button>
+			</div>
+		</div>
 
 		<fieldset class="<?php echo esc_attr( $row ); ?> m-0 border-x-0 border-t-0 px-0">
 			<legend class="float-left mr-3 p-0 text-lg font-semibold"><?php mcupr_e( 'theme' ); ?></legend>

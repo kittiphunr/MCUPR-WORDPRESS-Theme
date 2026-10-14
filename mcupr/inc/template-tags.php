@@ -33,7 +33,7 @@ function mcupr_menu_fallback() {
 }
 
 /** Breadcrumb (WCAG: multiple ways to locate pages). */
-function mcupr_breadcrumb() {
+function mcupr_breadcrumb( $wrap = true ) {
 	if ( is_front_page() || mcupr_plugin_breadcrumb() ) {
 		return;
 	}
@@ -56,7 +56,7 @@ function mcupr_breadcrumb() {
 	} elseif ( is_404() ) {
 		$items[] = array( mcupr_t( 'not_found' ), '' );
 	}
-	echo '<nav class="wrap my-4 text-[.9375rem] text-muted" aria-label="' . esc_attr( mcupr_t( 'breadcrumb' ) ) . '"><ol class="m-0 flex list-none flex-wrap gap-x-2 gap-y-1 p-0">';
+	echo '<nav class="' . ( $wrap ? 'wrap my-4 ' : '' ) . 'text-[.9375rem] text-muted" aria-label="' . esc_attr( mcupr_t( 'breadcrumb' ) ) . '"><ol class="m-0 flex list-none flex-wrap gap-x-2 gap-y-1 p-0">';
 	$last = count( $items ) - 1;
 	foreach ( $items as $i => $item ) {
 		$sep = $i ? '<span class="mr-2" aria-hidden="true">›</span>' : '';
@@ -80,26 +80,6 @@ function mcupr_pagination() {
 			'aria_label'         => mcupr_t( 'pagination' ),
 		)
 	);
-}
-
-/** Localised date. */
-function mcupr_date( $post = null ) {
-	$post = get_post( $post );
-	$ts   = get_post_timestamp( $post );
-	$lang = mcupr_ui_lang();
-	$text = wp_date( get_option( 'date_format' ), $ts );
-	if ( 'th' === $lang ) {
-		// Buddhist Era, Thai month names.
-		$months = array( '', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม' );
-		$text   = (int) wp_date( 'j', $ts ) . ' ' . $months[ (int) wp_date( 'n', $ts ) ] . ' ' . ( (int) wp_date( 'Y', $ts ) + 543 );
-	} elseif ( 'en' === $lang ) {
-		$text = wp_date( 'j F Y', $ts );
-	} elseif ( 'zh' === $lang ) {
-		$text = wp_date( 'Y年n月j日', $ts );
-	} elseif ( 'ja' === $lang ) {
-		$text = wp_date( 'Y年n月j日', $ts );
-	}
-	printf( '<time datetime="%s">%s</time>', esc_attr( wp_date( 'c', $ts ) ), esc_html( $text ) );
 }
 
 /** Notice shown when a translation is missing. */
@@ -223,4 +203,44 @@ function mcupr_tools_cluster( $btn = 'text-fg hover:bg-surface' ) {
 		</a>
 	</div>
 	<?php
+}
+
+/** Header / footer logo (<img>), with optional dark-mode variant. $where: header | footer. */
+function mcupr_logo( $where = 'header', $class = '' ) {
+	$main = (int) get_theme_mod( 'custom_logo' );
+	$dark = (int) get_theme_mod( 'mcupr_logo_dark' );
+	$foot = (int) get_theme_mod( 'mcupr_logo_footer' );
+	$attr = array( 'alt' => '' );
+	if ( 'footer' === $where ) {
+		$id = $foot ? $foot : ( $dark ? $dark : $main );
+		return $id ? wp_get_attachment_image( $id, 'full', false, $attr + array( 'class' => trim( 'h-16 w-auto ' . $class ) ) ) : '';
+	}
+	if ( ! $main ) {
+		return '';
+	}
+	$size = 'h-[min(var(--logo-h),3.25rem)] w-auto min-[1100px]:h-[var(--logo-h)]';
+	$out  = wp_get_attachment_image( $main, 'full', false, $attr + array( 'class' => trim( "$size logo-light $class" ) ) );
+	if ( $dark ) {
+		$out .= wp_get_attachment_image( $dark, 'full', false, $attr + array( 'class' => trim( "$size logo-dark $class" ) ) );
+	}
+	return $out;
+}
+
+/** Estimated reading time in minutes (Thai / CJK by characters, others by words). */
+function mcupr_reading_minutes( $content = '' ) {
+	$text = wp_strip_all_tags( $content ? $content : get_post_field( 'post_content', get_the_ID() ) );
+	if ( in_array( mcupr_ui_lang(), array( 'th', 'zh', 'ja' ), true ) ) {
+		$n = mb_strlen( preg_replace( '/\s+/u', '', $text ) ) / 500;
+	} else {
+		$n = str_word_count( $text ) / 200;
+	}
+	return max( 1, (int) ceil( $n ) );
+}
+
+/** Pages / ancestors for the "in this section" list. Returns array( root_id, children[] ). */
+function mcupr_section_pages( $post_id ) {
+	$ancestors = get_post_ancestors( $post_id );
+	$root      = $ancestors ? (int) end( $ancestors ) : (int) $post_id;
+	$pages     = get_pages( array( 'child_of' => $root, 'sort_column' => 'menu_order,post_title', 'parent' => -1 ) );
+	return array( $root, $pages );
 }

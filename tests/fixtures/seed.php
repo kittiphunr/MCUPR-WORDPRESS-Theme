@@ -30,6 +30,16 @@ update_post_meta( $ids[1], '_mcupr_en_content', '<p>English content for news 1.<
 update_post_meta( $ids[1], '_mcupr_zh_title', '测试新闻 1' );
 update_post_meta( $ids[1], '_mcupr_zh_content', '<p>新闻1的中文内容。</p>' );
 
+// ---- categories + long content for reading tests
+$cat_news = wp_create_category( 'ข่าวประชาสัมพันธ์' );
+$cat_act  = wp_create_category( 'กิจกรรม' );
+foreach ( $ids as $n => $pid ) {
+	wp_set_post_categories( $pid, array( $n % 2 ? $cat_news : $cat_act ) );
+}
+wp_update_post( array( 'ID' => $ids[1], 'post_content' => "<p>ข้อความย่อหน้าแรกของข่าวทดสอบ ใช้สำหรับทดสอบการอ่านออกเสียงและการจัดหน้า</p><h2>หัวข้อรอง</h2><p>ย่อหน้าที่สองมีเนื้อหาเพิ่มเติม ธีมนี้แสดงวันที่เป็นพุทธศักราชตามแบบราชการไทย</p><ul><li>รายการที่หนึ่ง</li><li>รายการที่สอง</li></ul><blockquote>คำพูดสำคัญในข่าว</blockquote>" ) );
+update_post_meta( $ids[3], '_mcupr_layout', 'cover' );
+update_post_meta( $ids[4], '_mcupr_layout', 'sidebar' );
+
 // ---- images (generated with GD) – skipped if GD is missing
 if ( function_exists( 'imagecreatetruecolor' ) ) {
 	mt_srand( 1 );
@@ -54,6 +64,13 @@ if ( function_exists( 'imagecreatetruecolor' ) ) {
 // ---- pages
 $privacy = wp_insert_post( array( 'post_title' => 'นโยบายความเป็นส่วนตัว', 'post_type' => 'page', 'post_status' => 'publish', 'post_content' => 'x' ) );
 set_theme_mod( 'mcupr_page_privacy', $privacy );
+update_option( 'mcupr_test_attachment', isset( $first ) ? $first : 0 );
+$long = str_repeat( 'ประโยคยาวสำหรับทดสอบการแบ่งข้อความอ่านออกเสียงให้เป็นท่อนสั้นๆ ', 12 );
+wp_update_post( array( 'ID' => $ids[5], 'post_content' => '<p>' . $long . '</p><p>English sentence one. English sentence two.</p>' ) );
+$about = wp_insert_post( array( 'post_title' => 'เกี่ยวกับมหาวิทยาลัย', 'post_name' => 'about', 'post_type' => 'page', 'post_status' => 'publish', 'post_content' => '<p>หน้าหลักของหมวดเกี่ยวกับมหาวิทยาลัย</p>' ) );
+foreach ( array( 'ประวัติ', 'ผู้บริหาร', 'วิสัยทัศน์' ) as $k => $t ) {
+	wp_insert_post( array( 'post_title' => $t, 'post_name' => 'about-' . ( $k + 1 ), 'post_type' => 'page', 'post_parent' => $about, 'post_status' => 'publish', 'post_content' => '<p>เนื้อหาหน้า ' . $t . '</p><h2>หัวข้อ</h2><p>รายละเอียดเพิ่มเติม</p>' ) );
+}
 $el = wp_insert_post( array( 'post_title' => 'Elementor page', 'post_name' => 'el-page', 'post_type' => 'page', 'post_status' => 'publish', 'post_content' => '<div id="el-content">Built with Elementor</div>' ) );
 update_post_meta( $el, '_elementor_edit_mode', 'builder' );
 
