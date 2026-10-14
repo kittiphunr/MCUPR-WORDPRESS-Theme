@@ -105,6 +105,12 @@ $loc = array(
 );
 set_theme_mod( 'nav_menu_locations', $loc );
 
+// ---- comments on post 1 (one top-level, one reply by the author)
+update_option( 'default_comment_status', 'open' );
+wp_update_post( array( 'ID' => $ids[1], 'comment_status' => 'open' ) );
+$c1 = wp_insert_comment( array( 'comment_post_ID' => $ids[1], 'comment_author' => 'สมชาย ใจดี', 'comment_author_email' => 'somchai@example.org', 'comment_content' => 'ขอบคุณสำหรับข่าวสารครับ', 'comment_approved' => 1 ) );
+wp_insert_comment( array( 'comment_post_ID' => $ids[1], 'comment_parent' => $c1, 'comment_author' => 'ทีมงาน', 'comment_author_email' => 'staff@example.org', 'comment_content' => 'ยินดีครับ', 'comment_approved' => 1 ) );
+
 // ---- widgets (footer-3 is left empty on purpose: empty areas must render nothing)
 $w = array( 'text' => array(), 'search' => array(), 'categories' => array() );
 $w['text'][2]       = array( 'title' => 'ติดต่อเรา', 'text' => 'โทร 02-000-0000' );
