@@ -19,10 +19,10 @@ trap 'kill "$(cat .server.pid)" 2>/dev/null; rm -f .server.pid' EXIT
 for _ in $(seq 1 30); do curl -fs "$BASE_URL/" >/dev/null && break; sleep 0.5; done
 
 suites=("${@:-functional responsive}")
-[[ $# -eq 0 ]] && suites=(functional layout content effects responsive)
+[[ $# -eq 0 ]] && suites=(php functional layout content effects responsive)
 status=0
 for s in "${suites[@]}"; do
   echo "=== $s ==="
-  node "e2e/$s.js" || status=1
+  if [[ "$s" == "php" ]]; then php php/menus.php "$SITE_DIR" || status=1; else node "e2e/$s.js" || status=1; fi
 done
 exit $status
