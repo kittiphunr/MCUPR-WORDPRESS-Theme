@@ -56,24 +56,25 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(r.shown && ratio(r.icon, r.pill) >= 3, mode + ': icon of the active menu item is visible on its pill (' + ratio(r.icon, r.pill).toFixed(1) + ':1)');
   }
   await p.goto(B + '/about/');
-  const hs = await p.evaluate(() => ({ util: document.querySelector('.utility-menu').closest('div.bg-bar').getBoundingClientRect().height, utilFont: parseFloat(getComputedStyle(document.querySelector('.utility-menu a')).fontSize), navFont: parseFloat(getComputedStyle(document.querySelector('.site-nav .menu > li > a')).fontSize) }));
-  ok(hs.util <= 42, 'utility bar is compact (' + Math.round(hs.util) + 'px)');
+  const hs = await p.evaluate(() => ({ util: document.querySelector('.hdr-util a').getBoundingClientRect().height, utilFont: parseFloat(getComputedStyle(document.querySelector('.hdr-util a')).fontSize), navFont: parseFloat(getComputedStyle(document.querySelector('.site-nav .menu > li > a')).fontSize) }));
+  ok(hs.util <= 42 && (await p.locator('.bg-bar').count()) === 0, 'no black bar; the utility links are compact capsule links (' + Math.round(hs.util) + 'px)');
   ok(hs.utilFont < hs.navFont, 'utility links are smaller than the main menu (' + hs.utilFont + 'px < ' + hs.navFont + 'px)');
 
-  // the page band runs up to the black top bar (the floating header sits on it)
+  // the page band runs up to the top of the page (the floating header sits on it; there is no black bar)
   for (const [w, u] of [[1440, '/about/'], [390, '/about/'], [1440, '/?s=a']]) {
     await p.setViewportSize({ width: w, height: 800 });
     await p.goto(B + u);
-    const d = await p.evaluate(() => ({ band: document.querySelector('#content .mcu-wheel').getBoundingClientRect().top, bar: document.querySelector('.bg-bar').getBoundingClientRect().bottom, hdr: document.getElementById('masthead').getBoundingClientRect().top }));
-    ok(Math.abs(d.band - d.bar) <= 1 && d.hdr >= d.bar, w + 'px ' + u + ': the pink band starts at the top bar and the header floats on it');
+    const d = await p.evaluate(() => ({ band: document.querySelector('#content .mcu-wheel').getBoundingClientRect().top, bar: 0, hdr: document.getElementById('masthead').getBoundingClientRect().top }));
+    ok(Math.abs(d.band - d.bar) <= 1 && d.hdr >= d.bar, w + 'px ' + u + ': the pink band starts at the very top and the header floats on it');
   }
   await p.setViewportSize({ width: 1440, height: 900 });
 
   // only one dropdown / mega panel open at a time
   await p.setViewportSize({ width: 1440, height: 900 });
   await p.goto(B + '/');
-  const tg = await p.$$('.site-nav .menu > li > .submenu-toggle');
-  await tg[0].click(); await tg[1].click();
+  await p.waitForLoadState('networkidle');
+  await p.waitForTimeout(400); // the "More" fitting re-flows the menu once fonts are in
+  await p.locator('.site-nav .menu > li > .submenu-toggle').nth(0).click(); await p.locator('.site-nav .menu > li > .submenu-toggle').nth(1).click();
   ok((await p.$$('.site-nav li.is-open')).length === 1, 'opening a second menu item closes the first (one panel at a time)');
   await p.keyboard.press('Escape');
 
@@ -152,9 +153,11 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   await p.waitForSelector('#colophon iframe.fmap-frame');
   ok((await p.getAttribute('#colophon iframe', 'src')).includes('output=embed') && !!(await p.getAttribute('#colophon iframe', 'title')), 'footer: pressing "Show map" loads the titled Google map');
   ok((await p.$$eval('#colophon a[href*="google.com/maps"]', (a) => a.length)) === 2, 'footer: "Open in Google Maps" and "Directions" links');
+  await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); // the sticky header must not cover footer links while axe measures them
+  await p.waitForTimeout(300);
   await p.addScriptTag({ content: axeSource() });
   const fx = await p.evaluate(() => axe.run(document.getElementById('colophon'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
-  ok(fx.violations.length === 0, 'footer axe: ' + (fx.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  ok(fx.violations.length === 0, 'footer axe: ' + (fx.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join(', ') || '0 violations'));
   await p.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
   const fd = await p.evaluate(() => axe.run(document.getElementById('colophon'), { runOnly: ['wcag2aa'] }));
   ok(fd.violations.length === 0, 'footer axe (dark): ' + (fd.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
@@ -198,12 +201,78 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     const t = await tp.evaluate(() => {
       const r = (s) => document.querySelector(s).getBoundingClientRect();
       const bg = (s) => getComputedStyle(document.querySelector(s)).backgroundColor;
-      return { brand: r('#masthead .brand'), nav: r('.site-nav'), tools: r('#masthead .wrap > div'), brandBg: bg('#masthead .brand'), navBg: bg('.site-nav'), toolsBg: bg('#masthead .wrap > div'), hdrBg: bg('#masthead'), bar: getComputedStyle(document.querySelector('.bg-bar')).display, util: document.querySelector('.hdr-util') && document.querySelector('.hdr-util').offsetParent !== null };
+      return { brand: r('#masthead .brand'), nav: r('.site-nav'), tools: r('#masthead .wrap > div'), brandBg: bg('#masthead .brand'), navBg: bg('.site-nav'), toolsBg: bg('#masthead .wrap > div'), hdrBg: bg('#masthead'), bar: document.querySelector('.bg-bar') ? 'present' : 'none', util: document.querySelector('.hdr-util') && document.querySelector('.hdr-util').offsetParent !== null };
     });
     ok(t.nav.left - t.brand.right >= 8 && t.tools.left - t.nav.right >= 8, 'top menu: brand, menu and tools are three separate floating capsules (gaps ' + Math.round(t.nav.left - t.brand.right) + ' / ' + Math.round(t.tools.left - t.nav.right) + 'px)');
     ok(t.brandBg !== 'rgba(0, 0, 0, 0)' && t.navBg !== 'rgba(0, 0, 0, 0)' && t.toolsBg !== 'rgba(0, 0, 0, 0)' && t.hdrBg === 'rgba(0, 0, 0, 0)', 'top menu: each capsule has its own background; the bar behind them is transparent');
-    ok(t.bar !== 'none' && !t.util, 'top menu keeps the black utility bar (and not a second copy in the header)');
+    ok(t.bar === 'none' && t.util, 'top menu: no black bar; the utility links are in the tools capsule');
     await tc.close();
+  }
+  // ---------- Finder-style news browser: zones, folders, tags apart, view switcher, filter, phones
+  {
+    const fc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    await fc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const fp = await fc.newPage();
+    await fp.goto(B + '/category/academic/');
+    ok((await fp.locator('.fb-side').isVisible()) && (await fp.locator('.fb-drawer > summary').isHidden()), 'browser: the source list is a sidebar on desktop (no fold button)');
+    ok((await fp.locator('.fb-pill-tabs, .band .pill-tabs, header.mcu-wheel .pill-tabs').count()) === 0, 'browser: the scattered chip wall is gone from the band');
+    const zn = await fp.$$eval('.fb-zone > summary .fb-z', (a) => a.map((x) => x.textContent.trim()));
+    ok(zn.includes('วิชาการ'), 'browser: categories are grouped in zones (' + zn.join(' | ') + ')');
+    ok((await fp.locator('.fb-zone[open] a[aria-current]').count()) === 1, 'browser: the zone of the current category is open and the category is marked');
+    ok((await fp.locator('.fb-zone .fb-n').first().isVisible()) && (await fp.locator('.fb-list a .fb-n').count()) >= 4, 'browser: every entry shows its count');
+    ok((await fp.$$eval('.fb-folders a', (a) => a.map((x) => x.textContent.trim().replace(/\s+/g, ''))).then((t) => t.length === 2 && t[0].startsWith('งานวิจัย'))), 'browser: a category with sub-categories shows them as folders');
+    const catLinks = await fp.$$eval('.fb-side .fb-zone a', (a) => a.map((x) => x.getAttribute('href')));
+    const tagLinks = await fp.$$eval('.fb-side .fb-tags a', (a) => a.map((x) => x.getAttribute('href')));
+    ok(catLinks.length && catLinks.every((h) => h.includes('/category/')) && tagLinks.length >= 3 && tagLinks.every((h) => h.includes('/tag/')), 'browser: tags and categories are separate sections (' + catLinks.length + ' categories, ' + tagLinks.length + ' tags)');
+    ok((await fp.locator('.fb-items article').count()) === 4 && (await fp.locator('[data-fb-view][aria-checked=true]').getAttribute('data-fb-view')) === 'grid', 'browser: the cards view is the default');
+    const cols = () => fp.$eval('.fb-items', (e) => getComputedStyle(e).gridTemplateColumns.split(' ').length);
+    const c1 = await cols();
+    await fp.click('[data-fb-view=list]');
+    ok((await cols()) === 1 && c1 >= 2 && (await fp.locator('[data-fb-view=list]').getAttribute('aria-checked')) === 'true', 'browser: list view is one row per item (' + c1 + ' columns -> 1)');
+    await fp.reload();
+    ok((await fp.locator('.fb-items').getAttribute('data-view')) === 'list', 'browser: the chosen view is remembered');
+    await fp.focus('[data-fb-view=list]'); await fp.keyboard.press('ArrowRight');
+    ok((await fp.locator('.fb-items').getAttribute('data-view')) === 'gallery', 'browser: arrow keys move through the view switcher');
+    await fp.fill('[data-fb-filter]', 'ชุมชน');
+    ok((await fp.locator('.fb-side [data-fb-item]:not([hidden])').count()) === 1 && (await fp.locator('.fb-side .fb-h:not([hidden])').count()) === 1, 'browser: the filter narrows categories and tags and hides empty headings');
+    await fp.fill('[data-fb-filter]', 'zzzz');
+    ok(await fp.locator('.fb-empty').isVisible(), 'browser: a filter with no match says so');
+    await fp.fill('[data-fb-filter]', '');
+    ok((await fp.locator('.fb-side [data-fb-item][hidden]').count()) === 0, 'browser: clearing the filter restores everything');
+    await fp.goto(B + '/tag/' + encodeURIComponent('โครงการ') + '/');
+    ok((await fp.locator('.fb-tags a[aria-current]').count()) === 1 && (await fp.locator('.fb-items article').count()) === 3, 'browser: a tag page marks the tag in its own section and lists its 3 posts');
+    await fp.addScriptTag({ content: axeSource() });
+    const ar = await fp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(ar.violations.length === 0, 'axe (news browser): ' + (ar.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    await fp.screenshot({ path: shot('browser.png') });
+    await fc.close();
+    const fm = await br.newContext({ viewport: { width: 390, height: 800 } });
+    await fm.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const mq = await fm.newPage();
+    await mq.goto(B + '/category/academic/');
+    ok((await mq.locator('.fb-drawer').getAttribute('open')) === null && (await mq.locator('.fb-drawer > summary').isVisible()) && (await mq.locator('.fb-body').isHidden()), 'browser on phones: the source list is folded under one button');
+    await mq.click('.fb-drawer > summary');
+    ok(await mq.locator('.fb-body').isVisible(), 'browser on phones: the button opens the list');
+    ok(await mq.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'browser on phones: no horizontal scroll');
+    await mq.screenshot({ path: shot('browser-mobile.png') });
+    // utility links live in the menu drawer on phones
+    await mq.click('.nav-toggle');
+    await mq.waitForTimeout(600);
+    ok((await mq.locator('.nav-util a').count()) >= 3 && (await mq.locator('.nav-util a').first().isVisible()) && (await mq.locator('.bg-bar').count()) === 0, 'phones: the student / staff / alumni links are chips at the end of the menu drawer');
+    await fm.close();
+    const hc = await br.newContext({ viewport: { width: 1366, height: 800 } });
+    await hc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); } catch (e) { /* frame */ } });
+    const hp = await hc.newPage();
+    await hp.goto(B + '/');
+    await hp.click('[data-sb-toggle]');
+    const hv = await hp.evaluate(() => ({ cls: document.documentElement.classList.contains('sb-min'), tip: document.querySelector('.site-nav .menu > li > a').title }));
+    ok(hv.cls && hv.tip, 'sidebar: collapsing gives each icon a tooltip (' + hv.tip + ')');
+    await hc.close();
+    // the creator, like the BDA-MCU-PHRAE project
+    await p.goto(B + '/');
+    ok((await p.locator('#colophon .fcredit-ph').getAttribute('src')).endsWith('developer.jpg') && (await p.locator('#colophon .fcredit-e').textContent()) === 'Kittiphun Ruttanakorn', 'footer: creator card with the photo and English name');
+    await p.locator('#colophon .fcredit-ph').scrollIntoViewIfNeeded();
+    await p.waitForFunction(() => { const i = document.querySelector('#colophon .fcredit-ph'); return i.complete && i.naturalWidth > 0; }, null, { timeout: 5000 }).then(() => ok(true, 'footer: the creator photo loads'), () => ok(false, 'footer: the creator photo loads'));
   }
   // works & awards (own categories), administration chart, attachments, views
   await p.goto(B + '/works/');
@@ -376,6 +445,13 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await mp.goto(B + s);
     ok(await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'mobile 360px: no horizontal scroll on ' + s);
   }
+  await mp.setViewportSize({ width: 390, height: 700 });
+  await mp.goto(B + '/about/');
+  const bc = await mp.evaluate(() => { const a = document.querySelector('#masthead .brand'); const t = a.lastElementChild; return { compact: a.classList.contains('is-compact'), hidden: getComputedStyle(t).display === 'none', label: a.getAttribute('aria-label'), logo: a.firstElementChild.getBoundingClientRect().width > 20 }; });
+  ok(bc.compact && bc.hidden && bc.label && bc.logo, 'phones: a name that does not fit beside the logo is dropped, the logo stays and the link keeps its accessible name');
+  await mp.setViewportSize({ width: 900, height: 700 });
+  await mp.waitForTimeout(300);
+  ok(await mp.evaluate(() => !document.querySelector('#masthead .brand').classList.contains('is-compact')), 'tablet: the name is shown again when it fits');
   await mp.setViewportSize({ width: 240, height: 700 });
   await mp.goto(B + '/events/');
   ok(await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'events calendar fits 240px without horizontal scroll');

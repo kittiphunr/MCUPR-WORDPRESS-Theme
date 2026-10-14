@@ -18,7 +18,7 @@ $name = mcupr_org_name();
 ?>
 <header id="masthead" class="site-header sticky top-0 z-30 border-b border-line print:hidden">
 	<div class="wrap grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 py-2.5 max-[359px]:grid-cols-1 min-[1100px]:grid-cols-[auto_1fr_auto] min-[1100px]:gap-x-6">
-		<a class="brand flex min-w-0 items-center gap-3 text-fg no-underline" href="<?php echo esc_url( mcupr_home_url() ); ?>" rel="home">
+		<a class="brand flex min-w-0 items-center gap-3 text-fg no-underline" href="<?php echo esc_url( mcupr_home_url() ); ?>" rel="home" aria-label="<?php echo esc_attr( $name ); ?>">
 			<?php if ( $logo ) : ?>
 				<?php echo $logo; // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			<?php else : ?>
@@ -34,7 +34,7 @@ $name = mcupr_org_name();
 
 		<div class="flex flex-wrap items-center gap-1.5 min-[1100px]:order-3">
 			<?php if ( has_nav_menu( 'utility' ) ) : ?>
-				<?php // Sidebar / hybrid layouts have no black bar: its links (students, staff, alumni…) are shown here instead. A copy without ids. ?>
+				<?php // There is no black bar any more: the utility links (students, staff, alumni…) sit in the header capsule (desktop) and at the end of the menu drawer (mobile). Copies without ids. ?>
 				<?php add_filter( 'nav_menu_item_id', '__return_empty_string' ); ?>
 				<?php
 				wp_nav_menu(
@@ -72,6 +72,23 @@ $name = mcupr_org_name();
 				<span class="t"><b><?php echo esc_html( $name ); ?></b><?php if ( $alt ) : ?><small><?php echo esc_html( $alt ); ?></small><?php endif; ?></span>
 			</a>
 			<div class="sb-cap"><?php mcupr_primary_menu(); ?></div>
+			<?php if ( has_nav_menu( 'utility' ) ) : ?>
+				<?php add_filter( 'nav_menu_item_id', '__return_empty_string' ); ?>
+				<?php
+				wp_nav_menu(
+					array(
+						'theme_location'       => 'utility',
+						'container'            => 'nav',
+						'container_class'      => 'nav-util',
+						'container_aria_label' => mcupr_t( 'utility_links' ),
+						'menu_id'              => 'utility-menu-drawer',
+						'menu_class'           => '',
+						'depth'                => 1,
+					)
+				);
+				?>
+				<?php remove_filter( 'nav_menu_item_id', '__return_empty_string' ); ?>
+			<?php endif; ?>
 			<div class="sb-cap sb-foot">
 				<button type="button" class="sb-btn" data-sb-toggle aria-expanded="true">
 					<span class="ic"><?php echo mcupr_icon( 'panel', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><span class="t" data-sb-toggle-label data-collapse="<?php echo esc_attr( mcupr_t( 'collapse_menu' ) ); ?>" data-expand="<?php echo esc_attr( mcupr_t( 'expand_menu' ) ); ?>"><?php mcupr_e( 'collapse_menu' ); ?></span>

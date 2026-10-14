@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.9.0 =
+* Sidebar expand/collapse button instead of hover, no black utility bar, Finder-style news browser (category zones, separate tags, card/list/gallery views), built-in creator credit with photo.
+
 = 1.8.0 =
 * Notice bar (announcement / urgent / mourning), hero slider, social links, statistics, people directory, document centre, contact and complaint forms.
 
