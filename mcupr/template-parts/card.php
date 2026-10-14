@@ -7,6 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 $part_lang = mcupr_part_lang_attr();
+$heading   = isset( $args['heading'] ) && 'h2' === $args['heading'] ? 'h2' : 'h3';
 ?>
 <article id="post-<?php the_ID(); ?>" <?php post_class( 'card' ); ?>>
 	<?php if ( has_post_thumbnail() ) : ?>
@@ -16,7 +17,7 @@ $part_lang = mcupr_part_lang_attr();
 	<?php endif; ?>
 	<div class="card__body"<?php echo $part_lang; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<p class="card__meta"><?php mcupr_date(); ?></p>
-		<h3 class="card__title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+		<<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?> class="card__title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<div class="card__excerpt"><?php the_excerpt(); ?></div>
 	</div>
 </article>

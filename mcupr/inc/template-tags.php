@@ -107,3 +107,9 @@ function mcupr_missing_translation_notice() {
 		echo '<p class="notice" role="note">' . esc_html( mcupr_t( 'tr_missing' ) ) . '</p>';
 	}
 }
+
+/** role="search" only on the first search form of a page (landmarks must be unique). */
+function mcupr_search_role_attr() {
+	static $count = 0;
+	return 0 === $count++ ? ' role="search"' : '';
+}
