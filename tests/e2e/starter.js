@@ -12,7 +12,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   p.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(m.text()); });
 
   await p.goto(B + '/');
-  const bar = await p.$$eval('.sb-cap .menu > li, .sb-cap > ul > li', (l) => l.map((x) => x.textContent.trim().replace(/\s+/g, ' ')));
+  const bar = await p.$$eval('.sb-cap .menu > li:not(.menu-more), .sb-cap .menu-more > .sub-menu > li', (l) => l.map((x) => x.textContent.trim().replace(/\s+/g, ' ')));
   ok(bar.length >= 6, 'home: main menu shows ' + bar.length + ' items');
   ok(bar.some((t) => /เกี่ยวกับ/.test(t)) && bar.some((t) => /ธรรมาภิบาล/.test(t)), 'home: Thai labels in the main menu');
   ok((await p.$$('.menu-item.is-mega, li.mega, [class*="mega"]')).length >= 3, 'home: 3 mega menus rendered');
@@ -21,6 +21,56 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok(footLinks.length >= 20, 'footer: ' + footLinks.length + ' links in 4 columns');
   const policy = await p.$$eval('footer a', (a) => a.map((x) => x.getAttribute('href') || '').filter((h) => /privacy-policy|cookie-policy|accessibility-statement|sitemap|contact/.test(h)));
   ok(policy.length >= 4, 'footer: policy / accessibility / sitemap / contact links present (' + policy.length + ')');
+
+  // narrow desktop: the overflow "More" menu opens its mega item inline (no tall flyout over the page)
+  await p.setViewportSize({ width: 1280, height: 720 });
+  await p.goto(B + '/');
+  await p.waitForTimeout(600);
+  if (await p.$('.more-btn')) {
+    await p.click('.more-btn');
+    const tog = await p.$('.menu-more .mcupr-mega > .submenu-toggle');
+    if (tog) { await tog.click(); }
+    const box = await p.evaluate(() => {
+      const more = document.querySelector('.menu-more > .sub-menu').getBoundingClientRect();
+      const inner = document.querySelector('.menu-more .mcupr-mega > .sub-menu');
+      const r = inner ? inner.getBoundingClientRect() : null;
+      return { more: more.toJSON(), inner: r && r.toJSON(), pos: inner && getComputedStyle(inner).position, vh: innerHeight, vw: innerWidth };
+    });
+    ok(box.more.bottom <= box.vh && box.more.left >= 0 && box.more.right <= box.vw, 'More panel stays inside the viewport');
+    ok(!box.inner || (box.pos === 'static' && box.inner.left >= box.more.left - 1), 'a mega item inside More opens inline, not as a flyout');
+  }
+  await p.setViewportSize({ width: 1366, height: 900 });
+
+  // only one dropdown / mega panel open at a time
+  await p.setViewportSize({ width: 1440, height: 900 });
+  await p.goto(B + '/');
+  const tg = await p.$$('.site-nav .menu > li > .submenu-toggle');
+  await tg[0].click(); await tg[1].click();
+  ok((await p.$$('.site-nav li.is-open')).length === 1, 'opening a second menu item closes the first (one panel at a time)');
+  await p.keyboard.press('Escape');
+
+  // full-screen menu
+  ok(await p.isVisible('[data-fs-open]'), 'desktop: the "All menu" button is shown');
+  ok((await p.$('#fs-menu')) === null, 'full-screen menu is not in the page until it is opened');
+  await p.click('[data-fs-open]');
+  await p.waitForSelector('#fs-menu:not([hidden])');
+  ok(await p.evaluate(() => document.activeElement && document.activeElement.hasAttribute('data-fs-close')), 'full-screen menu: focus moves to the close button');
+  ok((await p.$$eval('#fs-menu .fs-list > li', (l) => l.length)) >= 7, 'full-screen menu lists every top-level item (incl. those in "More")');
+  ok((await p.$$eval('#fs-menu a[href]', (a) => a.length)) >= 40, 'full-screen menu lists the sub-pages too');
+  ok(await p.evaluate(() => !document.querySelector('#fs-menu .submenu-toggle, #fs-menu [id]')), 'full-screen menu has no duplicate ids / leftover toggles');
+  await p.addScriptTag({ content: axeSource() });
+  const fa = await p.evaluate(() => axe.run(document.getElementById('fs-menu'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+  ok(fa.violations.length === 0, 'full-screen menu axe: ' + (fa.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  await p.keyboard.press('Tab'); await p.keyboard.press('Shift+Tab');
+  ok(await p.evaluate(() => document.getElementById('fs-menu').contains(document.activeElement)), 'full-screen menu traps focus');
+  await p.screenshot({ path: shot('starter-fullscreen.png') });
+  await p.keyboard.press('Escape');
+  ok(await p.evaluate(() => document.getElementById('fs-menu').hidden && document.activeElement && document.activeElement.hasAttribute('data-fs-open')), 'Escape closes it and returns focus to the button');
+  await p.click('[data-fs-open]');
+  await p.click('#fs-menu .fs-list a[href*="/ita/"]');
+  await p.waitForURL('**/ita/');
+  ok((await p.$eval('h1', (h) => h.textContent)).includes('ITA'), 'a link in the full-screen menu navigates');
+  await p.setViewportSize({ width: 1366, height: 900 });
 
   // every link in header + footer menus resolves (200) and is not "#"
   const links = [...new Set(await p.$$eval('header a[href], footer a[href]', (a) => a.map((x) => x.href).filter((h) => h.startsWith(location.origin) && !h.includes('#') && !/wp-admin|wp-login|\?lang=|replytocom|feed/.test(h))))];

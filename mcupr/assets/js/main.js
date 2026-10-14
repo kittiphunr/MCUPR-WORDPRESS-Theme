@@ -480,6 +480,17 @@
 		if (closeNav) { closeNav.addEventListener('click', function () { setNav(false, true); }); }
 		if (desktopMq.addEventListener) { desktopMq.addEventListener('change', function () { setNav(false, false); }); }
 
+		/* only one dropdown / mega panel open at a time (desktop): opening one closes the others */
+		function closeOthers(li) {
+			if (!desktopMq.matches) { return; }
+			$$('.site-nav li.is-open', nav).forEach(function (o) {
+				if (o === li || o.contains(li) || li.contains(o)) { return; }
+				o.classList.remove('is-open');
+				var t = o.querySelector(':scope > .submenu-toggle');
+				if (t) { t.setAttribute('aria-expanded', 'false'); }
+			});
+		}
+
 		var subLabel = i18n.submenu || 'Toggle submenu';
 		$$('.menu-item-has-children, .page_item_has_children', nav).forEach(function (li) {
 			var link = li.querySelector(':scope > a');
@@ -496,6 +507,7 @@
 				var open = b.getAttribute('aria-expanded') !== 'true';
 				b.setAttribute('aria-expanded', String(open));
 				li.classList.toggle('is-open', open);
+				if (open) { closeOthers(li); }
 			});
 		});
 
@@ -533,6 +545,7 @@
 						var open = mb.getAttribute('aria-expanded') !== 'true';
 						mb.setAttribute('aria-expanded', String(open));
 						more.classList.toggle('is-open', open);
+						if (open) { closeOthers(more); }
 					});
 					var shown = items.slice();
 					while (shown.length > 1 && (shown.reduce(function (n, li) { return n + li.getBoundingClientRect().width + 2; }, 0) + more.getBoundingClientRect().width) > avail) {
@@ -574,6 +587,80 @@
 			}
 			if (nav.classList.contains('is-open')) { setNav(false, true); }
 		});
+	}
+
+	/* ---------------------------------------------------------------- full-screen menu (built on first use from the main menu) */
+	var fsBtn = $('[data-fs-open]');
+	if (fsBtn && nav) {
+		var fsBox = null;
+		var fsLast = null;
+		var buildFs = function () {
+			var src = $('.menu', nav);
+			if (!src) { return null; }
+			var box = document.createElement('div');
+			box.id = 'fs-menu';
+			box.className = 'fs-menu';
+			box.setAttribute('role', 'dialog');
+			box.setAttribute('aria-modal', 'true');
+			box.setAttribute('aria-label', i18n.allMenu || 'All menu');
+			box.hidden = true;
+			var site = ($('.brand .t b') || $('.brand') || {}).textContent || '';
+			var head = '<div class="fs-head"><span class="fs-title">' + (i18n.allMenu || 'All menu').replace(/</g, '&lt;') + '</span>'
+				+ '<button type="button" class="fs-close" data-fs-close aria-label="' + (i18n.closeMenu || 'Close').replace(/"/g, '&quot;') + '"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>';
+			box.innerHTML = head + '<nav class="fs-body" aria-label="' + (i18n.allMenu || 'All menu').replace(/"/g, '&quot;') + '"></nav>';
+			var list = document.createElement('ul');
+			list.className = 'fs-list';
+			var top = src.cloneNode(true);
+			/* drop everything that only makes sense in the bar: toggles, "More", ids, state classes */
+			$$('.submenu-toggle, .menu-more', top).forEach(function (n) { n.remove(); });
+			$$('[id]', top).forEach(function (n) { n.removeAttribute('id'); });
+			$$('li', top).forEach(function (li) { li.classList.remove('is-open', 'current-menu-item'); });
+			$$('a[aria-current]', top).forEach(function (a) { a.removeAttribute('aria-current'); });
+			/* the items the priority+ bar moved into "More" are still in the real menu's "More" list: bring them back */
+			var more = $(':scope > .menu-more > .sub-menu', src);
+			if (more) { $$(':scope > li', more).forEach(function (li) { top.appendChild(li.cloneNode(true)); }); $$('.submenu-toggle', top).forEach(function (n) { n.remove(); }); }
+			$$('[id]', top).forEach(function (n) { n.removeAttribute('id'); });
+			$$('li.is-open', top).forEach(function (li) { li.classList.remove('is-open'); });
+			while (top.firstChild) { list.appendChild(top.firstChild); }
+			$('.fs-body', box).appendChild(list);
+			box.setAttribute('data-site', site.trim());
+			document.body.appendChild(box);
+			box.addEventListener('click', function (e) {
+				if (e.target.closest('[data-fs-close]') || e.target.closest('a[href]')) { closeFs(e.target.closest('a[href]') ? false : true); }
+			});
+			return box;
+		};
+		var fsFocusable = function () { return $$('a[href], button:not([disabled])', fsBox).filter(function (n) { return n.offsetParent !== null; }); };
+		var openFs = function () {
+			fsBox = fsBox || buildFs();
+			if (!fsBox) { return; }
+			fsLast = document.activeElement;
+			fsBox.hidden = false;
+			root.classList.add('fs-open-lock');
+			fsBtn.setAttribute('aria-expanded', 'true');
+			requestAnimationFrame(function () { fsBox.classList.add('is-in'); var c = $('[data-fs-close]', fsBox); if (c) { c.focus(); } });
+		};
+		var closeFs = function (restore) {
+			if (!fsBox || fsBox.hidden) { return; }
+			fsBox.classList.remove('is-in');
+			fsBox.hidden = true;
+			root.classList.remove('fs-open-lock');
+			fsBtn.setAttribute('aria-expanded', 'false');
+			if (restore !== false && fsLast && fsLast.focus) { fsLast.focus(); }
+		};
+		fsBtn.addEventListener('click', function () { if (fsBox && !fsBox.hidden) { closeFs(); } else { openFs(); } });
+		document.addEventListener('keydown', function (e) {
+			if (!fsBox || fsBox.hidden) { return; }
+			if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeFs(); return; }
+			if (e.key === 'Tab') {
+				var f = fsFocusable();
+				if (!f.length) { return; }
+				var first = f[0], last = f[f.length - 1];
+				if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+				else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+			}
+		}, true);
+		if (desktopMq.addEventListener) { desktopMq.addEventListener('change', function () { closeFs(false); }); }
 	}
 
 	/* Skip-to-menu link only makes sense when the default menu exists */

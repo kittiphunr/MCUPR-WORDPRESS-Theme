@@ -31,6 +31,9 @@ function mcupr_customize_register( $wp_customize ) {
 		$wp_customize->add_control( "mcupr_address_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'Address / contact (%s)', 'mcupr' ), $l['name'] ), 'type' => 'textarea' ) );
 	}
 
+	$wp_customize->add_setting( 'mcupr_fs_menu', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+	$wp_customize->add_control( 'mcupr_fs_menu', array( 'section' => 'mcupr_org', 'label' => __( 'Show the “All menu” button that opens the whole menu full screen (desktop top bar)', 'mcupr' ), 'type' => 'checkbox' ) );
+
 	$wp_customize->add_setting( 'mcupr_utility_bar', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 	$wp_customize->add_control( 'mcupr_utility_bar', array( 'section' => 'mcupr_org', 'label' => __( 'Show the built-in utility bar (language, text size, dark mode, accessibility, search)', 'mcupr' ), 'type' => 'checkbox' ) );
 
