@@ -16,8 +16,23 @@ $policy = array(
 	'sitemap' => array( 'sitemap', 'sitemap' ),
 	'contact' => array( 'contact', 'contact' ),
 );
-$address = mcupr_text_mod( 'mcupr_address' );
 $alt     = mcupr_alt_name();
+
+// policy links that the footer menu already shows are not repeated in the last column
+$in_menu = array();
+$locs    = get_nav_menu_locations();
+if ( ! empty( $locs['footer'] ) ) {
+	foreach ( (array) wp_get_nav_menu_items( $locs['footer'] ) as $mi ) {
+		$in_menu[] = untrailingslashit( $mi->url );
+	}
+}
+$policy_links = array();
+foreach ( $policy as $row ) {
+	$url = mcupr_policy_url( $row[0] );
+	if ( $url && ! in_array( untrailingslashit( $url ), $in_menu, true ) ) {
+		$policy_links[] = array( $url, $row[1] );
+	}
+}
 ?>
 <?php mcupr_slot( 'footer_before' ); ?>
 </main>
@@ -36,31 +51,32 @@ $alt     = mcupr_alt_name();
 			<?php foreach ( array( 'footer-1', 'footer-2', 'footer-3' ) as $area ) { mcupr_widget_area( $area, 'space-y-6' ); } ?>
 		</div>
 	<?php endif; ?>
-	<div class="px-6 grid gap-8 py-10 min-[900px]:grid-cols-[2fr_1fr]">
-		<div class="flex items-start gap-4">
-			<?php echo mcupr_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			<div>
-				<p class="mb-1 text-xl font-bold"><?php echo esc_html( mcupr_org_name() ); ?></p>
-				<?php if ( $alt ) : ?>
-					<p class="mb-3" lang="<?php echo esc_attr( 'th' === mcupr_ui_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></p>
-				<?php endif; ?>
-				<?php if ( $address ) : ?>
-					<address class="not-italic"><?php echo nl2br( esc_html( $address ) ); ?></address>
-				<?php endif; ?>
+	<div class="fgrid px-6 py-10<?php echo $policy_links ? '' : ' fgrid-2'; ?>">
+		<div>
+			<div class="flex items-start gap-4">
+				<?php echo mcupr_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+				<div>
+					<p class="mb-1 text-xl font-bold"><?php echo esc_html( mcupr_org_name() ); ?></p>
+					<?php if ( $alt ) : ?>
+						<p class="mb-0" lang="<?php echo esc_attr( 'th' === mcupr_ui_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></p>
+					<?php endif; ?>
+				</div>
 			</div>
+			<?php mcupr_contact_list(); ?>
 		</div>
 
+		<div class="fmap-col"><?php mcupr_map_card(); ?></div>
+
+		<?php if ( $policy_links ) : ?>
 		<nav aria-label="<?php echo esc_attr( mcupr_t( 'footer_nav' ) ); ?>">
 			<h2 class="mb-3 text-lg font-bold"><?php mcupr_e( 'footer_nav' ); ?></h2>
 			<ul class="footer-menu">
-				<?php foreach ( $policy as $row ) : ?>
-					<?php $url = mcupr_policy_url( $row[0] ); ?>
-					<?php if ( $url ) : ?>
-						<li><a href="<?php echo esc_url( $url ); ?>"><?php mcupr_e( $row[1] ); ?></a></li>
-					<?php endif; ?>
+				<?php foreach ( $policy_links as $row ) : ?>
+					<li><a href="<?php echo esc_url( $row[0] ); ?>"><?php mcupr_e( $row[1] ); ?></a></li>
 				<?php endforeach; ?>
 			</ul>
 		</nav>
+		<?php endif; ?>
 	</div>
 	<div class="border-t border-line py-4 text-[.9375rem] text-muted">
 		<div class="px-6">
