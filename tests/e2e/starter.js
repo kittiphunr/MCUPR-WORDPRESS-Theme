@@ -221,6 +221,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await fp.locator('.fb-zone[open] a[aria-current]').count()) === 1, 'browser: the zone of the current category is open and the category is marked');
     ok((await fp.locator('.fb-zone .fb-n').first().isVisible()) && (await fp.locator('.fb-list a .fb-n').count()) >= 4, 'browser: every entry shows its count');
     ok((await fp.$$eval('.fb-folders a', (a) => a.map((x) => x.textContent.trim().replace(/\s+/g, ''))).then((t) => t.length === 2 && t[0].startsWith('งานวิจัย'))), 'browser: a category with sub-categories shows them as folders');
+    const sq = await fp.$$eval('.fb-folders a', (a) => a.map((x) => { const r = x.getBoundingClientRect(); return [r.width, r.height]; }));
+    ok(sq.length === 2 && sq.every((d) => Math.abs(d[0] - d[1]) <= 1) && Math.abs(sq[0][0] - sq[1][0]) <= 1, 'browser: folders are equal squares (' + sq.map((d) => Math.round(d[0]) + 'x' + Math.round(d[1])).join(', ') + ')');
     const catLinks = await fp.$$eval('.fb-side .fb-zone a', (a) => a.map((x) => x.getAttribute('href')));
     const tagLinks = await fp.$$eval('.fb-side .fb-tags a', (a) => a.map((x) => x.getAttribute('href')));
     ok(catLinks.length && catLinks.every((h) => h.includes('/category/')) && tagLinks.length >= 3 && tagLinks.every((h) => h.includes('/tag/')), 'browser: tags and categories are separate sections (' + catLinks.length + ' categories, ' + tagLinks.length + ' tags)');
