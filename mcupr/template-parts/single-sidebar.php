@@ -30,6 +30,7 @@ $box = 'soft-card p-5';
 				wp_link_pages();
 				?>
 			</div>
+		<?php mcupr_attachments(); ?>
 			<?php the_tags( '<p class="mt-8 flex flex-wrap gap-2 text-sm [&_a]:inline-flex [&_a]:min-h-8 [&_a]:items-center [&_a]:rounded-full [&_a]:bg-tint [&_a]:px-3 [&_a]:no-underline"><span class="sr-only">' . esc_html( mcupr_t( 'tags' ) ) . '</span>', '', '</p>' ); ?>
 			<?php get_template_part( 'template-parts/share' ); ?>
 		<?php get_template_part( 'template-parts/post-nav' ); ?>
