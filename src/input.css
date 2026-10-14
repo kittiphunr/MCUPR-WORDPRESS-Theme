@@ -1109,3 +1109,6 @@ html[data-contrast] .fb-views button[aria-checked="true"] { border: 2px solid va
 .fb-items[data-view="list"] article > a img { height: 100%; aspect-ratio: auto; min-height: 6.5rem; }
 .fb-items[data-view="list"] article > div { flex: 1; min-width: 0; padding: .9rem 1.1rem; }
 @media (max-width: 520px) { .fb-items[data-view="list"] article .text-muted:not(p) { display: none; } }
+
+/* brand: the name drops out (logo only) when it does not fit - see main.js fitBrand */
+#masthead .brand.is-compact > :last-child { display: none; }
