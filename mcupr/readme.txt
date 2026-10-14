@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.4.0 =
+* Footer: address, telephone, opening hours and a click-to-load Google Maps card with open / directions links.
+
 = 1.3.0 =
 * Events calendar (event post type, month grid, upcoming list, shortcodes, Google Calendar / .ics, schema.org Event).
 
