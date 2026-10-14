@@ -11,7 +11,7 @@ $box = 'rounded-2xl border border-line bg-bg p-5';
 <div class="wrap">
 	<?php mcupr_breadcrumb(); ?>
 	<div class="mt-2 grid gap-10 min-[1000px]:grid-cols-[minmax(0,1fr)_20rem]">
-		<article data-layout="sidebar" id="post-<?php the_ID(); ?>" <?php post_class( 'min-w-0' ); ?>>
+		<article data-layout="sidebar" id="post-<?php the_ID(); ?>" <?php post_class( 'panel-card min-w-0' ); ?>>
 			<header<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 				<h1 class="mcu-title mt-4 mb-5 text-3xl font-bold leading-tight min-[900px]:text-4xl"><?php the_title(); ?></h1>
 				<?php get_template_part( 'template-parts/article-meta' ); ?>

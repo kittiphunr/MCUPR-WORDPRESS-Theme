@@ -12,6 +12,7 @@
     "test:polylang": "bash run.sh polylang",
     "test:effects": "bash run.sh effects",
     "test:content": "bash run.sh content",
+    "test:layout": "bash run.sh layout",
     "check": "bash check.sh"
   },
   "devDependencies": {
