@@ -280,7 +280,7 @@
 
 	/* Utility links (optional dark strip) */
 	.utility-menu { @apply m-0 flex list-none flex-wrap justify-end gap-x-1 p-0; }
-	.utility-menu a { @apply inline-flex min-h-11 items-center px-2 text-on-bar no-underline hover:underline; }
+	.utility-menu a { @apply inline-flex min-h-9 items-center px-2.5 text-on-bar no-underline hover:underline; }
 
 	/* Quick links menu (home) */
 	.quick-menu { @apply m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(10rem,100%),1fr))] gap-3 p-0; }
@@ -554,11 +554,12 @@ html:not([data-menu="side"]) .site-header > .wrap { padding-left: 1.25rem; paddi
 /* ===== Top-bar menu: one row that fits ("More" dropdown for what does not) ===== */
 @media (min-width: 1100px) {
 	html[data-menu="top"] #masthead > .wrap { grid-template-columns: minmax(0, max-content) minmax(0, 1fr) auto; }
-	html[data-menu="top"] #masthead .brand { max-width: min(30vw, 24rem); }
+	html[data-menu="top"] #masthead .brand { max-width: min(26vw, 21rem); }
 	html[data-menu="top"] .site-nav { min-width: 0; }
 	html[data-menu="top"] .site-nav .menu { flex-wrap: nowrap; justify-content: center; gap: .125rem; }
 	html[data-menu="top"] .site-nav .menu > li { flex-wrap: nowrap; flex: none; }
-	html[data-menu="top"] .site-nav .menu > li > a { white-space: nowrap; padding-inline: clamp(.6rem, .85vw, 1.1rem); }
+	html[data-menu="top"] .site-nav .menu > li > a { white-space: nowrap; gap: .45rem; padding-inline: clamp(.5rem, .7vw, .95rem); }
+	html[data-menu="top"] .site-nav .menu > li > a .ic.has-ic { width: 1.25rem; height: 1.25rem; }
 	html[data-menu="top"] .site-nav .menu > li > .submenu-toggle { min-width: 1.75rem; margin-left: -.3rem; }
 	html[data-menu="top"] .site-nav .menu-more > .more-btn { gap: .35rem; padding-inline: clamp(.7rem, 1vw, 1.1rem); border-radius: 9999px; font-weight: 600; font-size: .92rem; color: var(--text-2); white-space: nowrap; margin-left: 0; }
 	html[data-menu="top"] .site-nav .menu-more > .more-btn:hover, html[data-menu="top"] .site-nav .menu-more.is-open > .more-btn { background: var(--tint); color: var(--link); }
@@ -655,3 +656,25 @@ html.fs-open-lock { overflow: hidden; }
 .fs-list li li > a:not([href]), .fs-list li li > a.menu-label { min-height: 2rem; margin-top: .6rem; font-size: .8rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
 .fs-list .d { display: block; }
 @media (max-width: 1099px) { .fs-open { display: none !important; } }
+
+/* ===== Top bar proportions + active states ===== */
+@media (min-width: 1100px) {
+	/* the icon of the current page sits on the pink pill: it must be the pill's text colour, not pink on pink */
+	html:not([data-menu="side"]) .site-nav .menu > .current-menu-item > a .ic,
+	html:not([data-menu="side"]) .site-nav .menu > .current_page_item > a .ic,
+	html:not([data-menu="side"]) .site-nav .menu > .current-menu-ancestor > a .ic,
+	html[data-menu="top"] .site-nav .menu-more.has-current > .more-btn .ic { color: var(--on-primary); }
+	html[data-menu="top"] .site-nav .menu > li > a:hover .ic, html[data-menu="top"] .site-nav .menu > li > a:focus-visible .ic { color: var(--link); }
+	html[data-menu="top"] .site-nav .menu > .current-menu-item > a:hover .ic, html[data-menu="top"] .site-nav .menu > .current_page_item > a:hover .ic, html[data-menu="top"] .site-nav .menu > .current-menu-ancestor > a:hover .ic { color: var(--on-primary); }
+	/* "All menu" button: icon only until there is room for the label */
+	html[data-menu="top"] .fs-open { min-height: 2.75rem; padding: 0 .85rem; }
+	html[data-menu="top"] .fs-open[aria-expanded="true"] svg { color: var(--link); }
+}
+@media (min-width: 1100px) and (max-width: 1599px) {
+	html[data-menu="top"] .fs-open span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+	html[data-menu="top"] .fs-open { width: 2.75rem; padding: 0; justify-content: center; }
+}
+
+/* ===== Page band reaches up to the top bar: the floating header sits ON it (--hdr-h = header height + margin, set in site-header.php) ===== */
+html:not([data-menu="side"]) #content > .mcu-wheel:first-child,
+html:not([data-menu="side"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: calc(var(--hdr-h, 5.5rem) + 2.5rem); }

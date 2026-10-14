@@ -589,6 +589,13 @@
 		});
 	}
 
+	/* the page band is pulled up under the floating header: keep --hdr-h (header height + its top margin) current */
+	var hdr = document.getElementById('masthead');
+	if (hdr && window.ResizeObserver) {
+		var syncHdr = function () { root.style.setProperty('--hdr-h', (hdr.offsetHeight + (parseFloat(getComputedStyle(hdr).marginTop) || 0)) + 'px'); };
+		new ResizeObserver(syncHdr).observe(hdr);
+	}
+
 	/* ---------------------------------------------------------------- full-screen menu (built on first use from the main menu) */
 	var fsBtn = $('[data-fs-open]');
 	if (fsBtn && nav) {
