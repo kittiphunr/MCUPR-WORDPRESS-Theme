@@ -99,12 +99,33 @@ function mcupr_test_menu( $name, $items, $icons = array() ) {
 	}
 	return $menu;
 }
+
+// ---- a mega-menu fixture (zh): icons via the item field, one mega item with 3 columns and a description
+function mcupr_test_mega_menu() {
+	$menu = wp_create_nav_menu( 'Main ZH' );
+	$add  = function ( $title, $parent = 0, $meta = array(), $desc = '' ) use ( $menu ) {
+		$id = wp_update_nav_menu_item( $menu, 0, array( 'menu-item-title' => $title, 'menu-item-url' => '/#' . md5( $title . $parent ), 'menu-item-status' => 'publish', 'menu-item-parent-id' => $parent, 'menu-item-description' => $desc ) );
+		foreach ( $meta as $k => $v ) { update_post_meta( $id, $k, $v ); }
+		return $id;
+	};
+	$add( '首页', 0, array( '_mcupr_menu_icon' => 'home' ) );
+	$m = $add( '课程', 0, array( '_mcupr_menu_icon' => 'book', '_mcupr_menu_mega' => 1, '_mcupr_menu_cols' => 3 ) );
+	$u = $add( '本科', $m, array( '_mcupr_menu_icon' => 'cap' ) );
+	foreach ( array( '文学院', '理学院', '教育学院' ) as $t ) { $add( $t, $u ); }
+	$g = $add( '研究生', $m );
+	foreach ( array( '硕士', '博士' ) as $t ) { $add( $t, $g ); }
+	$add( '继续教育', $m, array( '_mcupr_menu_icon' => 'users' ), '面向在职人员的短期课程' );
+	$add( '新闻', 0, array( '_mcupr_menu_icon' => 'news' ) );
+	$add( '联系', 0 );
+	return $menu;
+}
 $loc = array(
 	'primary_th' => mcupr_test_menu( 'Main TH', array( 'เกี่ยวกับ' => array( 'ประวัติ' ), 'ข่าว' => array() ) ),
 	'quick'      => mcupr_test_menu( 'Quick', array( 'การสมัครเรียน' => array(), 'หลักสูตร' => array(), 'ทุนการศึกษา' => array(), 'ปฏิทินการศึกษา' => array(), 'ห้องสมุด' => array(), 'ศิษย์เก่า' => array(), 'ติดต่อ' => array() ), array( 'edit', 'book', 'bulb', 'money', 'bank', 'cap', 'mail' ) ),
 	'footer'     => mcupr_test_menu( 'Footer', array( 'เกี่ยวกับ ' => array( 'ประวัติ', 'ผู้บริหาร' ), 'การศึกษา' => array( 'หลักสูตร', 'ทุน' ), 'วิจัย' => array( 'ศูนย์วิจัย' ) ) ),
 	// a long English menu (like a real university site: 7+ items, several with dropdowns) for the "More" overflow tests
 	'primary_en' => mcupr_test_menu( 'Main EN', array( 'Home' => array(), 'About the University' => array( 'History', 'Executives' ), 'Offices and Departments' => array( 'Registrar' ), 'E-office System' => array( 'Mail', 'Documents' ), 'Programmes' => array( 'Bachelor', 'Master' ), 'For Students' => array(), 'Staff' => array( 'HR' ), 'Contact us' => array() ) ),
+	'primary_zh' => mcupr_test_mega_menu(),
 	'utility'    => mcupr_test_menu( 'Utility', array( 'นักศึกษา' => array(), 'บุคลากร' => array(), 'ศิษย์เก่า' => array() ) ),
 );
 set_theme_mod( 'nav_menu_locations', $loc );

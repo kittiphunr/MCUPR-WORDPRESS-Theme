@@ -124,9 +124,9 @@ function mcupr_hero_image_url( $fallback_post_id = 0 ) {
 	return $fallback_post_id ? (string) get_the_post_thumbnail_url( $fallback_post_id, 'full' ) : '';
 }
 
-/** Small inline SVG icon set (24x24, stroke). */
-function mcupr_icon( $name, $size = 24 ) {
-	$paths = array(
+/** The inline SVG icon set (24x24, stroke, Feather style): name => inner markup. */
+function mcupr_icon_paths() {
+	return array(
 		'chat'     => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
 		'clock'    => '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
 		'alert'    => '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
@@ -149,33 +149,41 @@ function mcupr_icon( $name, $size = 24 ) {
 		'panel'    => '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/>',
 		'chevron'  => '<path d="M9 6l6 6-6 6"/>',
 		'home'     => '<path d="M3 11l9-8 9 8M5 10v10h14V10"/>',
+		'info'     => '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+		'file'     => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
+		'briefcase' => '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+		'pin'      => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+		'phone'    => '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+		'award'    => '<circle cx="12" cy="8" r="7"/><path d="M8.2 13.9L7 23l5-3 5 3-1.2-9.1"/>',
+		'shield'   => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+		'download' => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+		'heart'    => '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+		'star'     => '<path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/>',
+		'flag'     => '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/>',
+		'camera'   => '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+		'video'    => '<path d="M23 7l-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
+		'folder'   => '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+		'lock'     => '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+		'check'    => '<path d="M20 6L9 17l-5-5"/>',
+		'grid'     => '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
 	);
-	$p = isset( $paths[ $name ] ) ? $paths[ $name ] : $paths['link'];
+}
+
+/** One icon as inline SVG (unknown names fall back to the arrow). */
+function mcupr_icon( $name, $size = 24 ) {
+	$paths = mcupr_icon_paths();
+	$p     = isset( $paths[ $name ] ) ? $paths[ $name ] : $paths['link'];
 	return '<svg width="' . (int) $size . '" height="' . (int) $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $p . '</svg>';
 }
 
-/** Put an icon (from the menu item's CSS class "icon-xxx") in front of hero quick links. */
+/** Hero quick links: icon (menu item CSS class "icon-xxx" or the item's icon field) above the text. Other menus: inc/menus.php. */
 add_filter(
 	'nav_menu_item_title',
 	static function ( $title, $item, $args ) {
-		if ( empty( $args->menu_class ) ) {
+		if ( empty( $args->menu_class ) || 'hero-menu' !== $args->menu_class ) {
 			return $title;
 		}
-		$icon = '';
-		foreach ( (array) $item->classes as $c ) {
-			if ( 0 === strpos( $c, 'icon-' ) ) {
-				$icon = substr( $c, 5 );
-			}
-		}
-		if ( 'hero-menu' === $args->menu_class ) {
-			return '<span class="mb-auto text-white/90">' . mcupr_icon( $icon ? $icon : 'link', 28 ) . '</span><span>' . $title . '</span>';
-		}
-		if ( 'menu' === $args->menu_class && 0 === (int) $item->menu_item_parent ) {
-			// Main menu: icon (or initial letter) for the sidebar / drawer, text in .t
-			$ic = $icon ? mcupr_icon( $icon, 20 ) : esc_html( mb_strtoupper( mb_substr( wp_strip_all_tags( $title ), 0, 1 ) ) );
-			return '<span class="ic" aria-hidden="true">' . $ic . '</span><span class="t">' . $title . '</span>';
-		}
-		return $title;
+		return '<span class="mb-auto text-white/90">' . mcupr_icon( mcupr_menu_item_icon( $item ) ?: 'link', 28 ) . '</span><span>' . $title . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	},
 	10,
 	3
