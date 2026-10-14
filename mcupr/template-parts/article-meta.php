@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 $ts  = get_post_timestamp();
 $cat = mcupr_first_category();
 ?>
-<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[.95rem] text-muted">
+<div class="print-meta flex flex-wrap items-center gap-x-4 gap-y-1 text-[.95rem] text-muted">
 	<?php if ( $cat ) : ?>
 		<span class="rounded-full bg-primary px-3 py-0.5 text-sm font-bold text-on-primary"><?php echo esc_html( $cat ); ?></span>
 	<?php endif; ?>
