@@ -49,7 +49,8 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     const card = p.locator('section[aria-labelledby=news-title] article.tilt').first();
     await card.scrollIntoViewIfNeeded();
     await p.waitForTimeout(1200);
-    const box = await card.boundingBox();
+    // over the card's image link (the first card on the home page is the wide "featured" one, text on the right)
+    const box = await card.locator('a').first().boundingBox();
     await p.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.2, { steps: 4 });
     await p.waitForTimeout(200);
     ok(await card.evaluate((el) => el.classList.contains('tilting')), 'card tilts under the mouse');
