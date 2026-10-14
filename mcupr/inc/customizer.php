@@ -90,7 +90,7 @@ function mcupr_customize_register( $wp_customize ) {
 	}
 
 	// ---- logos
-	$wp_customize->add_section( 'mcupr_logos', array( 'title' => __( 'MCUPR: Logos', 'mcupr' ), 'description' => __( 'The main logo is set under Site Identity. Add a dark-mode version and a footer version here (optional).', 'mcupr' ), 'priority' => 29 ) );
+	$wp_customize->add_section( 'mcupr_logos', array( 'title' => __( 'MCUPR: Logos', 'mcupr' ), 'description' => __( 'The main logo is set under Site Identity (leave it empty to use the university emblem that comes with the theme). Add a dark-mode version and a footer version here (optional).', 'mcupr' ), 'priority' => 29 ) );
 	$wp_customize->add_setting( 'mcupr_logo_dark', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
 	$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'mcupr_logo_dark', array( 'section' => 'mcupr_logos', 'label' => __( 'Logo for dark mode', 'mcupr' ), 'mime_type' => 'image' ) ) );
 	$wp_customize->add_setting( 'mcupr_logo_footer', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
