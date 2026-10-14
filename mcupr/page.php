@@ -7,14 +7,14 @@
 
 get_header();
 ?>
-<div class="wrap narrow">
+<div class="narrow">
 	<?php
 	while ( have_posts() ) :
 		the_post();
 		?>
-		<article id="post-<?php the_ID(); ?>" <?php post_class( 'entry' ); ?>>
-			<header class="entry-header"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
-				<h1 class="page-title"><?php the_title(); ?></h1>
+		<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+			<header<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+				<h1 class="mb-5 mt-4 border-b-4 border-accent pb-2 text-3xl font-bold contrast:border-line max-[700px]:text-2xl"><?php the_title(); ?></h1>
 			</header>
 			<?php mcupr_missing_translation_notice(); ?>
 			<div class="entry-content"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>

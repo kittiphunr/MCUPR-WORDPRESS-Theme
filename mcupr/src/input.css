@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+/* Scan templates and scripts for utility classes */
+@source "../*.php";
+@source "../inc/*.php";
+@source "../template-parts/*.php";
+@source "../assets/js/main.js";
+
+/* State variants driven by the visitor's saved preferences (<html data-*>) */
+@custom-variant contrast (&:where([data-contrast] *));
+@custom-variant noimg (&:where([data-images="off"] *));
+
+/* Map Tailwind tokens to CSS variables so dark mode, high-contrast modes and
+   the Customizer colours all work with ordinary utilities (bg-bg, text-fg…) */
+@theme inline {
+	--color-primary: var(--primary);
+	--color-on-primary: var(--on-primary);
+	--color-accent: var(--accent);
+	--color-bg: var(--bg);
+	--color-surface: var(--surface);
+	--color-fg: var(--text);
+	--color-muted: var(--muted);
+	--color-line: var(--border);
+	--color-link: var(--link);
+	--color-focus: var(--focus);
+	--font-sans: var(--font);
+}
+
+@utility wrap {
+	margin-inline: auto;
+	width: min(100% - 2rem, 75rem);
+}
+@utility narrow {
+	margin-inline: auto;
+	width: min(100% - 2rem, 52rem);
+}
+
+/* ---------------------------------------------------------------- tokens */
+@layer base {
+	:root {
+		--primary: #7a1f3d;
+		--accent: #c9a227;
+		--on-primary: #fff;
+		--bg: #fff;
+		--surface: #f5f2ee;
+		--text: #1c1b1f;
+		--muted: #55525a;
+		--border: #cfc9c2;
+		--link: var(--primary);
+		--focus: #0b57d0;
+		--font: "Sarabun", "Noto Sans Thai", "Noto Sans SC", "Noto Sans JP", "Leelawadee UI", "Tahoma", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+		color-scheme: light;
+	}
+	:root[data-theme="dark"] {
+		--bg: #121214; --surface: #1d1d21; --text: #ececf0; --muted: #b9b6c0; --border: #43414a;
+		--link: color-mix(in srgb, var(--primary) 35%, #fff); --focus: #8ab4f8; color-scheme: dark;
+	}
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme="light"]):not([data-theme="dark"]) {
+			--bg: #121214; --surface: #1d1d21; --text: #ececf0; --muted: #b9b6c0; --border: #43414a;
+			--link: color-mix(in srgb, var(--primary) 35%, #fff); --focus: #8ab4f8; color-scheme: dark;
+		}
+	}
+	/* High-contrast modes override light/dark */
+	:root[data-contrast="wb"] { --bg:#000; --surface:#000; --text:#fff; --muted:#fff; --border:#fff; --link:#fff; --primary:#000; --on-primary:#fff; --accent:#fff; --focus:#ffea00; color-scheme: dark; }
+	:root[data-contrast="yb"] { --bg:#000; --surface:#000; --text:#ffea00; --muted:#ffea00; --border:#ffea00; --link:#ffea00; --primary:#000; --on-primary:#ffea00; --accent:#ffea00; --focus:#fff; color-scheme: dark; }
+	:root[data-contrast="by"] { --bg:#ffea00; --surface:#ffea00; --text:#000; --muted:#000; --border:#000; --link:#000; --primary:#ffea00; --on-primary:#000; --accent:#000; --focus:#000; color-scheme: light; }
+
+	*, ::before, ::after, ::file-selector-button { border-color: var(--border); }
+
+	/* Text size: every size in the theme is rem-based */
+	html { font-size: 100%; -webkit-text-size-adjust: 100%; scroll-padding-block: 7rem; }
+	html[data-font="0"] { font-size: 87.5%; }
+	html[data-font="2"] { font-size: 125%; }
+	html[data-font="3"] { font-size: 150%; }
+	html[data-font="4"] { font-size: 200%; }
+
+	body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 1.0625rem; line-height: 1.7; overflow-wrap: anywhere; }
+	a { color: var(--link); text-underline-offset: .15em; }
+	img, svg, video { max-width: 100%; height: auto; }
+
+	/* Focus (WCAG 2.4.7 / 2.4.11 / 2.4.13) */
+	:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; box-shadow: 0 0 0 5px var(--bg); }
+	#content:focus, #colophon:focus { outline: none; box-shadow: none; }
+
+	/* Visual-impairment helpers */
+	html[data-gray="1"] { filter: grayscale(1); }
+	html[data-underline="1"] a, html[data-contrast] a { text-decoration: underline !important; }
+	html[data-readable="1"] body { font-family: "Sarabun", "Noto Sans Thai", "Atkinson Hyperlegible", Verdana, Tahoma, sans-serif; letter-spacing: .02em; }
+	html[data-spacing="1"] body { line-height: 2; letter-spacing: .12em; word-spacing: .16em; }
+	html[data-spacing="1"] p { margin-bottom: 2em; }
+	html[data-cursor="1"], html[data-cursor="1"] * { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'><path d='M3 2l7.5 19 2.7-7.8L21 10.5z' fill='black' stroke='white' stroke-width='1.6'/></svg>") 4 2, auto; }
+	html[data-images="off"] .entry-content img { display: none; }
+	html[data-motion="1"] *, html[data-motion="1"] ::before, html[data-motion="1"] ::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+	@media (prefers-reduced-motion: reduce) {
+		*, ::before, ::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+	}
+}
+
+/* ------------------------------------------------------------ components */
+@layer components {
+	.btn {
+		@apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-transparent bg-primary px-4 py-1.5 font-semibold leading-tight text-on-primary no-underline hover:brightness-110 contrast:border-line;
+	}
+	.btn-tool {
+		@apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 rounded-lg border-2 border-line bg-transparent px-3 py-1.5 font-semibold leading-tight text-fg hover:bg-surface aria-pressed:bg-surface aria-disabled:cursor-not-allowed aria-disabled:opacity-45;
+	}
+
+	/* Main navigation: markup comes from wp_nav_menu() */
+	.site-nav ul { @apply m-0 list-none p-0; }
+	.site-nav .menu { @apply flex flex-col min-[900px]:flex-row min-[900px]:flex-wrap; }
+	.site-nav li { @apply relative flex flex-wrap items-stretch; }
+	.site-nav li > a { @apply flex min-h-12 flex-1 items-center px-4 py-2 font-semibold text-on-primary no-underline min-[900px]:flex-none; }
+	.site-nav li > a:hover,
+	.site-nav .current-menu-item > a,
+	.site-nav .current_page_item > a,
+	.site-nav .current-menu-ancestor > a { @apply bg-black/20 shadow-[inset_0_-4px_0_var(--accent)]; }
+	.site-nav :focus-visible { outline-color: #fff; box-shadow: none; outline-offset: -4px; }
+	.site-nav .submenu-toggle { @apply min-w-9 cursor-pointer border-0 bg-transparent p-0 text-on-primary; }
+	.site-nav .submenu-toggle[aria-expanded="true"] svg { @apply rotate-180; }
+	.site-nav .sub-menu,
+	.site-nav .children { @apply hidden basis-full border-l-4 border-accent ml-4 bg-primary min-[900px]:absolute min-[900px]:top-full min-[900px]:left-0 min-[900px]:z-50 min-[900px]:ml-0 min-[900px]:min-w-60 min-[900px]:basis-auto min-[900px]:border-l-0 min-[900px]:border min-[900px]:border-white/35 min-[900px]:shadow-lg; }
+	.site-nav li.is-open > .sub-menu,
+	.site-nav li.is-open > .children { @apply block; }
+	.site-nav .sub-menu li, .site-nav .children li { @apply flex; }
+	.site-nav .sub-menu a, .site-nav .children a { @apply font-medium; }
+	.site-nav .sub-menu .sub-menu { @apply min-[900px]:top-0 min-[900px]:left-full; }
+
+	/* Quick links menu (home) */
+	.quick-menu { @apply m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-3 p-0; }
+	.quick-menu a { @apply flex min-h-18 items-center justify-center rounded-lg border border-b-4 border-line border-b-accent bg-surface p-3 text-center font-bold text-fg no-underline hover:bg-primary hover:text-on-primary; }
+
+	/* Footer menu */
+	.footer-menu { @apply m-0 list-none p-0; }
+	.footer-menu a { @apply inline-block py-1; }
+
+	/* Content written in the editor (unclassed HTML) */
+	.entry-content { @apply text-lg; }
+	.entry-content > * + * { @apply mt-5; }
+	.entry-content h2 { @apply mt-8 text-2xl font-bold; }
+	.entry-content h3 { @apply mt-6 text-xl font-bold; }
+	.entry-content h4 { @apply mt-5 text-lg font-bold; }
+	.entry-content ul { @apply list-disc pl-6; }
+	.entry-content ol { @apply list-decimal pl-6; }
+	.entry-content img { @apply rounded-lg; }
+	.entry-content blockquote { @apply border-l-4 border-accent pl-4 italic; }
+	.entry-content table { @apply w-full border-collapse; }
+	.entry-content th, .entry-content td { @apply border border-line p-2 text-left; }
+	.entry-content figcaption { @apply text-sm text-muted; }
+
+	/* Pagination (the_posts_pagination) */
+	.nav-links { @apply flex flex-wrap justify-center gap-2; }
+	.nav-links .page-numbers { @apply inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border-2 border-line px-3.5 text-fg no-underline hover:bg-surface; }
+	.nav-links .page-numbers.current { @apply border-primary bg-primary font-bold text-on-primary contrast:border-line; }
+
+	/* Comments (comment_form / wp_list_comments) */
+	.comment-list { @apply list-none space-y-4 p-0; }
+	.comment-list .children { @apply mt-4 list-none pl-6; }
+	.comment-form { @apply space-y-4; }
+	.comment-form label { @apply block font-semibold; }
+	.comment-form input[type="text"], .comment-form input[type="email"], .comment-form input[type="url"], .comment-form textarea { @apply min-h-11 w-full rounded-lg border-2 border-line bg-bg px-3 py-2 text-fg; }
+	.comment-form .submit { @apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border-2 border-transparent bg-primary px-4 py-1.5 font-semibold text-on-primary hover:brightness-110 contrast:border-line; }
+	.comment-reply-title { @apply text-xl font-bold; }
+
+	/* SweetAlert2 skin (classes passed from assets/js/main.js) */
+	.swal-popup { @apply !rounded-xl !border-2 !border-line !bg-bg !text-fg !font-sans; }
+	.swal-title { @apply !text-xl !font-bold !text-fg; }
+	.swal-text { @apply !text-base !text-fg; }
+	.swal-text a { @apply underline; }
+	.swal-confirm { @apply !min-h-11 !rounded-lg !border-2 !border-transparent !bg-primary !px-5 !font-semibold !text-on-primary contrast:!border-line; }
+	.swal-cancel { @apply !min-h-11 !rounded-lg !border-2 !border-line !bg-transparent !px-5 !font-semibold !text-fg; }
+	.swal-toast { @apply !border-2 !border-line !bg-bg !text-fg !shadow-lg; }
+}
+
+/* Screen-reader text (WordPress convention) */
+.screen-reader-text { @apply sr-only; }
+
+@media print {
+	.print\:hidden { display: none !important; }
+}

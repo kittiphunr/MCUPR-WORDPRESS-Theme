@@ -75,6 +75,11 @@ return array(
 		'当サイトは、言語と表示設定を記憶するために必須のCookieとローカルストレージを使用します（タイ個人情報保護法 B.E.2562 に準拠）。',
 	),
 	'cookie_ok'     => array( 'รับทราบ', 'Accept', '接受', '同意する' ),
+	'cookie_title'  => array( 'การใช้คุกกี้', 'Cookies on this website', '本网站的 Cookie', 'Cookieについて' ),
+	'cancel'        => array( 'ยกเลิก', 'Cancel', '取消', 'キャンセル' ),
+	'reset_q'       => array( 'คืนค่าการตั้งค่าการแสดงผลทั้งหมด?', 'Reset all display settings?', '重置所有显示设置？', 'すべての表示設定をリセットしますか？' ),
+	'reset_q_txt'   => array( 'ขนาดอักษร โหมดมืด/สว่าง และตัวเลือกการเข้าถึงจะกลับเป็นค่าเริ่มต้น', 'Text size, dark/light mode and accessibility options will return to their defaults.', '字体大小、深色/浅色模式和无障碍选项将恢复默认值。', '文字サイズ、ダーク/ライトモード、アクセシビリティ設定が初期値に戻ります。' ),
+	'search_empty'  => array( 'กรุณาพิมพ์คำที่ต้องการค้นหา', 'Please enter a search term.', '请输入搜索关键词。', '検索キーワードを入力してください。' ),
 	'tr_missing'    => array(
 		'เนื้อหานี้ยังไม่มีในภาษาที่เลือก แสดงเป็นภาษาต้นฉบับ',
 		'This content is not yet available in the selected language. Showing the original.',
