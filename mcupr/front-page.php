@@ -2,22 +2,12 @@
 /**
  * Front page (Chula-style): full-width hero photo with headline and glass quick
  * links, a scrollable featured-news slider, latest news grid and a pale banner.
- * If the front page is a static page built with Elementor, that design is shown.
  *
  * @package MCUPR
  */
 
 get_header();
 
-// Static front page designed in Elementor: show only its content.
-if ( is_page() && mcupr_is_elementor_page( get_queried_object_id() ) ) {
-	while ( have_posts() ) {
-		the_post();
-		the_content();
-	}
-	get_footer();
-	return;
-}
 
 $news   = new WP_Query(
 	array(
@@ -57,6 +47,7 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 		</nav>
 	<?php endif; ?>
 </section></div>
+<?php mcupr_slot( 'home_top' ); ?>
 
 <?php if ( $slider ) : ?>
 <section class="wrap mt-10" aria-labelledby="featured-title" data-carousel data-reveal>
@@ -124,7 +115,7 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 <?php endif; ?>
 
 <?php
-// Optional extra content when a static (non-Elementor) page is the front page.
+// Optional extra content when a static page is the front page.
 if ( is_page() ) {
 	while ( have_posts() ) {
 		the_post();

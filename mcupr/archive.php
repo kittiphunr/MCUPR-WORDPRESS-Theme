@@ -7,7 +7,6 @@
 
 get_header();
 
-if ( ! mcupr_elementor_location( 'archive' ) ) :
 	get_template_part( 'template-parts/band', null, array( 'title' => wp_kses_post( get_the_archive_title() ), 'description' => get_the_archive_description(), 'chips' => true ) );
 	?>
 <div class="wrap mt-10">
@@ -30,6 +29,4 @@ if ( ! mcupr_elementor_location( 'archive' ) ) :
 	<?php endif; ?>
 </div>
 <?php
-endif;
-
 get_footer();
