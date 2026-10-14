@@ -17,6 +17,7 @@ while ( have_posts() ) :
 			<?php mcupr_breadcrumb( false ); ?>
 			<h1 class="mt-4 mb-2 text-3xl font-bold leading-tight min-[900px]:text-4xl"><?php the_title(); ?></h1>
 			<p class="m-0 text-lg text-muted"><?php echo esc_html( mcupr_event_when( $info ) ); ?></p>
+			<p class="m-0 mt-2 text-[.95rem] text-muted"><?php echo mcupr_views_html(); // phpcs:ignore WordPress.Security.EscapeOutput ?></p>
 		</div>
 	</header>
 
@@ -41,6 +42,7 @@ while ( have_posts() ) :
 		<div id="article-body" class="reader"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 			<?php the_content(); ?>
 		</div>
+		<?php mcupr_attachments(); ?>
 		<div class="mt-8"><?php get_template_part( 'template-parts/article-tools' ); ?></div>
 		<p class="mt-6"><a class="ev-link" href="<?php echo esc_url( get_post_type_archive_link( 'mcupr_event' ) ); ?>">‹ <?php mcupr_e( 'events_title' ); ?></a></p>
 	</div>
