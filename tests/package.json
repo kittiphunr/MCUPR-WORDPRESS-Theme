@@ -1,0 +1,19 @@
+{
+  "name": "mcupr-theme-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "End-to-end tests for the MCUPR WordPress theme (real WordPress + SQLite + Playwright + axe-core)",
+  "scripts": {
+    "bootstrap": "bash bootstrap.sh",
+    "test": "bash run.sh",
+    "test:functional": "bash run.sh functional",
+    "test:responsive": "bash run.sh responsive",
+    "test:elementor": "bash run.sh elementor",
+    "test:polylang": "bash run.sh polylang",
+    "check": "bash check.sh"
+  },
+  "devDependencies": {
+    "axe-core": "^4.10.0",
+    "playwright": "^1.50.0"
+  }
+}
