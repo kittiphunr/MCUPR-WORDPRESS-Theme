@@ -116,6 +116,8 @@ return array(
 	'tts_novoice'   => array( 'อุปกรณ์นี้ไม่มีเสียงสำหรับภาษานี้ การอ่านอาจไม่ทำงานหรือออกเสียงผิดเพี้ยน', 'This device has no voice for this language; reading aloud may not work.', '此设备没有该语言的语音，朗读可能无法使用。', 'この端末にはこの言語の音声がないため、読み上げが機能しない場合があります。' ),
 	'reading_time'  => array( 'อ่านประมาณ %d นาที', '%d min read', '约 %d 分钟阅读', '約%d分で読めます' ),
 	'share'         => array( 'แชร์', 'Share', '分享', '共有' ),
+	'share_to'      => array( 'แชร์ไปที่', 'Share on', '分享到', 'シェア：' ),
+	'share_this'    => array( 'แชร์เรื่องนี้', 'Share this story', '分享这篇文章', 'この記事をシェア' ),
 	'copy_link'     => array( 'คัดลอกลิงก์', 'Copy link', '复制链接', 'リンクをコピー' ),
 	'link_copied'   => array( 'คัดลอกลิงก์แล้ว', 'Link copied', '链接已复制', 'リンクをコピーしました' ),
 	'print'         => array( 'พิมพ์', 'Print', '打印', '印刷' ),

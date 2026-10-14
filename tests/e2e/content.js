@@ -583,6 +583,25 @@ const speechStub = (speakMs) => `(() => {
     await c4.close();
   }
 
+  // ================= share buttons: Facebook + LINE only, at the top of the article and in a bar at its end
+  for (const [layout, n] of [['reader', 1], ['cover', 3], ['sidebar', 4]]) {
+    const c = await newCtx();
+    const p = await c.newPage();
+    await p.goto(B + post(n));
+    const hrefs = await p.$$eval('a.share-btn', (a) => a.map((x) => x.href));
+    ok(hrefs.length === 4 && hrefs.filter((h) => h.includes('facebook.com/sharer')).length === 2 && hrefs.filter((h) => h.includes('line.me/lineit')).length === 2, layout + ' layout: Facebook and LINE buttons at the top and in the share bar (and no other network)');
+    ok((await p.locator('.share-bar a.share-btn').count()) === 2 && /แชร์เรื่องนี้/.test(await text(p, '.share-bar')), layout + ' layout: the share bar at the end of the article');
+    ok(await p.evaluate(() => [...document.querySelectorAll('a.share-btn')].every((a) => a.target === '_blank' && /noopener/.test(a.rel))), layout + ' layout: share links open in a new tab safely');
+    if (layout === 'reader') {
+      await p.addScriptTag({ content: axeSource() });
+      const r = await p.evaluate(() => axe.run(document.querySelector('.share-bar'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+      ok(r.violations.length === 0, 'share bar axe (Facebook blue / LINE green keep AA contrast): ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+      const comments = await p.evaluate(() => ({ list: !!document.querySelector('#comments'), form: !!document.querySelector('#commentform'), submit: getComputedStyle(document.querySelector('#commentform .submit')).borderRadius }));
+      ok(comments.list && comments.form && parseFloat(comments.submit) >= 20, 'comments: card + pill-shaped form in the theme style');
+    }
+    await c.close();
+  }
+
   await br.close();
   finish();
 })();

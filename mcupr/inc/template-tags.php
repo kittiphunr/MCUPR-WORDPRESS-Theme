@@ -307,3 +307,20 @@ function mcupr_state_card( $icon, $title, $text = '', $extra = '', $tag = 'h1' )
 	}
 	echo $extra . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 }
+
+
+/**
+ * The two share buttons (Facebook, LINE): brand colours, icon + label, open in a new tab.
+ * Used at the top of an article (article-tools) and in the share bar at its end.
+ */
+function mcupr_share_buttons( $url, $title = '' ) {
+	$fb   = 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode( $url );
+	$line = 'https://social-plugins.line.me/lineit/share?url=' . rawurlencode( $url );
+	$new  = ' <span class="sr-only">(' . esc_html( mcupr_t( 'new_tab' ) ) . ')</span>';
+	echo '<a class="share-btn share-fb" href="' . esc_url( $fb ) . '" target="_blank" rel="noopener noreferrer">';
+	echo '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M13.5 22v-8.2h2.8l.5-3.3h-3.3V8.4c0-.9.4-1.7 1.8-1.7h1.6V3.8s-1.4-.3-2.8-.3c-2.8 0-4.5 1.7-4.5 4.7v2.3H6.8v3.3h2.8V22z"/></svg>';
+	echo '<span>' . esc_html( mcupr_t( 'share_to' ) ) . ' Facebook</span>' . $new . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo '<a class="share-btn share-line" href="' . esc_url( $line ) . '" target="_blank" rel="noopener noreferrer">';
+	echo '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.8c0 .3-.2 1 .9.5s5.8-3.4 7.9-5.8c1.5-1.6 2.1-3.2 2.1-4.9C22 6.6 17.5 3 12 3zM8.2 13.3H6.1c-.3 0-.5-.2-.5-.5V9.2c0-.3.2-.5.5-.5s.5.2.5.5v3.1h1.6c.3 0 .5.2.5.5s-.2.5-.5.5zm2 0c-.3 0-.5-.2-.5-.5V9.2c0-.3.2-.5.5-.5s.5.2.5.5v3.6c0 .3-.2.5-.5.5zm4.9 0c-.2 0-.4-.1-.5-.3l-1.8-2.5v2.3c0 .3-.2.5-.5.5s-.5-.2-.5-.5V9.2c0-.2.1-.4.3-.5h.2c.2 0 .3.1.4.2l1.8 2.5V9.2c0-.3.2-.5.5-.5s.5.2.5.5v3.6c0 .2-.1.4-.4.5zm3.1-2.4c.3 0 .5.2.5.5s-.2.5-.5.5h-1.2v.8h1.2c.3 0 .5.2.5.5s-.2.5-.5.5h-1.7c-.3 0-.5-.2-.5-.5V9.2c0-.3.2-.5.5-.5h1.7c.3 0 .5.2.5.5s-.2.5-.5.5h-1.2v.8z"/></svg>';
+	echo '<span>' . esc_html( mcupr_t( 'share_to' ) ) . ' LINE</span>' . $new . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
+}
