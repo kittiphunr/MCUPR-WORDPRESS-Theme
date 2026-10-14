@@ -72,8 +72,9 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   // only one dropdown / mega panel open at a time
   await p.setViewportSize({ width: 1440, height: 900 });
   await p.goto(B + '/');
-  const tg = await p.$$('.site-nav .menu > li > .submenu-toggle');
-  await tg[0].click(); await tg[1].click();
+  await p.waitForLoadState('networkidle');
+  await p.waitForTimeout(400); // the "More" fitting re-flows the menu once fonts are in
+  await p.locator('.site-nav .menu > li > .submenu-toggle').nth(0).click(); await p.locator('.site-nav .menu > li > .submenu-toggle').nth(1).click();
   ok((await p.$$('.site-nav li.is-open')).length === 1, 'opening a second menu item closes the first (one panel at a time)');
   await p.keyboard.press('Escape');
 
@@ -444,6 +445,13 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await mp.goto(B + s);
     ok(await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'mobile 360px: no horizontal scroll on ' + s);
   }
+  await mp.setViewportSize({ width: 390, height: 700 });
+  await mp.goto(B + '/about/');
+  const bc = await mp.evaluate(() => { const a = document.querySelector('#masthead .brand'); const t = a.lastElementChild; return { compact: a.classList.contains('is-compact'), hidden: getComputedStyle(t).display === 'none', label: a.getAttribute('aria-label'), logo: a.firstElementChild.getBoundingClientRect().width > 20 }; });
+  ok(bc.compact && bc.hidden && bc.label && bc.logo, 'phones: a name that does not fit beside the logo is dropped, the logo stays and the link keeps its accessible name');
+  await mp.setViewportSize({ width: 900, height: 700 });
+  await mp.waitForTimeout(300);
+  ok(await mp.evaluate(() => !document.querySelector('#masthead .brand').classList.contains('is-compact')), 'tablet: the name is shown again when it fits');
   await mp.setViewportSize({ width: 240, height: 700 });
   await mp.goto(B + '/events/');
   ok(await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'events calendar fits 240px without horizontal scroll');
