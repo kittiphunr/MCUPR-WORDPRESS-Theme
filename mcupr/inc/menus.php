@@ -184,6 +184,31 @@ add_filter(
  * After the starter file (mcupr/starter/mcupr-starter.xml) was imported: put each imported menu into the
  * location named by its term meta "_mcupr_location" – only into locations that have no menu yet.
  */
+function mcupr_dedupe_imported_menu_items( $menu_id ) {
+	$items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'any' ) );
+	if ( ! $items ) {
+		return;
+	}
+	usort(
+		$items,
+		static function ( $a, $b ) {
+			return $a->ID - $b->ID;
+		}
+	);
+	$path = array();
+	$seen = array();
+	foreach ( $items as $it ) {
+		$parent         = (int) $it->menu_item_parent;
+		$key            = ( $parent && isset( $path[ $parent ] ) ? $path[ $parent ] : '' ) . '>' . $it->type . '|' . $it->object . '|' . ( 'custom' === $it->type ? 0 : $it->object_id ) . '|' . $it->title . '|' . ( 'custom' === $it->type ? $it->url : '' );
+		$path[ $it->ID ] = $key;
+		if ( isset( $seen[ $key ] ) ) {
+			wp_delete_post( $it->ID, true ); // the starter file was imported twice
+		} else {
+			$seen[ $key ] = true;
+		}
+	}
+}
+
 function mcupr_assign_imported_menus() {
 	$locations = get_theme_mod( 'nav_menu_locations', array() );
 	$locations = is_array( $locations ) ? $locations : array();
@@ -191,6 +216,9 @@ function mcupr_assign_imported_menus() {
 	$changed    = false;
 	foreach ( get_terms( array( 'taxonomy' => 'nav_menu', 'hide_empty' => false ) ) as $menu ) {
 		$loc = (string) get_term_meta( $menu->term_id, '_mcupr_location', true );
+		if ( $loc ) {
+			mcupr_dedupe_imported_menu_items( $menu->term_id );
+		}
 		if ( $loc && isset( $registered[ $loc ] ) && empty( $locations[ $loc ] ) ) {
 			$locations[ $loc ] = $menu->term_id;
 			$changed           = true;
