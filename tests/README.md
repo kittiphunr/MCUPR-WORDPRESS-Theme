@@ -11,7 +11,7 @@
 cd tests
 npm install
 npm test                   # สร้างไซต์ทดสอบ (ครั้งแรก) + รันทุกชุด
-npm run test:functional    # หรือ layout | content | effects | responsive | elementor | polylang
+npm run test:functional    # หรือ layout | content | effects | responsive
 npm run check              # ตรวจเร็ว (ไม่ต้องมี WordPress): PHP lint, JS syntax, CSS Tailwind เป็นปัจจุบัน
 ```
 
@@ -27,17 +27,14 @@ npm run check              # ตรวจเร็ว (ไม่ต้องม�
 | `e2e/content.js` | วันที่ พ.ศ. (หน้าข่าว/การ์ด/ท้ายเว็บ, ค.ศ. ในภาษาอื่น, `datetime` เป็น ISO), เลย์เอาต์ข่าว 3 แบบ (ค่าเริ่มต้น/override รายข่าว/ค่าจาก Customizer), หน้าเพจ (ในหมวดนี้) และหน้าหมวดข่าว, ชุดสีทั้ง 4 + สีกำหนดเองกรณีเลวร้าย (เหลืองอ่อน/เทากลาง) ตรวจคอนทราสต์ปุ่ม/ลิงก์/ท้ายเว็บทั้งสว่างและมืด, โลโก้ (ปกติ/โหมดมืด/ท้ายเว็บ/ความสูง), สวิตช์แอนิเมชัน + ค่าเริ่มต้นปิดจาก Customizer, และเครื่องมือฟังข่าว (ตัวจำลอง speech: อ่านชื่อเรื่องก่อน, หยุด/เล่นต่อ/หยุด, ความเร็ว, แบ่งท่อน ≤180 ตัวอักษร, ภาษาตามเนื้อหา, เบราว์เซอร์ไม่รองรับ, ปิดได้) + axe-core |
 | `e2e/effects.js` | scroll reveal (ไม่กะพริบ), การ์ดเอียง, เคอร์เซอร์โต้ตอบ (จุด/วงแหวน/บับเบิล “ดู”), เลื่อนแบบ ease, progress bar และตรวจว่าเอฟเฟกต์ปิดเมื่อ reduced motion / คอนทราสต์สูง / โหมดทีวี / อุปกรณ์สัมผัส |
 | `e2e/responsive.js` | ความกว้าง 240 → 3840px: ไม่มีการเลื่อนแนวนอน, ปุ่ม/ลิงก์ ≥ 24px; โหมดทีวี (UA ของ Tizen): เปิดอัตโนมัติ, ธีมมืด, ตัวอักษรใหญ่, ปุ่มลูกศรเลื่อนโฟกัส, กรอบโฟกัสหนา, ปิดโหมดทีวีได้ |
-| `e2e/elementor.js` | Theme Builder location (header/footer/single/archive) ผ่านตัวจำลอง, แถบเครื่องมือยังทำงานเมื่อใช้ Header ของ Elementor, หน้าที่สร้างด้วย Elementor แสดงเต็มความกว้าง |
-| `e2e/polylang.js` | โหมด Polylang ผ่านตัวจำลอง: ภาษา/URL/สลับภาษา, ไม่มี hreflang/คุกกี้ของธีม, ภาษาที่ไม่มี UI ใช้อังกฤษ |
 
 ## ตัวจำลอง (mu-plugins ใน `fixtures/mu-plugins/`)
-`elementor-stub.php` (cookie `el_stub`), `polylang-stub.php` (cookie `pll_stub`), `mods-stub.php` (cookie `mod_stub` = JSON ของค่า Customizer ที่ต้องการแทนที่ เช่น `{"mcupr_palette":"navy","custom_logo":"ATT"}` โดย `ATT` คือรูปที่ seed ไว้)
+`mods-stub.php` (cookie `mod_stub` = JSON ของค่า Customizer ที่ต้องการแทนที่ เช่น `{"mcupr_palette":"navy","custom_logo":"ATT"}` โดย `ATT` คือรูปที่ seed ไว้)
 
 ## ข้อจำกัดที่ควรรู้
-- **Elementor Pro และ Polylang ใช้ตัวจำลอง** (`fixtures/mu-plugins/*-stub.php`) ที่เลียนแบบฟังก์ชันสาธารณะที่ธีมเรียก — ยืนยันว่าตรรกะของธีมถูกต้อง แต่ **ไม่ได้ทดสอบกับปลั๊กอินจริง** ควรทดสอบมือบนไซต์ที่ติดตั้งปลั๊กอินจริงด้วย
 - การอ่านออกเสียงทดสอบด้วยตัวจำลอง speech (headless Chromium ไม่มีเสียง) — **ยังไม่ได้ฟังเสียงจริง** บนอุปกรณ์/เบราว์เซอร์ใดๆ
 - ทดสอบเฉพาะ Chromium; ไม่ได้ทดสอบกับ screen reader จริง, ทีวีจริง หรือเบราว์เซอร์ทีวีรุ่นเก่า
 - ไซต์ทดสอบปิดการเชื่อมต่อออกภายนอก (`WP_HTTP_BLOCK_EXTERNAL`)
 
 ## ข้อมูลทดสอบ (`fixtures/seed.php`)
-ข่าวภาษาไทย 10 ข่าว (ข่าวที่ 1 มีคำแปล en/zh) พร้อมรูปที่สร้างด้วย GD, หน้านโยบายความเป็นส่วนตัว, หน้า `el-page` (ตั้ง meta ว่าสร้างด้วย Elementor), เมนูครบทุกตำแหน่ง และค่า Customizer
+ข่าวภาษาไทย 10 ข่าว (ข่าวที่ 1 มีคำแปล en/zh) พร้อมรูปที่สร้างด้วย GD, หน้านโยบายความเป็นส่วนตัว, เมนูครบทุกตำแหน่ง และค่า Customizer

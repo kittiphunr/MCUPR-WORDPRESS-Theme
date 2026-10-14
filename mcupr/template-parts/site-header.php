@@ -1,6 +1,6 @@
 <?php
 /**
- * Default header (used when no Elementor Pro "Header" template applies).
+ * Site header.
  * Certify Hub style: sticky translucent bar, badge logo + name, pill menu, icon buttons.
  *
  * Menu position (visitor choice, site default in the Customizer):
