@@ -33,7 +33,7 @@ npm run vendor    # คัดลอก sweetalert2 จาก node_modules (เ�
 npm run package   # → dist/mcupr-<เวอร์ชัน>.zip  (Appearance → Themes → Add New → Upload Theme)
 ```
 
-ต้นฉบับอยู่ที่ `src/input.css` — เพิ่ม/แก้ class ในเทมเพลต `.php` หรือ `mcupr/assets/js/main.js` แล้ว build ใหม่ ไฟล์ zip มีเฉพาะโฟลเดอร์ `mcupr/` (ไม่มี node_modules / src / tests) ธีมไม่ยอมเปิดใช้บน WordPress < 6.4 หรือ PHP < 7.0 (ตรวจโค้ดด้วย PHPCompatibility ตั้งแต่ PHP 7.0 ขึ้นไป) (จะย้อนกลับธีมเดิมพร้อมข้อความอธิบาย) และมีสไตล์พรีวิวในตัวแก้ไขบล็อก
+ต้นฉบับอยู่ที่ `src/input.css` — เพิ่ม/แก้ class ในเทมเพลต `.php` หรือ `mcupr/assets/js/main.js` แล้ว build ใหม่ ไฟล์ zip มีเฉพาะโฟลเดอร์ `mcupr/` (ไม่มี node_modules / src / tests) ธีมไม่ยอมเปิดใช้บน WordPress < 5.9 หรือ PHP < 7.0 (ทดสอบชุดเต็มบน WordPress 5.9.9 และ 6.2.2 จริง รวมถึงรุ่นล่าสุด) (ตรวจโค้ดด้วย PHPCompatibility ตั้งแต่ PHP 7.0 ขึ้นไป) (จะย้อนกลับธีมเดิมพร้อมข้อความอธิบาย) และมีสไตล์พรีวิวในตัวแก้ไขบล็อก
 
 ## อินเทอร์เฟซแบบ Certify Hub + ผู้เข้าชมปรับเองได้
 
