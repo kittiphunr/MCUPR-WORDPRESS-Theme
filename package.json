@@ -1,0 +1,17 @@
+{
+  "name": "mcupr-theme",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MCUPR WordPress theme – Tailwind CSS build",
+  "scripts": {
+    "build": "tailwindcss -i ./src/input.css -o ./mcupr/assets/css/tailwind.css --minify",
+    "watch": "tailwindcss -i ./src/input.css -o ./mcupr/assets/css/tailwind.css --watch",
+    "package": "bash scripts/package.sh",
+    "vendor": "mkdir -p mcupr/assets/vendor && cp node_modules/sweetalert2/dist/sweetalert2.all.min.js mcupr/assets/vendor/sweetalert2.all.min.js"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.0",
+    "sweetalert2": "^11.14.0",
+    "tailwindcss": "^4.1.0"
+  }
+}

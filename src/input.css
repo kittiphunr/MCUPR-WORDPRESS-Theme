@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 /* Scan templates and scripts for utility classes */
-@source "../*.php";
-@source "../inc/*.php";
-@source "../template-parts/*.php";
-@source "../assets/js/main.js";
+@source "../mcupr/*.php";
+@source "../mcupr/inc/*.php";
+@source "../mcupr/template-parts/*.php";
+@source "../mcupr/assets/js/main.js";
 
 /* State variants driven by the visitor's saved preferences (<html data-*>) */
 @custom-variant contrast (&:where([data-contrast] *));
