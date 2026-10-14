@@ -19,4 +19,19 @@ update_post_meta( $id, '_mcupr_files', array(
 	array( 'id' => $a2, 'title' => 'ภาพถ่ายทีม', 'size' => '350 KB', 'max' => 0, 'count' => 7 ),
 ) );
 update_post_meta( $id, '_mcupr_views', 120 );
+// hero: the first slide's photo + two more slides, and social links
+set_theme_mod( 'mcupr_hero_image', $a2 );
+foreach ( array( 2 => array( 40, 90, 160 ), 3 => array( 20, 120, 80 ) ) as $n => $rgb ) {
+	$im = imagecreatetruecolor( 1200, 600 ); imagefill( $im, 0, 0, imagecolorallocate( $im, $rgb[0], $rgb[1], $rgb[2] ) );
+	$u  = wp_upload_bits( "e2e-hero$n.jpg", null, '' ); imagejpeg( $im, $u['file'], 70 );
+	$sid = wp_insert_attachment( array( 'post_mime_type' => 'image/jpeg', 'post_title' => "hero $n", 'post_status' => 'inherit' ), $u['file'] );
+	wp_update_attachment_metadata( $sid, wp_generate_attachment_metadata( $sid, $u['file'] ) );
+	set_theme_mod( "mcupr_hero{$n}_image", $sid );
+	set_theme_mod( "mcupr_hero{$n}_title_th", "สไลด์ที่ $n" );
+	set_theme_mod( "mcupr_hero{$n}_sub_th", 'ข้อความสั้นของสไลด์' );
+	set_theme_mod( "mcupr_hero{$n}_btn_th", 'ดูเพิ่มเติม' );
+	set_theme_mod( "mcupr_hero{$n}_url", home_url( '/about/' ) );
+}
+set_theme_mod( 'mcupr_social_facebook', 'https://www.facebook.com/example' );
+set_theme_mod( 'mcupr_social_line', 'https://line.me/R/ti/p/@example' );
 echo "ok $id\n";
