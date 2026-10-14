@@ -13,7 +13,10 @@ define( 'MCUPR_URI', get_template_directory_uri() );
 
 require_once MCUPR_DIR . '/inc/i18n.php';
 require_once MCUPR_DIR . '/inc/translations.php';
+require_once MCUPR_DIR . '/inc/colors.php';
 require_once MCUPR_DIR . '/inc/customizer.php';
+require_once MCUPR_DIR . '/inc/layout-meta.php';
+require_once MCUPR_DIR . '/inc/dates.php';
 require_once MCUPR_DIR . '/inc/template-tags.php';
 require_once MCUPR_DIR . '/inc/elementor.php';
 require_once MCUPR_DIR . '/inc/plugins.php';
@@ -66,6 +69,10 @@ function mcupr_assets() {
 	wp_enqueue_script( 'mcupr-swal', MCUPR_URI . '/assets/vendor/sweetalert2.all.min.js', array(), '11.26.25', array( 'in_footer' => true, 'strategy' => 'defer' ) );
 	wp_enqueue_script( 'mcupr', MCUPR_URI . '/assets/js/main.js', array( 'mcupr-swal' ), MCUPR_VERSION, array( 'in_footer' => true, 'strategy' => 'defer' ) );
 
+	if ( is_singular( array( 'post', 'page' ) ) && get_theme_mod( 'mcupr_listen', true ) ) {
+		wp_enqueue_script( 'mcupr-listen', MCUPR_URI . '/assets/js/listen.js', array(), MCUPR_VERSION, array( 'in_footer' => true, 'strategy' => 'defer' ) );
+	}
+
 	$cookie_url = mcupr_policy_url( 'cookie' ) ? mcupr_policy_url( 'cookie' ) : mcupr_policy_url( 'privacy' );
 	wp_localize_script(
 		'mcupr',
@@ -93,6 +100,7 @@ function mcupr_assets() {
 			'on'          => mcupr_t( 'on' ),
 			'off'         => mcupr_t( 'off' ),
 			'langBadge'   => mcupr_lang_badge(),
+			'animDefaultOff' => ! get_theme_mod( 'mcupr_anim_default', true ),
 			'searchUrl'   => esc_url_raw( add_query_arg( 's', '', mcupr_home_url() ) ),
 		)
 	);
@@ -107,8 +115,9 @@ add_action( 'wp_enqueue_scripts', 'mcupr_assets' );
  * wrong theme / font size). Preferences live only in the visitor's browser.
  */
 function mcupr_head_prefs() {
+	$anim_off = get_theme_mod( 'mcupr_anim_default', true ) ? 0 : 1;
 	?>
-<script>(function(){try{var d=document.documentElement,p=JSON.parse(localStorage.getItem('mcupr_prefs')||'{}');['theme','font','contrast','gray','underline','readable','spacing','cursor','motion','images','tv'].forEach(function(k){if(p[k]!==undefined&&p[k]!==''){d.setAttribute('data-'+k,p[k]);}});if(p.tv===undefined&&/SMART-?TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Roku|AFT[A-Z]|BRAVIA|CrKey|GoogleTV|Android TV|AppleTV|Viera|PlayStation|Xbox/i.test(navigator.userAgent)){d.setAttribute('data-tv','1');if(p.theme===undefined){d.setAttribute('data-theme','dark');}}}catch(e){}})();</script>
+<script>(function(){try{var d=document.documentElement,p=JSON.parse(localStorage.getItem('mcupr_prefs')||'{}');['theme','font','contrast','gray','underline','readable','spacing','cursor','motion','images','tv'].forEach(function(k){if(p[k]!==undefined&&p[k]!==''){d.setAttribute('data-'+k,p[k]);}});if(p.motion===undefined&&<?php echo (int) $anim_off; ?>){d.setAttribute('data-motion','1');}if(p.tv===undefined&&/SMART-?TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Roku|AFT[A-Z]|BRAVIA|CrKey|GoogleTV|Android TV|AppleTV|Viera|PlayStation|Xbox/i.test(navigator.userAgent)){d.setAttribute('data-tv','1');if(p.theme===undefined){d.setAttribute('data-theme','dark');}}}catch(e){}})();</script>
 	<?php
 }
 add_action( 'wp_head', 'mcupr_head_prefs', 1 );
