@@ -60,6 +60,15 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok(hs.util <= 42, 'utility bar is compact (' + Math.round(hs.util) + 'px)');
   ok(hs.utilFont < hs.navFont, 'utility links are smaller than the main menu (' + hs.utilFont + 'px < ' + hs.navFont + 'px)');
 
+  // the page band runs up to the black top bar (the floating header sits on it)
+  for (const [w, u] of [[1440, '/about/'], [390, '/about/'], [1440, '/?s=a']]) {
+    await p.setViewportSize({ width: w, height: 800 });
+    await p.goto(B + u);
+    const d = await p.evaluate(() => ({ band: document.querySelector('#content .mcu-wheel').getBoundingClientRect().top, bar: document.querySelector('.bg-bar').getBoundingClientRect().bottom, hdr: document.getElementById('masthead').getBoundingClientRect().top }));
+    ok(Math.abs(d.band - d.bar) <= 1 && d.hdr >= d.bar, w + 'px ' + u + ': the pink band starts at the top bar and the header floats on it');
+  }
+  await p.setViewportSize({ width: 1440, height: 900 });
+
   // only one dropdown / mega panel open at a time
   await p.setViewportSize({ width: 1440, height: 900 });
   await p.goto(B + '/');
