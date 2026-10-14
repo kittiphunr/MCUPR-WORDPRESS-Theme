@@ -33,9 +33,9 @@ $checks = array(
 			<h3 id="sg-display" class="eyebrow"><?php mcupr_e( 'grp_display' ); ?></h3>
 		<fieldset class="<?php echo esc_attr( $row ); ?> m-0 border-x-0 border-t-0 px-0">
 			<legend class="float-left mr-3 p-0 text-lg font-semibold"><?php mcupr_e( 'menu_layout' ); ?></legend>
-			<div class="seg" role="radiogroup">
-				<?php foreach ( array( 'top' => 'menu_top', 'side' => 'menu_side', 'hybrid' => 'menu_hybrid' ) as $v => $label ) : ?>
-					<label class="relative"><input class="peer sr-only" type="radio" name="mcupr-menu" data-pref="menu" value="<?php echo esc_attr( $v ); ?>"><span class="seg-b peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus"><?php mcupr_e( $label ); ?></span></label>
+			<div class="mode-grid" role="radiogroup" aria-label="<?php echo esc_attr( mcupr_t( 'menu_layout' ) ); ?>">
+				<?php foreach ( array( 'top' => array( 'menu_top', 'layout-top' ), 'side' => array( 'menu_side', 'layout-side' ) ) as $v => $d ) : ?>
+					<label class="opt" data-tip="<?php echo esc_attr( mcupr_t( $d[0] ) ); ?>"><input class="peer sr-only" type="radio" name="mcupr-menu" data-pref="menu" value="<?php echo esc_attr( $v ); ?>"><span class="opt-b"><?php echo mcupr_icon( $d[1], 28 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span class="sr-only"><?php mcupr_e( $d[0] ); ?></span></span></label>
 				<?php endforeach; ?>
 			</div>
 		</fieldset>
