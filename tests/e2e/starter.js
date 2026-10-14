@@ -402,16 +402,24 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await mp2.screenshot({ path: shot('menu-fullscreen-' + mode + '.png') });
     await mc.close();
   }
-  // ---------- drop-downs are styled pills with their own arrow
+  // ---------- reading speed: buttons, not a drop-down
   {
     const sc = await br.newContext({ viewport: { width: 1280, height: 800 } });
-    await sc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    await sc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); window.speechSynthesis; } catch (e) { /* frame */ } });
     const sp = await sc.newPage();
     await sp.goto(B + '/about/');
-    const sel = await sp.$eval('[data-listen-rate]', (e) => { const s = getComputedStyle(e); return { app: s.appearance, r: parseFloat(s.borderTopLeftRadius), h: e.getBoundingClientRect().height, bg: s.backgroundImage.startsWith('url('), pr: parseFloat(s.paddingRight) }; });
-    ok(sel.app === 'none' && sel.r >= sel.h / 2 - 1 && sel.bg && sel.pr >= 36 && sel.h >= 40, 'drop-down: rounded pill with its own arrow and room for it (' + Math.round(sel.h) + 'px high)');
-    await sp.hover('[data-listen-rate]'); await sp.waitForTimeout(250);
-    ok((await sp.$eval('[data-listen-rate]', (e) => getComputedStyle(e).borderTopColor)) !== 'rgb(255, 255, 255)', 'drop-down: hover changes the outline');
+    ok((await sp.locator('[data-listen] select').count()) === 0 && (await sp.locator('[data-listen] [data-listen-rate]').count()) === 4, 'speed: four buttons, no drop-down');
+    const sb = await sp.$$eval('.speed-b', (a) => a.map((x) => { const r = x.getBoundingClientRect(); return [x.textContent.trim(), r.width, r.height]; }));
+    ok(sb.map((x) => x[0]).join(' ') === '0.75× 1× 1.25× 1.5×' && sb.every((x) => x[1] >= 44 && x[2] >= 40), 'speed: 0.75× 1× 1.25× 1.5×, each at least 44 wide');
+    ok((await sp.locator('input[data-listen-rate][value="1"]').isChecked()) && (await sp.locator('.speed').getAttribute('role')) === 'radiogroup', 'speed: 1× is selected by default; the group is a labelled radio group');
+    await sp.click('.speed-b >> text=1.25×');
+    ok((await sp.locator('input[data-listen-rate][value="1.25"]').isChecked()) && (await sp.evaluate(() => localStorage.getItem('mcupr_rate'))) === '1.25', 'speed: clicking selects and remembers the speed');
+    await sp.reload();
+    ok(await sp.locator('input[data-listen-rate][value="1.25"]').isChecked(), 'speed: the choice is restored on the next page');
+    await sp.focus('input[data-listen-rate][value="1.25"]'); await sp.keyboard.press('ArrowRight');
+    ok(await sp.locator('input[data-listen-rate][value="1.5"]').isChecked(), 'speed: arrow keys move between the buttons');
+    const fill = await sp.$eval('input[data-listen-rate]:checked + .speed-b', (e) => getComputedStyle(e).backgroundColor);
+    ok(fill !== 'rgba(0, 0, 0, 0)', 'speed: the chosen button is filled (' + fill + ')');
     await sc.close();
   }
   // works & awards (own categories), administration chart, attachments, views

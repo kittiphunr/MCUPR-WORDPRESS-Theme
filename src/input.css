@@ -1252,4 +1252,16 @@ select:disabled { opacity: .55; cursor: not-allowed; }
 select option { font-weight: 500; color: var(--text); background: var(--bg); }
 html[data-contrast] select { border-color: var(--text); }
 html[data-motion="1"] select { transition: none; }
-[data-listen] select { min-height: 2.5rem; padding-left: .9rem; font-size: .95rem; }
+
+/* ===== Reading speed: buttons instead of a drop-down ===== */
+.speed { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .5rem .75rem; max-width: 100%; }
+.speed-t { font-size: .9rem; font-weight: 600; color: var(--text-2); }
+.speed-g { display: inline-flex; flex-wrap: wrap; justify-content: center; max-width: 100%; gap: .15rem; padding: .2rem; border: 1px solid var(--edge, var(--border)); border-radius: 9999px; background: var(--bg); }
+.speed-g label { position: relative; display: block; }
+.speed-b { display: inline-flex; align-items: center; justify-content: center; min-width: 3.4rem; min-height: 2.5rem; padding: 0 .8rem; border-radius: 9999px; color: var(--text-2); font-size: .95rem; font-weight: 700; cursor: pointer; transition: background-color .15s, color .15s; }
+.speed-b:hover { background: var(--hover-bg, var(--tint)); color: var(--link); }
+.speed input:checked + .speed-b { background: var(--primary); color: var(--on-primary); box-shadow: 0 4px 10px color-mix(in srgb, var(--primary) 35%, transparent); }
+.speed input:focus-visible + .speed-b { outline: 3px solid var(--focus, var(--primary)); outline-offset: 2px; }
+html[data-contrast] .speed input:checked + .speed-b { border: 2px solid var(--text); }
+html[data-motion="1"] .speed-b { transition: none; }
+@media (max-width: 359px) { .speed-b { min-width: 2.75rem; padding: 0 .5rem; font-size: .85rem; } }
