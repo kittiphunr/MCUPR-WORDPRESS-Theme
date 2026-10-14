@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.7.0 =
+* Thai admin text, richer hero options, footer credit card, view counter, file attachments with download counter / limit, works & awards, administration chart.
+
 = 1.6.0 =
 * Layout v2: floating capsules (top menu), sidebar card + content frame (side / hybrid) with the black bar's links in the header, Facebook / LINE share buttons.
 
