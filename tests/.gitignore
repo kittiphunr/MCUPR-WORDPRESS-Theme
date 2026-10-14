@@ -1,0 +1,5 @@
+node_modules/
+.site/
+.server.log
+.server.pid
+screenshots/

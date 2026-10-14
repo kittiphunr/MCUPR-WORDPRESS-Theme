@@ -64,6 +64,10 @@ npm run vendor   # คัดลอก sweetalert2 จาก node_modules (เม
 - ถ้าไม่ติดตั้งปลั๊กอินใด ธีมทำงานได้ด้วยตัวเองทั้งหมด (โหมด standalone)
 - การย้ายจากโหมด standalone: คำแปลที่เคยกรอกในกล่อง Translations ไม่ถูกลบ แต่ Polylang ไม่อ่านค่านั้น ต้องสร้างโพสต์แปลใน Polylang
 
+## ทดสอบ
+
+ชุดทดสอบ end-to-end (WordPress จริง + Playwright + axe-core) อยู่ที่ `tests/` — ดู [tests/README.md](tests/README.md) · รัน `cd tests && npm install && npm test`
+
 ## ฟังก์ชัน
 
 | ฟังก์ชัน | รายละเอียด |
