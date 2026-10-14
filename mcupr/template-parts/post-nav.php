@@ -11,7 +11,7 @@ $next = get_next_post();
 if ( ! $prev && ! $next ) {
 	return;
 }
-$card = 'flex min-h-20 flex-col justify-center rounded-2xl border border-line p-4 text-fg no-underline hover:border-primary';
+$card = 'soft-card lift flex min-h-20 flex-col justify-center p-4 text-fg no-underline';
 ?>
 <nav class="no-print mt-10 grid gap-4 min-[600px]:grid-cols-2" aria-label="<?php echo esc_attr( mcupr_t( 'pagination' ) ); ?>">
 	<?php if ( $prev ) : ?>
