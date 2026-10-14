@@ -385,6 +385,92 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await c.close();
   }
 
+  // ================= menu icons + mega menu
+  {
+    const c = await newCtx({ viewport: { width: 1280, height: 800 } });
+    const p = await c.newPage();
+    await p.goto(B + '/?lang=zh');
+    const items = p.locator('#site-nav .menu > li');
+    ok((await items.locator(':scope > a > .ic.has-ic svg').count()) === 3, 'menu icons: 3 top-level items show the icon chosen in the menu editor');
+    const first = await items.first().locator('a').evaluate((a) => { const ic = a.querySelector('.ic'); const t = a.querySelector('.t'); return ic.getBoundingClientRect().right <= t.getBoundingClientRect().left + 1 && getComputedStyle(ic).display !== 'none'; });
+    ok(first, 'menu icon sits in front of the text and is visible on the top bar');
+    ok((await items.last().locator('.ic').count()) === 1 && !(await items.last().locator('.ic').isVisible()), 'an item without an icon shows no icon on the top bar (initial badge only in drawer / sidebar)');
+    const mega = p.locator('#site-nav .menu > li.mcupr-mega');
+    ok((await mega.count()) === 1 && /mega-cols-3/.test(await mega.getAttribute('class')), 'mega item carries its column count');
+    ok(!(await mega.locator('> .sub-menu').isVisible()), 'mega panel starts closed');
+    await mega.locator('> .submenu-toggle').click();
+    const panel = mega.locator('> .sub-menu');
+    const g = await panel.evaluate((el) => { const cs = getComputedStyle(el); const r = el.getBoundingClientRect(); return { display: cs.display, cols: cs.gridTemplateColumns.split(' ').length, left: Math.round(r.left), right: Math.round(r.right), top: Math.round(r.top) }; });
+    ok(g.display === 'grid' && g.cols === 3, 'mega panel: a 3-column grid');
+    ok(g.left >= 0 && g.right <= 1280 && g.right - g.left > 900, 'mega panel spans the header and stays on screen (' + g.left + '..' + g.right + ')');
+    ok((await panel.locator('> li.menu-item-has-children > a').allTextContents()).map((x) => x.trim()).join('|') === '本科|研究生', 'mega panel: second-level items with children are the column headings');
+    ok((await panel.locator('> li > .sub-menu').first().isVisible()) && (await panel.locator('> li > .sub-menu a').count()) === 5, 'mega panel: the links under each heading are always visible');
+    ok(/面向在职人员的短期课程/.test(await text(p, '#site-nav .menu .d')), 'mega panel: description printed under its link');
+    ok(!(await panel.locator('.submenu-toggle').first().isVisible()), 'mega panel: no toggle buttons inside it');
+    await p.screenshot({ path: shot('layout-mega.png') });
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe with the mega menu open: ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    r.violations.forEach((v) => console.log('   ', v.id, v.nodes.slice(0, 2).map((x) => x.target.join(' ')).join(' || ')));
+    await p.keyboard.press('Escape');
+    ok(!(await panel.isVisible()), 'Esc closes the mega panel');
+    await mega.locator('> .submenu-toggle').click();
+    await p.mouse.click(40, 700);
+    ok(!(await panel.isVisible()), 'a click outside closes it');
+    await p.evaluate(() => { document.documentElement.setAttribute('data-menu', 'side'); });
+    await p.waitForTimeout(300);
+    const sideMega = p.locator('#site-nav .menu > li.mcupr-mega');
+    await sideMega.locator('> .submenu-toggle').click();
+    ok((await sideMega.locator('> .sub-menu').evaluate((el) => getComputedStyle(el).display)) !== 'grid', 'sidebar: the mega item is a normal nested list (no grid)');
+    ok((await sideMega.locator('.ic.has-ic').count()) >= 2, 'sidebar: icons still shown');
+    await p.evaluate(() => { document.documentElement.setAttribute('data-menu', 'top'); });
+    await p.setViewportSize({ width: 800, height: 800 });
+    await p.waitForTimeout(300);
+    await p.click('.nav-toggle');
+    await p.locator('#site-nav .mcupr-mega > .submenu-toggle').click();
+    ok((await p.locator('#site-nav .mcupr-mega > .sub-menu').evaluate((el) => getComputedStyle(el).display)) !== 'grid', 'drawer: accordion, not a grid');
+    await c.close();
+  }
+
+  // ================= About dialog in the Precision QC layout
+  {
+    const mods = { mcupr_credit_name: 'ผู้พัฒนาทดสอบ', mcupr_credit_role: 'นักวิชาการ', mcupr_credit_tag: 'Full-Stack', mcupr_credit_email: 'dev@example.org', mcupr_credit_tel: '089-000-0000', mcupr_credit_url: 'https://example.org/', mcupr_org_email: 'info@example.org', mcupr_org_tel: '054-000-000' };
+    const c = await newCtx({}, null, mods);
+    const p = await c.newPage();
+    await p.goto(B + '/');
+    await p.click('#about-toggle');
+    await p.waitForSelector('.swal2-popup');
+    const d = p.locator('.swal2-html-container');
+    ok((await d.locator('.about-head img').count()) === 1 && /เกี่ยวกับ มหาวิทยาลัยทดสอบ/.test(await text(p, '.about-head')), 'About: header with the logo and "About {organisation}"');
+    ok((await d.locator('.about-sec').count()) === 5, 'About: developer, website, technology, rights, contact sections');
+    ok((await d.locator('.about-sec > h3').allTextContents()).join('|') === 'ผู้พัฒนา|เกี่ยวกับเว็บไซต์|เทคโนโลยีและทรัพยากรที่นำมาใช้ (อ้างอิง)|สิทธิ์และการอ้างอิง|หน่วยงานและติดต่อ', 'About: section headings (Thai)');
+    ok(/ผู้พัฒนาทดสอบ/.test(await text(p, '.dev-name')) && /นักวิชาการ/.test(await text(p, '.dev-role')) && /Full-Stack/.test(await text(p, '.dev-tag')), 'About: developer name, role, tagline');
+    ok((await d.locator('.dev-photo-initial').count()) === 1 && (await d.locator('.dev-photo').evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))) > 30, 'About: round developer badge (initial when no photo)');
+    ok((await d.locator('a[href="mailto:dev@example.org"]').count()) === 1 && (await d.locator('a[href="tel:0890000000"]').count()) === 1 && (await d.locator('a[href="https://example.org/"][rel~=noopener]').count()) === 1, 'About: developer contacts are real links (mailto / tel / web)');
+    ok((await d.locator('a[href="mailto:info@example.org"]').count()) === 1 && (await d.locator('a[href="tel:054000000"]').count()) === 1 && /123 ถนนทดสอบ/.test(await text(p, '.swal2-html-container')), 'About: organisation address, email, tel');
+    ok((await d.locator('.about-list li').count()) >= 12 && (await d.locator('.chip-gray').count()) === 5, 'About: feature list, stack chips and credits');
+    ok((await d.locator('a[href*="tailwindcss.com"][target=_blank][rel~=noopener]').count()) === 1, 'About: credits link out safely');
+    ok(/MCUPR 1\.0\.0/.test(await text(p, '.swal2-html-container')), 'About: theme version');
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document.querySelector('.swal2-container'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe About (new layout): ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    r.violations.forEach((v) => console.log('   ', v.id, v.nodes.slice(0, 2).map((x) => x.target.join(' ')).join(' || ')));
+    await p.keyboard.press('Escape');
+    await p.waitForSelector('.swal2-popup', { state: 'detached' });
+    await p.goto(B + '/?lang=en');
+    await p.click('#about-toggle');
+    await p.waitForSelector('.swal2-popup');
+    ok(/About Test University/.test(await text(p, '.about-head')) && /Developer/.test(await text(p, '#ab-dev')) && /Rights and attributions/.test(await text(p, '#ab-rights')), 'About: English');
+    await c.close();
+    const c2 = await newCtx();
+    const p2 = await c2.newPage();
+    await p2.goto(B + '/');
+    await p2.click('#about-toggle');
+    await p2.waitForSelector('.swal2-popup');
+    ok((await p2.locator('.swal2-html-container #ab-dev').count()) === 0 && (await p2.locator('.swal2-html-container .about-sec').count()) === 4, 'About: no developer section until a credit is set (no personal data by default)');
+    await c2.close();
+  }
+
   await br.close();
   finish();
   async function text(p, sel) { return p.evaluate((s) => (document.querySelector(s) || {}).textContent || '', sel); }
