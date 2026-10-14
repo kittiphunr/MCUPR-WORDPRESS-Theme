@@ -230,6 +230,11 @@ function mcupr_menu_default() {
 	$v = get_theme_mod( 'mcupr_menu_layout', 'top' );
 	return in_array( $v, array( 'side', 'hybrid' ), true ) ? $v : 'top';
 }
+/** The university emblem shipped with the theme: the main logo until a logo is uploaded (Site Identity). */
+function mcupr_default_logo( $class = '' ) {
+	return '<img class="' . esc_attr( $class ) . '" src="' . esc_url( MCUPR_URI . '/assets/img/mcu-logo.svg' ) . '" alt="" width="743" height="1000">';
+}
+
 /** Header / footer logo (<img>), with optional dark-mode variant. $where: header | footer. */
 function mcupr_logo( $where = 'header', $class = '' ) {
 	$main = (int) get_theme_mod( 'custom_logo' );
@@ -238,12 +243,12 @@ function mcupr_logo( $where = 'header', $class = '' ) {
 	$attr = array( 'alt' => '' );
 	if ( 'footer' === $where ) {
 		$id = $foot ? $foot : ( $dark ? $dark : $main );
-		return $id ? wp_get_attachment_image( $id, 'full', false, $attr + array( 'class' => trim( 'h-16 w-auto ' . $class ) ) ) : '';
-	}
-	if ( ! $main ) {
-		return '';
+		return $id ? wp_get_attachment_image( $id, 'full', false, $attr + array( 'class' => trim( 'h-16 w-auto ' . $class ) ) ) : mcupr_default_logo( trim( 'h-16 w-auto ' . $class ) );
 	}
 	$size = 'h-[min(var(--logo-h),3.25rem)] w-auto min-[1100px]:h-[var(--logo-h)]';
+	if ( ! $main ) {
+		return mcupr_default_logo( trim( "$size $class" ) ); // one emblem for light and dark (no logo-light class)
+	}
 	$out  = wp_get_attachment_image( $main, 'full', false, $attr + array( 'class' => trim( "$size logo-light $class" ) ) );
 	if ( $dark ) {
 		$out .= wp_get_attachment_image( $dark, 'full', false, $attr + array( 'class' => trim( "$size logo-dark $class" ) ) );
