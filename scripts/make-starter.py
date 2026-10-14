@@ -96,6 +96,21 @@ for n, k in enumerate(order):
     out.append('</item>\n')
 
 
+# ---- sample events (custom post type of the theme)
+import datetime  # noqa: E402
+for n, (days, t0, t1, title, place) in enumerate(S.EVENTS):
+    d = (datetime.date.today() + datetime.timedelta(days=days)).isoformat()
+    pid = next_id()
+    out.append(item_head(pid, title[0], 'event-%d' % (n + 1), 'mcupr_event', 0, 0, '<p>[รายละเอียดกิจกรรม]</p>', 'publish'))
+    out.append(meta('_mcupr_en_title', title[1]) + meta('_mcupr_zh_title', title[2]) + meta('_mcupr_ja_title', title[3]))
+    if t0:
+        out.append(meta('_mcupr_ev_start', '%s %s:00' % (d, t0)) + meta('_mcupr_ev_end', '%s %s:00' % (d, t1)))
+    else:
+        out.append(meta('_mcupr_ev_start', d + ' 00:00:00') + meta('_mcupr_ev_end', d + ' 23:59:59') + meta('_mcupr_ev_allday', 1))
+    out.append(meta('_mcupr_ev_place', place))
+    out.append('</item>\n')
+
+
 # ---- menu items
 def emit_items(menu_slug, menu_name, loc, items, li):
     seq = [0]
