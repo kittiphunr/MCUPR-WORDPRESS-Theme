@@ -469,6 +469,31 @@ const speechStub = (speakMs) => `(() => {
     await c.close();
   }
 
+  // ================= University seal watermark replaces the wheel ornament
+  {
+    const c = await newCtx();
+    const p = await c.newPage();
+    await p.goto(B + '/about/');
+    const w = await p.locator('header.mcu-wheel').evaluate((el) => { const cs = getComputedStyle(el, '::before'); return { mask: cs.webkitMaskImage || cs.maskImage, bg: cs.backgroundColor, op: cs.opacity, display: cs.display }; });
+    ok(/mcu-seal\.svg/.test(w.mask) && w.display === 'block', 'band watermark is the university seal (assets/img/mcu-seal.svg)');
+    ok(w.bg === 'rgb(194, 24, 91)' && parseFloat(w.op) <= 0.25, 'seal watermark: one colour (the main pink), faint ' + w.bg + ' ' + w.op);
+    const res = await p.request.get(B + '/wp-content/themes/mcupr/assets/img/mcu-seal.svg');
+    ok(res.ok() && (res.headers()['content-type'] || '').includes('svg'), 'seal file is served as image/svg+xml');
+    await p.goto(B + '/about/');
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe with the seal watermark: ' + (r.violations.map((v) => v.id).join(', ') || '0 violations'));
+    await p.emulateMedia({ media: 'print' });
+    ok((await p.locator('header.mcu-wheel').evaluate((el) => getComputedStyle(el, '::before').display)) === 'none', 'seal watermark hidden when printing');
+    await c.close();
+    const c2 = await newCtx({}, null);
+    await c2.addInitScript(() => localStorage.setItem('mcupr_prefs', JSON.stringify({ contrast: 'wb' })));
+    const p2 = await c2.newPage();
+    await p2.goto(B + '/about/');
+    ok((await p2.locator('header.mcu-wheel').evaluate((el) => getComputedStyle(el, '::before').display)) === 'none', 'seal watermark hidden in high-contrast mode');
+    await c2.close();
+  }
+
   await br.close();
   finish();
 })();
