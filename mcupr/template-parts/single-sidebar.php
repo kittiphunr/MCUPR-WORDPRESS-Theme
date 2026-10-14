@@ -18,7 +18,7 @@ $box = 'soft-card p-5';
 			</header>
 			<?php mcupr_missing_translation_notice(); ?>
 			<?php if ( has_post_thumbnail() ) : ?>
-				<figure class="noimg:hidden mt-6"><?php the_post_thumbnail( 'mcupr-hero', array( 'class' => 'w-full rounded-2xl' ) ); ?></figure>
+				<figure class="noimg:hidden mt-6"><?php the_post_thumbnail( 'mcupr-hero', array( 'class' => 'w-full rounded-2xl', 'sizes' => '(min-width: 1000px) 640px, calc(100vw - 4rem)', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></figure>
 			<?php endif; ?>
 			<div class="my-6 space-y-3">
 				<?php get_template_part( 'template-parts/listen', null, array( 'target' => '#article-body', 'title' => wp_strip_all_tags( get_the_title() ) ) ); ?>
