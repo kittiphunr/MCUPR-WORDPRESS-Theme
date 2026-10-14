@@ -48,6 +48,11 @@ function mcupr_breadcrumb( $wrap = true ) {
 			$items[] = array( get_the_title( $anc ), get_permalink( $anc ) );
 		}
 		$items[] = array( get_the_title(), '' );
+	} elseif ( is_singular( 'mcupr_event' ) ) {
+		$items[] = array( mcupr_t( 'events_title' ), get_post_type_archive_link( 'mcupr_event' ) );
+		$items[] = array( get_the_title(), '' );
+	} elseif ( is_post_type_archive( 'mcupr_event' ) ) {
+		$items[] = array( mcupr_t( 'events_title' ), '' );
 	} elseif ( is_archive() ) {
 		$items[] = array( wp_strip_all_tags( get_the_archive_title() ), '' );
 	} elseif ( is_search() ) {

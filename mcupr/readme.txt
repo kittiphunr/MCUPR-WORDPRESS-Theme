@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.3.0 =
+* Events calendar (event post type, month grid, upcoming list, shortcodes, Google Calendar / .ics, schema.org Event).
+
 = 1.2.2 =
 * Page band extends up to the top bar under the floating header.
 
