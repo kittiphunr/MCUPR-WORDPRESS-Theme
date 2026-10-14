@@ -40,11 +40,11 @@ if ( '' === $line1 . $line2 ) {
 $cta_title = mcupr_text_mod( 'mcupr_cta_title' );
 $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 ?>
-<section class="relative isolate flex min-h-[30rem] flex-col items-center justify-center overflow-hidden bg-neutral-800 px-3 pt-24 pb-16 text-center text-white min-[400px]:min-h-[34rem] min-[400px]:px-4 min-[900px]:min-h-[min(42rem,75vh)] min-[1600px]:min-h-[min(46rem,70vh)]">
+<div class="wrap mt-6"><section class="relative isolate flex min-h-[26rem] rounded-3xl flex-col items-center justify-center overflow-hidden px-3 py-16 text-center min-[400px]:min-h-[30rem] min-[400px]:px-6 min-[900px]:min-h-[min(36rem,70vh)] <?php echo $hero_img ? 'bg-neutral-800 text-white' : 'bg-gradient-to-br from-primary to-brand2 text-on-primary'; ?>">
 	<?php if ( $hero_img ) : ?>
 		<img class="noimg:hidden absolute inset-0 -z-20 size-full object-cover" src="<?php echo esc_url( $hero_img ); ?>" alt="" fetchpriority="high">
 	<?php endif; ?>
-	<span class="absolute inset-0 -z-10 bg-black/50" aria-hidden="true"></span>
+	<?php if ( $hero_img ) : ?><span class="absolute inset-0 -z-10 bg-black/50" aria-hidden="true"></span><?php endif; ?>
 
 	<h1 class="mb-10 max-w-4xl animate-fade-up leading-tight [text-shadow:0_2px_12px_rgb(0_0_0/.5)]">
 		<?php if ( $line1 ) : ?><span class="block text-2xl font-light min-[400px]:text-3xl min-[900px]:text-5xl"><?php echo esc_html( $line1 ); ?></span><?php endif; ?>
@@ -52,11 +52,11 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 	</h1>
 
 	<?php if ( has_nav_menu( 'quick' ) ) : ?>
-		<nav class="wrap animate-fade-up [animation-delay:.2s]" aria-label="<?php echo esc_attr( mcupr_t( 'quick_links' ) ); ?>">
+		<nav class="w-full max-w-6xl animate-fade-up [animation-delay:.2s]" aria-label="<?php echo esc_attr( mcupr_t( 'quick_links' ) ); ?>">
 			<?php wp_nav_menu( array( 'theme_location' => 'quick', 'container' => false, 'menu_class' => 'hero-menu', 'depth' => 1 ) ); ?>
 		</nav>
 	<?php endif; ?>
-</section>
+</section></div>
 
 <?php if ( $slider ) : ?>
 <section class="wrap mt-10" aria-labelledby="featured-title" data-carousel data-reveal>

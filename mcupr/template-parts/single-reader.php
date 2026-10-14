@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 	</header>
 
-	<div class="mx-auto mt-8 w-[min(100%-1.5rem,46rem)] min-[400px]:w-[min(100%-2rem,46rem)]">
+	<div class="panel-card mx-auto -mt-6 w-[min(100%-1.5rem,48rem)] min-[400px]:w-[min(100%-2rem,48rem)] relative">
 		<?php mcupr_missing_translation_notice(); ?>
 		<?php if ( has_post_thumbnail() ) : ?>
 			<figure class="noimg:hidden m-0 mb-8"><?php the_post_thumbnail( 'mcupr-hero', array( 'class' => 'w-full rounded-2xl' ) ); ?></figure>

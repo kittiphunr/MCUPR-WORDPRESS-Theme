@@ -22,9 +22,9 @@ $alt     = mcupr_alt_name();
 </main>
 
 <?php if ( ! mcupr_elementor_location( 'footer' ) ) : ?>
-<footer id="colophon" class="mt-16 border-t-[6px] border-primary bg-bar text-on-bar contrast:border-line print:hidden" tabindex="-1">
+<footer id="colophon" class="site-footer mt-16 border-t border-line bg-bg text-fg print:hidden" tabindex="-1">
 	<?php if ( has_nav_menu( 'footer' ) ) : ?>
-		<div class="wrap border-b border-on-bar/25 py-10">
+		<div class="wrap border-b border-line py-10">
 			<nav aria-label="<?php echo esc_attr( mcupr_t( 'site_links' ) ); ?>">
 				<?php wp_nav_menu( array( 'theme_location' => 'footer', 'container' => false, 'depth' => 2, 'menu_class' => 'footer-cols' ) ); ?>
 			</nav>
@@ -56,9 +56,22 @@ $alt     = mcupr_alt_name();
 			</ul>
 		</nav>
 	</div>
-	<div class="border-t border-on-bar/25 py-4 text-[.9375rem]">
+	<div class="border-t border-line py-4 text-[.9375rem] text-muted">
 		<div class="wrap">
 			<p class="m-0">© <?php echo esc_html( wp_date( 'Y' ) ); ?> <?php echo esc_html( mcupr_org_name() ); ?>. <?php mcupr_e( 'rights' ); ?></p>
+			<p class="m-0 mt-1">
+				<?php
+				$credit     = get_theme_mod( 'mcupr_credit_name', '' );
+				$credit_url = get_theme_mod( 'mcupr_credit_url', '' );
+				if ( $credit ) {
+					echo esc_html( mcupr_t( 'about_credit' ) ) . ' ';
+					echo $credit_url ? '<a href="' . esc_url( $credit_url ) . '" rel="noopener">' . esc_html( $credit ) . '</a>' : esc_html( $credit );
+					echo ' · ';
+				}
+				echo esc_html( mcupr_t( 'theme_credit' ) . ' ' . MCUPR_VERSION ) . ' · ';
+				?>
+				<button type="button" class="min-h-8 cursor-pointer border-0 bg-transparent p-0 text-link underline" data-open-about><?php mcupr_e( 'about' ); ?></button>
+			</p>
 		</div>
 	</div>
 </footer>

@@ -102,6 +102,16 @@ function mcupr_customize_register( $wp_customize ) {
 
 	// ---- display
 	$wp_customize->add_section( 'mcupr_display', array( 'title' => __( 'MCUPR: Animation, news & reading', 'mcupr' ), 'priority' => 33 ) );
+	$wp_customize->add_setting( 'mcupr_menu_layout', array( 'default' => 'top', 'sanitize_callback' => static function ( $v ) { return 'side' === $v ? 'side' : 'top'; } ) );
+	$wp_customize->add_control( 'mcupr_menu_layout', array( 'section' => 'mcupr_display', 'label' => __( 'Menu position (default for new visitors – each visitor can change it)', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'top' => __( 'Top navigation bar', 'mcupr' ), 'side' => __( 'Sidebar (left)', 'mcupr' ) ) ) );
+	$wp_customize->add_setting( 'mcupr_credit_name', array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
+	$wp_customize->add_control( 'mcupr_credit_name', array( 'section' => 'mcupr_org', 'label' => __( 'Site credit: made by (shown in the footer and the About dialog)', 'mcupr' ), 'type' => 'text' ) );
+	$wp_customize->add_setting( 'mcupr_credit_url', array( 'default' => '', 'sanitize_callback' => 'esc_url_raw' ) );
+	$wp_customize->add_control( 'mcupr_credit_url', array( 'section' => 'mcupr_org', 'label' => __( 'Site credit link (optional)', 'mcupr' ), 'type' => 'url' ) );
+	foreach ( mcupr_ui_languages() as $code => $l ) {
+		$wp_customize->add_setting( "mcupr_about_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
+		$wp_customize->add_control( "mcupr_about_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'About text (%s) – shown in the About dialog', 'mcupr' ), $l['name'] ), 'type' => 'textarea' ) );
+	}
 	$wp_customize->add_setting( 'mcupr_anim_default', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 	$wp_customize->add_control( 'mcupr_anim_default', array( 'section' => 'mcupr_display', 'label' => __( 'Animations on by default (visitors can switch them off in the accessibility dialog)', 'mcupr' ), 'type' => 'checkbox' ) );
 	$wp_customize->add_setting( 'mcupr_news_layout', array( 'default' => 'reader', 'sanitize_callback' => 'mcupr_sanitize_layout' ) );

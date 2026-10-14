@@ -11,7 +11,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$pill   = 'inline-flex min-h-11 cursor-pointer items-center rounded-full border-2 border-line px-4 py-1 font-semibold peer-checked:border-primary peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus';
+$pill   = 'inline-flex min-h-11 cursor-pointer items-center rounded-full border-2 border-control/70 px-4 py-1 font-semibold peer-checked:border-primary peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus';
 $row    = 'flex flex-wrap items-center justify-between gap-3 border-b border-line py-4';
 $levels = array( 0 => '87.5%', 1 => '100%', 2 => '125%', 3 => '150%', 4 => '200%' );
 $sizes  = array( 0 => 'text-sm', 1 => 'text-base', 2 => 'text-xl', 3 => 'text-2xl', 4 => 'text-3xl' );
@@ -27,6 +27,30 @@ $checks = array(
 ?>
 <template id="tpl-a11y">
 	<div class="text-left text-fg" data-a11y-dialog>
+		<fieldset class="<?php echo esc_attr( $row ); ?> m-0 border-x-0 border-t-0 px-0">
+			<legend class="float-left mr-3 p-0 text-lg font-semibold"><?php mcupr_e( 'menu_layout' ); ?></legend>
+			<div class="seg" role="radiogroup">
+				<?php foreach ( array( 'top' => 'menu_top', 'side' => 'menu_side' ) as $v => $label ) : ?>
+					<label class="relative"><input class="peer sr-only" type="radio" name="mcupr-menu" data-pref="menu" value="<?php echo esc_attr( $v ); ?>"><span class="seg-b peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus"><?php mcupr_e( $label ); ?></span></label>
+				<?php endforeach; ?>
+			</div>
+		</fieldset>
+
+		<div class="<?php echo esc_attr( $row ); ?> !block">
+			<span id="sc-label" class="mb-3 block text-lg font-semibold"><?php mcupr_e( 'site_colors' ); ?></span>
+			<div class="flex flex-wrap items-center gap-2.5" role="radiogroup" aria-labelledby="sc-label" data-color-group>
+				<?php foreach ( mcupr_palettes() as $key => $pal ) : ?>
+					<button type="button" role="radio" aria-checked="false" data-color-preset="<?php echo esc_attr( $key ); ?>" title="<?php echo esc_attr( $pal['label'] ); ?>" aria-label="<?php echo esc_attr( $pal['label'] ); ?>"
+						class="size-11 cursor-pointer rounded-full border-4 border-bg p-0 shadow-[0_0_0_2px_var(--control)] aria-checked:shadow-[0_0_0_3px_var(--text)]" style="background:linear-gradient(135deg,<?php echo esc_attr( $pal['primary'] ); ?> 55%,<?php echo esc_attr( $pal['accent'] ); ?> 55%)"></button>
+				<?php endforeach; ?>
+				<label class="ml-1 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-control/60 px-3 text-sm font-semibold">
+					<input type="color" class="size-7 cursor-pointer rounded-full border-0 bg-transparent p-0" data-color-custom value="#4f46e5" aria-label="<?php echo esc_attr( mcupr_t( 'custom_color' ) ); ?>">
+					<?php mcupr_e( 'custom_color' ); ?>
+				</label>
+			</div>
+			<p class="mt-3 mb-0 text-sm text-muted"><?php mcupr_e( 'color_note' ); ?></p>
+		</div>
+
 		<div class="<?php echo esc_attr( $row ); ?>">
 			<span id="fs-label" class="text-lg font-semibold"><?php mcupr_e( 'font_size' ); ?></span>
 			<div class="flex flex-wrap items-center gap-2" role="radiogroup" aria-labelledby="fs-label">
@@ -92,6 +116,34 @@ $checks = array(
 			<p class="m-0 text-sm text-muted" role="status" data-a11y-status></p>
 			<button type="button" class="min-h-11 cursor-pointer border-0 bg-transparent p-0 text-link underline" data-reset-prefs><?php mcupr_e( 'reset_all' ); ?></button>
 		</div>
+	</div>
+</template>
+
+<template id="tpl-about">
+	<div class="text-left text-fg">
+		<div class="mb-4 flex items-center gap-3">
+			<?php $about_logo = mcupr_logo( 'header' ); echo $about_logo ? $about_logo : '<span class="badge-logo" aria-hidden="true">' . mcupr_icon( 'cap', 22 ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput ?>
+			<div class="leading-tight"><b class="block text-lg"><?php echo esc_html( mcupr_org_name() ); ?></b><?php if ( mcupr_alt_name() ) : ?><span class="text-sm text-muted"><?php echo esc_html( mcupr_alt_name() ); ?></span><?php endif; ?></div>
+		</div>
+		<?php $about = mcupr_text_mod( 'mcupr_about' ); ?>
+		<?php if ( $about ) : ?><p class="mt-0 whitespace-pre-line"><?php echo esc_html( $about ); ?></p><?php endif; ?>
+		<?php $addr = mcupr_text_mod( 'mcupr_address' ); ?>
+		<?php if ( $addr ) : ?><p class="mb-1 font-semibold"><?php mcupr_e( 'contact_us_at' ); ?></p><address class="mb-4 not-italic whitespace-pre-line text-muted"><?php echo esc_html( $addr ); ?></address><?php endif; ?>
+		<ul class="m-0 mb-4 flex list-none flex-wrap gap-2 p-0">
+			<?php foreach ( array( 'privacy' => 'privacy', 'cookie' => 'cookie_policy', 'a11y' => 'a11y_policy', 'sitemap' => 'sitemap', 'contact' => 'contact' ) as $k => $label ) : ?>
+				<?php $u = mcupr_policy_url( $k ); ?>
+				<?php if ( $u ) : ?><li><a class="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-fg no-underline hover:border-primary hover:text-link" href="<?php echo esc_url( $u ); ?>"><?php mcupr_e( $label ); ?></a></li><?php endif; ?>
+			<?php endforeach; ?>
+		</ul>
+		<p class="m-0 text-sm text-muted">
+			<?php
+			$credit = get_theme_mod( 'mcupr_credit_name', '' );
+			if ( $credit ) {
+				echo esc_html( mcupr_t( 'about_credit' ) . ' ' . $credit ) . ' · ';
+			}
+			echo esc_html( mcupr_t( 'theme_credit' ) . ' ' . MCUPR_VERSION );
+			?>
+		</p>
 	</div>
 </template>
 

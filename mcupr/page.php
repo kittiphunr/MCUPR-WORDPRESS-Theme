@@ -27,7 +27,7 @@ if ( ! mcupr_elementor_location( 'single' ) ) :
 	</header>
 
 	<div class="wrap mt-10 grid gap-10 <?php echo $has_side ? 'min-[1000px]:grid-cols-[minmax(0,1fr)_18rem]' : ''; ?>">
-		<div class="min-w-0 <?php echo $has_side ? '' : 'mx-auto w-full max-w-[48rem]'; ?>">
+		<div class="panel-card min-w-0 <?php echo $has_side ? '' : 'mx-auto w-full max-w-[52rem]'; ?>">
 			<?php mcupr_missing_translation_notice(); ?>
 			<div class="no-print mb-6 space-y-3">
 				<?php get_template_part( 'template-parts/listen', null, array( 'target' => '#article-body', 'title' => wp_strip_all_tags( get_the_title() ) ) ); ?>
