@@ -8,14 +8,8 @@
 
 get_header();
 
-if ( ! mcupr_elementor_location( 'single' ) ) :
 	while ( have_posts() ) :
 		the_post();
-		if ( mcupr_is_elementor_page() ) {
-			mcupr_breadcrumb();
-			the_content(); // Designed in Elementor: full width, no theme title.
-			continue;
-		}
 		get_template_part( 'template-parts/single', mcupr_post_layout() );
 		if ( comments_open() || get_comments_number() ) {
 			echo '<div class="narrow mt-12">';
@@ -23,6 +17,5 @@ if ( ! mcupr_elementor_location( 'single' ) ) :
 			echo '</div>';
 		}
 	endwhile;
-endif;
-
+mcupr_slot( 'content_after' );
 get_footer();

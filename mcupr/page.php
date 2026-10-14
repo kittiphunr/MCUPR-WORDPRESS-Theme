@@ -8,13 +8,8 @@
 
 get_header();
 
-if ( ! mcupr_elementor_location( 'single' ) ) :
 	while ( have_posts() ) :
 		the_post();
-		if ( mcupr_is_elementor_page() ) {
-			the_content(); // Designed in Elementor: full width, no theme title.
-			continue;
-		}
 		list( $root, $section ) = mcupr_section_pages( get_the_ID() );
 		$has_side               = $section || is_active_sidebar( 'sidebar-page' );
 		?>
@@ -69,6 +64,5 @@ if ( ! mcupr_elementor_location( 'single' ) ) :
 </article>
 		<?php
 	endwhile;
-endif;
-
+mcupr_slot( 'content_after' );
 get_footer();

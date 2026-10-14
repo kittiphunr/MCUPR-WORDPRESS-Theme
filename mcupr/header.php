@@ -1,7 +1,6 @@
 <?php
 /**
- * Header: skip links, optional utility links, then either an Elementor Pro
- * "Header" template or the default Tailwind header (with the tool buttons).
+ * Header: skip links, optional utility links, then the site header (with the tool buttons).
  *
  * @package MCUPR
  */
@@ -45,15 +44,7 @@ defined( 'ABSPATH' ) || exit;
 	</div>
 <?php endif; ?>
 
-<?php
-if ( ! mcupr_elementor_location( 'header' ) ) {
-	get_template_part( 'template-parts/site-header' );
-} elseif ( ! mcupr_tools_rendered() ) {
-	// Elementor header without the [mcupr_tools] shortcode: keep the accessibility / language / search buttons.
-	echo '<div class="border-b border-line bg-surface print:hidden"><div class="wrap flex justify-end py-1">';
-	mcupr_tools_cluster();
-	echo '</div></div>';
-}
-?>
+<?php get_template_part( 'template-parts/site-header' ); ?>
 
 <main id="content" tabindex="-1">
+<?php mcupr_slot( 'header_after' ); ?>
