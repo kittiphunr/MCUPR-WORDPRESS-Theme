@@ -29,7 +29,7 @@ t( strpos( $log, 'All done' ) !== false, 'importer finished' );
 // ---- pages
 $pages = get_posts( array( 'post_type' => 'page', 'numberposts' => -1, 'post_status' => 'any' ) );
 $pages = array_values( array_filter( $pages, function ( $p ) { return '' !== get_post_meta( $p->ID, '_mcupr_en_title', true ); } ) ); // not WordPress' own sample pages
-t( count( $pages ) === 55, '55 pages imported (' . count( $pages ) . ')' );
+t( count( $pages ) === 56, '56 pages imported (' . count( $pages ) . ')' );
 $bad = array_filter( $pages, function ( $p ) { return 'publish' !== $p->post_status || '' === trim( $p->post_content ); } );
 t( ! $bad, 'every page is published and has content' );
 foreach ( array( 'privacy-policy', 'cookie-policy', 'accessibility-statement', 'sitemap', 'contact', 'ita', 'oic' ) as $slug ) {
@@ -86,6 +86,12 @@ t( '' !== mcupr_work_info( $works[0]->ID )['award'] && wp_get_object_terms( $wor
 t( ! wp_get_object_terms( $works[0]->ID, 'category' ), 'imported works carry no news category' );
 $wl = array_filter( $main, function ( $i ) { return '/works/' === substr( untrailingslashit( $i->url ), -7 ) || false !== strpos( $i->url, '/works' ); } );
 t( (bool) $wl, 'the main menu links to /works/' );
+
+$people = get_posts( array( 'post_type' => 'mcupr_person', 'numberposts' => -1, 'post_status' => 'publish' ) );
+t( count( $people ) === 7 && count( get_terms( array( 'taxonomy' => 'mcupr_person_group', 'hide_empty' => false ) ) ) === 2, '7 sample people in 2 groups' );
+t( strpos( do_shortcode( '[mcupr_people group="executives"]' ), 'person-card' ) !== false, 'people: the executives group renders' );
+foreach ( array( 'contact', 'complaints' ) as $slug ) { $pg = get_posts( array( 'name' => $slug, 'post_type' => 'page' ) ); t( $pg && strpos( $pg[0]->post_content, '[mcupr_form' ) !== false, "page $slug carries the form" ); }
+$dc = get_posts( array( 'name' => 'documents', 'post_type' => 'page' ) ); t( $dc && strpos( $dc[0]->post_content, '[mcupr_documents' ) !== false, 'the document centre page exists' );
 
 // a second import must not duplicate pages
 $n1 = count( $pages );

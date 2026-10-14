@@ -596,6 +596,51 @@
 		new ResizeObserver(syncHdr).observe(hdr);
 	}
 
+	/* ---------------------------------------------------------------- home slider (up to 3 slides; no JavaScript = the first slide) */
+	var heroBox = $('[data-hero]');
+	if (heroBox) {
+		var hSlides = $$('[data-slide]', heroBox);
+		var hBgs = [$(':scope > img', heroBox)].concat($$(':scope > .hero-bg', heroBox)).filter(Boolean);
+		var hDots = $$('[data-hero-dot]', heroBox);
+		var hCtl = $('[data-hero-ctl]', heroBox);
+		var hPause = $('[data-hero-pause]', heroBox);
+		var hIdx = 0;
+		var hTimer = 0;
+		var hStopped = false;
+		var hShow = function (n) {
+			hIdx = (n + hSlides.length) % hSlides.length;
+			hSlides.forEach(function (el, i) { el.classList.toggle('is-active', i === hIdx); });
+			hBgs.forEach(function (el, i) { el.classList.toggle('is-active', i === hIdx); });
+			hDots.forEach(function (d, i) { if (i === hIdx) { d.setAttribute('aria-current', 'true'); } else { d.removeAttribute('aria-current'); } });
+		};
+		var hAuto = function () {
+			window.clearInterval(hTimer);
+			if (heroBox.getAttribute('data-auto') === '1' && !hStopped && motionOn() && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+				hTimer = window.setInterval(function () { hShow(hIdx + 1); }, 7000);
+			}
+		};
+		hBgs.forEach(function (el, i) { el.classList.toggle('is-active', i === 0); });
+		if (hCtl) { hCtl.hidden = false; }
+		heroBox.setAttribute('data-js', '1');
+		var hPrev = $('[data-hero-prev]', heroBox);
+		var hNext = $('[data-hero-next]', heroBox);
+		if (hPrev) { hPrev.addEventListener('click', function () { hShow(hIdx - 1); hAuto(); }); }
+		if (hNext) { hNext.addEventListener('click', function () { hShow(hIdx + 1); hAuto(); }); }
+		hDots.forEach(function (d, i) { d.addEventListener('click', function () { hShow(i); hAuto(); }); });
+		if (heroBox.getAttribute('data-auto') === '1' && hPause) {
+			hPause.hidden = false;
+			hPause.addEventListener('click', function () {
+				hStopped = !hStopped;
+				hPause.setAttribute('aria-pressed', String(hStopped));
+				hAuto();
+			});
+		}
+		heroBox.addEventListener('mouseenter', function () { window.clearInterval(hTimer); });
+		heroBox.addEventListener('mouseleave', hAuto);
+		heroBox.addEventListener('focusin', function () { window.clearInterval(hTimer); });
+		hAuto();
+	}
+
 	/* ---------------------------------------------------------------- full-screen menu (built on first use from the main menu) */
 	var fsBtn = $('[data-fs-open]');
 	if (fsBtn && nav) {
