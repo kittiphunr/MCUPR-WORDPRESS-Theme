@@ -126,6 +126,7 @@ npm run package   # → dist/mcupr-<เวอร์ชัน>.zip  (Appearance �
 - **หลายภาษา:** ตัวสลับภาษาในตัว + กล่อง Translations ใต้ตัวแก้ไข + `hreflang` (ดูตารางฟังก์ชัน)
 - **SEO พื้นฐานในตัว** (`inc/seo.php`): meta description, Open Graph / Twitter card, `noindex` ผลค้นหา (ปิดได้ด้วย `add_filter( 'mcupr_seo', '__return_false' )`)
 - **เบรดครัมบ์** ของธีมเอง
+- **วิดเจ็ต “เรื่องล่าสุด” (Recent Posts)** ธีมวาดเอง: ชื่อเรื่องตัดที่ 30 ตัวอักษร (ไม่ตัดสระ/วรรณยุกต์ขาดจากพยัญชนะ) ตามด้วยปุ่ม “อ่านต่อ...” (ชื่อเต็มอยู่ใน aria-label) — เปลี่ยนความยาวด้วย `add_filter( 'mcupr_recent_title_length', fn() => 40 )`
 
 ### แทรก shortcode
 - **ช่องในตัวปรับแต่ง** Customizer → *MCUPR: Shortcodes & HTML areas* วาง `[shortcode]` (ของธีมหรือปลั๊กอินใดก็ได้) หรือ HTML ได้ 4 จุด: ใต้ส่วนหัวทุกหน้า, หน้าแรกใต้ Hero, ท้ายบทความ/หน้า, เหนือฟุตเตอร์ (ว่าง = ไม่แสดง)
