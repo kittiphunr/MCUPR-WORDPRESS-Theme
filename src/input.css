@@ -1090,11 +1090,12 @@ html[data-theme="dark"] .mform-err { background: #450a0a; color: #fecaca; }
 html[data-contrast] .fb-views button[aria-checked="true"] { border: 2px solid var(--border); }
 
 .fb-folders { margin: 0 0 1.5rem; }
-.fb-folders ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: .75rem; margin: 0; padding: 0; list-style: none; }
-.fb-folders a { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: 1rem .75rem .8rem; border: 1px solid var(--edge, var(--border)); border-radius: 1.25rem; background: var(--bg); color: var(--text); font-weight: 700; text-align: center; text-decoration: none; }
+.fb-folders ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: .75rem; margin: 0; padding: 0; list-style: none; }
+.fb-folders a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; aspect-ratio: 1 / 1; overflow: hidden; padding: .75rem; border: 1px solid var(--edge, var(--border)); border-radius: 1.25rem; background: var(--bg); color: var(--text); font-weight: 700; text-align: center; text-decoration: none; }
 .fb-folders a:hover { background: var(--tint); border-color: var(--primary); }
 .fb-folders svg { color: var(--primary); }
-.fb-fn { overflow-wrap: anywhere; line-height: 1.3; }
+.fb-fn { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; max-width: 100%; overflow-wrap: anywhere; font-size: .95rem; line-height: 1.3; }
+.fb-folders a svg { flex: none; }
 
 /* the three views share one card markup */
 .fb-items { display: grid; gap: 1.5rem; }
