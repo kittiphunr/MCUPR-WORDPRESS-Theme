@@ -51,13 +51,19 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 
 <?php if ( $slider ) : ?>
 <section class="wrap mt-10" aria-labelledby="featured-title" data-carousel data-reveal>
-	<h2 id="featured-title" class="sr-only"><?php mcupr_e( 'featured' ); ?></h2>
+	<div class="mb-5 flex items-center justify-between gap-4">
+		<h2 id="featured-title" class="m-0 flex items-center gap-3 text-2xl font-bold min-[900px]:text-3xl"><span class="stat-ic" aria-hidden="true"><?php echo mcupr_icon( 'bulb', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><?php mcupr_e( 'featured' ); ?></h2>
+		<div class="flex gap-2">
+			<button type="button" class="slide-btn" data-carousel-prev aria-controls="news-slider" aria-label="<?php echo esc_attr( mcupr_t( 'slide_prev' ) ); ?>"><span aria-hidden="true">←</span></button>
+			<button type="button" class="slide-btn" data-carousel-next aria-controls="news-slider" aria-label="<?php echo esc_attr( mcupr_t( 'slide_next' ) ); ?>"><span aria-hidden="true">→</span></button>
+		</div>
+	</div>
 	<div id="news-slider" class="snap-row" tabindex="0" role="region" aria-label="<?php echo esc_attr( mcupr_t( 'news_slider' ) ); ?>" data-carousel-track>
 		<?php
 		foreach ( $slider as $p ) :
 			setup_postdata( $GLOBALS['post'] = $p ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride
 			?>
-			<article class="tilt group relative isolate flex min-h-72 min-w-[88%] flex-col justify-end overflow-hidden rounded-2xl bg-neutral-800 text-white min-[700px]:min-w-[26rem]">
+			<article class="tilt group relative isolate flex min-h-72 min-w-[88%] flex-col justify-end overflow-hidden lift rounded-3xl bg-neutral-800 text-white min-[700px]:min-w-[26rem]">
 				<?php if ( has_post_thumbnail() ) : ?>
 					<span class="noimg:hidden absolute inset-0 -z-20" aria-hidden="true"><?php the_post_thumbnail( 'mcupr-hero', array( 'alt' => '', 'class' => 'size-full object-cover transition-transform duration-500 group-hover:scale-105' ) ); ?></span>
 				<?php endif; ?>
@@ -72,26 +78,28 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 			</article>
 		<?php endforeach; ?>
 	</div>
-	<div class="mt-4 flex justify-end gap-2">
-		<button type="button" class="btn-tool !size-11 !rounded-full !p-0" data-carousel-prev aria-controls="news-slider" aria-label="<?php echo esc_attr( mcupr_t( 'slide_prev' ) ); ?>"><span aria-hidden="true">←</span></button>
-		<button type="button" class="btn-tool !size-11 !rounded-full !p-0" data-carousel-next aria-controls="news-slider" aria-label="<?php echo esc_attr( mcupr_t( 'slide_next' ) ); ?>"><span aria-hidden="true">→</span></button>
-	</div>
 </section>
 <?php endif; ?>
 
 <?php if ( $rest ) : ?>
 <section class="wrap mt-14" aria-labelledby="news-title">
-	<div class="mb-6 flex items-end justify-between gap-4">
-		<h2 id="news-title" class="text-2xl font-bold min-[900px]:text-3xl"><?php mcupr_e( 'news_events' ); ?></h2>
-		<?php if ( $blog ) : ?>
-			<a class="btn-outline" href="<?php echo esc_url( $blog ); ?>"><?php mcupr_e( 'all_news' ); ?> <span aria-hidden="true">→</span></a>
-		<?php endif; ?>
+	<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+		<h2 id="news-title" class="m-0 flex items-center gap-3 text-2xl font-bold min-[900px]:text-3xl"><span class="stat-ic" aria-hidden="true"><?php echo mcupr_icon( 'news', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><?php mcupr_e( 'news_events' ); ?></h2>
+		<?php $home_cats = get_categories( array( 'hide_empty' => true, 'number' => 5, 'orderby' => 'count', 'order' => 'DESC' ) ); ?>
+		<nav aria-label="<?php echo esc_attr( mcupr_t( 'news_categories' ) ); ?>">
+			<ul class="pill-tabs m-0 list-none">
+				<?php if ( $blog ) : ?><li class="contents"><a href="<?php echo esc_url( $blog ); ?>"><?php mcupr_e( 'all_news' ); ?></a></li><?php endif; ?>
+				<?php foreach ( $home_cats as $hc ) : ?>
+					<li class="contents"><a href="<?php echo esc_url( get_category_link( $hc ) ); ?>"><?php echo esc_html( $hc->name ); ?></a></li>
+				<?php endforeach; ?>
+			</ul>
+		</nav>
 	</div>
 	<div class="grid grid-cols-[repeat(auto-fill,minmax(min(17rem,100%),1fr))] gap-6" data-reveal-group>
 		<?php
-		foreach ( $rest as $p ) {
+		foreach ( $rest as $i => $p ) {
 			setup_postdata( $GLOBALS['post'] = $p ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride
-			get_template_part( 'template-parts/card' );
+			get_template_part( 'template-parts/card', null, array( 'variant' => 0 === $i && has_post_thumbnail() ? 'featured' : '' ) );
 		}
 		?>
 	</div>
@@ -105,10 +113,11 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 
 <?php if ( $cta_title ) : ?>
 <section class="wrap mt-16" aria-label="<?php echo esc_attr( $cta_title ); ?>">
-	<div class="flex flex-wrap items-center justify-between gap-6 rounded-3xl bg-tint px-8 py-12 contrast:border-2 contrast:border-line">
+	<div class="relative isolate flex flex-wrap items-center justify-between gap-6 overflow-hidden rounded-[2rem] bg-primary px-8 py-12 text-on-primary contrast:border-2 contrast:border-line min-[900px]:px-14">
+		<span class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_92%_-5%,rgb(255_255_255/.14)_0,transparent_15rem),radial-gradient(circle_at_38%_115%,rgb(255_255_255/.12)_0,transparent_12rem)]" aria-hidden="true"></span>
 		<p class="m-0 max-w-2xl text-2xl font-bold leading-snug min-[900px]:text-4xl"><?php echo esc_html( $cta_title ); ?></p>
 		<?php if ( $cta_url ) : ?>
-			<a class="btn" href="<?php echo esc_url( $cta_url ); ?>"><?php mcupr_e( 'read_more' ); ?> <span aria-hidden="true">→</span></a>
+			<a class="inline-flex min-h-12 items-center gap-2 rounded-full bg-on-primary px-7 font-bold text-primary no-underline shadow-lg hover:brightness-95" href="<?php echo esc_url( $cta_url ); ?>"><?php mcupr_e( 'read_more' ); ?> <span aria-hidden="true">→</span></a>
 		<?php endif; ?>
 	</div>
 </section>
