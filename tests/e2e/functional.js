@@ -15,29 +15,42 @@ const post2 = '/' + encodeURIComponent('ข่าวทดสอบ-2') + '/';
     return c;
   };
 
-  // ---- cookie / PDPA dialog (fresh visitor, no stored consent)
+  // ---- cookie / PDPA notice (fresh visitor, no stored consent): plain HTML, no SweetAlert2 download
   {
     const c = await br.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
     const p = await c.newPage();
+    const loaded = [];
+    p.on('request', (r) => loaded.push(r.url()));
     await p.goto(B + '/');
-    await p.waitForSelector('.swal2-popup');
-    ok((await p.textContent('.swal2-title')).includes('คุกกี้'), 'cookie dialog shown in Thai');
-    ok(await p.evaluate(() => document.activeElement.classList.contains('swal2-confirm')), 'focus on the accept button');
+    await p.waitForSelector('#cookie-notice', { state: 'visible' });
+    ok((await p.textContent('#cookie-title')).includes('คุกกี้'), 'cookie notice shown in Thai');
+    ok(await p.evaluate(() => document.documentElement.classList.contains('needs-consent')), 'shown by CSS from <html class="needs-consent"> (set before first paint)');
+    ok((await p.getAttribute('#cookie-notice', 'role')) === 'region' && !!(await p.getAttribute('#cookie-notice', 'aria-labelledby')), 'notice is a labelled region');
+    ok(!(await p.evaluate(() => document.activeElement.closest && document.activeElement.closest('#cookie-notice'))), 'the notice does not steal focus');
+    ok(!loaded.some((u) => /sweetalert2/.test(u)) && !(await p.evaluate(() => !!window.Swal)), 'SweetAlert2 is NOT downloaded on first load (speed)');
     await p.keyboard.press('Escape');
-    ok(await p.isVisible('.swal2-popup'), 'Esc does not dismiss the cookie dialog');
-    await p.click('.swal2-confirm');
-    await p.waitForSelector('.swal2-popup', { state: 'detached' });
+    ok(await p.isVisible('#cookie-notice'), 'Esc does not dismiss the notice (consent needs a click)');
+    const r = await p.evaluate(() => document.querySelector('#cookie-notice').getBoundingClientRect());
+    ok(r.bottom <= 900 && r.right <= 1280 && r.width <= 400, 'notice is a compact card inside the screen');
+    await p.click('#cookie-notice [data-cookie-ok]');
+    ok(!(await p.isVisible('#cookie-notice')) && (await p.evaluate(() => localStorage.getItem('mcupr_consent'))) === '1', 'accept hides it and remembers the choice');
     await p.reload();
-    await p.waitForTimeout(400);
-    ok((await p.locator('.swal2-popup').count()) === 0, 'cookie dialog not shown again after accepting');
+    await p.waitForTimeout(300);
+    ok(!(await p.isVisible('#cookie-notice')), 'not shown again after accepting');
+    await p.click('#a11y-toggle');
+    await p.waitForSelector('.swal2-popup');
+    ok(loaded.some((u) => /sweetalert2/.test(u)) && (await p.locator('.swal2-popup').count()) === 1, 'SweetAlert2 loads on first use (opening a dialog) and the dialog opens');
     await c.close();
   }
   {
     const c = await br.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
     const p = await c.newPage();
     await p.goto(B + '/?lang=ja');
-    await p.waitForSelector('.swal2-popup');
-    ok((await p.textContent('.swal2-title')).includes('Cookie'), 'cookie dialog in Japanese');
+    await p.waitForSelector('#cookie-notice', { state: 'visible' });
+    ok((await p.textContent('#cookie-title')).includes('Cookie'), 'cookie notice in Japanese');
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe with the notice showing: ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
     await c.close();
   }
 

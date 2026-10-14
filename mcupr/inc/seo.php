@@ -21,7 +21,26 @@ function mcupr_seo_description() {
 	if ( '' === $text ) {
 		$text = get_bloginfo( 'description' );
 	}
+	if ( '' === $text ) {
+		// a page always has a description: the About text, else at least the organisation's name
+		$text = trim( preg_replace( '/\s+/u', ' ', (string) mcupr_text_mod( 'mcupr_about' ) ) );
+		$text = '' !== $text ? $text : mcupr_org_name();
+	}
 	return wp_html_excerpt( $text, 200, '…' );
+}
+
+/** Absolute URL of the page being shown (no language parameter). */
+function mcupr_current_url() {
+	if ( is_singular() ) {
+		return (string) get_permalink();
+	}
+	if ( is_category() || is_tag() || is_tax() ) {
+		$link = get_term_link( get_queried_object() );
+		if ( ! is_wp_error( $link ) ) {
+			return $link;
+		}
+	}
+	return home_url( '/' );
 }
 
 function mcupr_seo_head() {
@@ -30,13 +49,7 @@ function mcupr_seo_head() {
 	}
 	$desc  = mcupr_seo_description();
 	$title = wp_get_document_title();
-	$url   = home_url( '/' );
-	if ( is_singular() ) {
-		$url = get_permalink();
-	} elseif ( is_category() || is_tag() || is_tax() ) {
-		$link = get_term_link( get_queried_object() );
-		$url  = is_wp_error( $link ) ? $url : $link;
-	}
+	$url   = mcupr_current_url();
 	$img   = is_singular() && has_post_thumbnail() ? get_the_post_thumbnail_url( null, 'mcupr-hero' ) : '';
 	if ( ! $img && has_custom_logo() ) {
 		$img = wp_get_attachment_image_url( get_theme_mod( 'custom_logo' ), 'full' );
