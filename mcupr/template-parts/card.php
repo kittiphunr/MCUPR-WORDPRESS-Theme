@@ -10,7 +10,7 @@ $part_lang = mcupr_part_lang_attr();
 $heading   = isset( $args['heading'] ) && 'h2' === $args['heading'] ? 'h2' : 'h3';
 $featured  = isset( $args['variant'] ) && 'featured' === $args['variant'];
 ?>
-<article id="post-<?php the_ID(); ?>" <?php post_class( 'tilt relative flex flex-col overflow-hidden rounded-2xl border border-line border-t-4 border-t-accent bg-bg shadow-sm' . ( $featured ? ' min-[900px]:col-span-2 min-[900px]:flex-row' : '' ) ); ?>>
+<article id="post-<?php the_ID(); ?>" <?php post_class( 'tilt lift soft-card relative flex flex-col overflow-hidden' . ( $featured ? ' min-[900px]:col-span-2 min-[900px]:flex-row' : '' ) ); ?>>
 	<?php if ( has_post_thumbnail() ) : ?>
 		<a class="noimg:hidden <?php echo $featured ? 'min-[900px]:w-1/2' : ''; ?>" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
 			<?php the_post_thumbnail( 'mcupr-card', array( 'alt' => '', 'loading' => 'lazy', 'class' => 'block aspect-[16/10] w-full object-cover' . ( $featured ? ' min-[900px]:h-full' : '' ) ) ); ?>
