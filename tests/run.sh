@@ -9,10 +9,11 @@ PORT="${PORT:-8080}"
 export BASE_URL="http://localhost:${PORT}"
 
 [[ -d node_modules ]] || npm install --silent
-[[ -f .site/database/wp.sqlite ]] || PORT="$PORT" bash bootstrap.sh
+SITE_DIR="${SITE_DIR:-.site}"
+[[ -f "$SITE_DIR/database/wp.sqlite" ]] || PORT="$PORT" SITE_DIR="$SITE_DIR" bash bootstrap.sh
 if [[ -z "${CHROMIUM_PATH:-}" ]]; then npx playwright install chromium >/dev/null 2>&1 || true; fi
 
-php -S "localhost:${PORT}" -t .site >.server.log 2>&1 &
+php -S "localhost:${PORT}" -t "$SITE_DIR" >.server.log 2>&1 &
 echo $! > .server.pid
 trap 'kill "$(cat .server.pid)" 2>/dev/null; rm -f .server.pid' EXIT
 for _ in $(seq 1 30); do curl -fs "$BASE_URL/" >/dev/null && break; sleep 0.5; done

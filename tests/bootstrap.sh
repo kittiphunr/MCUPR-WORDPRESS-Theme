@@ -5,22 +5,26 @@
 #   bash bootstrap.sh          # create if missing
 #   bash bootstrap.sh --fresh  # delete and recreate
 #
+# Test another WordPress release:  WP_VERSION=6.2.2 SITE_DIR=.site-6.2 bash bootstrap.sh
+#   (then: SITE_DIR=.site-6.2 bash run.sh)
 # Requires: php (>=7.4, with sqlite3/gd/mbstring), composer, node/npm.
 set -euo pipefail
 cd "$(dirname "$0")"
-SITE="$PWD/.site"
+SITE="$PWD/${SITE_DIR:-.site}"
+WP_REQ="johnpbloch/wordpress-core${WP_VERSION:+:$WP_VERSION}"
 PORT="${PORT:-8080}"
 
 if [[ "${1:-}" == "--fresh" ]]; then rm -rf "$SITE"; fi
 if [[ -f "$SITE/database/wp.sqlite" ]]; then echo "Site already bootstrapped ($SITE). Use --fresh to rebuild."; exit 0; fi
 
-rm -rf "$SITE" .composer && mkdir -p .composer
+COMPOSER_DIR=".composer${WP_VERSION:+-$WP_VERSION}"
+rm -rf "$SITE" "$COMPOSER_DIR" && mkdir -p "$COMPOSER_DIR"
 # WordPress core and the SQLite drop-in come from Packagist, so no wordpress.org access is needed.
-( cd .composer && composer init -n --name=mcupr/tests -q \
-  && composer require johnpbloch/wordpress-core aaemnnosttv/wp-sqlite-db --no-interaction -q )
-cp -r .composer/vendor/johnpbloch/wordpress-core "$SITE"
+( cd "$COMPOSER_DIR" && composer init -n --name=mcupr/tests -q \
+  && composer require "$WP_REQ" aaemnnosttv/wp-sqlite-db --no-interaction -q )
+cp -r "$COMPOSER_DIR/vendor/johnpbloch/wordpress-core" "$SITE"
 mkdir -p "$SITE/database" "$SITE/wp-content/mu-plugins" "$SITE/wp-content/themes"
-cp .composer/vendor/aaemnnosttv/wp-sqlite-db/src/db.php "$SITE/wp-content/db.php"
+cp "$COMPOSER_DIR/vendor/aaemnnosttv/wp-sqlite-db/src/db.php" "$SITE/wp-content/db.php"
 cp fixtures/wp-config.php "$SITE/wp-config.php"
 sed -i "s#__PORT__#${PORT}#g" "$SITE/wp-config.php"
 cp fixtures/seed.php "$SITE/seed.php"
