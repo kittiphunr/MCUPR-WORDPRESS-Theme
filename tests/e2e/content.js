@@ -475,10 +475,10 @@ const speechStub = (speakMs) => `(() => {
     const p = await c.newPage();
     await p.goto(B + '/about/');
     const w = await p.locator('header.mcu-wheel').evaluate((el) => { const cs = getComputedStyle(el, '::before'); return { mask: cs.webkitMaskImage || cs.maskImage, bg: cs.backgroundColor, op: cs.opacity, display: cs.display }; });
-    ok(/mcu-seal\.svg/.test(w.mask) && w.display === 'block', 'band watermark is the university seal (assets/img/mcu-seal.svg)');
+    ok(/mcu-seal\.webp/.test(w.mask) && w.display === 'block', 'band watermark is the university seal (assets/img/mcu-seal.webp)');
     ok(w.bg === 'rgb(194, 24, 91)' && parseFloat(w.op) <= 0.25, 'seal watermark: one colour (the main pink), faint ' + w.bg + ' ' + w.op);
-    const res = await p.request.get(B + '/wp-content/themes/mcupr/assets/img/mcu-seal.svg');
-    ok(res.ok() && (res.headers()['content-type'] || '').includes('svg'), 'seal file is served as image/svg+xml');
+    const res = await p.request.get(B + '/wp-content/themes/mcupr/assets/img/mcu-seal.webp');
+    ok(res.ok() && (res.headers()['content-type'] || '').includes('webp') && Number(res.headers()['content-length'] || (await res.body()).length) < 60000, 'seal file is a small WebP (under 60 KB)');
     await p.goto(B + '/about/');
     await p.addScriptTag({ content: axeSource() });
     const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
@@ -500,13 +500,13 @@ const speechStub = (speakMs) => `(() => {
     const p = await c.newPage();
     await p.goto(B + '/');
     const img = p.locator('#masthead .brand img');
-    ok((await img.count()) === 1 && (await img.getAttribute('src')).endsWith('/assets/img/mcu-logo.svg') && (await img.getAttribute('alt')) === '', 'header: emblem is the main logo (decorative, the name sits beside it)');
+    ok((await img.count()) === 1 && (await img.getAttribute('src')).endsWith('/assets/img/mcu-logo.webp') && (await img.getAttribute('alt')) === '', 'header: emblem is the main logo (decorative, the name sits beside it)');
     await p.waitForFunction(() => document.querySelector('#masthead .brand img').complete && document.querySelector('#masthead .brand img').naturalWidth > 0);
     const box = await img.boundingBox();
     ok(box.height >= 40 && Math.abs(box.width / box.height - 0.743) < 0.02, 'emblem keeps its proportions (' + Math.round(box.width) + 'x' + Math.round(box.height) + ')');
     ok(await img.isVisible(), 'emblem visible in light mode');
-    ok((await p.locator('#colophon img[src$="mcu-logo.svg"]').count()) === 1, 'footer: emblem too');
-    ok((await p.locator('link[rel=icon][href$="mcu-logo.svg"]').count()) === 1, 'browser-tab icon: the emblem until a Site Icon is set');
+    ok((await p.locator('#colophon img[src$="mcu-logo.webp"]').count()) === 1, 'footer: emblem too');
+    ok((await p.locator('link[rel=icon][href$="favicon.png"]').count()) === 1, 'browser-tab icon: the emblem until a Site Icon is set');
     await p.evaluate(() => { document.documentElement.setAttribute('data-theme', 'dark'); });
     ok(await p.locator('#masthead .brand img').isVisible(), 'emblem visible in dark mode (no dark variant needed)');
     await p.evaluate(() => { document.documentElement.setAttribute('data-theme', 'light'); });
@@ -517,7 +517,7 @@ const speechStub = (speakMs) => `(() => {
     const c2 = await newCtx({}, { custom_logo: 'ATT' });
     const p2 = await c2.newPage();
     await p2.goto(B + '/');
-    ok((await p2.locator('#masthead .brand img[src$="mcu-logo.svg"]').count()) === 0 && (await p2.locator('#masthead .brand img').count()) === 1, 'an uploaded logo replaces the emblem');
+    ok((await p2.locator('#masthead .brand img[src$="mcu-logo.webp"]').count()) === 0 && (await p2.locator('#masthead .brand img').count()) === 1, 'an uploaded logo replaces the emblem');
     await c2.close();
   }
 

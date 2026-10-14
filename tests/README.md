@@ -40,3 +40,4 @@ npm run check              # ตรวจเร็ว (ไม่ต้องม�
 
 ## ข้อมูลทดสอบ (`fixtures/seed.php`)
 ข่าวภาษาไทย 10 ข่าว (ข่าวที่ 1 มีคำแปล en/zh) พร้อมรูปที่สร้างด้วย GD, หน้านโยบายความเป็นส่วนตัว, เมนูครบทุกตำแหน่ง และค่า Customizer
+- `bash starter.sh` – imports the starter file with the real WordPress Importer into a clean site and checks pages/menus/footer/axe (needs network once to clone the importer).
