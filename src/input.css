@@ -549,3 +549,4 @@ html:not([data-menu="side"]) .site-header > .wrap { padding-left: 1.25rem; paddi
 	html[data-menu="top"] .site-nav .menu-more .sub-menu .sub-menu { left: auto; right: 100%; }
 	html[data-menu="top"] .site-nav .menu-more .sub-menu li > a { white-space: normal; }
 }
+html[data-tv="1"] #masthead .brand { min-height: 4rem; }  /* TV: the logo link is a target too (remote-control focus) */
