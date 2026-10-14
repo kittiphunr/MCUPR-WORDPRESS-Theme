@@ -36,7 +36,7 @@ $id = 'cat-' . $term->term_id;
 			?>
 			<li class="flex gap-3 p-2"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 				<?php if ( has_post_thumbnail() ) : ?>
-					<a class="noimg:hidden shrink-0" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true"><?php the_post_thumbnail( 'thumbnail', array( 'alt' => '', 'loading' => 'lazy', 'class' => 'size-16 rounded-2xl object-cover' ) ); ?></a>
+					<a class="noimg:hidden shrink-0" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true"><?php the_post_thumbnail( 'thumbnail', array( 'alt' => '', 'loading' => 'lazy', 'fetchpriority' => 'low', 'decoding' => 'async', 'class' => 'size-16 rounded-2xl object-cover' ) ); ?></a>
 				<?php endif; ?>
 				<div class="min-w-0">
 					<p class="m-0 text-xs text-muted"><?php mcupr_date(); ?></p>

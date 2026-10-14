@@ -112,6 +112,15 @@ function mcupr_header_over_hero() {
 	return is_front_page() && ! is_paged();
 }
 
+/** Hero background image (attachment id): Customizer image, else the newest post's thumbnail. */
+function mcupr_hero_image_id( $fallback_post_id = 0 ) {
+	$id = (int) get_theme_mod( 'mcupr_hero_image', 0 );
+	if ( $id && wp_get_attachment_image_url( $id, 'full' ) ) {
+		return $id;
+	}
+	return $fallback_post_id ? (int) get_post_thumbnail_id( $fallback_post_id ) : 0;
+}
+
 /** Hero background image URL: Customizer image, else the newest post thumbnail. */
 function mcupr_hero_image_url( $fallback_post_id = 0 ) {
 	$id = (int) get_theme_mod( 'mcupr_hero_image', 0 );
@@ -240,7 +249,7 @@ function mcupr_menu_default() {
 }
 /** The university emblem shipped with the theme: the main logo until a logo is uploaded (Site Identity). */
 function mcupr_default_logo( $class = '' ) {
-	return '<img class="' . esc_attr( $class ) . '" src="' . esc_url( MCUPR_URI . '/assets/img/mcu-logo.svg' ) . '" alt="" width="743" height="1000">';
+	return '<img class="' . esc_attr( $class ) . '" src="' . esc_url( MCUPR_URI . '/assets/img/mcu-logo.webp' ) . '" alt="" width="119" height="160" decoding="async">';
 }
 
 /** Header / footer logo (<img>), with optional dark-mode variant. $where: header | footer. */
