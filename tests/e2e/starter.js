@@ -160,6 +160,51 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok(fd.violations.length === 0, 'footer axe (dark): ' + (fd.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
   await p.evaluate(() => document.documentElement.removeAttribute('data-theme'));
 
+  // layout v2: side / hybrid = ONE sidebar card as tall as its menu + a rounded content frame; no black bar (its links join the header)
+  for (const [mode, min] of [['side', '0'], ['side', '1'], ['hybrid', '1']]) {
+    const bc = await br.newContext({ viewport: { width: 1500, height: 900 }, reducedMotion: 'reduce' });
+    await bc.addInitScript(([m, mn]) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); localStorage.setItem('mcupr_sbmin', mn); } catch (e) { /* frame */ } }, [mode, min]);
+    const bp = await bc.newPage();
+    await bp.goto(B + '/');
+    const g = await bp.evaluate(() => {
+      const nav = document.querySelector('.site-nav');
+      const nr = nav.getBoundingClientRect();
+      const last = [...nav.querySelectorAll('a, button')].filter((e) => e.offsetParent !== null).pop().getBoundingClientRect();
+      const page = document.getElementById('page');
+      const pr = page.getBoundingClientRect();
+      const bar = document.querySelector('.bg-bar');
+      const util = document.querySelector('.hdr-util');
+      const cur = document.querySelector('.site-nav .menu > .current-menu-item > a');
+      const cr = cur ? cur.getBoundingClientRect() : null;
+      const hdr = document.getElementById('masthead').getBoundingClientRect();
+      return { navTop: nr.top, navBottom: nr.bottom, navLeft: nr.left, navRight: nr.right, lastBottom: last.bottom, frameLeft: pr.left, frameTop: pr.top, frameRight: pr.right, vw: innerWidth, vh: innerHeight, radius: parseFloat(getComputedStyle(page).borderTopLeftRadius), barShown: !!bar && getComputedStyle(bar).display !== 'none', utilShown: !!util && util.offsetParent !== null, utilLinks: util ? util.querySelectorAll('a').length : 0, cur: cr && { w: cr.width, h: cr.height, l: cr.left, r: cr.right, br: parseFloat(getComputedStyle(cur).borderTopLeftRadius) }, hdrRight: hdr.right, overflow: document.documentElement.scrollWidth > innerWidth + 1, brand: !!document.querySelector('.sb-brand') && document.querySelector('.sb-brand').offsetParent !== null };
+    });
+    const tag = mode + (min === '1' ? ' collapsed' : ' expanded');
+    ok(g.navLeft >= 8 && g.navTop >= 8 && g.navTop <= 16, tag + ': the sidebar card floats at the top-left with a margin (' + Math.round(g.navLeft) + ', ' + Math.round(g.navTop) + ')');
+    ok(g.navBottom < g.vh - 40 && g.navBottom - g.lastBottom <= 24, tag + ': the card is only as tall as its menu (ends at ' + Math.round(g.navBottom) + ' of ' + g.vh + ')');
+    ok(g.frameLeft - g.navRight >= 8 && g.vw - g.frameRight >= 8 && Math.abs(g.frameTop - g.navTop) <= 2, tag + ': the content frame is apart from the sidebar and level with it at the top');
+    ok(g.radius >= 24, tag + ': the content frame has rounded corners (' + g.radius + 'px)');
+    ok(!g.barShown && g.utilShown && g.utilLinks >= 3, tag + ': no black bar - the student / staff / alumni links are in the header (' + g.utilLinks + ' links)');
+    ok(g.brand, tag + ': the logo sits at the top of the sidebar card');
+    ok(!g.overflow, tag + ': no horizontal scroll');
+    if (min === '1' && g.cur) { ok(Math.abs(g.cur.w - g.cur.h) <= 1 && g.cur.br >= g.cur.w / 2 - 1 && g.cur.l >= g.navLeft + 2 && g.cur.r <= g.navRight - 2, tag + ': the active item is a circle (' + Math.round(g.cur.w) + 'x' + Math.round(g.cur.h) + ') inside the card'); }
+    await bc.close();
+  }
+  {
+    const tc = await br.newContext({ viewport: { width: 1500, height: 900 }, reducedMotion: 'reduce' });
+    await tc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'top' })); } catch (e) { /* frame */ } });
+    const tp = await tc.newPage();
+    await tp.goto(B + '/');
+    const t = await tp.evaluate(() => {
+      const r = (s) => document.querySelector(s).getBoundingClientRect();
+      const bg = (s) => getComputedStyle(document.querySelector(s)).backgroundColor;
+      return { brand: r('#masthead .brand'), nav: r('.site-nav'), tools: r('#masthead .wrap > div'), brandBg: bg('#masthead .brand'), navBg: bg('.site-nav'), toolsBg: bg('#masthead .wrap > div'), hdrBg: bg('#masthead'), bar: getComputedStyle(document.querySelector('.bg-bar')).display, util: document.querySelector('.hdr-util') && document.querySelector('.hdr-util').offsetParent !== null };
+    });
+    ok(t.nav.left - t.brand.right >= 8 && t.tools.left - t.nav.right >= 8, 'top menu: brand, menu and tools are three separate floating capsules (gaps ' + Math.round(t.nav.left - t.brand.right) + ' / ' + Math.round(t.tools.left - t.nav.right) + 'px)');
+    ok(t.brandBg !== 'rgba(0, 0, 0, 0)' && t.navBg !== 'rgba(0, 0, 0, 0)' && t.toolsBg !== 'rgba(0, 0, 0, 0)' && t.hdrBg === 'rgba(0, 0, 0, 0)', 'top menu: each capsule has its own background; the bar behind them is transparent');
+    ok(t.bar !== 'none' && !t.util, 'top menu keeps the black utility bar (and not a second copy in the header)');
+    await tc.close();
+  }
   // every link in header + footer menus resolves (200) and is not "#"
   const links = [...new Set(await p.$$eval('header a[href], footer a[href]', (a) => a.map((x) => x.href).filter((h) => h.startsWith(location.origin) && !h.includes('#') && !/wp-admin|wp-login|\?lang=|replytocom|feed/.test(h))))];
   const bad = [];

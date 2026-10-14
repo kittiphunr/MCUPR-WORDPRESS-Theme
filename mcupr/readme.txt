@@ -30,6 +30,15 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.6.0 =
+* Layout v2: floating capsules (top menu), sidebar card + content frame (side / hybrid) with the black bar's links in the header, Facebook / LINE share buttons.
+
+= 1.5.0 =
+* Side / hybrid menu as a bento layout: separate rounded content frame, sidebar card with margins, round icons when collapsed.
+
+= 1.4.2 =
+* Side / hybrid menu: the rail's menu card now runs the full height of the screen.
+
 = 1.4.1 =
 * Merged: Recent Posts widget (30-character titles + Read more...) with the footer contact / map.
 = 1.4.0 =
