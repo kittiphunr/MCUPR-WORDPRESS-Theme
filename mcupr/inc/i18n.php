@@ -146,15 +146,17 @@ function mcupr_language_attributes( $output ) {
 }
 add_filter( 'language_attributes', 'mcupr_language_attributes' );
 
-/** hreflang alternates. */
+/** hreflang alternates: absolute URLs (the ?lang= switch) + x-default. */
 function mcupr_hreflang() {
+	$base = function_exists( 'mcupr_current_url' ) ? mcupr_current_url() : home_url( '/' );
 	foreach ( mcupr_languages() as $code => $l ) {
 		printf(
 			'<link rel="alternate" hreflang="%s" href="%s" />' . "\n",
 			esc_attr( $l['html'] ),
-			esc_url( add_query_arg( 'lang', $code ) )
+			esc_url( add_query_arg( 'lang', $code, $base ) )
 		);
 	}
+	printf( '<link rel="alternate" hreflang="x-default" href="%s" />' . "\n", esc_url( $base ) );
 }
 add_action( 'wp_head', 'mcupr_hreflang', 3 );
 

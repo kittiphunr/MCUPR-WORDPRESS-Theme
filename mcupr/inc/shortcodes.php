@@ -124,3 +124,55 @@ function mcupr_sc_stats( $atts ) {
 	return $out ? '<div class="grid grid-cols-[repeat(auto-fit,minmax(min(13rem,100%),1fr))] gap-4">' . $out . '</div>' : '';
 }
 add_shortcode( 'mcupr_stats', 'mcupr_sc_stats' );
+
+/**
+ * [mcupr_org field="name|alt|address|email|tel"] – the organisation's details from the Customizer, so
+ * policy pages never go out of date. Default: the name.
+ */
+function mcupr_sc_org( $atts ) {
+	$a = shortcode_atts( array( 'field' => 'name' ), $atts, 'mcupr_org' );
+	switch ( $a['field'] ) {
+		case 'alt':
+			return esc_html( (string) mcupr_alt_name() );
+		case 'address':
+			return nl2br( esc_html( (string) mcupr_text_mod( 'mcupr_address' ) ) );
+		case 'email':
+			$e = get_theme_mod( 'mcupr_org_email', '' );
+			return $e ? '<a href="mailto:' . esc_attr( $e ) . '">' . esc_html( $e ) . '</a>' : '';
+		case 'tel':
+			$t = get_theme_mod( 'mcupr_org_tel', '' );
+			return $t ? '<a href="tel:' . esc_attr( preg_replace( '/[^0-9+]/', '', $t ) ) . '">' . esc_html( $t ) . '</a>' : '';
+		default:
+			return esc_html( mcupr_org_name() );
+	}
+}
+add_shortcode( 'mcupr_org', 'mcupr_sc_org' );
+
+/** [mcupr_contact] – name, address, telephone and email as a list (filled in at Customizer → Organisation & languages). */
+function mcupr_sc_contact() {
+	$rows = array(
+		array( 'pin', mcupr_t( 'contact_us_at' ), mcupr_sc_org( array( 'field' => 'address' ) ) ),
+		array( 'phone', mcupr_t( 'about_tel' ), mcupr_sc_org( array( 'field' => 'tel' ) ) ),
+		array( 'mail', mcupr_t( 'about_email' ), mcupr_sc_org( array( 'field' => 'email' ) ) ),
+	);
+	$out = '';
+	foreach ( $rows as $r ) {
+		if ( '' !== trim( wp_strip_all_tags( $r[2] ) ) ) {
+			$out .= '<div class="stat items-start"><span class="stat-ic" aria-hidden="true">' . mcupr_icon( $r[0], 22 ) . '</span><span class="min-w-0"><small>' . esc_html( $r[1] ) . '</small><span class="block text-lg font-bold">' . $r[2] . '</span></span></div>';
+		}
+	}
+	return $out ? '<div class="my-6 grid gap-4 min-[700px]:grid-cols-2"><div class="stat items-start min-[700px]:col-span-2"><span class="stat-ic" aria-hidden="true">' . mcupr_icon( 'bank', 22 ) . '</span><span class="min-w-0"><b class="text-lg">' . esc_html( mcupr_org_name() ) . '</b></span></div>' . $out . '</div>' : '';
+}
+add_shortcode( 'mcupr_contact', 'mcupr_sc_contact' );
+
+/** [mcupr_sitemap] – every published page (as a tree) and the news categories: always up to date. */
+function mcupr_sc_sitemap() {
+	$pages = wp_list_pages( array( 'title_li' => '', 'echo' => false, 'sort_column' => 'menu_order,post_title' ) );
+	$cats  = wp_list_categories( array( 'title_li' => '', 'echo' => false, 'hide_empty' => true ) );
+	$out   = '<h2>' . esc_html( mcupr_t( 'about' ) ) . '</h2><ul class="mcupr-sitemap">' . $pages . '</ul>';
+	if ( $cats && false === strpos( $cats, 'cat-item-none' ) ) {
+		$out .= '<h2>' . esc_html( mcupr_t( 'news_categories' ) ) . '</h2><ul class="mcupr-sitemap">' . $cats . '</ul>';
+	}
+	return $out;
+}
+add_shortcode( 'mcupr_sitemap', 'mcupr_sc_sitemap' );
