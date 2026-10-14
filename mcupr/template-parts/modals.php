@@ -15,6 +15,7 @@ $pill   = 'inline-flex min-h-11 cursor-pointer items-center rounded-full border-
 $row    = 'flex flex-wrap items-center justify-between gap-3 border-b border-line py-4';
 $levels = array( 0 => '87.5%', 1 => '100%', 2 => '125%', 3 => '150%', 4 => '200%' );
 $sizes  = array( 0 => 'text-sm', 1 => 'text-base', 2 => 'text-xl', 3 => 'text-2xl', 4 => 'text-3xl' );
+$opt_icons = array( 'gray' => 'contrast', 'underline' => 'underline', 'readable' => 'type', 'spacing' => 'spacing', 'cursor' => 'pointer', 'pattern' => 'blossom', 'images' => 'image', 'tv' => 'tv' );
 $checks = array(
 	'gray'      => 'grayscale',
 	'underline' => 'underline',
@@ -107,11 +108,11 @@ $checks = array(
 		</fieldset>
 		<details class="border-b border-line py-3">
 			<summary class="flex min-h-11 cursor-pointer items-center text-lg font-semibold"><?php mcupr_e( 'more_options' ); ?></summary>
-			<div class="grid gap-x-6 min-[480px]:grid-cols-2">
+			<div class="opt-grid" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'more_options' ) ); ?>">
 				<?php foreach ( $checks as $pref => $label ) : ?>
-					<label class="flex min-h-11 cursor-pointer items-center gap-2.5">
-						<input class="size-5 accent-primary" type="checkbox" data-pref="<?php echo esc_attr( $pref ); ?>" data-on="<?php echo in_array( $pref, array( 'images', 'pattern' ), true ) ? 'off' : '1'; ?>">
-						<span><?php mcupr_e( $label ); ?></span>
+					<label class="opt" data-tip="<?php echo esc_attr( mcupr_t( $label ) ); ?>">
+						<input class="peer sr-only" type="checkbox" data-pref="<?php echo esc_attr( $pref ); ?>" data-on="<?php echo in_array( $pref, array( 'images', 'pattern' ), true ) ? 'off' : '1'; ?>">
+						<span class="opt-b peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus"><?php echo mcupr_icon( $opt_icons[ $pref ], 26 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span class="sr-only"><?php mcupr_e( $label ); ?></span></span>
 					</label>
 				<?php endforeach; ?>
 			</div>
