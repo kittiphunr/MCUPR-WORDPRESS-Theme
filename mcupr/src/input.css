@@ -56,23 +56,25 @@
 		--text: #1c1b1f;
 		--muted: #55525a;
 		--border: #cfc9c2;
-		--link: var(--primary);
+		--link: var(--link-light, var(--primary));
 		--focus: #0b57d0;
 		--font: "Sarabun", "Noto Sans Thai", "Noto Sans SC", "Noto Sans JP", "Leelawadee UI", "Tahoma", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
 		color-scheme: light;
 	}
 	:root[data-theme="dark"] {
 		--bar-bg: #0a0a0b;
-		--tint: #2a1d23;
+		--bar-fg: #fff;
+		--tint: var(--tint-dark, #2a1d23);
 		--bg: #121214; --surface: #1d1d21; --text: #ececf0; --muted: #b9b6c0; --border: #43414a;
-		--link: color-mix(in srgb, var(--primary) 35%, #fff); --focus: #8ab4f8; color-scheme: dark;
+		--link: var(--link-dark, color-mix(in srgb, var(--primary) 35%, #fff)); --focus: #8ab4f8; color-scheme: dark;
 	}
 	@media (prefers-color-scheme: dark) {
 		:root:not([data-theme="light"]):not([data-theme="dark"]) {
 			--bar-bg: #0a0a0b;
-			--tint: #2a1d23;
+			--bar-fg: #fff;
+			--tint: var(--tint-dark, #2a1d23);
 			--bg: #121214; --surface: #1d1d21; --text: #ececf0; --muted: #b9b6c0; --border: #43414a;
-			--link: color-mix(in srgb, var(--primary) 35%, #fff); --focus: #8ab4f8; color-scheme: dark;
+			--link: var(--link-dark, color-mix(in srgb, var(--primary) 35%, #fff)); --focus: #8ab4f8; color-scheme: dark;
 		}
 	}
 	/* High-contrast modes override light/dark */
@@ -81,6 +83,15 @@
 	:root[data-contrast="by"] { --tint: var(--bg); --bg:#ffea00; --surface:#ffea00; --text:#000; --muted:#000; --border:#000; --link:#000; --primary:#ffea00; --on-primary:#000; --accent:#000; --bar-bg:#000; --bar-fg:#ffea00; --focus:#000; color-scheme: light; }
 
 	*, ::before, ::after, ::file-selector-button { border-color: var(--border); }
+
+	/* Logo variants: a dark-mode logo (if set) replaces the default one */
+	.logo-dark { display: none; }
+	html[data-theme="dark"] .logo-light { display: none; }
+	html[data-theme="dark"] .logo-dark { display: block; }
+	@media (prefers-color-scheme: dark) {
+		html:not([data-theme="light"]):not([data-theme="dark"]) .logo-light + .logo-dark { display: block; }
+		html:not([data-theme="light"]):not([data-theme="dark"]) .logo-light:has(+ .logo-dark) { display: none; }
+	}
 
 	/* Text size: every size in the theme is rem-based, so the root size scales
 	   the whole UI. Final size = viewport step (for large screens / 4K TVs)
@@ -289,3 +300,39 @@ html[data-motion="1"] .tilt, html[data-motion="1"] .tilt.tilting { transform: no
 	.tilt, .tilt.tilting { transform: none; }
 }
 html[data-tv="1"] .tilt, html[data-tv="1"] .tilt.tilting { transform: none; }
+
+/* ------------------------------------------------ MCU identity: wheel ornament, page band, article */
+/* Dhammachakra (wheel of the Dhamma) line art, used as a quiet watermark in the accent colour. */
+.mcu-wheel { position: relative; overflow: hidden; isolation: isolate; }
+.mcu-wheel::before { content: ""; position: absolute; z-index: -1; right: -4rem; top: 50%; width: 22rem; height: 22rem; max-width: 70%; transform: translateY(-50%); background: var(--accent); opacity: .22; -webkit-mask: var(--wheel) center / contain no-repeat; mask: var(--wheel) center / contain no-repeat; }
+:root { --wheel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='50' cy='50' r='46'/%3E%3Ccircle cx='50' cy='50' r='38'/%3E%3Ccircle cx='50' cy='50' r='9'/%3E%3Cg%3E%3Cpath d='M50 41V12M50 59v29M41 50H12M59 50h29M43.6 43.6 23 23M56.4 56.4 77 77M56.4 43.6 77 23M43.6 56.4 23 77'/%3E%3C/g%3E%3Cg fill='black' stroke='none'%3E%3Ccircle cx='50' cy='8' r='2.6'/%3E%3Ccircle cx='50' cy='92' r='2.6'/%3E%3Ccircle cx='8' cy='50' r='2.6'/%3E%3Ccircle cx='92' cy='50' r='2.6'/%3E%3Ccircle cx='20.3' cy='20.3' r='2.6'/%3E%3Ccircle cx='79.7' cy='79.7' r='2.6'/%3E%3Ccircle cx='79.7' cy='20.3' r='2.6'/%3E%3Ccircle cx='20.3' cy='79.7' r='2.6'/%3E%3C/g%3E%3C/svg%3E"); }
+html[data-contrast] .mcu-wheel::before { display: none; }
+
+/* Heading with a gold rule and a small wheel bullet */
+.mcu-title { position: relative; padding-bottom: .6rem; }
+.mcu-title::after { content: ""; position: absolute; left: 0; bottom: 0; width: 4.5rem; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+html[data-contrast] .mcu-title::after { background: var(--text); }
+
+/* Article reading typography */
+.reader { font-size: 1.1875rem; line-height: 1.95; }
+.reader > * + * { margin-top: 1.25em; }
+.reader > p:first-of-type::first-line { font-weight: 600; }
+.reader h2 { margin-top: 2em; padding-left: .75rem; border-left: 5px solid var(--accent); font-size: 1.6em; font-weight: 700; line-height: 1.4; }
+.reader h3 { margin-top: 1.6em; font-size: 1.3em; font-weight: 700; }
+.reader a { text-decoration: underline; text-underline-offset: .2em; }
+.reader figure { margin-inline: 0; }
+.reader img { border-radius: 1rem; }
+.reader blockquote { margin-inline: 0; padding: 1rem 1.5rem; border-left: 5px solid var(--accent); border-radius: 0 1rem 1rem 0; background: var(--tint); font-style: normal; }
+.reader ul { list-style: disc; padding-left: 1.5rem; }
+.reader ol { list-style: decimal; padding-left: 1.5rem; }
+.reader table { width: 100%; border-collapse: collapse; }
+.reader th, .reader td { border: 1px solid var(--border); padding: .6rem; text-align: left; }
+
+/* The block being read aloud */
+.is-speaking { background: color-mix(in srgb, var(--accent) 28%, transparent); box-shadow: -.5rem 0 0 color-mix(in srgb, var(--accent) 28%, transparent), .5rem 0 0 color-mix(in srgb, var(--accent) 28%, transparent); border-radius: .25rem; transition: background .25s; }
+html[data-contrast] .is-speaking { outline: 3px solid var(--focus); background: transparent; box-shadow: none; }
+
+@media print {
+	.no-print { display: none !important; }
+	.mcu-wheel::before { display: none; }
+}

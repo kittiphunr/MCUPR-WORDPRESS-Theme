@@ -72,7 +72,7 @@ const post2 = '/' + encodeURIComponent('ข่าวทดสอบ-2') + '/';
   ok((await page.content()).includes('新闻1的中文内容'), 'Chinese translated content');
   await page.goto(B + post2 + '?lang=ja');
   ok(await page.isVisible('[role=note]'), 'missing-translation notice (ja)');
-  ok((await page.locator('.entry-content[lang="th"]').count()) === 1, 'untranslated content marked lang=th');
+  ok((await page.locator('#article-body[lang="th"]').count()) === 1, 'untranslated content marked lang=th');
   await page.goto(B + '/?lang=th');
 
   // ---- accessibility helper: text size

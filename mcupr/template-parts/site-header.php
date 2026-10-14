@@ -14,11 +14,7 @@ $alt = mcupr_alt_name();
 <header id="masthead" class="border-b border-line bg-bg print:hidden">
 	<div class="wrap grid grid-cols-[1fr_auto] items-center gap-x-3 py-3 min-[1100px]:grid-cols-[auto_1fr_auto] min-[1100px]:gap-x-6">
 		<a class="flex min-w-0 items-center gap-3 text-fg no-underline" href="<?php echo esc_url( mcupr_home_url() ); ?>" rel="home">
-			<?php
-			if ( has_custom_logo() ) {
-				echo wp_get_attachment_image( get_theme_mod( 'custom_logo' ), 'full', false, array( 'class' => 'h-12 w-auto min-[1100px]:h-14', 'alt' => '' ) );
-			}
-			?>
+			<?php echo mcupr_logo( 'header' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			<span class="flex min-w-0 flex-col leading-tight">
 				<span class="text-lg font-bold min-[1100px]:text-xl"><?php echo esc_html( mcupr_org_name() ); ?></span>
 				<?php if ( $alt ) : ?>

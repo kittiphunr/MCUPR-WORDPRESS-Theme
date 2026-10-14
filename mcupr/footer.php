@@ -32,11 +32,7 @@ $alt     = mcupr_alt_name();
 	<?php endif; ?>
 	<div class="wrap grid gap-8 py-10 min-[900px]:grid-cols-[2fr_1fr]">
 		<div class="flex items-start gap-4">
-			<?php
-			if ( has_custom_logo() ) {
-				echo wp_get_attachment_image( get_theme_mod( 'custom_logo' ), 'full', false, array( 'class' => 'h-16 w-auto', 'alt' => '' ) );
-			}
-			?>
+			<?php echo mcupr_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			<div>
 				<p class="mb-1 text-xl font-bold"><?php echo esc_html( mcupr_org_name() ); ?></p>
 				<?php if ( $alt ) : ?>
@@ -62,7 +58,7 @@ $alt     = mcupr_alt_name();
 	</div>
 	<div class="border-t border-on-bar/25 py-4 text-[.9375rem]">
 		<div class="wrap">
-			<p class="m-0">© <?php echo esc_html( (int) wp_date( 'Y' ) + ( 'th' === mcupr_ui_lang() ? 543 : 0 ) ); ?> <?php echo esc_html( mcupr_org_name() ); ?>. <?php mcupr_e( 'rights' ); ?></p>
+			<p class="m-0">© <?php echo esc_html( wp_date( 'Y' ) ); ?> <?php echo esc_html( mcupr_org_name() ); ?>. <?php mcupr_e( 'rights' ); ?></p>
 		</div>
 	</div>
 </footer>

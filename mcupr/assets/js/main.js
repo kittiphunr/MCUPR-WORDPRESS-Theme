@@ -53,6 +53,8 @@
 				root.setAttribute('data-' + k, prefs[k]);
 			} else if (k === 'tv' && isTvDevice) {
 				root.setAttribute('data-tv', '1'); // TV browsers get TV mode (and dark theme) automatically
+			} else if (k === 'motion' && i18n.animDefaultOff) {
+				root.setAttribute('data-motion', '1'); // site default: animations off
 			} else if (k === 'theme' && isTvDevice && prefs.tv !== '0') {
 				root.setAttribute('data-theme', 'dark');
 			} else {
@@ -74,6 +76,10 @@
 		$$('[data-contrast-switch]').forEach(function (b) { b.setAttribute('aria-checked', String(on)); });
 		$$('[data-contrast-state]').forEach(function (s) { s.textContent = on ? (i18n.on || 'On') : (i18n.off || 'Off'); });
 		$$('[data-contrast-variants]').forEach(function (f) { f.hidden = !on; });
+
+		var anim = motionOn();
+		$$('[data-motion-switch]').forEach(function (b) { b.setAttribute('aria-checked', String(anim)); });
+		$$('[data-motion-state]').forEach(function (s) { s.textContent = anim ? (i18n.on || 'On') : (i18n.off || 'Off'); });
 
 		$$('[data-pref]').forEach(function (inp) {
 			var k = inp.getAttribute('data-pref');
@@ -203,6 +209,14 @@
 			setPref('contrast', on ? '' : 'wb');
 			return;
 		}
+		if (t.closest('[data-motion-switch]')) {
+			var animOn = prefs.motion === undefined ? !i18n.animDefaultOff : prefs.motion !== '1';
+			prefs.motion = animOn ? '1' : '0'; // '1' = animations off, '0' = explicitly on
+			if ((prefs.motion === '1') === !!i18n.animDefaultOff) { delete prefs.motion; }
+			save();
+			apply();
+			return;
+		}
 		if (t.closest('[data-reset-prefs]')) {
 			prefs = {};
 			save();
@@ -279,6 +293,24 @@
 			items.unshift(term);
 			localStorage.setItem(RECENT_KEY, JSON.stringify(items.slice(0, 6)));
 		} catch (err) { /* ignore */ }
+	});
+
+	/* ---- article tools: copy link, native share, print ---- */
+	$$('[data-native-share]').forEach(function (b) { if (navigator.share) { b.classList.remove('hidden'); } });
+	document.addEventListener('click', function (e) {
+		var c = e.target.closest('[data-copy-link]');
+		if (c) {
+			var done = function () { announce(c.getAttribute('data-copied') || 'Link copied'); };
+			var url = c.getAttribute('data-copy-link');
+			if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(url).then(done, done); } else { done(); }
+			return;
+		}
+		var s = e.target.closest('[data-native-share]');
+		if (s && navigator.share) {
+			navigator.share({ title: s.getAttribute('data-title'), url: s.getAttribute('data-url') }).catch(function () {});
+			return;
+		}
+		if (e.target.closest('[data-print]')) { window.print(); }
 	});
 
 	/* ---------------------------------------------------------------- navigation */
