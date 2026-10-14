@@ -47,9 +47,9 @@
 }
 
 /* Sarabun (SIL Open Font License, see assets/fonts/OFL.txt) – Thai-friendly UI font, self-hosted */
-@font-face { font-family: Sarabun; font-weight: 400; font-display: swap; src: local("Sarabun"), url(../fonts/Sarabun_400Regular.ttf) format("truetype"); }
-@font-face { font-family: Sarabun; font-weight: 600; font-display: swap; src: local("Sarabun SemiBold"), url(../fonts/Sarabun_600SemiBold.ttf) format("truetype"); }
-@font-face { font-family: Sarabun; font-weight: 700; font-display: swap; src: local("Sarabun Bold"), url(../fonts/Sarabun_700Bold.ttf) format("truetype"); }
+@font-face { font-family: Sarabun; font-weight: 400; font-display: swap; src: local("Sarabun"), url(../fonts/Sarabun-400Regular.woff2) format("woff2"); }
+@font-face { font-family: Sarabun; font-weight: 600; font-display: swap; src: local("Sarabun SemiBold"), url(../fonts/Sarabun-600SemiBold.woff2) format("woff2"); }
+@font-face { font-family: Sarabun; font-weight: 700; font-display: swap; src: local("Sarabun Bold"), url(../fonts/Sarabun-700Bold.woff2) format("woff2"); }
 
 /* ---------------------------------------------------------------- tokens */
 @layer base {
@@ -411,10 +411,10 @@ html[data-motion="1"] .tilt, html[data-motion="1"] .tilt.tilting { transform: no
 html[data-tv="1"] .tilt, html[data-tv="1"] .tilt.tilting { transform: none; }
 
 /* ------------------------------------------------ MCU identity: wheel ornament, page band, article */
-/* The university seal (assets/img/mcu-seal.svg, line art) as a quiet watermark in the site's main colour. */
+/* The university seal (assets/img/mcu-seal.webp, line art) as a quiet watermark in the site's main colour. */
 .mcu-wheel { position: relative; overflow: hidden; isolation: isolate; }
 .mcu-wheel::before { content: ""; position: absolute; z-index: -1; right: max(1rem, 4%); top: 50%; height: 135%; aspect-ratio: 802 / 787; max-width: 70%; transform: translateY(-50%); background: var(--primary); opacity: .2; -webkit-mask: var(--seal) center / contain no-repeat; mask: var(--seal) center / contain no-repeat; }
-:root { --seal: url("../img/mcu-seal.svg"); }
+:root { --seal: url("../img/mcu-seal.webp"); }
 html[data-contrast] .mcu-wheel::before { display: none; }
 
 /* Heading with a gold rule and a small wheel bullet */
@@ -597,3 +597,10 @@ html[data-tv="1"] #masthead .brand { min-height: 4rem; }  /* TV: the logo link i
 	html[data-menu="top"] .site-nav .menu-more .mcupr-mega > .sub-menu { display: none; }
 	html[data-menu="top"] .site-nav .menu-more .mcupr-mega.is-open > .sub-menu { display: block; }
 }
+
+/* ===== Cookie / PDPA notice: plain HTML, shown while <html class="needs-consent"> (set before first paint) ===== */
+.cookie-notice { display: none; position: fixed; z-index: 55; right: 1rem; bottom: 1rem; width: min(calc(100% - 2rem), 24rem); padding: 1.25rem; box-shadow: 0 18px 50px rgb(15 23 42 / .25); }
+html.needs-consent .cookie-notice { display: block; }
+html[data-contrast] .cookie-notice { border: 2px solid var(--border); }
+@media (max-width: 480px) { .cookie-notice { right: .75rem; left: .75rem; width: auto; bottom: .75rem; } }
+@media print { .cookie-notice { display: none !important; } }
