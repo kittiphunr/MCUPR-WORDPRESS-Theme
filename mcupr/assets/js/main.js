@@ -120,7 +120,9 @@
 		root.setAttribute('data-menu', menuMode);
 		var sbMin = false;
 		try { sbMin = localStorage.getItem('mcupr_sbmin') === '1'; } catch (err) { /* ignore */ }
-		root.classList.toggle('sb-min', menuMode === 'hybrid' || sbMin);
+		var sbStored = null;
+		try { sbStored = localStorage.getItem('mcupr_sbmin'); } catch (err2) { /* ignore */ }
+		root.classList.toggle('sb-min', menuMode !== 'top' && (sbMin || (menuMode === 'hybrid' && sbStored !== '0')));
 		applyColors();
 		sync();
 		Cursor.sync();
@@ -466,7 +468,15 @@
 			var syncSb = function () {
 				var min = root.classList.contains('sb-min');
 				sbBtn.setAttribute('aria-expanded', String(!min));
-				if (sbLabel) { sbLabel.textContent = min ? (sbLabel.getAttribute('data-expand') || '') : (sbLabel.getAttribute('data-collapse') || ''); }
+				var lab = sbLabel ? (min ? (sbLabel.getAttribute('data-expand') || '') : (sbLabel.getAttribute('data-collapse') || '')) : '';
+				if (sbLabel) { sbLabel.textContent = lab; }
+				sbBtn.setAttribute('aria-label', lab);
+				sbBtn.setAttribute('title', lab);
+				/* collapsed: the labels are hidden, so give each icon a tooltip */
+				$$('.menu > li > a', nav).forEach(function (a) {
+					var t = $('.t', a) || a;
+					if (min) { a.setAttribute('title', (t.textContent || '').trim()); } else { a.removeAttribute('title'); }
+				});
 			};
 			sbBtn.addEventListener('click', function () {
 				root.classList.toggle('sb-min');
@@ -1005,6 +1015,65 @@
 			try { localStorage.setItem(CONSENT_KEY, '1'); } catch (e) { /* ignore */ }
 			root.classList.remove('needs-consent');
 		});
+	}
+
+	/* ---- Finder-style news browser: view switcher (remembered) + source-list filter ---- */
+	var fb = $('[data-fb]');
+	if (fb) {
+		var fbItems = $('[data-fb-items]', fb);
+		var fbBtns = $$('[data-fb-view]', fb);
+		fbBtns.forEach(function (b) {
+			b.addEventListener('click', function () {
+				var v = b.getAttribute('data-fb-view');
+				if (fbItems) { fbItems.setAttribute('data-view', v); }
+				fbBtns.forEach(function (o) { o.setAttribute('aria-checked', String(o === b)); });
+				try { localStorage.setItem('mcupr_view', v); } catch (e) { /* ignore */ }
+			});
+			b.addEventListener('keydown', function (e) {
+				var i = fbBtns.indexOf(b);
+				var n = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? i + 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? i - 1 : -1;
+				if (n < 0) { return; }
+				e.preventDefault();
+				var t = fbBtns[(n + fbBtns.length) % fbBtns.length];
+				t.focus();
+				t.click();
+			});
+		});
+		/* phones: the source list starts folded (it is open in the HTML for no-JS) */
+		var fbDrawer = $('.fb-drawer', fb);
+		if (fbDrawer && window.matchMedia && window.matchMedia('(max-width: 899px)').matches) { fbDrawer.removeAttribute('open'); }
+		if (fbDrawer && window.matchMedia) {
+			window.matchMedia('(min-width: 900px)').addEventListener('change', function (e) { if (e.matches) { fbDrawer.setAttribute('open', ''); } });
+		}
+		var fbFind = $('[data-fb-filter]', fb);
+		if (fbFind) {
+			var fbZones = $$('[data-fb-zone]', fb);
+			var fbWas = fbZones.map(function (z) { return z.hasAttribute('open'); });
+			fbFind.addEventListener('input', function () {
+				var q = fbFind.value.trim().toLowerCase();
+				var shown = 0;
+				$$('[data-fb-item]', fb).forEach(function (li) {
+					var hit = !q || li.textContent.toLowerCase().indexOf(q) !== -1;
+					li.hidden = !hit;
+					if (hit) { shown++; }
+				});
+				fbZones.forEach(function (z, i) {
+					var any = $$('[data-fb-item]:not([hidden])', z).length > 0;
+					z.hidden = !any;
+					if (q) { z.open = any; } else { z.open = fbWas[i]; }
+				});
+				$$('.fb-h', fb).forEach(function (h) {
+					var nxt = h.nextElementSibling, vis = false;
+					while (nxt && !nxt.classList.contains('fb-h') && !nxt.classList.contains('fb-empty')) {
+						if (!nxt.hidden && ($$('[data-fb-item]:not([hidden])', nxt).length || nxt.matches('[data-fb-item]'))) { vis = true; }
+						nxt = nxt.nextElementSibling;
+					}
+					h.hidden = !vis;
+				});
+				var em = $('.fb-empty', fb);
+				if (em) { em.hidden = shown > 0; }
+			});
+		}
 	}
 
 	apply();
