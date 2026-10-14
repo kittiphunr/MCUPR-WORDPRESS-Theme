@@ -30,6 +30,14 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.4.1 =
+* Merged: Recent Posts widget (30-character titles + Read more...) with the footer contact / map.
+= 1.4.0 =
+* Footer: address, telephone, opening hours and a click-to-load Google Maps card with open / directions links.
+
+= 1.3.1 =
+* Recent Posts widget: titles cut to 30 characters with a Read more... button.
+
 = 1.3.0 =
 * Events calendar (event post type, month grid, upcoming list, shortcodes, Google Calendar / .ics, schema.org Event).
 

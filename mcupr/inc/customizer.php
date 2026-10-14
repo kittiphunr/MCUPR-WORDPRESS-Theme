@@ -31,6 +31,15 @@ function mcupr_customize_register( $wp_customize ) {
 		$wp_customize->add_control( "mcupr_address_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'Address / contact (%s)', 'mcupr' ), $l['name'] ), 'type' => 'textarea' ) );
 	}
 
+	foreach ( mcupr_ui_languages() as $code => $l ) {
+		$wp_customize->add_setting( "mcupr_hours_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
+		$wp_customize->add_control( "mcupr_hours_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'Opening hours (%s) – footer', 'mcupr' ), $l['name'] ), 'type' => 'textarea' ) );
+	}
+	$wp_customize->add_setting( 'mcupr_map_on', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+	$wp_customize->add_control( 'mcupr_map_on', array( 'section' => 'mcupr_org', 'label' => __( 'Show the Google Maps location card in the footer (loads only when the visitor presses “Show map”)', 'mcupr' ), 'type' => 'checkbox' ) );
+	$wp_customize->add_setting( 'mcupr_map_query', array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
+	$wp_customize->add_control( 'mcupr_map_query', array( 'section' => 'mcupr_org', 'label' => __( 'Map location: place name, address or "latitude,longitude" (empty = built-in default)', 'mcupr' ), 'type' => 'text' ) );
+
 	$wp_customize->add_setting( 'mcupr_fs_menu', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 	$wp_customize->add_control( 'mcupr_fs_menu', array( 'section' => 'mcupr_org', 'label' => __( 'Show the “All menu” button that opens the whole menu full screen (desktop top bar)', 'mcupr' ), 'type' => 'checkbox' ) );
 
