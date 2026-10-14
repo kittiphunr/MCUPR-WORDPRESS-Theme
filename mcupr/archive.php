@@ -6,9 +6,12 @@
  */
 
 get_header();
-?>
+
+if ( ! mcupr_elementor_location( 'archive' ) ) :
+	mcupr_breadcrumb();
+	?>
 <div class="wrap">
-	<h1 class="mb-5 mt-4 border-b-4 border-accent pb-2 text-3xl font-bold contrast:border-line max-[700px]:text-2xl"><?php the_archive_title(); ?></h1>
+	<h1 class="mb-5 mt-4 border-b-4 border-primary pb-2 text-3xl font-bold contrast:border-line max-[700px]:text-2xl"><?php the_archive_title(); ?></h1>
 	<?php the_archive_description( '<div class="mb-4 text-muted">', '</div>' ); ?>
 
 	<?php if ( have_posts() ) : ?>
@@ -26,4 +29,6 @@ get_header();
 	<?php endif; ?>
 </div>
 <?php
+endif;
+
 get_footer();

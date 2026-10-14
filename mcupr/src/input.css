@@ -23,6 +23,8 @@
 	--color-line: var(--border);
 	--color-link: var(--link);
 	--color-focus: var(--focus);
+	--color-bar: var(--bar-bg);
+	--color-on-bar: var(--bar-fg);
 	--font-sans: var(--font);
 }
 
@@ -38,8 +40,10 @@
 /* ---------------------------------------------------------------- tokens */
 @layer base {
 	:root {
-		--primary: #7a1f3d;
-		--accent: #c9a227;
+		--primary: #d6006f;
+		--accent: #ffb81c;
+		--bar-bg: #2b2b2b;
+		--bar-fg: #fff;
 		--on-primary: #fff;
 		--bg: #fff;
 		--surface: #f5f2ee;
@@ -52,19 +56,21 @@
 		color-scheme: light;
 	}
 	:root[data-theme="dark"] {
+		--bar-bg: #0a0a0b;
 		--bg: #121214; --surface: #1d1d21; --text: #ececf0; --muted: #b9b6c0; --border: #43414a;
 		--link: color-mix(in srgb, var(--primary) 35%, #fff); --focus: #8ab4f8; color-scheme: dark;
 	}
 	@media (prefers-color-scheme: dark) {
 		:root:not([data-theme="light"]):not([data-theme="dark"]) {
+			--bar-bg: #0a0a0b;
 			--bg: #121214; --surface: #1d1d21; --text: #ececf0; --muted: #b9b6c0; --border: #43414a;
 			--link: color-mix(in srgb, var(--primary) 35%, #fff); --focus: #8ab4f8; color-scheme: dark;
 		}
 	}
 	/* High-contrast modes override light/dark */
-	:root[data-contrast="wb"] { --bg:#000; --surface:#000; --text:#fff; --muted:#fff; --border:#fff; --link:#fff; --primary:#000; --on-primary:#fff; --accent:#fff; --focus:#ffea00; color-scheme: dark; }
-	:root[data-contrast="yb"] { --bg:#000; --surface:#000; --text:#ffea00; --muted:#ffea00; --border:#ffea00; --link:#ffea00; --primary:#000; --on-primary:#ffea00; --accent:#ffea00; --focus:#fff; color-scheme: dark; }
-	:root[data-contrast="by"] { --bg:#ffea00; --surface:#ffea00; --text:#000; --muted:#000; --border:#000; --link:#000; --primary:#ffea00; --on-primary:#000; --accent:#000; --focus:#000; color-scheme: light; }
+	:root[data-contrast="wb"] { --bg:#000; --surface:#000; --text:#fff; --muted:#fff; --border:#fff; --link:#fff; --primary:#000; --on-primary:#fff; --accent:#fff; --bar-bg:#000; --bar-fg:#fff; --focus:#ffea00; color-scheme: dark; }
+	:root[data-contrast="yb"] { --bg:#000; --surface:#000; --text:#ffea00; --muted:#ffea00; --border:#ffea00; --link:#ffea00; --primary:#000; --on-primary:#ffea00; --accent:#ffea00; --bar-bg:#000; --bar-fg:#ffea00; --focus:#fff; color-scheme: dark; }
+	:root[data-contrast="by"] { --bg:#ffea00; --surface:#ffea00; --text:#000; --muted:#000; --border:#000; --link:#000; --primary:#ffea00; --on-primary:#000; --accent:#000; --bar-bg:#000; --bar-fg:#ffea00; --focus:#000; color-scheme: light; }
 
 	*, ::before, ::after, ::file-selector-button { border-color: var(--border); }
 
@@ -106,33 +112,38 @@
 		@apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 rounded-lg border-2 border-line bg-transparent px-3 py-1.5 font-semibold leading-tight text-fg hover:bg-surface aria-pressed:bg-surface aria-disabled:cursor-not-allowed aria-disabled:opacity-45;
 	}
 
-	/* Main navigation: markup comes from wp_nav_menu() */
+	/* Main navigation (white, Chula-style): markup comes from wp_nav_menu() */
 	.site-nav ul { @apply m-0 list-none p-0; }
 	.site-nav .menu { @apply flex flex-col min-[900px]:flex-row min-[900px]:flex-wrap; }
 	.site-nav li { @apply relative flex flex-wrap items-stretch; }
-	.site-nav li > a { @apply flex min-h-12 flex-1 items-center px-4 py-2 font-semibold text-on-primary no-underline min-[900px]:flex-none; }
+	.site-nav li > a { @apply flex min-h-12 flex-1 items-center border-b-4 border-transparent px-4 py-2 font-semibold text-fg no-underline min-[900px]:flex-none; }
 	.site-nav li > a:hover,
 	.site-nav .current-menu-item > a,
 	.site-nav .current_page_item > a,
-	.site-nav .current-menu-ancestor > a { @apply bg-black/20 shadow-[inset_0_-4px_0_var(--accent)]; }
-	.site-nav :focus-visible { outline-color: #fff; box-shadow: none; outline-offset: -4px; }
-	.site-nav .submenu-toggle { @apply min-w-9 cursor-pointer border-0 bg-transparent p-0 text-on-primary; }
+	.site-nav .current-menu-ancestor > a { @apply border-primary text-link contrast:border-[var(--text)]; }
+	.site-nav :focus-visible { outline-offset: -4px; box-shadow: none; }
+	.site-nav .submenu-toggle { @apply min-w-9 cursor-pointer border-0 border-b-4 border-transparent bg-transparent p-0 text-fg; }
 	.site-nav .submenu-toggle[aria-expanded="true"] svg { @apply rotate-180; }
 	.site-nav .sub-menu,
-	.site-nav .children { @apply hidden basis-full border-l-4 border-accent ml-4 bg-primary min-[900px]:absolute min-[900px]:top-full min-[900px]:left-0 min-[900px]:z-50 min-[900px]:ml-0 min-[900px]:min-w-60 min-[900px]:basis-auto min-[900px]:border-l-0 min-[900px]:border min-[900px]:border-white/35 min-[900px]:shadow-lg; }
+	.site-nav .children { @apply hidden basis-full border-l-4 border-primary ml-4 bg-bg min-[900px]:absolute min-[900px]:top-full min-[900px]:left-0 min-[900px]:z-50 min-[900px]:ml-0 min-[900px]:min-w-64 min-[900px]:basis-auto min-[900px]:border-l-0 min-[900px]:border-t-4 min-[900px]:border-x min-[900px]:border-b min-[900px]:border-x-line min-[900px]:border-b-line min-[900px]:shadow-lg; }
 	.site-nav li.is-open > .sub-menu,
 	.site-nav li.is-open > .children { @apply block; }
 	.site-nav .sub-menu li, .site-nav .children li { @apply flex; }
-	.site-nav .sub-menu a, .site-nav .children a { @apply font-medium; }
+	.site-nav .sub-menu a, .site-nav .children a { @apply border-b-0 font-medium; }
+	.site-nav .sub-menu a:hover, .site-nav .children a:hover { @apply bg-surface; }
 	.site-nav .sub-menu .sub-menu { @apply min-[900px]:top-0 min-[900px]:left-full; }
+
+	/* Utility bar links (dark strip) */
+	.utility-menu { @apply m-0 flex list-none flex-wrap gap-x-1 p-0; }
+	.utility-menu a { @apply inline-flex min-h-11 items-center px-2 text-on-bar no-underline hover:underline; }
 
 	/* Quick links menu (home) */
 	.quick-menu { @apply m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-3 p-0; }
-	.quick-menu a { @apply flex min-h-18 items-center justify-center rounded-lg border border-b-4 border-line border-b-accent bg-surface p-3 text-center font-bold text-fg no-underline hover:bg-primary hover:text-on-primary; }
+	.quick-menu a { @apply flex min-h-24 items-center justify-center rounded-lg border border-b-4 border-line border-b-primary bg-bg p-3 text-center text-lg font-bold text-fg no-underline shadow-sm hover:bg-primary hover:text-on-primary; }
 
 	/* Footer menu */
 	.footer-menu { @apply m-0 list-none p-0; }
-	.footer-menu a { @apply inline-block py-1; }
+	.footer-menu a { @apply inline-block py-1 text-on-bar; }
 
 	/* Content written in the editor (unclassed HTML) */
 	.entry-content { @apply text-lg; }

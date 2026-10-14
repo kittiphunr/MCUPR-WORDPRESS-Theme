@@ -16,7 +16,12 @@ $heading   = isset( $args['heading'] ) && 'h2' === $args['heading'] ? 'h2' : 'h3
 		</a>
 	<?php endif; ?>
 	<div class="px-4 pt-4 pb-5"<?php echo $part_lang; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
-		<p class="mb-1 text-sm text-muted"><?php mcupr_date(); ?></p>
+		<p class="mb-1 flex flex-wrap items-center gap-x-3 text-sm text-muted">
+			<?php if ( mcupr_first_category() ) : ?>
+				<span class="font-bold uppercase tracking-wide text-link"><?php echo esc_html( mcupr_first_category() ); ?></span>
+			<?php endif; ?>
+			<?php mcupr_date(); ?>
+		</p>
 		<<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?> class="mb-2 text-lg font-bold leading-snug"><a class="text-fg" href="<?php the_permalink(); ?>"><?php the_title(); ?></a></<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<div class="text-muted [&_p]:m-0"><?php the_excerpt(); ?></div>
 	</div>

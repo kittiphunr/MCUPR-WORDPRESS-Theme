@@ -6,9 +6,12 @@
  */
 
 get_header();
-?>
+
+if ( ! mcupr_elementor_location( 'archive' ) ) :
+	mcupr_breadcrumb();
+	?>
 <div class="wrap">
-	<h1 class="mb-5 mt-4 border-b-4 border-accent pb-2 text-3xl font-bold contrast:border-line max-[700px]:text-2xl"><?php echo esc_html( mcupr_t( 'search_for' ) ); ?>: <span class="text-link"><?php echo esc_html( get_search_query() ); ?></span></h1>
+	<h1 class="mb-5 mt-4 border-b-4 border-primary pb-2 text-3xl font-bold contrast:border-line max-[700px]:text-2xl"><?php echo esc_html( mcupr_t( 'search_for' ) ); ?>: <span class="text-link"><?php echo esc_html( get_search_query() ); ?></span></h1>
 
 	<?php if ( have_posts() ) : ?>
 		<div class="my-6 grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-6">
@@ -26,4 +29,6 @@ get_header();
 	<?php endif; ?>
 </div>
 <?php
+endif;
+
 get_footer();

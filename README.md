@@ -22,6 +22,15 @@ npm run vendor   # คัดลอก sweetalert2 จาก node_modules (เม
 
 ต้นฉบับอยู่ที่ `mcupr/src/input.css` — เพิ่ม/แก้ class ในเทมเพลต `.php` หรือ `assets/js/main.js` แล้ว build ใหม่
 
+## Elementor Pro
+
+ธีมรองรับ **Theme Builder** ของ Elementor Pro — ออกแบบ *Header, Footer, Single (โพสต์/หน้า/404), Archive (รวมผลค้นหา)* ได้ที่ Templates → Theme Builder ธีมจะส่งต่อ location เหล่านั้นให้ Elementor ถ้าไม่มีเทมเพลตที่ตรงเงื่อนไขจะใช้เทมเพลต Tailwind ของธีมแทน (ดู `mcupr/inc/elementor.php`)
+
+- หน้า/โพสต์ที่สร้างด้วย Elementor จะแสดงเต็มความกว้าง ไม่มีหัวเรื่องของธีม (หน้าแรกที่เป็น Static Page ที่ออกแบบด้วย Elementor ก็แสดงเฉพาะดีไซน์นั้น)
+- **แถบเครื่องมือด้านบน (ภาษา / ขนาดอักษร / โหมดมืด / การเข้าถึง / ค้นหา) ธีมแสดงเสมอ** แม้ใช้ Header ของ Elementor เพื่อให้ฟังก์ชันการเข้าถึงไม่หาย (ปิดได้ที่ Customizer) และมี shortcode ให้วางใน Elementor เอง: `[mcupr_languages]`, `[mcupr_tools]`, `[mcupr_search]`
+- ปิดการโหลด Google Fonts ของ Elementor (ไม่ส่ง IP ผู้เข้าชมไปบุคคลที่สาม) — ใช้ Custom Fonts ที่โฮสต์เองแทน
+- ข้อจำกัดที่ควรรู้: (1) ปุ่มปรับขนาดอักษรปรับได้เฉพาะขนาดที่เป็น `rem/em` ใน Elementor ให้ตั้งหน่วยตัวอักษรเป็น rem (2) โหมดมืด/คอนทราสต์ปรับได้เฉพาะสีที่เลือกผ่าน **Global Colors** ไม่ใช่สีที่กำหนดเฉพาะวิดเจ็ต (3) เนื้อหาที่สร้างด้วย Elementor ไม่ใช้กล่อง Translations ของธีม — ใช้หน้าแยกตามภาษา หรือปลั๊กอินแปลที่รองรับ Elementor
+
 ## ฟังก์ชัน
 
 | ฟังก์ชัน | รายละเอียด |
