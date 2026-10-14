@@ -120,7 +120,7 @@ function mcupr_browser_folders() {
 	}
 	$h = '<nav class="fb-folders" aria-label="' . esc_attr( mcupr_t( is_category() ? 'fb_subcats' : 'fb_zones' ) ) . '"><ul>';
 	foreach ( $items as $i ) {
-		$h .= '<li><a href="' . esc_url( $i[0] ) . '">' . mcupr_icon( 'folder', 40 ) . '<span class="fb-fn">' . esc_html( $i[1] ) . '</span><span class="fb-n">' . (int) $i[2] . '</span></a></li>';
+		$h .= '<li><a href="' . esc_url( $i[0] ) . '" title="' . esc_attr( $i[1] ) . '">' . mcupr_icon( 'folder', 40 ) . '<span class="fb-fn">' . esc_html( $i[1] ) . '</span><span class="fb-n">' . (int) $i[2] . '</span></a></li>';
 	}
 	return $h . '</ul></nav>';
 }
