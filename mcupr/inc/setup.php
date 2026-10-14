@@ -59,3 +59,6 @@ add_filter( 'excerpt_length', static function () {
 add_filter( 'excerpt_more', static function () {
 	return '…';
 } );
+
+/** "Category: News" -> "News" (the prefix is English-only; the band title says enough). */
+add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );

@@ -22,20 +22,21 @@ $alt     = mcupr_alt_name();
 <?php mcupr_slot( 'footer_before' ); ?>
 </main>
 
-<footer id="colophon" class="site-footer mt-16 border-t border-line bg-bg text-fg print:hidden" tabindex="-1">
+<footer id="colophon" class="site-footer mt-16 pb-6 text-fg print:hidden" tabindex="-1">
+	<div class="wrap soft-card overflow-hidden">
 	<?php if ( has_nav_menu( 'footer' ) ) : ?>
-		<div class="wrap border-b border-line py-10">
+		<div class="px-6 border-b border-line py-10">
 			<nav aria-label="<?php echo esc_attr( mcupr_t( 'site_links' ) ); ?>">
 				<?php wp_nav_menu( array( 'theme_location' => 'footer', 'container' => false, 'depth' => 2, 'menu_class' => 'footer-cols' ) ); ?>
 			</nav>
 		</div>
 	<?php endif; ?>
 	<?php if ( is_active_sidebar( 'footer-1' ) || is_active_sidebar( 'footer-2' ) || is_active_sidebar( 'footer-3' ) ) : ?>
-		<div class="wrap grid gap-8 border-b border-line py-10 min-[800px]:grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
+		<div class="px-6 grid gap-8 border-b border-line py-10 min-[800px]:grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
 			<?php foreach ( array( 'footer-1', 'footer-2', 'footer-3' ) as $area ) { mcupr_widget_area( $area, 'space-y-6' ); } ?>
 		</div>
 	<?php endif; ?>
-	<div class="wrap grid gap-8 py-10 min-[900px]:grid-cols-[2fr_1fr]">
+	<div class="px-6 grid gap-8 py-10 min-[900px]:grid-cols-[2fr_1fr]">
 		<div class="flex items-start gap-4">
 			<?php echo mcupr_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			<div>
@@ -62,7 +63,7 @@ $alt     = mcupr_alt_name();
 		</nav>
 	</div>
 	<div class="border-t border-line py-4 text-[.9375rem] text-muted">
-		<div class="wrap">
+		<div class="px-6">
 			<p class="m-0">© <?php echo esc_html( wp_date( 'Y' ) ); ?> <?php echo esc_html( mcupr_org_name() ); ?>. <?php mcupr_e( 'rights' ); ?></p>
 			<p class="m-0 mt-1">
 				<?php
@@ -78,6 +79,7 @@ $alt     = mcupr_alt_name();
 				<button type="button" class="min-h-8 cursor-pointer border-0 bg-transparent p-0 text-link underline" data-open-about><?php mcupr_e( 'about' ); ?></button>
 			</p>
 		</div>
+	</div>
 	</div>
 </footer>
 
