@@ -564,7 +564,11 @@ html:not([data-menu="side"]) .site-header > .wrap { padding-left: 1.25rem; paddi
 	html[data-menu="top"] .site-nav .menu-more > .more-btn:hover, html[data-menu="top"] .site-nav .menu-more.is-open > .more-btn { background: var(--tint); color: var(--link); }
 	html[data-menu="top"] .site-nav .menu-more.has-current > .more-btn { background: var(--primary); color: var(--on-primary); box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 38%, transparent); }
 	html[data-menu="top"] .site-nav .menu-more > .sub-menu { left: auto; right: 0; min-width: 16rem; }
-	html[data-menu="top"] .site-nav .menu-more .sub-menu .sub-menu { left: auto; right: 100%; }
+	html[data-menu="top"] .site-nav .menu-more > .sub-menu { width: 20rem; max-width: calc(100vw - 2rem); max-height: calc(100vh - 9.5rem); overflow-y: auto; overscroll-behavior: contain; }
+	/* inside "More" a sub-menu opens inline (accordion) instead of a tall flyout that covers the page */
+	html[data-menu="top"] .site-nav .menu-more .sub-menu .sub-menu { position: static; width: auto; min-width: 0; max-height: none; margin: .125rem 0 .375rem .75rem; padding: 0 0 0 .5rem; border: 0; border-left: 3px solid var(--tint); border-radius: 0; background: transparent; box-shadow: none; animation: none; }
+	html[data-menu="top"] .site-nav .menu-more .sub-menu li { flex-wrap: wrap; }
+	html[data-menu="top"] .site-nav .menu-more .sub-menu li > .sub-menu { flex: 1 1 100%; }
 	html[data-menu="top"] .site-nav .menu-more .sub-menu li > a { white-space: normal; }
 }
 html[data-tv="1"] #masthead .brand { min-height: 4rem; }  /* TV: the logo link is a target too (remote-control focus) */
@@ -596,6 +600,7 @@ html[data-tv="1"] #masthead .brand { min-height: 4rem; }  /* TV: the logo link i
 	/* an overflowing mega item inside "More" is a normal flyout */
 	html[data-menu="top"] .site-nav .menu-more .mcupr-mega > .sub-menu { display: none; }
 	html[data-menu="top"] .site-nav .menu-more .mcupr-mega.is-open > .sub-menu { display: block; }
+	html[data-menu="top"] .site-nav .menu-more .mcupr-mega > .sub-menu > li > .sub-menu { margin: 0; padding: 0; border: 0; }
 }
 
 /* ===== Cookie / PDPA notice: plain HTML, shown while <html class="needs-consent"> (set before first paint) ===== */
