@@ -38,6 +38,7 @@ return array(
 	'big_cursor'    => array( 'เคอร์เซอร์ขนาดใหญ่', 'Large cursor', '大光标', '大きなカーソル' ),
 	'reduce_motion' => array( 'ลดการเคลื่อนไหว', 'Reduce motion', '减少动画', '動きを減らす' ),
 	'tv_mode'       => array( 'โหมดทีวี (ตัวอักษรใหญ่ ใช้รีโมท)', 'TV mode (large text, remote control)', '电视模式（大字体，遥控器）', 'テレビモード（大きな文字・リモコン対応）' ),
+	'hide_pattern'  => array( 'ซ่อนลวดลายดอกอโศกพื้นหลัง', 'Hide the ashoka flower background', '隐藏无忧树花背景图案', 'アショーカの花の背景模様を隠す' ),
 	'hide_images'   => array( 'ซ่อนรูปภาพ', 'Hide images', '隐藏图片', '画像を非表示にする' ),
 	'reset_all'     => array( 'คืนค่าเริ่มต้นทั้งหมด', 'Reset all settings', '全部重置', 'すべてリセット' ),
 	'close'         => array( 'ปิด', 'Close', '关闭', '閉じる' ),

@@ -116,6 +116,8 @@ function mcupr_customize_register( $wp_customize ) {
 	$wp_customize->add_control( 'mcupr_anim_default', array( 'section' => 'mcupr_display', 'label' => __( 'Animations on by default (visitors can switch them off in the accessibility dialog)', 'mcupr' ), 'type' => 'checkbox' ) );
 	$wp_customize->add_setting( 'mcupr_news_layout', array( 'default' => 'reader', 'sanitize_callback' => 'mcupr_sanitize_layout' ) );
 	$wp_customize->add_control( 'mcupr_news_layout', array( 'section' => 'mcupr_display', 'label' => __( 'Default news article layout', 'mcupr' ), 'description' => __( 'Can be overridden per post in the "News layout" box on the post editor.', 'mcupr' ), 'type' => 'select', 'choices' => mcupr_layouts() ) );
+	$wp_customize->add_setting( 'mcupr_pattern', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+	$wp_customize->add_control( 'mcupr_pattern', array( 'section' => 'mcupr_display', 'label' => __( 'Show the ashoka flower background pattern (visitors can hide it)', 'mcupr' ), 'type' => 'checkbox' ) );
 	$wp_customize->add_setting( 'mcupr_listen', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 	$wp_customize->add_control( 'mcupr_listen', array( 'section' => 'mcupr_display', 'label' => __( 'Show the "listen to this article" (text-to-speech) tool', 'mcupr' ), 'type' => 'checkbox' ) );
 }

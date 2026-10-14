@@ -15,7 +15,7 @@
 	var RECENT_KEY = 'mcupr_recent';
 	var FONT_LEVELS = [87.5, 100, 125, 150, 200]; // % of browser default; 200% satisfies WCAG 1.4.4
 	var FONT_DEFAULT = 1;
-	var ATTRS = ['theme', 'font', 'contrast', 'gray', 'underline', 'readable', 'spacing', 'cursor', 'motion', 'images', 'tv'];
+	var ATTRS = ['theme', 'font', 'contrast', 'gray', 'underline', 'readable', 'spacing', 'cursor', 'motion', 'images', 'pattern', 'tv'];
 	var TV_UA = /SMART-?TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Roku|AFT[A-Z]|BRAVIA|CrKey|GoogleTV|Android TV|AppleTV|Viera|PlayStation|Xbox/i;
 	var isTvDevice = TV_UA.test(navigator.userAgent);
 	var i18n = window.mcuprI18n || {};
@@ -106,6 +106,8 @@
 				root.setAttribute('data-' + k, prefs[k]);
 			} else if (k === 'tv' && isTvDevice) {
 				root.setAttribute('data-tv', '1'); // TV browsers get TV mode (and dark theme) automatically
+			} else if (k === 'pattern' && i18n.patternDefaultOff) {
+				root.setAttribute('data-pattern', 'off'); // site default: pattern hidden
 			} else if (k === 'motion' && i18n.animDefaultOff) {
 				root.setAttribute('data-motion', '1'); // site default: animations off
 			} else if (k === 'theme' && isTvDevice && prefs.tv !== '0') {
@@ -149,7 +151,7 @@
 				var cur = prefs[k] === undefined ? (k === 'theme' ? 'auto' : (k === 'menu' ? (i18n.menuDefault || 'top') : '')) : prefs[k];
 				inp.checked = (inp.value === cur);
 			} else {
-				inp.checked = k === 'tv' ? root.getAttribute('data-tv') === '1' : prefs[k] === (inp.getAttribute('data-on') || '1');
+				inp.checked = k === 'tv' ? root.getAttribute('data-tv') === '1' : (k === 'pattern' ? root.getAttribute('data-pattern') === 'off' : prefs[k] === (inp.getAttribute('data-on') || '1'));
 			}
 		});
 	}
@@ -311,6 +313,11 @@
 		var k = inp.getAttribute('data-pref');
 		if (inp.type === 'radio') {
 			setPref(k, inp.value);
+		} else if (k === 'pattern') {
+			prefs.pattern = inp.checked ? 'off' : 'on';
+			if ((prefs.pattern === 'off') === !!i18n.patternDefaultOff) { delete prefs.pattern; }
+			save();
+			apply();
 		} else if (k === 'tv') {
 			prefs.tv = inp.checked ? '1' : '0';
 			save();

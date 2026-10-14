@@ -21,6 +21,7 @@ $checks = array(
 	'readable'  => 'readable_font',
 	'spacing'   => 'text_spacing',
 	'cursor'    => 'big_cursor',
+	'pattern'   => 'hide_pattern',
 	'images'    => 'hide_images',
 	'tv'        => 'tv_mode',
 );
@@ -105,7 +106,7 @@ $checks = array(
 			<div class="grid gap-x-6 min-[480px]:grid-cols-2">
 				<?php foreach ( $checks as $pref => $label ) : ?>
 					<label class="flex min-h-11 cursor-pointer items-center gap-2.5">
-						<input class="size-5 accent-primary" type="checkbox" data-pref="<?php echo esc_attr( $pref ); ?>" data-on="<?php echo 'images' === $pref ? 'off' : '1'; ?>">
+						<input class="size-5 accent-primary" type="checkbox" data-pref="<?php echo esc_attr( $pref ); ?>" data-on="<?php echo in_array( $pref, array( 'images', 'pattern' ), true ) ? 'off' : '1'; ?>">
 						<span><?php mcupr_e( $label ); ?></span>
 					</label>
 				<?php endforeach; ?>
