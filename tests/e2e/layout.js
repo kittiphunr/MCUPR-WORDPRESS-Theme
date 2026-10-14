@@ -430,6 +430,43 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await p.locator('#site-nav .mcupr-mega > .submenu-toggle').click();
     ok((await p.locator('#site-nav .mcupr-mega > .sub-menu').evaluate((el) => getComputedStyle(el).display)) !== 'grid', 'drawer: accordion, not a grid');
     await c.close();
+  // ================= About dialog in the Precision QC layout
+  {
+    const mods = { mcupr_credit_name: 'ผู้พัฒนาทดสอบ', mcupr_credit_role: 'นักวิชาการ', mcupr_credit_tag: 'Full-Stack', mcupr_credit_email: 'dev@example.org', mcupr_credit_tel: '089-000-0000', mcupr_credit_url: 'https://example.org/', mcupr_org_email: 'info@example.org', mcupr_org_tel: '054-000-000' };
+    const c = await newCtx({}, null, mods);
+    const p = await c.newPage();
+    await p.goto(B + '/');
+    await p.click('#about-toggle');
+    await p.waitForSelector('.swal2-popup');
+    const d = p.locator('.swal2-html-container');
+    ok((await d.locator('.about-head img').count()) === 1 && /เกี่ยวกับ มหาวิทยาลัยทดสอบ/.test(await text(p, '.about-head')), 'About: header with the logo and "About {organisation}"');
+    ok((await d.locator('.about-sec').count()) === 5, 'About: developer, website, technology, rights, contact sections');
+    ok((await d.locator('.about-sec > h3').allTextContents()).join('|') === 'ผู้พัฒนา|เกี่ยวกับเว็บไซต์|เทคโนโลยีและทรัพยากรที่นำมาใช้ (อ้างอิง)|สิทธิ์และการอ้างอิง|หน่วยงานและติดต่อ', 'About: section headings (Thai)');
+    ok(/ผู้พัฒนาทดสอบ/.test(await text(p, '.dev-name')) && /นักวิชาการ/.test(await text(p, '.dev-role')) && /Full-Stack/.test(await text(p, '.dev-tag')), 'About: developer name, role, tagline');
+    ok((await d.locator('.dev-photo-initial').count()) === 1 && (await d.locator('.dev-photo').evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))) > 30, 'About: round developer badge (initial when no photo)');
+    ok((await d.locator('a[href="mailto:dev@example.org"]').count()) === 1 && (await d.locator('a[href="tel:0890000000"]').count()) === 1 && (await d.locator('a[href="https://example.org/"][rel~=noopener]').count()) === 1, 'About: developer contacts are real links (mailto / tel / web)');
+    ok((await d.locator('a[href="mailto:info@example.org"]').count()) === 1 && (await d.locator('a[href="tel:054000000"]').count()) === 1 && /123 ถนนทดสอบ/.test(await text(p, '.swal2-html-container')), 'About: organisation address, email, tel');
+    ok((await d.locator('.about-list li').count()) >= 12 && (await d.locator('.chip-gray').count()) === 5, 'About: feature list, stack chips and credits');
+    ok((await d.locator('a[href*="tailwindcss.com"][target=_blank][rel~=noopener]').count()) === 1, 'About: credits link out safely');
+    ok(/MCUPR 1\.0\.0/.test(await text(p, '.swal2-html-container')), 'About: theme version');
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document.querySelector('.swal2-container'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe About (new layout): ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    r.violations.forEach((v) => console.log('   ', v.id, v.nodes.slice(0, 2).map((x) => x.target.join(' ')).join(' || ')));
+    await p.keyboard.press('Escape');
+    await p.waitForSelector('.swal2-popup', { state: 'detached' });
+    await p.goto(B + '/?lang=en');
+    await p.click('#about-toggle');
+    await p.waitForSelector('.swal2-popup');
+    ok(/About Test University/.test(await text(p, '.about-head')) && /Developer/.test(await text(p, '#ab-dev')) && /Rights and attributions/.test(await text(p, '#ab-rights')), 'About: English');
+    await c.close();
+    const c2 = await newCtx();
+    const p2 = await c2.newPage();
+    await p2.goto(B + '/');
+    await p2.click('#about-toggle');
+    await p2.waitForSelector('.swal2-popup');
+    ok((await p2.locator('.swal2-html-container #ab-dev').count()) === 0 && (await p2.locator('.swal2-html-container .about-sec').count()) === 4, 'About: no developer section until a credit is set (no personal data by default)');
+    await c2.close();
   }
 
   await br.close();
