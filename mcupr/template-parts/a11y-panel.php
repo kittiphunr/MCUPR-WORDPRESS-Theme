@@ -31,7 +31,7 @@ $legend   = 'px-1.5 font-bold';
 $choice   = 'flex min-h-11 cursor-pointer items-center gap-2.5';
 $input    = 'size-[1.4rem] accent-primary';
 ?>
-<section id="a11y-panel" class="border-t border-line bg-bg py-4" aria-labelledby="a11y-panel-title" hidden>
+<section id="a11y-panel" class="border-t border-line bg-bg py-4 text-fg" aria-labelledby="a11y-panel-title" hidden>
 	<div class="wrap">
 		<div class="flex items-center justify-between gap-4">
 			<h2 id="a11y-panel-title" class="m-0 text-xl font-bold"><?php mcupr_e( 'a11y_title' ); ?></h2>

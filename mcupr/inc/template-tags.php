@@ -114,3 +114,16 @@ function mcupr_search_role_attr() {
 	static $count = 0;
 	return 0 === $count++ ? ' role="search"' : '';
 }
+
+/** The organisation name in the "other" language, for the Chula-style bilingual brand. */
+function mcupr_alt_name() {
+	$alt  = 'th' === mcupr_lang() ? 'en' : 'th';
+	$name = mcupr_text_mod( 'mcupr_name', $alt );
+	return $name && $name !== mcupr_org_name() ? $name : '';
+}
+
+/** First category of the current post (card label). */
+function mcupr_first_category() {
+	$cats = get_the_category();
+	return $cats ? $cats[0]->name : '';
+}

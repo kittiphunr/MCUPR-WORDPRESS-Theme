@@ -13,6 +13,7 @@ return array(
 	'skip_nav'      => array( 'ข้ามไปยังเมนูหลัก', 'Skip to main menu', '跳到主菜单', 'メインメニューへ移動' ),
 	'skip_footer'   => array( 'ข้ามไปยังท้ายเว็บไซต์', 'Skip to footer', '跳到页脚', 'フッターへ移動' ),
 	'utility_nav'   => array( 'เครื่องมือปรับการแสดงผล', 'Display tools', '显示工具', '表示ツール' ),
+	'utility_links' => array( 'ลิงก์สำหรับกลุ่มผู้ใช้', 'Quick access links', '快速访问链接', 'クイックアクセス' ),
 	'language'      => array( 'ภาษา', 'Language', '语言', '言語' ),
 	'font_size'     => array( 'ขนาดตัวอักษร', 'Text size', '字体大小', '文字サイズ' ),
 	'font_dec'      => array( 'ลดขนาดตัวอักษร', 'Decrease text size', '缩小字体', '文字を小さくする' ),
@@ -49,6 +50,7 @@ return array(
 	'no_results_tip' => array( 'ลองใช้คำค้นอื่น', 'Please try different keywords.', '请尝试其他关键词。', '別のキーワードをお試しください。' ),
 	'home'          => array( 'หน้าแรก', 'Home', '首页', 'ホーム' ),
 	'breadcrumb'    => array( 'เส้นทางนำทาง', 'Breadcrumb', '面包屑导航', 'パンくずリスト' ),
+	'featured'      => array( 'ข่าวเด่น', 'Featured news', '焦点新闻', '注目ニュース' ),
 	'latest_news'   => array( 'ข่าวประชาสัมพันธ์ล่าสุด', 'Latest news', '最新新闻', '最新ニュース' ),
 	'all_news'      => array( 'ดูข่าวทั้งหมด', 'View all news', '查看全部新闻', 'ニュース一覧' ),
 	'read_more'     => array( 'อ่านต่อ', 'Read more', '阅读更多', '続きを読む' ),
@@ -80,6 +82,7 @@ return array(
 	'reset_q'       => array( 'คืนค่าการตั้งค่าการแสดงผลทั้งหมด?', 'Reset all display settings?', '重置所有显示设置？', 'すべての表示設定をリセットしますか？' ),
 	'reset_q_txt'   => array( 'ขนาดอักษร โหมดมืด/สว่าง และตัวเลือกการเข้าถึงจะกลับเป็นค่าเริ่มต้น', 'Text size, dark/light mode and accessibility options will return to their defaults.', '字体大小、深色/浅色模式和无障碍选项将恢复默认值。', '文字サイズ、ダーク/ライトモード、アクセシビリティ設定が初期値に戻ります。' ),
 	'search_empty'  => array( 'กรุณาพิมพ์คำที่ต้องการค้นหา', 'Please enter a search term.', '请输入搜索关键词。', '検索キーワードを入力してください。' ),
+	'back_top'      => array( 'กลับขึ้นด้านบน', 'Back to top', '返回顶部', 'ページの先頭へ' ),
 	'tr_missing'    => array(
 		'เนื้อหานี้ยังไม่มีในภาษาที่เลือก แสดงเป็นภาษาต้นฉบับ',
 		'This content is not yet available in the selected language. Showing the original.',

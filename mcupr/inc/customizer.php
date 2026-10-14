@@ -31,6 +31,9 @@ function mcupr_customize_register( $wp_customize ) {
 		$wp_customize->add_control( "mcupr_address_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'Address / contact (%s)', 'mcupr' ), $l['name'] ), 'type' => 'textarea' ) );
 	}
 
+	$wp_customize->add_setting( 'mcupr_utility_bar', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+	$wp_customize->add_control( 'mcupr_utility_bar', array( 'section' => 'mcupr_org', 'label' => __( 'Show the built-in utility bar (language, text size, dark mode, accessibility, search)', 'mcupr' ), 'type' => 'checkbox' ) );
+
 	$wp_customize->add_section(
 		'mcupr_policy',
 		array(
@@ -51,9 +54,9 @@ function mcupr_customize_register( $wp_customize ) {
 		$wp_customize->add_control( $id, array( 'section' => 'mcupr_policy', 'label' => $label, 'type' => 'dropdown-pages' ) );
 	}
 
-	$wp_customize->add_setting( 'mcupr_primary', array( 'default' => '#7a1f3d', 'sanitize_callback' => 'sanitize_hex_color' ) );
+	$wp_customize->add_setting( 'mcupr_primary', array( 'default' => '#d6006f', 'sanitize_callback' => 'sanitize_hex_color' ) );
 	$wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'mcupr_primary', array( 'section' => 'colors', 'label' => __( 'Primary colour (must keep 4.5:1 contrast with white text)', 'mcupr' ) ) ) );
-	$wp_customize->add_setting( 'mcupr_accent', array( 'default' => '#c9a227', 'sanitize_callback' => 'sanitize_hex_color' ) );
+	$wp_customize->add_setting( 'mcupr_accent', array( 'default' => '#ffb81c', 'sanitize_callback' => 'sanitize_hex_color' ) );
 	$wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'mcupr_accent', array( 'section' => 'colors', 'label' => __( 'Accent colour (decorative only)', 'mcupr' ) ) ) );
 }
 add_action( 'customize_register', 'mcupr_customize_register' );
@@ -76,8 +79,8 @@ function mcupr_policy_url( $key ) {
 
 /** Inline CSS variables from the Customizer. */
 function mcupr_custom_css() {
-	$primary = sanitize_hex_color( get_theme_mod( 'mcupr_primary', '#7a1f3d' ) );
-	$accent  = sanitize_hex_color( get_theme_mod( 'mcupr_accent', '#c9a227' ) );
+	$primary = sanitize_hex_color( get_theme_mod( 'mcupr_primary', '#d6006f' ) );
+	$accent  = sanitize_hex_color( get_theme_mod( 'mcupr_accent', '#ffb81c' ) );
 	if ( ! $primary || ! $accent ) {
 		return '';
 	}

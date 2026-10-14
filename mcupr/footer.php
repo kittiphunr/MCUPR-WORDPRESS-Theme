@@ -1,6 +1,7 @@
 <?php
 /**
- * Footer: contact and policy links required of government sites.
+ * Footer: Elementor Pro "Footer" template, or the default dark footer with
+ * the policy links expected of government websites.
  * (The cookie / PDPA notice is shown with SweetAlert2 from assets/js/main.js.)
  *
  * @package MCUPR
@@ -16,40 +17,58 @@ $policy = array(
 	'contact' => array( 'contact', 'contact' ),
 );
 $address = mcupr_text_mod( 'mcupr_address' );
+$alt     = mcupr_alt_name();
 ?>
 </main>
 
-<footer id="colophon" class="border-t-[6px] border-primary bg-surface contrast:border-line print:hidden" tabindex="-1">
-	<div class="wrap grid gap-8 py-8 min-[700px]:grid-cols-[2fr_1fr]">
+<?php if ( ! mcupr_elementor_location( 'footer' ) ) : ?>
+<footer id="colophon" class="mt-16 border-t-[6px] border-primary bg-bar text-on-bar contrast:border-line print:hidden" tabindex="-1">
+	<div class="wrap grid gap-8 py-10 min-[900px]:grid-cols-[2fr_1fr_1fr]">
 		<div>
-			<p class="mb-2 text-xl font-bold"><?php echo esc_html( mcupr_org_name() ); ?></p>
+			<?php
+			if ( has_custom_logo() ) {
+				echo wp_get_attachment_image( get_theme_mod( 'custom_logo' ), 'full', false, array( 'class' => 'mb-4 h-16 w-auto', 'alt' => '' ) );
+			}
+			?>
+			<p class="mb-1 text-xl font-bold"><?php echo esc_html( mcupr_org_name() ); ?></p>
+			<?php if ( $alt ) : ?>
+				<p class="mb-3" lang="<?php echo esc_attr( 'th' === mcupr_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></p>
+			<?php endif; ?>
 			<?php if ( $address ) : ?>
 				<address class="not-italic"><?php echo nl2br( esc_html( $address ) ); ?></address>
 			<?php endif; ?>
 		</div>
 
 		<nav aria-label="<?php echo esc_attr( mcupr_t( 'footer_nav' ) ); ?>">
+			<h2 class="mb-3 text-lg font-bold"><?php mcupr_e( 'footer_nav' ); ?></h2>
 			<ul class="footer-menu">
 				<?php foreach ( $policy as $row ) : ?>
 					<?php $url = mcupr_policy_url( $row[0] ); ?>
 					<?php if ( $url ) : ?>
-						<li><a class="inline-block py-1" href="<?php echo esc_url( $url ); ?>"><?php mcupr_e( $row[1] ); ?></a></li>
+						<li><a href="<?php echo esc_url( $url ); ?>"><?php mcupr_e( $row[1] ); ?></a></li>
 					<?php endif; ?>
 				<?php endforeach; ?>
 			</ul>
-			<?php
-			if ( has_nav_menu( 'footer' ) ) {
-				wp_nav_menu( array( 'theme_location' => 'footer', 'container' => false, 'depth' => 1, 'menu_class' => 'footer-menu' ) );
-			}
-			?>
 		</nav>
+
+		<?php if ( has_nav_menu( 'footer' ) ) : ?>
+			<nav aria-label="<?php echo esc_attr( mcupr_t( 'quick_links' ) ); ?>">
+				<h2 class="mb-3 text-lg font-bold"><?php mcupr_e( 'quick_links' ); ?></h2>
+				<?php wp_nav_menu( array( 'theme_location' => 'footer', 'container' => false, 'depth' => 1, 'menu_class' => 'footer-menu' ) ); ?>
+			</nav>
+		<?php endif; ?>
 	</div>
-	<div class="border-t border-line py-4 text-[.9375rem] text-muted">
+	<div class="border-t border-on-bar/25 py-4 text-[.9375rem]">
 		<div class="wrap">
 			<p class="m-0">© <?php echo esc_html( (int) wp_date( 'Y' ) + ( 'th' === mcupr_lang() ? 543 : 0 ) ); ?> <?php echo esc_html( mcupr_org_name() ); ?>. <?php mcupr_e( 'rights' ); ?></p>
 		</div>
 	</div>
 </footer>
+<?php endif; ?>
+
+<button type="button" id="back-to-top" class="btn fixed right-4 bottom-4 z-40 hidden shadow-lg print:hidden" aria-label="<?php echo esc_attr( mcupr_t( 'back_top' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'back_top' ) ); ?>">
+	<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
 
 <?php wp_footer(); ?>
 </body>
