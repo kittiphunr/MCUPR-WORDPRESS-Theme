@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.10.2 =
+* Collapsed sidebar card is a true pill (full semicircle ends).
+
 = 1.10.1 =
 * News browser: sub-category folders are equal squares.
 
