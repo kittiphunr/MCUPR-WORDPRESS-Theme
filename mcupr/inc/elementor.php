@@ -52,22 +52,14 @@ add_action(
 	5
 );
 
-/** Shortcodes for the Elementor "Shortcode" widget (custom headers). */
-function mcupr_sc_languages() {
-	ob_start();
-	get_template_part( 'template-parts/lang-switcher' );
-	return ob_get_clean();
-}
-add_shortcode( 'mcupr_languages', 'mcupr_sc_languages' );
-
-function mcupr_sc_search() {
-	return get_search_form( array( 'echo' => false ) );
-}
-add_shortcode( 'mcupr_search', 'mcupr_sc_search' );
-
+/**
+ * Shortcode for the Elementor "Shortcode" widget: the accessibility / language /
+ * search buttons, for use in a custom Elementor header. If an Elementor header is
+ * used without it, the theme adds a slim bar with the same buttons (header.php).
+ */
 function mcupr_sc_tools() {
 	ob_start();
-	get_template_part( 'template-parts/display-tools' );
+	mcupr_tools_cluster();
 	return ob_get_clean();
 }
 add_shortcode( 'mcupr_tools', 'mcupr_sc_tools' );

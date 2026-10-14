@@ -85,6 +85,15 @@ function mcupr_assets() {
 			'resetAll'    => mcupr_t( 'reset_all' ),
 			'searchEmpty' => mcupr_t( 'search_empty' ),
 			'ok'          => mcupr_t( 'cookie_ok' ),
+			'close'       => mcupr_t( 'close' ),
+			'a11yTitle'   => mcupr_t( 'a11y_helper' ),
+			'langTitle'   => mcupr_t( 'language' ),
+			'searchTitle' => mcupr_t( 'search' ),
+			'cursorView'  => mcupr_t( 'cursor_view' ),
+			'on'          => mcupr_t( 'on' ),
+			'off'         => mcupr_t( 'off' ),
+			'langBadge'   => mcupr_lang_badge(),
+			'searchUrl'   => esc_url_raw( add_query_arg( 's', '', mcupr_home_url() ) ),
 		)
 	);
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {

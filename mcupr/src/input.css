@@ -147,43 +147,33 @@
 	html[data-tv="1"] .site-nav li > a, html[data-tv="1"] .utility-menu a { min-height: 4rem; }
 	html[data-tv="1"] .btn-tool, html[data-tv="1"] .btn, html[data-tv="1"] .btn-outline { min-width: 4rem; }
 
-	/* Main navigation (white, Chula-style): markup comes from wp_nav_menu() */
+	/* Main navigation. >=1100px: centred inline menu with dropdowns (chevron buttons are
+	   injected by main.js). <1100px: slide-in drawer from the right. Markup: wp_nav_menu(). */
+	.site-nav { @apply max-[1099px]:invisible max-[1099px]:fixed max-[1099px]:inset-y-0 max-[1099px]:right-0 max-[1099px]:z-50 max-[1099px]:w-[min(88%,26rem)] max-[1099px]:translate-x-full max-[1099px]:overflow-y-auto max-[1099px]:bg-bg max-[1099px]:shadow-2xl max-[1099px]:transition-[transform,visibility] max-[1099px]:duration-300 min-[1100px]:justify-self-center; }
+	.site-nav.is-open { @apply max-[1099px]:visible max-[1099px]:translate-x-0; }
 	.site-nav ul { @apply m-0 list-none p-0; }
-	.site-nav .menu { @apply flex flex-col min-[900px]:flex-row min-[900px]:flex-wrap; }
-	.site-nav li { @apply relative flex flex-wrap items-stretch; }
-	.site-nav li > a { @apply flex min-h-12 flex-1 items-center border-b-4 border-transparent px-4 py-2 font-semibold text-fg no-underline min-[900px]:flex-none; }
-	.site-nav li > a:hover,
+	.site-nav .menu { @apply flex flex-col min-[1100px]:flex-row min-[1100px]:flex-wrap min-[1100px]:justify-center; }
+	.site-nav li { @apply relative flex flex-wrap items-stretch max-[1099px]:border-b max-[1099px]:border-line; }
+	.site-nav li > a { @apply flex min-h-12 flex-1 items-center px-4 py-2 font-semibold text-fg no-underline hover:text-link min-[1100px]:flex-none min-[1100px]:px-3 min-[1100px]:text-[.95rem] max-[1099px]:px-5 max-[1099px]:py-4 max-[1099px]:text-xl max-[1099px]:font-bold; }
+	.site-nav .menu > li:not(.menu-item-has-children):not(.page_item_has_children) > a { @apply max-[1099px]:after:ml-auto max-[1099px]:after:content-['→']; }
 	.site-nav .current-menu-item > a,
 	.site-nav .current_page_item > a,
-	.site-nav .current-menu-ancestor > a { @apply border-primary text-link contrast:border-[var(--text)]; }
+	.site-nav .current-menu-ancestor > a { @apply text-link; }
 	.site-nav :focus-visible { outline-offset: -4px; box-shadow: none; }
-	.site-nav .submenu-toggle { @apply min-w-9 cursor-pointer border-0 border-b-4 border-transparent bg-transparent p-0 text-fg; }
+	.site-nav .submenu-toggle { @apply inline-flex min-h-12 min-w-9 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-fg max-[1099px]:min-w-14; }
+	.site-nav .submenu-toggle svg { @apply transition-transform duration-200; }
 	.site-nav .submenu-toggle[aria-expanded="true"] svg { @apply rotate-180; }
 	.site-nav .sub-menu,
-	.site-nav .children { @apply hidden basis-full border-l-4 border-primary ml-4 bg-bg min-[900px]:absolute min-[900px]:top-full min-[900px]:left-0 min-[900px]:z-50 min-[900px]:ml-0 min-[900px]:min-w-64 min-[900px]:basis-auto min-[900px]:border-l-0 min-[900px]:border-t-4 min-[900px]:border-x min-[900px]:border-b min-[900px]:border-x-line min-[900px]:border-b-line min-[900px]:shadow-lg; }
+	.site-nav .children { @apply hidden basis-full bg-surface max-[1099px]:ml-0 min-[1100px]:absolute min-[1100px]:top-full min-[1100px]:left-0 min-[1100px]:z-50 min-[1100px]:min-w-64 min-[1100px]:basis-auto min-[1100px]:rounded-xl min-[1100px]:border min-[1100px]:border-line min-[1100px]:bg-bg min-[1100px]:py-2 min-[1100px]:shadow-xl; }
 	.site-nav li.is-open > .sub-menu,
-	.site-nav li.is-open > .children { @apply block; }
-	.site-nav .sub-menu li, .site-nav .children li { @apply flex; }
-	.site-nav .sub-menu a, .site-nav .children a { @apply border-b-0 font-medium; }
-	.site-nav .sub-menu a:hover, .site-nav .children a:hover { @apply bg-surface; }
-	.site-nav .sub-menu .sub-menu { @apply min-[900px]:top-0 min-[900px]:left-full; }
+	.site-nav li.is-open > .children { @apply block animate-fade-up; }
+	.site-nav .sub-menu li, .site-nav .children li { @apply flex border-b-0; }
+	.site-nav .sub-menu a, .site-nav .children a { @apply font-medium max-[1099px]:text-lg; }
+	.site-nav .sub-menu a:hover, .site-nav .children a:hover { @apply min-[1100px]:bg-surface; }
+	.site-nav .sub-menu .sub-menu { @apply min-[1100px]:top-0 min-[1100px]:left-full; }
 
-	/* Header floating over the home hero (white links on the photo) */
-	.site-nav--over li > a, .site-nav--over .submenu-toggle { @apply text-white; }
-	.site-nav--over li > a:hover,
-	.site-nav--over .current-menu-item > a,
-	.site-nav--over .current_page_item > a,
-	.site-nav--over .current-menu-ancestor > a { @apply border-white text-white; }
-	.site-nav--over .sub-menu, .site-nav--over .children { @apply min-[900px]:bg-neutral-900; }
-	.site-nav--over .sub-menu a { @apply text-white; }
-	.site-nav--over .sub-menu a:hover { @apply bg-white/15; }
-
-	/* Horizontal scroll-snap rows (news slider) */
-	.snap-row { @apply flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:thin]; }
-	.snap-row > * { @apply snap-start; }
-
-	/* Utility bar links (dark strip) */
-	.utility-menu { @apply m-0 flex list-none flex-wrap gap-x-1 p-0; }
+	/* Utility links (optional dark strip) */
+	.utility-menu { @apply m-0 flex list-none flex-wrap justify-end gap-x-1 p-0; }
 	.utility-menu a { @apply inline-flex min-h-11 items-center px-2 text-on-bar no-underline hover:underline; }
 
 	/* Quick links menu (home) */
@@ -192,7 +182,7 @@
 
 	/* Glass tiles on the hero */
 	.hero-menu { @apply m-0 grid list-none grid-cols-2 gap-3 p-0 min-[700px]:grid-cols-4 min-[1100px]:grid-cols-7; }
-	.hero-menu a { @apply flex min-h-20 items-end rounded-2xl border border-white/30 bg-white/15 p-3 text-sm font-semibold leading-snug text-white no-underline backdrop-blur-sm hover:bg-white/30; }
+	.hero-menu a { @apply flex min-h-28 flex-col items-start justify-between gap-4 rounded-2xl border border-white/25 bg-black/30 p-4 text-left text-sm font-semibold leading-snug text-white no-underline backdrop-blur-sm transition-colors duration-200 hover:bg-white/30; }
 
 	/* Footer menu: top-level items become columns (as on chula.ac.th) */
 	.footer-cols { @apply m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(10rem,100%),1fr))] gap-8 p-0; }
@@ -239,6 +229,11 @@
 	.swal-text a { @apply underline; }
 	.swal-confirm { @apply !min-h-11 !rounded-lg !border-2 !border-transparent !bg-primary !px-5 !font-semibold !text-on-primary contrast:!border-line; }
 	.swal-cancel { @apply !min-h-11 !rounded-lg !border-2 !border-line !bg-transparent !px-5 !font-semibold !text-fg; }
+	.swal-modal { @apply !p-6 !text-left; }
+	.swal-modal .swal-title { @apply !m-0 !mb-3 !justify-start !p-0 !text-left !text-2xl; }
+	.swal2-container:has(.swal-fullscreen) { @apply !p-0; }
+	.swal-fullscreen { @apply !rounded-none !border-0 !p-0 !pt-24; }
+	.swal-close { @apply !size-11 !rounded-full !bg-surface !text-3xl !leading-none !text-fg hover:!bg-line hover:!text-fg focus-visible:!shadow-none; }
 	.swal-toast { @apply !border-2 !border-line !bg-bg !text-fg !shadow-lg; }
 }
 
@@ -248,3 +243,49 @@
 @media print {
 	.print\:hidden { display: none !important; }
 }
+
+/* ------------------------------------------------------------ animations */
+@theme {
+	--animate-fade-up: fade-up .7s cubic-bezier(.2, .7, .2, 1) both;
+	@keyframes fade-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+}
+
+/* Scroll reveal: main.js adds .reveal, then .in when the element enters the viewport */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease var(--d, 0ms), transform .8s cubic-bezier(.2, .7, .2, 1) var(--d, 0ms); }
+.reveal.in { opacity: 1; transform: none; }
+
+/* 3D tilt with glare (main.js sets --rx/--ry/--gx/--gy on cards) */
+.tilt { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .5s cubic-bezier(.2, .7, .2, 1), box-shadow .3s, border-color .3s, opacity .7s ease var(--d, 0ms); }
+.tilt::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(400px circle at var(--gx, 50%) var(--gy, 50%), color-mix(in srgb, var(--primary) 18%, transparent), transparent 45%); }
+.tilt:hover { box-shadow: 0 14px 34px rgb(0 0 0 / .14); border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
+.tilt:hover::after { opacity: 1; }
+.tilt.tilting { transition: transform .08s linear, box-shadow .3s, border-color .3s; transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(-4px); }
+.tilt.reveal { transform: perspective(900px) translateY(28px); }
+.tilt.reveal.in { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.tilt.reveal.in.tilting { transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(-4px); }
+
+/* Interactive cursor: dot + trailing ring (main.js). The native pointer is hidden
+   only once the custom one is active, so the page never ends up without a cursor. */
+html.has-cursor.cursor-visible, html.has-cursor.cursor-visible * { cursor: none !important; }
+.cursor-dot, .cursor-ring { position: fixed; left: 0; top: 0; z-index: 2000; pointer-events: none; opacity: 0; transition: opacity .25s ease; }
+html.cursor-visible .cursor-dot, html.cursor-visible .cursor-ring { opacity: 1; }
+.cursor-dot { width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 10px color-mix(in srgb, var(--primary) 70%, transparent); }
+.cursor-dot.is-hidden { opacity: 0 !important; }
+.cursor-ring { width: 0; height: 0; display: grid; place-items: center; }
+.cursor-ring::before { content: ""; position: absolute; width: 36px; height: 36px; left: -18px; top: -18px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--primary) 65%, transparent); background: transparent; transition: width .3s cubic-bezier(.2,.7,.2,1), height .3s cubic-bezier(.2,.7,.2,1), left .3s cubic-bezier(.2,.7,.2,1), top .3s cubic-bezier(.2,.7,.2,1), background .3s, border-color .3s; }
+.cursor-ring span { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font: 600 13px/1 var(--font); letter-spacing: .04em; color: #fff; opacity: 0; transition: opacity .2s; }
+.cursor-ring.is-link::before { width: 56px; height: 56px; left: -28px; top: -28px; background: color-mix(in srgb, var(--primary) 16%, transparent); border-color: color-mix(in srgb, var(--primary) 90%, transparent); }
+.cursor-ring.is-media::before { width: 48px; height: 48px; left: -24px; top: -24px; }
+.cursor-ring.is-view::before { width: 84px; height: 84px; left: -42px; top: -42px; border-color: transparent; background: color-mix(in srgb, var(--primary) 92%, #000); box-shadow: 0 10px 30px color-mix(in srgb, var(--primary) 35%, transparent); }
+.cursor-ring.is-view span { opacity: 1; }
+.cursor-ring.is-down::before { width: 26px; height: 26px; left: -13px; top: -13px; }
+.cursor-ring.is-view.is-down::before { width: 70px; height: 70px; left: -35px; top: -35px; }
+
+/* Reduced motion / animations off: everything is shown at once, nothing tilts */
+html[data-motion="1"] .reveal, html[data-motion="1"] .tilt.reveal { opacity: 1; transform: none; }
+html[data-motion="1"] .tilt, html[data-motion="1"] .tilt.tilting { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+	.reveal, .tilt.reveal { opacity: 1; transform: none; }
+	.tilt, .tilt.tilting { transform: none; }
+}
+html[data-tv="1"] .tilt, html[data-tv="1"] .tilt.tilting { transform: none; }
