@@ -258,6 +258,69 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok((await p.request.get(B + '/?mcupr_dl=999999-0')).status() === 404, 'a missing file is 404');
   const th2 = await p.request.get(B + '/?mcupr_dl=../../wp-config.php');
   ok(th2.status() === 200 && !(await th2.text()).includes('DB_PASSWORD'), 'a crafted download parameter cannot read other files');
+  // document centre, people, forms, hero slider, social links
+  await p.goto(B + '/documents/');
+  ok((await p.$$('table.docs tbody tr')).length >= 2 && /เกียรติบัตรชนะเลิศ/.test(await p.textContent('table.docs')), 'document centre: lists the files of all posts');
+  await p.fill('input[name=dq]', 'ภาพถ่าย');
+  await Promise.all([p.waitForNavigation(), p.click('.docs-form button')]);
+  ok((await p.$$('table.docs tbody tr')).length === 1 && /dq=/.test(p.url()), 'document centre: search narrows the list');
+  await p.goto(B + '/documents/?dt=pdf');
+  ok((await p.$$('table.docs tbody tr')).length >= 1 && !/ภาพถ่ายทีม/.test(await p.textContent('table.docs')), 'document centre: filter by type');
+  await p.addScriptTag({ content: axeSource() });
+  const da = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+  ok(da.violations.length === 0, 'document centre axe: ' + (da.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  await p.goto(B + '/executives/');
+  ok((await p.$$('.person-card')).length === 3 && /อธิการบดี/.test(await p.textContent('.people-grid')), 'executives: 3 people cards from the directory');
+  await p.goto(B + '/staff/');
+  ok((await p.$$('.person-card')).length === 4, 'staff: 4 people cards');
+  await p.addScriptTag({ content: axeSource() });
+  const pa = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+  ok(pa.violations.length === 0, 'people axe: ' + (pa.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  // contact form
+  await p.goto(B + '/contact/');
+  ok((await p.$$('#mform-contact form')).length === 1 && (await p.$$eval('#mform-contact label', (l) => l.every((x) => x.control || x.querySelector('input,select,textarea')))) , 'contact page: the form with labelled fields');
+  await p.click('#mform-contact button[type=submit]');
+  await p.waitForSelector('.mform-err');
+  ok(/aria-invalid/.test(await p.innerHTML('#mform-contact')) && (await p.$$('.mform-err li')).length >= 3, 'contact form: empty submit shows the problems, fields marked invalid');
+  await p.fill('#mform-contact-name', 'สมชาย ใจดี'); await p.fill('#mform-contact-email', 'somchai@example.org');
+  await p.fill('#mform-contact-msg', 'อยากทราบกำหนดการรับสมัครนักศึกษาใหม่ครับ'); await p.check('#mform-contact input[name=consent]');
+  await p.waitForTimeout(3300);
+  await p.click('#mform-contact button[type=submit]');
+  await p.waitForSelector('.mform-ok');
+  ok(/MC-\d{8}-\d+/.test(await p.textContent('.mform-ok')) && /^[^?]*\?mf=ok/.test(p.url().replace(B, '')), 'contact form: success message with a reference number');
+  await p.goto(B + '/complaints/');
+  await p.selectOption('#mform-complaint-kind', 'corrupt');
+  await p.fill('#mform-complaint-name', 'ผู้แจ้ง'); await p.fill('#mform-complaint-email', 'a@example.org');
+  await p.fill('#mform-complaint-msg', 'ขอแจ้งเบาะแสเรื่องการจัดซื้อที่ไม่โปร่งใสครับ'); await p.check('#mform-complaint input[name=consent]');
+  await p.waitForTimeout(3300);
+  await p.click('#mform-complaint button[type=submit]');
+  await p.waitForSelector('.mform-ok');
+  ok(/MC-/.test(await p.textContent('.mform-ok')), 'complaint form: accepted with a reference number');
+  await p.goto(B + '/contact/');
+  await p.addScriptTag({ content: axeSource() });
+  const fm = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+  ok(fm.violations.length === 0, 'contact page axe: ' + (fm.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  // hero slider
+  await p.goto(B + '/');
+  ok((await p.$$('[data-hero] [data-slide]')).length === 3 && (await p.$$('[data-hero] h1')).length === 1 && (await p.$$eval('[data-hero] h1', (h) => h[0].classList.contains('sr-only'))), 'hero: 3 slides, one h1 that stays available to screen readers');
+  ok(await p.isVisible('[data-hero-ctl]') && (await p.getAttribute('[data-hero]', 'data-auto')) === '0', 'hero: controls appear with JavaScript; automatic change is off by default');
+  ok(await p.evaluate(() => document.querySelectorAll('[data-slide]')[0].classList.contains('is-active')), 'hero: slide 1 first');
+  await p.click('[data-hero-next]');
+  ok(await p.evaluate(() => document.querySelectorAll('[data-slide]')[1].classList.contains('is-active') && document.querySelectorAll('[data-hero-dot]')[1].getAttribute('aria-current') === 'true'), 'hero: Next shows slide 2 and marks its dot');
+  ok(/สไลด์ที่ 2/.test(await p.textContent('[data-slide].is-active')) && await p.isVisible('[data-slide].is-active a.hero-btn-1'), 'hero: the slide has its own headline and button');
+  await p.click('[data-hero-dot="2"]');
+  ok(/สไลด์ที่ 3/.test(await p.textContent('[data-slide].is-active')), 'hero: a dot jumps to its slide');
+  await p.click('[data-hero-prev]'); await p.click('[data-hero-prev]'); await p.click('[data-hero-prev]');
+  ok(await p.evaluate(() => document.querySelectorAll('[data-slide]')[2].classList.contains('is-active')), 'hero: Previous wraps around');
+  await p.addScriptTag({ content: axeSource() });
+  const ha = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+  ok(ha.violations.length === 0, 'home with the slider axe: ' + (ha.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  const nj = await br.newContext({ javaScriptEnabled: false, viewport: { width: 1280, height: 800 } });
+  const njp = await nj.newPage();
+  await njp.goto(B + '/');
+  ok(await njp.isVisible('[data-slide]:first-child') && !(await njp.isVisible('[data-hero-ctl]')), 'hero without JavaScript: the first slide shows, no dead buttons');
+  await nj.close();
+  ok((await p.$$('#colophon .soc a')).length === 2 && /Facebook/.test(await p.getAttribute('#colophon .soc a', 'aria-label')), 'footer: social icons for the two networks that have an address');
   // administration chart
   await p.goto(B + '/structure/');
   ok((await p.$$('.org-node')).length === 13, 'structure page: the administration chart with 13 boxes');
@@ -309,7 +372,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   const m = await br.newContext({ viewport: { width: 360, height: 740 }, reducedMotion: 'reduce' });
   await m.addInitScript(() => localStorage.setItem('mcupr_consent', '1'));
   const mp = await m.newPage();
-  for (const s of ['/', '/about/', '/ita/', '/privacy-policy/', '/events/', '/events/event-1/', '/works/', '/works/work-1/', '/structure/']) {
+  for (const s of ['/', '/about/', '/ita/', '/privacy-policy/', '/events/', '/events/event-1/', '/works/', '/works/work-1/', '/structure/', '/documents/', '/executives/', '/contact/']) {
     await mp.goto(B + s);
     ok(await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'mobile 360px: no horizontal scroll on ' + s);
   }
