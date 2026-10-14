@@ -8,8 +8,8 @@
 defined( 'ABSPATH' ) || exit;
 $cur = mcupr_lang();
 ?>
-<nav class="flex items-center gap-2" aria-label="<?php echo esc_attr( mcupr_t( 'language' ) ); ?>">
-	<span aria-hidden="true"><?php mcupr_e( 'language' ); ?></span>
+<nav class="flex flex-wrap items-center gap-x-2" aria-label="<?php echo esc_attr( mcupr_t( 'language' ) ); ?>">
+	<span class="whitespace-nowrap" aria-hidden="true"><?php mcupr_e( 'language' ); ?></span>
 	<ul class="m-0 flex list-none flex-wrap gap-1 p-0">
 		<?php foreach ( mcupr_languages() as $code => $l ) : ?>
 			<li>

@@ -8,6 +8,7 @@
 
 /* State variants driven by the visitor's saved preferences (<html data-*>) */
 @custom-variant contrast (&:where([data-contrast] *));
+@custom-variant tv (&:where([data-tv="1"] *));
 @custom-variant noimg (&:where([data-images="off"] *));
 
 /* Map Tailwind tokens to CSS variables so dark mode, high-contrast modes and
@@ -31,11 +32,14 @@
 
 @utility wrap {
 	margin-inline: auto;
-	width: min(100% - 2rem, 75rem);
+	width: min(100% - 1.5rem, 75rem);
+	@media (min-width: 400px) { width: min(100% - 2rem, 75rem); }
+	@media (min-width: 1600px) { width: min(100% - 4rem, 90rem); }
 }
 @utility narrow {
 	margin-inline: auto;
-	width: min(100% - 2rem, 52rem);
+	width: min(100% - 1.5rem, 52rem);
+	@media (min-width: 400px) { width: min(100% - 2rem, 52rem); }
 }
 
 /* ---------------------------------------------------------------- tokens */
@@ -78,12 +82,31 @@
 
 	*, ::before, ::after, ::file-selector-button { border-color: var(--border); }
 
-	/* Text size: every size in the theme is rem-based */
-	html { font-size: 100%; -webkit-text-size-adjust: 100%; scroll-padding-block: 7rem; }
-	html[data-font="0"] { font-size: 87.5%; }
-	html[data-font="2"] { font-size: 125%; }
-	html[data-font="3"] { font-size: 150%; }
-	html[data-font="4"] { font-size: 200%; }
+	/* Text size: every size in the theme is rem-based, so the root size scales
+	   the whole UI. Final size = viewport step (for large screens / 4K TVs)
+	   x the visitor's A-/A+ choice x TV mode. */
+	:root { --vp-scale: 1; --user-scale: 1; --tv-scale: 1; }
+	html { font-size: calc(100% * var(--vp-scale) * var(--user-scale) * var(--tv-scale)); -webkit-text-size-adjust: 100%; scroll-padding-block: 7rem; }
+	@media (min-width: 1600px) { :root { --vp-scale: 1.1; } }   /* large desktop */
+	@media (min-width: 1920px) { :root { --vp-scale: 1.25; } }  /* Full HD TV / monitor, or 4K at 2x pixel ratio */
+	@media (min-width: 2560px) { :root { --vp-scale: 1.65; } }  /* QHD */
+	@media (min-width: 3200px) { :root { --vp-scale: 2; } }
+	@media (min-width: 3840px) { :root { --vp-scale: 2.4; } }   /* 4K UHD at 1x pixel ratio */
+	@media (max-width: 299px) { :root { --vp-scale: .9375; } }   /* 240px-wide screens */
+	html[data-font="0"] { --user-scale: .875; }
+	html[data-font="2"] { --user-scale: 1.25; }
+	html[data-font="3"] { --user-scale: 1.5; }
+	html[data-font="4"] { --user-scale: 2; }
+
+	/* TV mode (10-foot UI): bigger type, bigger targets, thick focus ring,
+	   safe margins for overscan, remote-control (D-pad) friendly */
+	html[data-tv="1"] { --tv-scale: 1.2; }
+	html[data-tv="1"] body { line-height: 1.8; }
+	html[data-tv="1"] :focus-visible { outline-width: 6px; outline-offset: 4px; box-shadow: 0 0 0 10px var(--bg); }
+	html[data-tv="1"] .wrap, html[data-tv="1"] .narrow { width: min(100% - 8vw, 90rem); }
+	html[data-tv="1"] .narrow { width: min(100% - 8vw, 56rem); }
+	html[data-tv="1"] article:focus-within { transform: scale(1.02); transition: transform .15s; }
+	html[data-tv="1"] .site-main, html[data-tv="1"] main { scroll-margin-block: 10vh; }
 
 	body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 1.0625rem; line-height: 1.7; overflow-wrap: anywhere; }
 	a { color: var(--link); text-underline-offset: .15em; }
@@ -118,6 +141,11 @@
 	.btn-tool {
 		@apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border-2 border-line bg-transparent px-3 py-1.5 font-semibold leading-tight text-fg hover:bg-surface aria-pressed:bg-surface aria-disabled:cursor-not-allowed aria-disabled:opacity-45;
 	}
+
+	/* TV mode: larger touch/remote targets */
+	html[data-tv="1"] .btn, html[data-tv="1"] .btn-tool, html[data-tv="1"] .btn-outline,
+	html[data-tv="1"] .site-nav li > a, html[data-tv="1"] .utility-menu a { min-height: 4rem; }
+	html[data-tv="1"] .btn-tool, html[data-tv="1"] .btn, html[data-tv="1"] .btn-outline { min-width: 4rem; }
 
 	/* Main navigation (white, Chula-style): markup comes from wp_nav_menu() */
 	.site-nav ul { @apply m-0 list-none p-0; }
@@ -159,7 +187,7 @@
 	.utility-menu a { @apply inline-flex min-h-11 items-center px-2 text-on-bar no-underline hover:underline; }
 
 	/* Quick links menu (home) */
-	.quick-menu { @apply m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-3 p-0; }
+	.quick-menu { @apply m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(10rem,100%),1fr))] gap-3 p-0; }
 	.quick-menu a { @apply flex min-h-24 items-center justify-center rounded-lg border border-b-4 border-line border-b-primary bg-bg p-3 text-center text-lg font-bold text-fg no-underline shadow-sm hover:bg-primary hover:text-on-primary; }
 
 	/* Glass tiles on the hero */
@@ -167,14 +195,14 @@
 	.hero-menu a { @apply flex min-h-20 items-end rounded-2xl border border-white/30 bg-white/15 p-3 text-sm font-semibold leading-snug text-white no-underline backdrop-blur-sm hover:bg-white/30; }
 
 	/* Footer menu: top-level items become columns (as on chula.ac.th) */
-	.footer-cols { @apply m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-8 p-0; }
-	.footer-cols > li > a { @apply mb-2 inline-block text-base font-bold text-on-bar no-underline; }
+	.footer-cols { @apply m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(10rem,100%),1fr))] gap-8 p-0; }
+	.footer-cols > li > a { @apply mb-2 inline-flex min-h-8 min-w-8 items-center text-base font-bold text-on-bar no-underline; }
 	.footer-cols .sub-menu { @apply m-0 list-none p-0; }
-	.footer-cols .sub-menu a { @apply inline-block py-0.5 text-sm text-on-bar/85; }
+	.footer-cols .sub-menu a { @apply inline-flex min-h-8 min-w-8 items-center text-sm text-on-bar/85; }
 
 	/* Footer menu */
 	.footer-menu { @apply m-0 list-none p-0; }
-	.footer-menu a { @apply inline-block py-1 text-on-bar; }
+	.footer-menu a { @apply inline-flex min-h-8 min-w-8 items-center text-on-bar; }
 
 	/* Content written in the editor (unclassed HTML) */
 	.entry-content { @apply text-lg; }

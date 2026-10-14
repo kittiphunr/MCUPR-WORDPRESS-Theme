@@ -94,7 +94,7 @@ add_action( 'wp_enqueue_scripts', 'mcupr_assets' );
  */
 function mcupr_head_prefs() {
 	?>
-<script>(function(){try{var d=document.documentElement,p=JSON.parse(localStorage.getItem('mcupr_prefs')||'{}');['theme','font','contrast','gray','underline','readable','spacing','cursor','motion','images'].forEach(function(k){if(p[k]!==undefined&&p[k]!==''){d.setAttribute('data-'+k,p[k]);}});}catch(e){}})();</script>
+<script>(function(){try{var d=document.documentElement,p=JSON.parse(localStorage.getItem('mcupr_prefs')||'{}');['theme','font','contrast','gray','underline','readable','spacing','cursor','motion','images','tv'].forEach(function(k){if(p[k]!==undefined&&p[k]!==''){d.setAttribute('data-'+k,p[k]);}});if(p.tv===undefined&&/SMART-?TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Roku|AFT[A-Z]|BRAVIA|CrKey|GoogleTV|Android TV|AppleTV|Viera|PlayStation|Xbox/i.test(navigator.userAgent)){d.setAttribute('data-tv','1');if(p.theme===undefined){d.setAttribute('data-theme','dark');}}}catch(e){}})();</script>
 	<?php
 }
 add_action( 'wp_head', 'mcupr_head_prefs', 1 );

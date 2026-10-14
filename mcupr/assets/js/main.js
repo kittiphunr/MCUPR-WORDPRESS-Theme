@@ -11,7 +11,9 @@
 	var CONSENT_KEY = 'mcupr_consent';
 	var FONT_LEVELS = [87.5, 100, 125, 150, 200]; // % of browser default; 200% satisfies WCAG 1.4.4
 	var FONT_DEFAULT = 1;
-	var ATTRS = ['theme', 'font', 'contrast', 'gray', 'underline', 'readable', 'spacing', 'cursor', 'motion', 'images'];
+	var ATTRS = ['theme', 'font', 'contrast', 'gray', 'underline', 'readable', 'spacing', 'cursor', 'motion', 'images', 'tv'];
+	var TV_UA = /SMART-?TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Roku|AFT[A-Z]|BRAVIA|CrKey|GoogleTV|Android TV|AppleTV|Viera|PlayStation|Xbox/i;
+	var isTvDevice = TV_UA.test(navigator.userAgent);
 	var i18n = window.mcuprI18n || {};
 	var root = document.documentElement;
 	var prefs = {};
@@ -70,6 +72,7 @@
 	}
 
 	function isDark() {
+		if (prefs.theme === undefined && isTvDevice && prefs.tv !== '0') { return true; }
 		if (prefs.theme === 'dark') { return true; }
 		if (prefs.theme === 'light') { return false; }
 		return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -79,6 +82,10 @@
 		ATTRS.forEach(function (k) {
 			if (prefs[k] !== undefined && prefs[k] !== '') {
 				root.setAttribute('data-' + k, prefs[k]);
+			} else if (k === 'tv' && isTvDevice) {
+				root.setAttribute('data-tv', '1'); // TV browsers get TV mode (and dark theme) automatically
+			} else if (k === 'theme' && isTvDevice && prefs.tv !== '0') {
+				root.setAttribute('data-theme', 'dark');
 			} else {
 				root.removeAttribute('data-' + k);
 			}
@@ -103,7 +110,7 @@
 				var cur = prefs[k] === undefined ? (k === 'theme' ? 'auto' : '') : prefs[k];
 				inp.checked = (inp.value === cur);
 			} else {
-				inp.checked = prefs[k] === (inp.getAttribute('data-on') || '1');
+				inp.checked = k === 'tv' ? root.getAttribute('data-tv') === '1' : prefs[k] === (inp.getAttribute('data-on') || '1');
 			}
 		});
 	}
@@ -167,7 +174,13 @@
 		if (inp.type === 'radio') {
 			setPref(k, inp.value);
 		} else {
-			setPref(k, inp.checked ? (inp.getAttribute('data-on') || '1') : '');
+			if (k === 'tv') {
+				prefs.tv = inp.checked ? '1' : '0';
+				save();
+				apply();
+			} else {
+				setPref(k, inp.checked ? (inp.getAttribute('data-on') || '1') : '');
+			}
 		}
 	});
 
@@ -218,6 +231,62 @@
 			if (e.key === 'Escape' && !panel.hidden) { setPanel(false, true); }
 		});
 	}
+
+	/* ---- TV remote: D-pad spatial navigation + Back key (TV mode only) ---- */
+	var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+	var DIRS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+
+	function visibleFocusables() {
+		return $$(FOCUSABLE).filter(function (el) {
+			if (el.closest('[hidden], .hidden, [inert]') || el.getAttribute('aria-hidden') === 'true') { return false; }
+			var r = el.getBoundingClientRect();
+			return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';
+		});
+	}
+
+	function spatialMove(dir) {
+		var cur = document.activeElement;
+		var list = visibleFocusables();
+		if (!cur || cur === document.body || list.indexOf(cur) < 0) {
+			var inView = list.filter(function (el) { var r = el.getBoundingClientRect(); return r.top >= 0 && r.top < window.innerHeight; });
+			if (inView[0]) { inView[0].focus(); return true; }
+			return false;
+		}
+		var a = cur.getBoundingClientRect();
+		var ax = a.left + a.width / 2, ay = a.top + a.height / 2;
+		var best = null, bestScore = Infinity;
+		list.forEach(function (el) {
+			if (el === cur) { return; }
+			var b = el.getBoundingClientRect();
+			var bx = b.left + b.width / 2, by = b.top + b.height / 2;
+			var dx = bx - ax, dy = by - ay, main, cross;
+			if (dir === 'right') { if (b.left < a.right - 2 && dx <= 0) { return; } main = Math.max(0, b.left - a.right); cross = Math.abs(dy); if (dx <= 0) { return; } }
+			if (dir === 'left') { if (dx >= 0) { return; } main = Math.max(0, a.left - b.right); cross = Math.abs(dy); }
+			if (dir === 'down') { if (dy <= 0) { return; } main = Math.max(0, b.top - a.bottom); cross = Math.abs(dx); }
+			if (dir === 'up') { if (dy >= 0) { return; } main = Math.max(0, a.top - b.bottom); cross = Math.abs(dx); }
+			var score = main + cross * 2;
+			if (score < bestScore) { bestScore = score; best = el; }
+		});
+		if (best) { best.focus(); best.scrollIntoView({ block: 'nearest', inline: 'nearest' }); return true; }
+		return false;
+	}
+
+	document.addEventListener('keydown', function (e) {
+		if (root.getAttribute('data-tv') !== '1' || e.altKey || e.ctrlKey || e.metaKey) { return; }
+		var a = document.activeElement;
+		if (a && a.closest && a.closest('.swal2-container')) { return; }
+		var back = e.key === 'XF86Back' || e.key === 'BrowserBack' || e.keyCode === 10009 || e.keyCode === 461;
+		if (back) {
+			e.preventDefault();
+			if (panel && !panel.hidden) { setPanel(false, true); } else if (window.history.length > 1) { window.history.back(); }
+			return;
+		}
+		var dir = DIRS[e.key];
+		if (!dir) { return; }
+		var t = a && a.tagName;
+		if (t === 'TEXTAREA' || (t === 'INPUT' && /^(text|search|email|url|tel|password|number)$/.test(a.type) && (dir === 'left' || dir === 'right'))) { return; }
+		if (spatialMove(dir)) { e.preventDefault(); }
+	});
 
 	/* ---- Skip-to-menu link only makes sense when the default menu exists ---- */
 	if (!document.getElementById('site-nav')) {

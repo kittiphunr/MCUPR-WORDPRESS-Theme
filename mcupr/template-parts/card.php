@@ -22,7 +22,7 @@ $heading   = isset( $args['heading'] ) && 'h2' === $args['heading'] ? 'h2' : 'h3
 			<?php endif; ?>
 			<?php mcupr_date(); ?>
 		</p>
-		<<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?> class="mb-2 text-lg font-bold leading-snug"><a class="text-fg" href="<?php the_permalink(); ?>"><?php the_title(); ?></a></<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+		<<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?> class="mb-2 text-lg font-bold leading-snug"><a class="inline-block py-1 text-fg" href="<?php the_permalink(); ?>"><?php the_title(); ?></a></<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<div class="text-muted [&_p]:m-0"><?php the_excerpt(); ?></div>
 	</div>
 </article>
