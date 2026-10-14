@@ -103,6 +103,8 @@ $loc = array(
 	'primary_th' => mcupr_test_menu( 'Main TH', array( 'เกี่ยวกับ' => array( 'ประวัติ' ), 'ข่าว' => array() ) ),
 	'quick'      => mcupr_test_menu( 'Quick', array( 'การสมัครเรียน' => array(), 'หลักสูตร' => array(), 'ทุนการศึกษา' => array(), 'ปฏิทินการศึกษา' => array(), 'ห้องสมุด' => array(), 'ศิษย์เก่า' => array(), 'ติดต่อ' => array() ), array( 'edit', 'book', 'bulb', 'money', 'bank', 'cap', 'mail' ) ),
 	'footer'     => mcupr_test_menu( 'Footer', array( 'เกี่ยวกับ ' => array( 'ประวัติ', 'ผู้บริหาร' ), 'การศึกษา' => array( 'หลักสูตร', 'ทุน' ), 'วิจัย' => array( 'ศูนย์วิจัย' ) ) ),
+	// a long English menu (like a real university site: 7+ items, several with dropdowns) for the "More" overflow tests
+	'primary_en' => mcupr_test_menu( 'Main EN', array( 'Home' => array(), 'About the University' => array( 'History', 'Executives' ), 'Offices and Departments' => array( 'Registrar' ), 'E-office System' => array( 'Mail', 'Documents' ), 'Programmes' => array( 'Bachelor', 'Master' ), 'For Students' => array(), 'Staff' => array( 'HR' ), 'Contact us' => array() ) ),
 	'utility'    => mcupr_test_menu( 'Utility', array( 'นักศึกษา' => array(), 'บุคลากร' => array(), 'ศิษย์เก่า' => array() ) ),
 );
 set_theme_mod( 'nav_menu_locations', $loc );
