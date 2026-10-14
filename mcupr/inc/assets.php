@@ -53,6 +53,7 @@ function mcupr_assets() {
 			'colorDefault' => get_theme_mod( 'mcupr_palette', 'rose' ),
 			'palettes'    => mcupr_palettes_for_js(),
 			'expandMenu'  => mcupr_t( 'expand_menu' ),
+				'moreMenu'    => mcupr_t( 'more_menu' ),
 			'collapseMenu' => mcupr_t( 'collapse_menu' ),
 			'aboutTitle'  => mcupr_t( 'about' ),
 			'searchUrl'   => esc_url_raw( add_query_arg( 's', '', mcupr_home_url() ) ),
