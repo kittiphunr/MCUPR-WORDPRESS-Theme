@@ -338,6 +338,53 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await c2.close();
   }
 
+  // ================= top-bar menu: one row, overflow goes into "More"
+  {
+    const rowTops = (p) => p.locator('#site-nav .menu > li').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().top)));
+    const c = await newCtx({ viewport: { width: 1280, height: 800 } });
+    const p = await c.newPage();
+    await p.goto(B + '/?lang=en');
+    await p.waitForSelector('.menu-more');
+    const tops = await rowTops(p);
+    ok(new Set(tops).size === 1, 'top menu: every item on ONE row ' + tops.join(','));
+    const hb = await p.locator('#masthead').evaluate((el) => Math.round(el.getBoundingClientRect().height));
+    ok(hb <= 90, 'header stays slim (' + hb + 'px)');
+    const hidden = await p.locator('.menu-more > .sub-menu > li').count();
+    ok(hidden >= 1, 'overflowing items moved into "More" (' + hidden + ')');
+    ok((await p.locator('#site-nav .menu li:not(.menu-more) a').allTextContents()).concat(await p.locator('.menu-more .sub-menu a').allTextContents()).some((t) => /Contact us/.test(t)), 'no item is lost: "Contact us" is reachable');
+    const moreBtn = p.locator('.more-btn');
+    ok((await moreBtn.getAttribute('aria-expanded')) === 'false' && /More/.test(await moreBtn.textContent()), 'More button is a real button with aria-expanded');
+    await moreBtn.click();
+    ok((await moreBtn.getAttribute('aria-expanded')) === 'true' && await p.locator('.menu-more > .sub-menu').isVisible(), 'More opens the dropdown');
+    const box = await p.locator('.menu-more > .sub-menu').boundingBox();
+    ok(box.x >= 0 && box.x + box.width <= 1280, 'dropdown stays inside the screen (' + Math.round(box.x) + '..' + Math.round(box.x + box.width) + ')');
+    await p.screenshot({ path: shot('layout-menu-more.png') });
+    await p.keyboard.press('Escape');
+    ok((await moreBtn.getAttribute('aria-expanded')) === 'false' && !(await p.locator('.menu-more > .sub-menu').isVisible()), 'Esc closes it and returns focus to the button');
+    await moreBtn.click();
+    await p.mouse.click(300, 600);
+    ok(!(await p.locator('.menu-more > .sub-menu').isVisible()), 'a click outside closes it');
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe with the overflow menu: ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    r.violations.forEach((v) => console.log('   ', v.id, v.nodes.slice(0, 2).map((x) => x.target.join(' ')).join(' || ')));
+    await p.setViewportSize({ width: 1920, height: 800 });
+    await p.waitForTimeout(400);
+    const hidden2 = await p.locator('.menu-more > .sub-menu > li').count();
+    ok(hidden2 < hidden, 'wider screen: fewer items in More (' + hidden + ' -> ' + hidden2 + ')');
+    ok(new Set(await rowTops(p)).size === 1, 'still one row at 1920');
+    await p.setViewportSize({ width: 800, height: 800 });
+    await p.waitForTimeout(400);
+    ok((await p.locator('.menu-more').count()) === 0, 'below 1100px: the drawer shows the full menu (no More)');
+    await p.setViewportSize({ width: 1280, height: 800 });
+    await p.waitForTimeout(400);
+    ok((await p.locator('.menu-more').count()) === 1, 'back to desktop: More returns');
+    await p.evaluate(() => { document.documentElement.setAttribute('data-menu', 'side'); });
+    await p.waitForTimeout(400);
+    ok((await p.locator('.menu-more').count()) === 0 && (await p.locator('#site-nav .menu > li').count()) === 8, 'sidebar mode: all 8 items in the rail (no More)');
+    await c.close();
+  }
+
   await br.close();
   finish();
   async function text(p, sel) { return p.evaluate((s) => (document.querySelector(s) || {}).textContent || '', sel); }
