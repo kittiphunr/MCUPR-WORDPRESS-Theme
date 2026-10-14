@@ -1,8 +1,8 @@
 <?php
 /**
- * Front page (Chula-style): hero with featured story + three headlines,
- * quick links, then the latest news. If the front page is a static page built
- * with Elementor, that design is shown instead.
+ * Front page (Chula-style): full-width hero photo with headline and glass quick
+ * links, a scrollable featured-news slider, latest news grid and a pale banner.
+ * If the front page is a static page built with Elementor, that design is shown.
  *
  * @package MCUPR
  */
@@ -19,74 +19,81 @@ if ( is_page() && mcupr_is_elementor_page( get_queried_object_id() ) ) {
 	return;
 }
 
-$news  = new WP_Query(
+$news   = new WP_Query(
 	array(
-		'posts_per_page'      => 10,
+		'posts_per_page'      => 12,
 		'ignore_sticky_posts' => false,
 		'no_found_rows'       => true,
 	)
 );
-$posts = $news->posts;
-$hero  = array_slice( $posts, 0, 1 );
-$side  = array_slice( $posts, 1, 3 );
-$rest  = array_slice( $posts, 4 );
-$blog  = get_option( 'page_for_posts' ) ? get_permalink( get_option( 'page_for_posts' ) ) : '';
+$posts  = $news->posts;
+$slider = array_slice( $posts, 0, 6 );
+$rest   = array_slice( $posts, 6 );
+$blog   = get_option( 'page_for_posts' ) ? get_permalink( get_option( 'page_for_posts' ) ) : '';
 
-/** Overlay tile used in the hero. */
-$tile = static function ( $big ) {
-	$lang = mcupr_part_lang_attr();
-	?>
-	<article class="group relative isolate flex min-h-56 flex-col justify-end overflow-hidden rounded-lg bg-neutral-800 text-white <?php echo $big ? 'min-h-72 min-[900px]:row-span-3 min-[900px]:min-h-[28rem]' : ''; ?>">
-		<?php if ( has_post_thumbnail() ) : ?>
-			<span class="noimg:hidden absolute inset-0 -z-10" aria-hidden="true"><?php the_post_thumbnail( $big ? 'mcupr-hero' : 'mcupr-card', array( 'alt' => '', 'class' => 'size-full object-cover transition-transform duration-500 group-hover:scale-105' ) ); ?></span>
-		<?php endif; ?>
-		<span class="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/45 to-transparent" aria-hidden="true"></span>
-		<div class="p-5"<?php echo $lang; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
-			<p class="mb-1 flex flex-wrap gap-x-3 text-sm text-white">
-				<?php if ( mcupr_first_category() ) : ?>
-					<span class="rounded bg-primary px-2 py-0.5 font-bold text-on-primary"><?php echo esc_html( mcupr_first_category() ); ?></span>
-				<?php endif; ?>
-				<?php mcupr_date(); ?>
-			</p>
-			<h3 class="<?php echo $big ? 'text-2xl min-[900px]:text-3xl' : 'text-lg'; ?> font-bold leading-snug"><a class="text-white after:absolute after:inset-0 after:content-['']" href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
-		</div>
-	</article>
-	<?php
-};
+$hero_img = mcupr_hero_image_url( $posts ? $posts[0]->ID : 0 );
+$line1    = mcupr_text_mod( 'mcupr_hero_l1' );
+$line2    = mcupr_text_mod( 'mcupr_hero_l2' );
+if ( '' === $line1 . $line2 ) {
+	$line2 = mcupr_org_name();
+}
+$cta_title = mcupr_text_mod( 'mcupr_cta_title' );
+$cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 ?>
-<h1 class="sr-only"><?php echo esc_html( mcupr_org_name() ); ?></h1>
+<section class="relative isolate flex min-h-[34rem] flex-col items-center justify-center overflow-hidden bg-neutral-800 px-4 pt-44 pb-16 text-center text-white min-[900px]:min-h-[42rem]">
+	<?php if ( $hero_img ) : ?>
+		<img class="noimg:hidden absolute inset-0 -z-20 size-full object-cover" src="<?php echo esc_url( $hero_img ); ?>" alt="" fetchpriority="high">
+	<?php endif; ?>
+	<span class="absolute inset-0 -z-10 bg-black/50" aria-hidden="true"></span>
 
-<?php if ( $hero ) : ?>
-<section class="wrap mt-6" aria-labelledby="latest-title">
-	<h2 id="latest-title" class="sr-only"><?php mcupr_e( 'featured' ); ?></h2>
-	<div class="grid gap-4 min-[900px]:grid-cols-[2fr_1fr] min-[900px]:grid-rows-3">
+	<h1 class="mb-10 max-w-4xl leading-tight [text-shadow:0_2px_12px_rgb(0_0_0/.5)]">
+		<?php if ( $line1 ) : ?><span class="block text-3xl font-light min-[900px]:text-5xl"><?php echo esc_html( $line1 ); ?></span><?php endif; ?>
+		<?php if ( $line2 ) : ?><span class="block text-4xl font-bold min-[900px]:text-6xl"><?php echo esc_html( $line2 ); ?></span><?php endif; ?>
+	</h1>
+
+	<?php if ( has_nav_menu( 'quick' ) ) : ?>
+		<nav class="wrap" aria-label="<?php echo esc_attr( mcupr_t( 'quick_links' ) ); ?>">
+			<?php wp_nav_menu( array( 'theme_location' => 'quick', 'container' => false, 'menu_class' => 'hero-menu', 'depth' => 1 ) ); ?>
+		</nav>
+	<?php endif; ?>
+</section>
+
+<?php if ( $slider ) : ?>
+<section class="wrap mt-10" aria-labelledby="featured-title" data-carousel>
+	<h2 id="featured-title" class="sr-only"><?php mcupr_e( 'featured' ); ?></h2>
+	<div id="news-slider" class="snap-row" tabindex="0" role="region" aria-label="<?php echo esc_attr( mcupr_t( 'news_slider' ) ); ?>" data-carousel-track>
 		<?php
-		foreach ( $hero as $p ) {
+		foreach ( $slider as $p ) :
 			setup_postdata( $GLOBALS['post'] = $p ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride
-			$tile( true );
-		}
-		foreach ( $side as $p ) {
-			setup_postdata( $GLOBALS['post'] = $p ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride
-			$tile( false );
-		}
-		?>
+			?>
+			<article class="group relative isolate flex min-h-72 min-w-[85%] flex-col justify-end overflow-hidden rounded-2xl bg-neutral-800 text-white min-[700px]:min-w-[26rem]">
+				<?php if ( has_post_thumbnail() ) : ?>
+					<span class="noimg:hidden absolute inset-0 -z-20" aria-hidden="true"><?php the_post_thumbnail( 'mcupr-hero', array( 'alt' => '', 'class' => 'size-full object-cover transition-transform duration-500 group-hover:scale-105' ) ); ?></span>
+				<?php endif; ?>
+				<span class="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/50 to-black/10" aria-hidden="true"></span>
+				<div class="p-5"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+					<p class="mb-1 text-sm text-white"><?php echo esc_html( mcupr_first_category() ); ?> · <?php mcupr_date(); ?></p>
+					<h3 class="mb-4 text-xl font-bold leading-snug"><?php the_title(); ?></h3>
+					<a class="inline-flex min-h-11 items-center gap-2 rounded-full bg-white px-5 py-1.5 font-semibold text-black no-underline after:absolute after:inset-0 after:content-[''] hover:bg-neutral-200" href="<?php the_permalink(); ?>">
+						<?php mcupr_e( 'read_more' ); ?><span class="sr-only">: <?php the_title(); ?></span> <span aria-hidden="true">→</span>
+					</a>
+				</div>
+			</article>
+		<?php endforeach; ?>
+	</div>
+	<div class="mt-4 flex justify-end gap-2">
+		<button type="button" class="btn-tool !size-11 !rounded-full !p-0" data-carousel-prev aria-controls="news-slider" aria-label="<?php echo esc_attr( mcupr_t( 'slide_prev' ) ); ?>"><span aria-hidden="true">←</span></button>
+		<button type="button" class="btn-tool !size-11 !rounded-full !p-0" data-carousel-next aria-controls="news-slider" aria-label="<?php echo esc_attr( mcupr_t( 'slide_next' ) ); ?>"><span aria-hidden="true">→</span></button>
 	</div>
 </section>
 <?php endif; ?>
 
-<?php if ( has_nav_menu( 'quick' ) ) : ?>
-<section class="wrap mt-12" aria-labelledby="quick-title">
-	<div class="mb-5 flex items-end justify-between gap-4 border-b border-line pb-2"><h2 id="quick-title" class="relative text-2xl font-bold after:absolute after:-bottom-[calc(.5rem+1px)] after:left-0 after:h-1 after:w-16 after:bg-primary after:content-[""] contrast:after:bg-[var(--text)]"><?php mcupr_e( 'quick_links' ); ?></h2></div>
-	<?php wp_nav_menu( array( 'theme_location' => 'quick', 'container' => false, 'menu_class' => 'quick-menu', 'depth' => 1 ) ); ?>
-</section>
-<?php endif; ?>
-
 <?php if ( $rest ) : ?>
-<section class="wrap mt-12" aria-labelledby="news-title">
-	<div class="mb-5 flex items-end justify-between gap-4 border-b border-line pb-2">
-		<h2 id="news-title" class="relative text-2xl font-bold after:absolute after:-bottom-[calc(.5rem+1px)] after:left-0 after:h-1 after:w-16 after:bg-primary after:content-[""] contrast:after:bg-[var(--text)]"><?php mcupr_e( 'latest_news' ); ?></h2>
+<section class="wrap mt-14" aria-labelledby="news-title">
+	<div class="mb-6 flex items-end justify-between gap-4">
+		<h2 id="news-title" class="text-2xl font-bold min-[900px]:text-3xl"><?php mcupr_e( 'news_events' ); ?></h2>
 		<?php if ( $blog ) : ?>
-			<a class="font-bold" href="<?php echo esc_url( $blog ); ?>"><?php mcupr_e( 'all_news' ); ?> <span aria-hidden="true">›</span></a>
+			<a class="btn-outline" href="<?php echo esc_url( $blog ); ?>"><?php mcupr_e( 'all_news' ); ?> <span aria-hidden="true">→</span></a>
 		<?php endif; ?>
 	</div>
 	<div class="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-6">
@@ -99,9 +106,20 @@ $tile = static function ( $big ) {
 	</div>
 </section>
 <?php endif; ?>
-<?php
-wp_reset_postdata();
+<?php wp_reset_postdata(); ?>
 
+<?php if ( $cta_title ) : ?>
+<section class="wrap mt-16" aria-label="<?php echo esc_attr( $cta_title ); ?>">
+	<div class="flex flex-wrap items-center justify-between gap-6 rounded-3xl bg-tint px-8 py-12 contrast:border-2 contrast:border-line">
+		<p class="m-0 max-w-2xl text-2xl font-bold leading-snug min-[900px]:text-4xl"><?php echo esc_html( $cta_title ); ?></p>
+		<?php if ( $cta_url ) : ?>
+			<a class="btn" href="<?php echo esc_url( $cta_url ); ?>"><?php mcupr_e( 'read_more' ); ?> <span aria-hidden="true">→</span></a>
+		<?php endif; ?>
+	</div>
+</section>
+<?php endif; ?>
+
+<?php
 // Optional extra content when a static (non-Elementor) page is the front page.
 if ( is_page() ) {
 	while ( have_posts() ) {

@@ -127,3 +127,20 @@ function mcupr_first_category() {
 	$cats = get_the_category();
 	return $cats ? $cats[0]->name : '';
 }
+
+/** Home page shows the hero, so the header floats over it. */
+function mcupr_header_over_hero() {
+	return is_front_page() && ! is_paged() && ! ( is_page() && mcupr_is_elementor_page( get_queried_object_id() ) );
+}
+
+/** Hero background image URL: Customizer image, else the newest post thumbnail. */
+function mcupr_hero_image_url( $fallback_post_id = 0 ) {
+	$id = (int) get_theme_mod( 'mcupr_hero_image', 0 );
+	if ( $id ) {
+		$url = wp_get_attachment_image_url( $id, 'full' );
+		if ( $url ) {
+			return $url;
+		}
+	}
+	return $fallback_post_id ? (string) get_the_post_thumbnail_url( $fallback_post_id, 'full' ) : '';
+}
