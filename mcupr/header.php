@@ -27,6 +27,7 @@ defined( 'ABSPATH' ) || exit;
 </nav>
 
 <div id="page" class="site-page">
+<?php mcupr_notice_bar(); ?>
 <?php if ( has_nav_menu( 'utility' ) ) : ?>
 	<div class="bg-bar text-[.8125rem] text-on-bar print:hidden">
 		<div class="wrap">
