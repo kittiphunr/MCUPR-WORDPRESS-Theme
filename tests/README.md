@@ -11,7 +11,7 @@
 cd tests
 npm install
 npm test                   # สร้างไซต์ทดสอบ (ครั้งแรก) + รันทุกชุด
-npm run test:functional    # หรือ responsive | elementor | polylang
+npm run test:functional    # หรือ effects | responsive | elementor | polylang
 npm run check              # ตรวจเร็ว (ไม่ต้องมี WordPress): PHP lint, JS syntax, CSS Tailwind เป็นปัจจุบัน
 ```
 
@@ -22,7 +22,8 @@ npm run check              # ตรวจเร็ว (ไม่ต้องม�
 
 | ไฟล์ | ตรวจอะไร |
 |---|---|
-| `e2e/functional.js` | สลับ 4 ภาษา + จำค่า, คำแปลเนื้อหา/แจ้งเมื่อไม่มีคำแปล, ขนาดอักษร (87.5–200%), โหมดมืด/ตามระบบ, โหมดคอนทราสต์/สีเทา/ระยะห่าง, แผนการเข้าถึง (โฟกัส, Esc), SweetAlert2 (คุกกี้/PDPA, ยืนยันรีเซ็ต, toast, เตือนค้นหาว่าง), เมนูย่อยด้วยคีย์บอร์ด, skip link, มือถือ และ **axe-core** (WCAG 2.2 AA + best-practice) 4 หน้า × สว่าง/มืด |
+| `e2e/functional.js` | คุกกี้/PDPA, สลับ 4 ภาษา (กล่องภาษา) + จำค่า, คำแปลเนื้อหา, กล่องตัวช่วยการเข้าถึง (ขนาดอักษร 87.5–200%, สวิตช์คอนทราสต์, โหมดมืด, ตัวเลือกเพิ่มเติม, รีเซ็ต, โฟกัส/Esc), กล่องค้นหาเต็มจอ (ค้นหาล่าสุด/ยอดนิยม/ข้อความเมื่อว่าง), เมนูย่อยด้วยคีย์บอร์ด, drawer มือถือ, skip link และ **axe-core** (WCAG 2.2 AA + best-practice) 4 หน้า × สว่าง/มืด + 3 กล่องโต้ตอบ |
+| `e2e/effects.js` | scroll reveal (ไม่กะพริบ), การ์ดเอียง, เคอร์เซอร์โต้ตอบ (จุด/วงแหวน/บับเบิล “ดู”), เลื่อนแบบ ease, progress bar และตรวจว่าเอฟเฟกต์ปิดเมื่อ reduced motion / คอนทราสต์สูง / โหมดทีวี / อุปกรณ์สัมผัส |
 | `e2e/responsive.js` | ความกว้าง 240 → 3840px: ไม่มีการเลื่อนแนวนอน, ปุ่ม/ลิงก์ ≥ 24px; โหมดทีวี (UA ของ Tizen): เปิดอัตโนมัติ, ธีมมืด, ตัวอักษรใหญ่, ปุ่มลูกศรเลื่อนโฟกัส, กรอบโฟกัสหนา, ปิดโหมดทีวีได้ |
 | `e2e/elementor.js` | Theme Builder location (header/footer/single/archive) ผ่านตัวจำลอง, แถบเครื่องมือยังทำงานเมื่อใช้ Header ของ Elementor, หน้าที่สร้างด้วย Elementor แสดงเต็มความกว้าง |
 | `e2e/polylang.js` | โหมด Polylang ผ่านตัวจำลอง: ภาษา/URL/สลับภาษา, ไม่มี hreflang/คุกกี้ของธีม, ภาษาที่ไม่มี UI ใช้อังกฤษ |

@@ -65,12 +65,17 @@ set_theme_mod( 'mcupr_hero_l1_th', 'เพราะเราเชื่อใ�
 set_theme_mod( 'mcupr_hero_l2_th', 'พลังของคนรุ่นใหม่' );
 set_theme_mod( 'mcupr_cta_title_th', 'ค้นพบประสบการณ์ชีวิตในมหาวิทยาลัย ที่มากกว่าการเรียน' );
 set_theme_mod( 'mcupr_cta_url', home_url( '/' ) );
+set_theme_mod( 'mcupr_popular_th', 'ค่าเทอม, บัญชี, นิเทศ, ปริญญาโท' );
 
 // ---- menus
-function mcupr_test_menu( $name, $items ) {
+function mcupr_test_menu( $name, $items, $icons = array() ) {
 	$menu = wp_create_nav_menu( $name );
+	$n    = 0;
 	foreach ( $items as $title => $kids ) {
-		$pid = wp_update_nav_menu_item( $menu, 0, array( 'menu-item-title' => $title, 'menu-item-url' => '/#' . md5( $title ), 'menu-item-status' => 'publish' ) );
+		$args = array( 'menu-item-title' => $title, 'menu-item-url' => '/#' . md5( $title ), 'menu-item-status' => 'publish' );
+		if ( isset( $icons[ $n ] ) ) { $args['menu-item-classes'] = 'icon-' . $icons[ $n ]; }
+		$n++;
+		$pid = wp_update_nav_menu_item( $menu, 0, $args );
 		foreach ( $kids as $kid ) {
 			wp_update_nav_menu_item( $menu, 0, array( 'menu-item-title' => $kid, 'menu-item-url' => '/#' . md5( $title . $kid ), 'menu-item-status' => 'publish', 'menu-item-parent-id' => $pid ) );
 		}
@@ -79,7 +84,7 @@ function mcupr_test_menu( $name, $items ) {
 }
 $loc = array(
 	'primary_th' => mcupr_test_menu( 'Main TH', array( 'เกี่ยวกับ' => array( 'ประวัติ' ), 'ข่าว' => array() ) ),
-	'quick'      => mcupr_test_menu( 'Quick', array( 'การสมัครเรียน' => array(), 'หลักสูตร' => array(), 'ทุนการศึกษา' => array(), 'ปฏิทินการศึกษา' => array(), 'ห้องสมุด' => array(), 'ศิษย์เก่า' => array(), 'ติดต่อ' => array() ) ),
+	'quick'      => mcupr_test_menu( 'Quick', array( 'การสมัครเรียน' => array(), 'หลักสูตร' => array(), 'ทุนการศึกษา' => array(), 'ปฏิทินการศึกษา' => array(), 'ห้องสมุด' => array(), 'ศิษย์เก่า' => array(), 'ติดต่อ' => array() ), array( 'edit', 'book', 'bulb', 'money', 'bank', 'cap', 'mail' ) ),
 	'footer'     => mcupr_test_menu( 'Footer', array( 'เกี่ยวกับ ' => array( 'ประวัติ', 'ผู้บริหาร' ), 'การศึกษา' => array( 'หลักสูตร', 'ทุน' ), 'วิจัย' => array( 'ศูนย์วิจัย' ) ) ),
 	'utility'    => mcupr_test_menu( 'Utility', array( 'นักศึกษา' => array(), 'บุคลากร' => array(), 'ศิษย์เก่า' => array() ) ),
 );

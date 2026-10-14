@@ -15,7 +15,7 @@ if ( ! mcupr_elementor_location( 'archive' ) ) :
 	<?php the_archive_description( '<div class="mb-4 text-muted">', '</div>' ); ?>
 
 	<?php if ( have_posts() ) : ?>
-		<div class="my-6 grid grid-cols-[repeat(auto-fill,minmax(min(17rem,100%),1fr))] gap-6">
+		<div class="my-6 grid grid-cols-[repeat(auto-fill,minmax(min(17rem,100%),1fr))] gap-6" data-reveal-group>
 			<?php
 			while ( have_posts() ) :
 				the_post();

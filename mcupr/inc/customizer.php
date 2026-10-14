@@ -46,6 +46,10 @@ function mcupr_customize_register( $wp_customize ) {
 			$wp_customize->add_control( "mcupr_{$key}_{$code}", array( 'section' => 'mcupr_home', 'label' => sprintf( $label, $l['name'] ), 'type' => 'text' ) );
 		}
 	}
+	foreach ( mcupr_ui_languages() as $code => $l ) {
+		$wp_customize->add_setting( "mcupr_popular_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
+		$wp_customize->add_control( "mcupr_popular_{$code}", array( 'section' => 'mcupr_home', 'label' => sprintf( /* translators: %s: language */ __( 'Popular searches, comma separated (%s)', 'mcupr' ), $l['name'] ), 'type' => 'text' ) );
+	}
 	$wp_customize->add_setting( 'mcupr_cta_url', array( 'default' => '', 'sanitize_callback' => 'esc_url_raw' ) );
 	$wp_customize->add_control( 'mcupr_cta_url', array( 'section' => 'mcupr_home', 'label' => __( 'Bottom banner link (optional)', 'mcupr' ), 'type' => 'url' ) );
 

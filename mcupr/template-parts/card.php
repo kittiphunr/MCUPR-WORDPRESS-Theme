@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 $part_lang = mcupr_part_lang_attr();
 $heading   = isset( $args['heading'] ) && 'h2' === $args['heading'] ? 'h2' : 'h3';
 ?>
-<article id="post-<?php the_ID(); ?>" <?php post_class( 'flex flex-col overflow-hidden rounded-2xl border border-line bg-bg shadow-sm' ); ?>>
+<article id="post-<?php the_ID(); ?>" <?php post_class( 'tilt relative flex flex-col overflow-hidden rounded-2xl border border-line bg-bg shadow-sm' ); ?>>
 	<?php if ( has_post_thumbnail() ) : ?>
 		<a class="noimg:hidden" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
 			<?php the_post_thumbnail( 'mcupr-card', array( 'alt' => '', 'loading' => 'lazy', 'class' => 'block aspect-[16/10] w-full object-cover' ) ); ?>
