@@ -100,6 +100,44 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok((await p.$eval('h1', (h) => h.textContent)).includes('ITA'), 'a link in the full-screen menu navigates');
   await p.setViewportSize({ width: 1366, height: 900 });
 
+  // events calendar
+  for (const u of ['/events/', '/events-calendar/']) {
+    await p.goto(B + u);
+    ok((await p.$$('table.cal')).length === 1 && (await p.$$eval('table.cal th[scope=col]', (t) => t.length)) === 7, u + ' shows the month grid with 7 column headers');
+    ok(/[๐-๙0-9]/.test(await p.textContent('.cal-title')) && (await p.textContent('.cal-title')).includes(String(new Date().getFullYear() + 543)), u + ': month title uses the Buddhist year');
+    ok((await p.$$('.cal-d.is-today')).length === 1, u + ': today is marked');
+    ok(!(await p.evaluate(() => /\[mcupr_/.test(document.body.innerText))), u + ': no raw shortcode');
+    await p.addScriptTag({ content: axeSource() });
+    const ax = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(ax.violations.length === 0, u + ' axe: ' + (ax.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  }
+  await p.goto(B + '/events/');
+  ok((await p.$$('.ev-row')).length >= 1 && (await p.$$('.cal-evs a')).length >= 1, '/events/ lists the sample events in the grid and in the list');
+  const before = await p.textContent('.cal-title');
+  await p.click('a[rel=next]');
+  ok((await p.textContent('.cal-title')) !== before && /ev_m=\d{4}-\d{2}/.test(p.url()), 'next month navigates (plain link, no JavaScript needed)');
+  await p.click('.cal-today');
+  ok((await p.textContent('.cal-title')) === before, '"current month" returns');
+  await p.goto(B + '/events/?ev_m=2031-03');
+  ok((await p.textContent('.cal-title')).includes('2574'), 'a given month renders (มีนาคม 2574)');
+  await p.goto(B + '/events/event-1/');
+  ok((await p.$eval('h1', (h) => h.textContent)).includes('พิธีเปิด'), 'event page: title');
+  ok((await p.$$('.ev-info dt')).length >= 2 && (await p.textContent('.ev-info')).includes('น.'), 'event page: date, time (น.) and place box');
+  ok((await p.getAttribute('a[href*="calendar.google.com"]', 'href')).includes('TEMPLATE'), 'event page: Google Calendar link');
+  ok(((await p.textContent('h1')) || '').length > 0 && (await p.$$('script[type="application/ld+json"]')).length >= 1, 'event page: structured data');
+  await p.addScriptTag({ content: axeSource() });
+  const ea = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+  ok(ea.violations.length === 0, 'event page axe: ' + (ea.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  const one = await p.request.get(B + '/?mcupr_ics=all');
+  const body = await one.text();
+  ok((one.headers()['content-type'] || '').includes('text/calendar') && body.startsWith('BEGIN:VCALENDAR') && (body.match(/BEGIN:VEVENT/g) || []).length >= 3, '.ics feed of all events');
+  ok((await p.request.get(B + '/?mcupr_ics=999999')).status() === 404, '.ics of a missing event is 404');
+  await p.goto(B + '/events/?lang=en');
+  ok(/Upcoming events/.test(await p.textContent('main')) && /Sun/.test(await p.textContent('table.cal thead')), 'English: calendar labels');
+  await p.goto(B + '/events/?lang=zh');
+  ok(/年/.test(await p.textContent('.cal-title')), 'Chinese: 2026年10月-style title');
+  await p.goto(B + '/events/?lang=th');
+
   // every link in header + footer menus resolves (200) and is not "#"
   const links = [...new Set(await p.$$eval('header a[href], footer a[href]', (a) => a.map((x) => x.href).filter((h) => h.startsWith(location.origin) && !h.includes('#') && !/wp-admin|wp-login|\?lang=|replytocom|feed/.test(h))))];
   const bad = [];
@@ -138,10 +176,13 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   const m = await br.newContext({ viewport: { width: 360, height: 740 }, reducedMotion: 'reduce' });
   await m.addInitScript(() => localStorage.setItem('mcupr_consent', '1'));
   const mp = await m.newPage();
-  for (const s of ['/', '/about/', '/ita/', '/privacy-policy/']) {
+  for (const s of ['/', '/about/', '/ita/', '/privacy-policy/', '/events/', '/events/event-1/']) {
     await mp.goto(B + s);
     ok(await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'mobile 360px: no horizontal scroll on ' + s);
   }
+  await mp.setViewportSize({ width: 240, height: 700 });
+  await mp.goto(B + '/events/');
+  ok(await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'events calendar fits 240px without horizontal scroll');
   await p.screenshot({ path: shot('starter-about.png') });
   ok(!errors.length, 'no console / page errors' + (errors.length ? ': ' + errors[0] : ''));
   await br.close();

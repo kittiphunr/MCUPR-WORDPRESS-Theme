@@ -63,6 +63,7 @@ T = {
  'sitemap': ('แผนผังเว็บไซต์', 'Sitemap', '网站地图', 'サイトマップ'),
  'faq': ('คำถามที่พบบ่อย', 'FAQ', '常见问题', 'よくある質問'),
  'contact': ('ติดต่อเรา', 'Contact us', '联系我们', 'お問い合わせ'),
+ 'events-calendar': ('ปฏิทินกิจกรรม', 'Events calendar', '活动日历', 'イベントカレンダー'),
  'eservice': ('บริการอิเล็กทรอนิกส์ (e-Service)', 'e-Services', '电子服务', '電子サービス'),
 }
 
@@ -76,7 +77,7 @@ SECTIONS = {
  'governance': ['ita', 'oic', 'open-data', 'plans-reports', 'procurement', 'hr', 'complaints', 'anti-corruption', 'laws'],
  'policies': ['privacy-policy', 'cookie-policy', 'accessibility-statement', 'security-policy', 'terms-of-use', 'copyright-notice', 'sitemap', 'faq'],
 }
-ROOTS = ['about', 'academics', 'research', 'students', 'governance', 'policies', 'contact', 'eservice']
+ROOTS = ['about', 'academics', 'research', 'students', 'governance', 'policies', 'contact', 'eservice', 'events-calendar']
 for root, kids in SECTIONS.items():
     for k in kids:
         PARENT[k] = root
@@ -266,6 +267,9 @@ C['contact'] = (todo('กรอกที่อยู่ โทรศัพท์
  '<h2>ติดต่อเรื่องเฉพาะ</h2>\n' + table(['เรื่อง', 'หน่วยงาน', 'ติดต่อ'], [['รับสมัครนักศึกษา', '[หน่วยงาน]', '[โทร/อีเมล]'], ['ข้อมูลข่าวสารของราชการ', 'ศูนย์ข้อมูลข่าวสาร', '[โทร/อีเมล]'], ['ร้องเรียน/แจ้งเบาะแส', '[หน่วยงาน]', '[โทร/อีเมล]'], ['คุ้มครองข้อมูลส่วนบุคคล (DPO)', '[ชื่อ]', '[อีเมล]']]) +
  '<h2>แผนที่</h2>\n<p>ดูที่หน้า <a href="/location/">ที่ตั้งและการเดินทาง</a></p>\n')
 
+C['events-calendar'] = (todo('เพิ่มกิจกรรมที่เมนู “กิจกรรม” ในหลังบ้าน (วัน เวลา สถานที่ ลิงก์ลงทะเบียน) ปฏิทินและรายการด้านล่างอัปเดตเอง') +
+    '[mcupr_calendar]\n<h2>กิจกรรมที่กำลังจะมาถึง</h2>\n[mcupr_events count="6"]\n')
+
 C['eservice'] = (todo('ใส่ลิงก์ระบบจริงของหน่วยงาน') + '<p>รวมระบบบริการอิเล็กทรอนิกส์ของ [mcupr_org]</p>\n' + table(['ระบบ', 'ผู้ใช้', 'ลิงก์'], [
  ['ระบบทะเบียนและวัดผล', 'นักศึกษา', '[ใส่ลิงก์]'], ['ระบบเรียนออนไลน์ (LMS)', 'นักศึกษา/อาจารย์', '[ใส่ลิงก์]'], ['อีเมลองค์กร', 'บุคลากร/นักศึกษา', '[ใส่ลิงก์]'], ['ระบบสารบรรณอิเล็กทรอนิกส์ (e-Office)', 'บุคลากร', '[ใส่ลิงก์]'], ['ระบบห้องสมุด', 'ทุกคน', '[ใส่ลิงก์]'], ['ระบบรับสมัครนักศึกษา', 'ผู้สมัคร', '[ใส่ลิงก์]']]))
 
@@ -329,7 +333,7 @@ MAIN = [
    LBL('col-during', [P('calendar'), P('registrar'), P('library')]),
    LBL('col-students', [P('students'), P('career'), P('alumni')])]),
  P('research', 'bulb', kids=[P('research-policy'), P('research-centers'), P('journals'), P('academic-service'), P('research-grants'), P('research-ethics')]),
- {'label': L['news'], 'target': ('url', '/?mcupr_all=1'), 'icon': 'news', 'kids': [CAT('cat-pr', 'press-releases'), CAT('cat-act', 'activities'), CAT('cat-ann', 'announcements')]},
+ {'label': L['news'], 'target': ('url', '/?mcupr_all=1'), 'icon': 'news', 'kids': [CAT('cat-pr', 'press-releases'), CAT('cat-act', 'activities'), CAT('cat-ann', 'announcements'), P('events-calendar', 'calendar')]},
  P('governance', 'shield', mega=3, kids=[
    LBL('col-transparent', [P('ita'), P('oic'), P('open-data')]),
    LBL('col-ops', [P('plans-reports'), P('procurement'), P('hr')]),
@@ -360,4 +364,11 @@ CATEGORIES = [  # slug, th name, parent
  ('press-releases', 'ข่าวประชาสัมพันธ์'),
  ('activities', 'ข่าวกิจกรรม'),
  ('announcements', 'ประกาศ'),
+]
+
+# sample events: dates are relative to the day the file is generated (replace or delete them after importing)
+EVENTS = [  # (days from today, start time, end time, title (th, en, zh, ja), place)
+ (7, '09:00', '12:00', ('พิธีเปิดปีการศึกษา (ตัวอย่าง)', 'Opening ceremony (sample)', '开学典礼（示例）', '新学期開会式（サンプル）'), '[สถานที่จัดงาน]'),
+ (14, '13:30', '16:00', ('สัมมนาวิชาการ (ตัวอย่าง)', 'Academic seminar (sample)', '学术研讨会（示例）', '学術セミナー（サンプル）'), '[ห้องประชุม]'),
+ (30, '', '', ('วันเปิดบ้าน Open House (ตัวอย่าง)', 'Open House (sample)', '开放日（示例）', 'オープンハウス（サンプル）'), '[มหาวิทยาลัย]'),
 ]

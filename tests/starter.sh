@@ -12,6 +12,7 @@ MCUPR_NO_FIXTURES=1 PORT="$PORT" SITE_DIR="$SITE_DIR" bash bootstrap.sh >/dev/nu
 git clone -q --depth 1 https://github.com/WordPress/wordpress-importer.git "$SITE_DIR/wp-content/plugins/wordpress-importer" || exit 1
 status=0
 php php/starter-import.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
+php php/events.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
 php -S "localhost:${PORT}" -t "$SITE_DIR" >.server.log 2>&1 &
 pid=$!; trap 'kill $pid 2>/dev/null' EXIT
 for _ in $(seq 1 30); do curl -fs "$BASE_URL/" >/dev/null && break; sleep 0.5; done
