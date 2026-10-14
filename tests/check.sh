@@ -32,6 +32,12 @@ echo "== PHP-version compatibility (optional: needs phpcs + PHPCompatibility on 
 if command -v phpcs >/dev/null 2>&1 && phpcs -i | grep -q PHPCompatibility; then
   phpcs --standard=PHPCompatibility --runtime-set testVersion "${php_style}-" --extensions=php --report=summary mcupr
 else echo "   skipped"; fi
+echo "== Every admin / Customizer string has a Thai translation (scripts/admin_th.py -> inc/admin-th-strings.php)"
+cp mcupr/inc/admin-th-strings.php /tmp/admin-th.before.php
+python3 scripts/make-admin-th.py >/dev/null
+cmp -s mcupr/inc/admin-th-strings.php /tmp/admin-th.before.php || { echo "admin-th-strings.php is stale: run 'python3 scripts/make-admin-th.py' and commit"; exit 1; }
+missing=$(php -r '$d = include "mcupr/inc/admin-th-strings.php"; $m = array(); foreach ( explode( "\n", trim( shell_exec( "php scripts/extract-strings.php" ) ) ) as $l ) { $k = json_decode( $l ); if ( $k !== null && ! isset( $d[ $k ] ) ) { $m[] = $k; } } echo implode( "\n", $m );')
+[[ -z "$missing" ]] || { echo "No Thai translation for:"; echo "$missing"; exit 1; }
 echo "== Theme package is clean"
 bash scripts/package.sh >/dev/null
 unzip -l dist/mcupr-*.zip | grep -E "node_modules|src/|package.*json|\.map$|tests/" && { echo "dev files leaked into the zip"; exit 1; } || true

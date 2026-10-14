@@ -69,6 +69,9 @@ for slug, name in S.CATEGORIES:
     out.append('<wp:category><wp:term_id>%d</wp:term_id><wp:category_nicename>%s</wp:category_nicename><wp:category_parent></wp:category_parent>'
                '<wp:cat_name>%s</wp:cat_name></wp:category>\n' % (CAT_ID[slug], slug, cd(name)))
 
+for n, (slug, (nm, _en)) in enumerate(S.WORK_CATS):
+    out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>mcupr_work_cat</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name></wp:term>\n' % (30 + n, slug, cd(nm)))
+
 for loc, slug, name, _items, _li in MENUS:
     out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>nav_menu</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name>'
                '<wp:termmeta><wp:meta_key>_mcupr_location</wp:meta_key><wp:meta_value>%s</wp:meta_value></wp:termmeta></wp:term>\n'
@@ -108,6 +111,30 @@ for n, (days, t0, t1, title, place) in enumerate(S.EVENTS):
     else:
         out.append(meta('_mcupr_ev_start', d + ' 00:00:00') + meta('_mcupr_ev_end', d + ' 23:59:59') + meta('_mcupr_ev_allday', 1))
     out.append(meta('_mcupr_ev_place', place))
+    out.append('</item>\n')
+
+
+# ---- administration chart units + sample works (own post types and categories)
+UNIT_ID = {}
+for key, parent, order_, title, person, role in S.UNITS:
+    UNIT_ID[key] = next_id()
+for key, parent, order_, title, person, role in S.UNITS:
+    out.append(item_head(UNIT_ID[key], title[0], 'unit-' + key, 'mcupr_unit', UNIT_ID[parent] if parent else 0, order_, '', 'publish'))
+    out.append(meta('_mcupr_en_title', title[1]) + meta('_mcupr_zh_title', title[2]) + meta('_mcupr_ja_title', title[3]))
+    if person:
+        out.append(meta('_mcupr_unit_person', person))
+    if role:
+        out.append(meta('_mcupr_unit_role', role))
+    out.append('</item>\n')
+
+for slug, (nm, _en) in S.WORK_CATS:
+    pass
+for n, (title, event, award, yoff, org, cat, team) in enumerate(S.WORKS):
+    pid = next_id()
+    out.append(item_head(pid, title[0], 'work-%d' % (n + 1), 'mcupr_work', 0, 0, '<p>[รายละเอียดผลงาน เล่าที่มา ผู้ร่วมงาน และผลที่ได้รับ]</p>', 'publish'))
+    out.append('\t<category domain="mcupr_work_cat" nicename="%s">%s</category>\n' % (cat, cd(dict(S.WORK_CATS)[cat][0])))
+    out.append(meta('_mcupr_en_title', title[1]))
+    out.append(meta('_mcupr_work_event', event) + meta('_mcupr_work_award', award) + meta('_mcupr_work_year', datetime.date.today().year + yoff) + meta('_mcupr_work_org', org) + meta('_mcupr_work_team', team.replace('\\n', '\n')))
     out.append('</item>\n')
 
 

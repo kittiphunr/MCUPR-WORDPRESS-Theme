@@ -205,6 +205,72 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(t.bar !== 'none' && !t.util, 'top menu keeps the black utility bar (and not a second copy in the header)');
     await tc.close();
   }
+  // works & awards (own categories), administration chart, attachments, views
+  await p.goto(B + '/works/');
+  ok((await p.$$('.work-card')).length === 3, '/works/ lists the 3 sample works');
+  const chips = await p.$$eval('nav[aria-label] .pill-tabs a, .pill-tabs a', (a) => a.map((x) => x.textContent.trim()));
+  ok(chips.includes('การแข่งขัน') && chips.includes('นวัตกรรมและงานวิจัย') && chips.includes('ศิลปะและวัฒนธรรม'), '/works/ filters by the works\' own categories (' + chips.length + ' chips)');
+  ok(!chips.includes('ข่าวประชาสัมพันธ์'), '/works/ does not offer the news categories');
+  await p.click('.pill-tabs a:has-text("ศิลปะและวัฒนธรรม")');
+  ok((await p.$$('.work-card')).length === 1 && /work-category/.test(p.url()), 'a work category shows only its own works');
+  await p.goto(B + '/category/press-releases/');
+  ok((await p.$$('.work-card')).length === 0, 'a news category never lists works');
+  await p.goto(B + '/works/?wy=1999');
+  ok((await p.$$('.work-card')).length === 0, 'the year filter hides works of other years');
+  await p.goto(B + '/works/');
+  await p.addScriptTag({ content: axeSource() });
+  const wa = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+  ok(wa.violations.length === 0, '/works/ axe: ' + (wa.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  await p.goto(B + '/works/work-1/');
+  ok((await p.$$('.files .file-row')).length === 2 && /เกียรติบัตรชนะเลิศ/.test(await p.textContent('.files')), 'work page: the attached files are listed');
+  ok(/PDF/.test(await p.textContent('.files')) && /350 KB/.test(await p.textContent('.files')) && /ดาวน์โหลดแล้ว 7 ครั้ง/.test(await p.textContent('.files')), 'work page: type, size text and download count');
+  ok(/เข้าชม\s+12\d ครั้ง/.test(await p.textContent('article > header')), 'work page: the number of views is shown');
+  ok(await p.$('.share-bar a.share-fb') !== null && /ทีม/.test(await p.textContent('.ev-info')), 'work page: share bar and details box');
+  await p.addScriptTag({ content: axeSource() });
+  const wb = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+  ok(wb.violations.length === 0, 'work page axe: ' + (wb.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  // views: counted once per visitor (a real browser UA – the default headless one is treated as a robot)
+  const rc = await br.newContext({ userAgent: 'Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0', viewport: { width: 1280, height: 800 } });
+  await rc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+  const rp = await rc.newPage();
+  await rp.goto(B + '/works/work-1/');
+  const vv1 = Number((await rp.textContent('article > header')).match(/เข้าชม\s+(\d+)/)[1]);
+  await rp.reload();
+  const vv2 = Number((await rp.textContent('article > header')).match(/เข้าชม\s+(\d+)/)[1]);
+  ok(vv2 === vv1, 'views: a reload by the same visitor is not counted again (' + vv1 + ' -> ' + vv2 + ')');
+  const rc2 = await br.newContext({ userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0' });
+  const rp2 = await rc2.newPage();
+  await rp2.goto(B + '/works/work-1/');
+  const vv3 = Number((await rp2.textContent('article > header')).match(/เข้าชม\s+(\d+)/)[1]);
+  ok(vv3 === vv1 + 1, 'views: a different visitor is counted (' + vv1 + ' -> ' + vv3 + ')');
+  await rc2.close();
+  // download limit 2
+  const href = await p.getAttribute('.files .file-dl', 'href');
+  const UA = { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0' };
+  const d1 = await p.request.get(href, { headers: UA });
+  ok(d1.status() === 200 && /pdf/.test(d1.headers()['content-type']) && /attachment/.test(d1.headers()['content-disposition']) && (await d1.text()).startsWith('%PDF'), 'download 1: the PDF is sent as an attachment');
+  const d2 = await p.request.get(href, { headers: UA });
+  ok(d2.status() === 200, 'download 2 works');
+  const d3 = await p.request.get(href, { headers: UA });
+  ok(d3.status() === 403, 'download 3 is refused: the limit of 2 was reached (' + d3.status() + ')');
+  await p.reload();
+  ok(/ดาวน์โหลดแล้ว 2 ครั้ง/.test(await p.textContent('.files')) && (await p.$$('.files .file-full')).length === 1, 'the page now shows 2 downloads and the "limit reached" notice');
+  ok((await p.request.get(B + '/?mcupr_dl=999999-0')).status() === 404, 'a missing file is 404');
+  const th2 = await p.request.get(B + '/?mcupr_dl=../../wp-config.php');
+  ok(th2.status() === 200 && !(await th2.text()).includes('DB_PASSWORD'), 'a crafted download parameter cannot read other files');
+  // administration chart
+  await p.goto(B + '/structure/');
+  ok((await p.$$('.org-node')).length === 13, 'structure page: the administration chart with 13 boxes');
+  ok((await p.$$('.org-d1')).length === 1 && (await p.$$('.org-d2')).length === 1 && (await p.$$('.org-d3')).length === 4 && (await p.$$('.org-d4')).length >= 5, 'chart levels: 1 / 1 / 4 / 5+ boxes');
+  const o = await p.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const kids = [...document.querySelectorAll('.org-d3')].map((e) => e.getBoundingClientRect()); return { rowY: kids.map((k) => Math.round(k.top)), parent: r('.org-d2 > .org-node') }; });
+  ok(o.rowY.length === 4 && new Set(o.rowY).size === 1 && o.rowY[0] > o.parent.bottom, 'chart (desktop): the executives are in one row below the president');
+  await p.addScriptTag({ content: axeSource() });
+  const oa = await p.evaluate(() => axe.run(document.querySelector('.org-wrap'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+  ok(oa.violations.length === 0, 'chart axe: ' + (oa.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  await p.goto(B + '/structure/?lang=en');
+  ok(/Office of the President/.test(await p.textContent('.org')), 'chart: unit names in English');
+  await p.goto(B + '/?lang=th');
+
   // every link in header + footer menus resolves (200) and is not "#"
   const links = [...new Set(await p.$$eval('header a[href], footer a[href]', (a) => a.map((x) => x.href).filter((h) => h.startsWith(location.origin) && !h.includes('#') && !/wp-admin|wp-login|\?lang=|replytocom|feed/.test(h))))];
   const bad = [];
@@ -243,7 +309,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   const m = await br.newContext({ viewport: { width: 360, height: 740 }, reducedMotion: 'reduce' });
   await m.addInitScript(() => localStorage.setItem('mcupr_consent', '1'));
   const mp = await m.newPage();
-  for (const s of ['/', '/about/', '/ita/', '/privacy-policy/', '/events/', '/events/event-1/']) {
+  for (const s of ['/', '/about/', '/ita/', '/privacy-policy/', '/events/', '/events/event-1/', '/works/', '/works/work-1/', '/structure/']) {
     await mp.goto(B + s);
     ok(await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'mobile 360px: no horizontal scroll on ' + s);
   }
