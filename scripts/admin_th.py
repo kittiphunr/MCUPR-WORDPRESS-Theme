@@ -1,4 +1,5 @@
 TH = {
+"Show the quick links (students, staff, alumni…) in the header instead of tucking them into a \"Quick links\" button": "แสดงลิงก์ด่วน (นักศึกษา บุคลากร ศิษย์เก่า…) ในหัวเว็บ แทนที่จะซ่อนไว้ในปุ่ม “ลิงก์ด่วน”",
 "MCUPR: Print on A4": "MCUPR: การพิมพ์บนกระดาษ A4",
 "The Print button of a post or page prints an A4 sheet with a header and a footer graphic on every page, like a Thai government newsletter. Upload images made for A4 (210 mm wide); the article is printed in the space between.": "ปุ่มพิมพ์ของข่าวหรือหน้าเพจจะพิมพ์เป็นกระดาษ A4 พร้อมกราฟิกหัวกระดาษและท้ายกระดาษทุกแผ่น เหมือนจดหมายข่าวราชการ — อัปโหลดภาพที่ทำไว้สำหรับ A4 (กว้าง 210 มม.) เนื้อหาจะพิมพ์ในพื้นที่ว่างตรงกลาง",
 "Header graphic (full sheet width, e.g. 2480 px wide for 36 mm tall)": "กราฟิกหัวกระดาษ (เต็มความกว้างแผ่น เช่น กว้าง 2480 พิกเซล สำหรับสูง 36 มม.)",
@@ -58,7 +59,6 @@ TH = {
 "Hero headline, light line (%s)": "หัวข้อ Hero บรรทัดตัวบาง (%s)",
 "Home – below the news": "หน้าแรก – ใต้ส่วนข่าว",
 "Home: below the hero": "หน้าแรก: ใต้ Hero",
-"Hybrid: floating top bar + icon rail on the left": "แบบผสม: แถบด้านบนลอย + ไอคอนเมนูหลักด้านซ้าย",
 "Icon before the text": "ไอคอนหน้าข้อความเมนู",
 "Indigo (Certify Hub)": "น้ำเงินคราม (แบบ Certify Hub)",
 "Logo for dark mode": "โลโก้สำหรับโหมดมืด",
