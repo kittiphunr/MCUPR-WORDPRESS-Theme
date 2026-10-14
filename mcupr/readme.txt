@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.10.0 =
+* Print posts and pages on A4 with an editable letterhead: header and footer graphics on every sheet, background image, text letterhead fallback, per-post switch.
+
 = 1.9.0 =
 * Sidebar expand/collapse button instead of hover, no black utility bar, Finder-style news browser (category zones, separate tags, card/list/gallery views), built-in creator credit with photo.
 
