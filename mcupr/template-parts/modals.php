@@ -129,13 +129,8 @@ $checks = array(
 	<?php
 	$org        = mcupr_org_name();
 	$about_logo = mcupr_logo( 'header' );
-	$credit     = trim( (string) get_theme_mod( 'mcupr_credit_name', '' ) );
-	$c_url      = get_theme_mod( 'mcupr_credit_url', '' );
-	$c_role     = get_theme_mod( 'mcupr_credit_role', '' );
-	$c_tag      = get_theme_mod( 'mcupr_credit_tag', '' );
-	$c_email    = get_theme_mod( 'mcupr_credit_email', '' );
-	$c_tel      = get_theme_mod( 'mcupr_credit_tel', '' );
-	$c_photo    = (int) get_theme_mod( 'mcupr_credit_photo', 0 );
+	$cr         = mcupr_credit();
+	$credit     = $cr ? $cr['name'] : '';
 	$o_email    = get_theme_mod( 'mcupr_org_email', '' );
 	$o_tel      = get_theme_mod( 'mcupr_org_tel', '' );
 	$about      = mcupr_text_mod( 'mcupr_about' );
@@ -154,28 +149,26 @@ $checks = array(
 			</div>
 		</header>
 
-		<?php if ( $credit ) : ?>
+		<?php if ( $cr ) : ?>
 		<section class="about-sec" aria-labelledby="ab-dev">
 			<h3 id="ab-dev"><?php mcupr_e( 'about_dev' ); ?></h3>
 			<div class="dev">
-				<?php if ( $c_photo ) : ?>
-					<?php echo wp_get_attachment_image( $c_photo, 'thumbnail', false, array( 'alt' => '', 'class' => 'dev-photo' ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-				<?php else : ?>
-					<span class="dev-photo dev-photo-initial" aria-hidden="true"><?php echo esc_html( mb_substr( $credit, 0, 1 ) ); ?></span>
-				<?php endif; ?>
+				<?php echo mcupr_credit_photo_html( $cr, 'dev-photo' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				<div class="min-w-0">
-					<p class="dev-name"><?php echo esc_html( $credit ); ?></p>
-					<?php if ( $c_role ) : ?><p class="dev-role"><?php echo esc_html( $c_role ); ?></p><?php endif; ?>
+					<p class="dev-name"><?php echo esc_html( $cr['name'] ); ?></p>
+					<?php if ( $cr['en'] ) : ?><p class="dev-en"><?php echo esc_html( $cr['en'] ); ?></p><?php endif; ?>
+					<?php if ( $cr['role'] ) : ?><p class="dev-role"><?php echo esc_html( $cr['role'] ); ?></p><?php endif; ?>
 					<p class="dev-org"><?php echo esc_html( $org ); ?></p>
-					<?php if ( $c_tag ) : ?><p class="dev-tag"><?php echo esc_html( $c_tag ); ?></p><?php endif; ?>
+					<?php if ( $cr['tag'] ) : ?><p class="dev-tag"><?php echo esc_html( $cr['tag'] ); ?></p><?php endif; ?>
 				</div>
 			</div>
-			<?php if ( $c_email || $c_tel || $c_url ) : ?>
+			<?php if ( $cr['email'] || $cr['tel'] || $cr['url'] || $cr['github'] ) : ?>
 				<ul class="dev-contact">
 					<?php
-					echo $c_email ? $row( mcupr_t( 'about_email' ), $c_email, 'mailto:' . $c_email ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
-					echo $c_tel ? $row( mcupr_t( 'about_tel' ), $c_tel, 'tel:' . preg_replace( '/[^0-9+]/', '', $c_tel ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
-					echo $c_url ? $row( mcupr_t( 'about_web' ), preg_replace( '#^https?://#', '', untrailingslashit( $c_url ) ), $c_url, true ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+					echo $cr['email'] ? $row( mcupr_t( 'about_email' ), $cr['email'], 'mailto:' . $cr['email'] ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+					echo $cr['tel'] ? $row( mcupr_t( 'about_tel' ), $cr['tel'], 'tel:' . preg_replace( '/[^0-9+]/', '', $cr['tel'] ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+					echo $cr['github'] ? $row( 'GitHub', preg_replace( '#^https?://#', '', untrailingslashit( $cr['github'] ) ), $cr['github'], true ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+					echo $cr['url'] ? $row( mcupr_t( 'about_web' ), preg_replace( '#^https?://#', '', untrailingslashit( $cr['url'] ) ), $cr['url'], true ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
 					?>
 				</ul>
 			<?php endif; ?>
