@@ -23,6 +23,6 @@ suites=("${@:-functional responsive}")
 status=0
 for s in "${suites[@]}"; do
   echo "=== $s ==="
-  if [[ "$s" == "php" ]]; then php php/menus.php "$SITE_DIR" || status=1; else node "e2e/$s.js" || status=1; fi
+  if [[ "$s" == "php" ]]; then php php/menus.php "$SITE_DIR" || status=1; php php/contact.php "$SITE_DIR" || status=1; else node "e2e/$s.js" || status=1; fi
 done
 exit $status

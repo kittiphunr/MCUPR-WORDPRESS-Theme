@@ -670,6 +670,23 @@
 		if (desktopMq.addEventListener) { desktopMq.addEventListener('change', function () { closeFs(false); }); }
 	}
 
+	/* ---------------------------------------------------------------- click-to-load Google Map (footer) */
+	$$('[data-map]').forEach(function (box) {
+		var btn = $('[data-map-load]', box);
+		if (!btn) { return; }
+		btn.addEventListener('click', function () {
+			var f = document.createElement('iframe');
+			f.src = box.getAttribute('data-src');
+			f.title = box.getAttribute('data-title') || 'Map';
+			f.loading = 'lazy';
+			f.referrerPolicy = 'no-referrer-when-downgrade';
+			f.className = 'fmap-frame';
+			box.textContent = '';
+			box.appendChild(f);
+			box.classList.add('is-loaded');
+		});
+	});
+
 	/* Skip-to-menu link only makes sense when the default menu exists */
 	if (!nav) { $$('[data-skip-nav]').forEach(function (a) { a.remove(); }); }
 
