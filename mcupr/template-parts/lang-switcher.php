@@ -1,6 +1,6 @@
 <?php
 /**
- * Language switcher (links come from Polylang when it is active).
+ * Language choices shown in the language dialog (links come from Polylang when active).
  *
  * @package MCUPR
  */
@@ -22,19 +22,16 @@ if ( mcupr_has_polylang() ) {
 	}
 }
 ?>
-<nav class="flex flex-wrap items-center gap-x-2" aria-label="<?php echo esc_attr( mcupr_t( 'language' ) ); ?>">
-	<span class="whitespace-nowrap" aria-hidden="true"><?php mcupr_e( 'language' ); ?></span>
-	<ul class="m-0 flex list-none flex-wrap gap-1 p-0">
-		<?php foreach ( $items as $code => $l ) : ?>
-			<li>
-				<a class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border-2 border-transparent px-3 text-on-bar no-underline hover:border-on-bar/50 aria-[current]:bg-primary aria-[current]:font-bold aria-[current]:text-on-primary contrast:border-line"
-					href="<?php echo esc_url( $l['url'] ); ?>"
-					lang="<?php echo esc_attr( $l['html'] ); ?>"
-					hreflang="<?php echo esc_attr( $l['html'] ); ?>"
-					<?php echo (string) $code === (string) $cur ? 'aria-current="true"' : ''; ?>>
-					<?php echo esc_html( $l['label'] ); ?>
-				</a>
-			</li>
-		<?php endforeach; ?>
-	</ul>
-</nav>
+<ul class="m-0 flex list-none flex-wrap gap-3 p-0" aria-label="<?php echo esc_attr( mcupr_t( 'language' ) ); ?>">
+	<?php foreach ( $items as $code => $l ) : ?>
+		<li class="flex-1 basis-24">
+			<a class="flex min-h-14 items-center justify-center rounded-2xl border-2 border-line px-4 text-lg text-fg no-underline hover:border-primary aria-[current]:border-primary aria-[current]:bg-primary aria-[current]:font-bold aria-[current]:text-on-primary"
+				href="<?php echo esc_url( $l['url'] ); ?>"
+				lang="<?php echo esc_attr( $l['html'] ); ?>"
+				hreflang="<?php echo esc_attr( $l['html'] ); ?>"
+				<?php echo (string) $code === (string) $cur ? 'aria-current="true"' : ''; ?>>
+				<?php echo esc_html( $l['label'] ); ?>
+			</a>
+		</li>
+	<?php endforeach; ?>
+</ul>
