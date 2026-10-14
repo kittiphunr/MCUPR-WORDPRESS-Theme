@@ -100,8 +100,8 @@ function mcupr_customize_register( $wp_customize ) {
 
 	// ---- display
 	$wp_customize->add_section( 'mcupr_display', array( 'title' => __( 'MCUPR: Animation, news & reading', 'mcupr' ), 'priority' => 33 ) );
-	$wp_customize->add_setting( 'mcupr_menu_layout', array( 'default' => 'top', 'sanitize_callback' => static function ( $v ) { return 'side' === $v ? 'side' : 'top'; } ) );
-	$wp_customize->add_control( 'mcupr_menu_layout', array( 'section' => 'mcupr_display', 'label' => __( 'Menu position (default for new visitors – each visitor can change it)', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'top' => __( 'Top navigation bar', 'mcupr' ), 'side' => __( 'Sidebar (left)', 'mcupr' ) ) ) );
+	$wp_customize->add_setting( 'mcupr_menu_layout', array( 'default' => 'top', 'sanitize_callback' => static function ( $v ) { return in_array( $v, array( 'side', 'hybrid' ), true ) ? $v : 'top'; } ) );
+	$wp_customize->add_control( 'mcupr_menu_layout', array( 'section' => 'mcupr_display', 'label' => __( 'Menu position (default for new visitors – each visitor can change it)', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'top' => __( 'Top navigation bar', 'mcupr' ), 'side' => __( 'Sidebar (left)', 'mcupr' ), 'hybrid' => __( 'Hybrid: floating top bar + icon rail on the left', 'mcupr' ) ) ) );
 	$wp_customize->add_setting( 'mcupr_credit_name', array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
 	$wp_customize->add_control( 'mcupr_credit_name', array( 'section' => 'mcupr_org', 'label' => __( 'Site credit: made by (shown in the footer and the About dialog)', 'mcupr' ), 'type' => 'text' ) );
 	$wp_customize->add_setting( 'mcupr_credit_url', array( 'default' => '', 'sanitize_callback' => 'esc_url_raw' ) );
