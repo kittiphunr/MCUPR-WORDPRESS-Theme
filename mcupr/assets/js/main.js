@@ -116,7 +116,11 @@
 				root.removeAttribute('data-' + k);
 			}
 		});
-		root.setAttribute('data-menu', prefs.menu === 'top' || prefs.menu === 'side' ? prefs.menu : (i18n.menuDefault || 'top'));
+		var menuMode = prefs.menu === 'top' || prefs.menu === 'side' || prefs.menu === 'hybrid' ? prefs.menu : (i18n.menuDefault || 'top');
+		root.setAttribute('data-menu', menuMode);
+		var sbMin = false;
+		try { sbMin = localStorage.getItem('mcupr_sbmin') === '1'; } catch (err) { /* ignore */ }
+		root.classList.toggle('sb-min', menuMode === 'hybrid' || sbMin);
 		applyColors();
 		sync();
 		Cursor.sync();
