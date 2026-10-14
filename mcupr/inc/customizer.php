@@ -16,14 +16,12 @@ function mcupr_customize_register( $wp_customize ) {
 		)
 	);
 
-	if ( ! mcupr_has_polylang() ) {
 	$wp_customize->add_setting( 'mcupr_default_lang', array( 'default' => 'th', 'sanitize_callback' => 'mcupr_sanitize_lang' ) );
 	$choices = array();
 	foreach ( mcupr_ui_languages() as $code => $l ) {
 		$choices[ $code ] = $l['label'] . ' (' . $l['name'] . ')';
 	}
 	$wp_customize->add_control( 'mcupr_default_lang', array( 'section' => 'mcupr_org', 'label' => __( 'Default language (language of the main editor)', 'mcupr' ), 'type' => 'select', 'choices' => $choices ) );
-	}
 
 	foreach ( mcupr_ui_languages() as $code => $l ) {
 		$wp_customize->add_setting( "mcupr_name_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );

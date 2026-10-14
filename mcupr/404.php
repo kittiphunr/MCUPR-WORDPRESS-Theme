@@ -7,7 +7,6 @@
 
 get_header();
 
-if ( ! mcupr_elementor_location( 'single' ) ) :
 	mcupr_breadcrumb();
 	?>
 <div class="narrow">
@@ -17,6 +16,4 @@ if ( ! mcupr_elementor_location( 'single' ) ) :
 	<p><a class="btn" href="<?php echo esc_url( mcupr_home_url() ); ?>"><?php mcupr_e( 'back_home' ); ?></a></p>
 </div>
 <?php
-endif;
-
 get_footer();

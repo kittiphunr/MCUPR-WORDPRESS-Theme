@@ -2,7 +2,7 @@
 /**
  * Installs WordPress, activates the theme and creates fixture content:
  * 10 Thai news posts (post 1 has en/zh translations), images, a privacy page,
- * an "Elementor-built" page (meta only), and menus for every location.
+ * and menus for every location.
  */
 define( 'WP_INSTALLING', true );
 require __DIR__ . '/wp-load.php';
@@ -71,8 +71,6 @@ $about = wp_insert_post( array( 'post_title' => 'เกี่ยวกับม�
 foreach ( array( 'ประวัติ', 'ผู้บริหาร', 'วิสัยทัศน์' ) as $k => $t ) {
 	wp_insert_post( array( 'post_title' => $t, 'post_name' => 'about-' . ( $k + 1 ), 'post_type' => 'page', 'post_parent' => $about, 'post_status' => 'publish', 'post_content' => '<p>เนื้อหาหน้า ' . $t . '</p><h2>หัวข้อ</h2><p>รายละเอียดเพิ่มเติม</p>' ) );
 }
-$el = wp_insert_post( array( 'post_title' => 'Elementor page', 'post_name' => 'el-page', 'post_type' => 'page', 'post_status' => 'publish', 'post_content' => '<div id="el-content">Built with Elementor</div>' ) );
-update_post_meta( $el, '_elementor_edit_mode', 'builder' );
 
 // ---- customizer
 set_theme_mod( 'mcupr_name_th', 'มหาวิทยาลัยทดสอบ' );
