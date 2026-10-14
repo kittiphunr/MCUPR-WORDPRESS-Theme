@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.12.2 =
+* Reading speed is a row of buttons instead of a drop-down.
+
 = 1.12.1 =
 * Drop-downs (reading speed, filters, forms) are rounded pills with their own arrow.
 
