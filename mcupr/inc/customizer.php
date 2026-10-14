@@ -159,6 +159,20 @@ function mcupr_policy_url( $key ) {
 	if ( $id && 'publish' === get_post_status( $id ) ) {
 		return get_permalink( $id );
 	}
+	// Not chosen in the Customizer: the page with the conventional slug (the starter import creates them).
+	$slugs = array(
+		'privacy' => 'privacy-policy',
+		'cookie'  => 'cookie-policy',
+		'a11y'    => 'accessibility-statement',
+		'sitemap' => 'sitemap',
+		'contact' => 'contact',
+	);
+	if ( isset( $slugs[ $key ] ) ) {
+		$found = get_posts( array( 'name' => $slugs[ $key ], 'post_type' => 'page', 'post_status' => 'publish', 'posts_per_page' => 1, 'no_found_rows' => true, 'suppress_filters' => true ) );
+		if ( $found ) {
+			return get_permalink( $found[0] );
+		}
+	}
 	if ( 'privacy' === $key ) {
 		return get_privacy_policy_url();
 	}
