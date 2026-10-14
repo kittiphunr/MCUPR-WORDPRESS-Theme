@@ -30,7 +30,13 @@ function mcupr_seo_head() {
 	}
 	$desc  = mcupr_seo_description();
 	$title = wp_get_document_title();
-	$url   = is_singular() ? get_permalink() : home_url( add_query_arg( array() ) );
+	$url   = home_url( '/' );
+	if ( is_singular() ) {
+		$url = get_permalink();
+	} elseif ( is_category() || is_tag() || is_tax() ) {
+		$link = get_term_link( get_queried_object() );
+		$url  = is_wp_error( $link ) ? $url : $link;
+	}
 	$img   = is_singular() && has_post_thumbnail() ? get_the_post_thumbnail_url( null, 'mcupr-hero' ) : '';
 	if ( ! $img && has_custom_logo() ) {
 		$img = wp_get_attachment_image_url( get_theme_mod( 'custom_logo' ), 'full' );
@@ -52,7 +58,7 @@ function mcupr_seo_head() {
 	}
 	foreach ( $tags as $k => $v ) {
 		$attr = 0 === strpos( $k, 'og:' ) ? 'property' : 'name';
-		echo '<meta ' . $attr . '="' . esc_attr( $k ) . '" content="' . esc_attr( $v ) . '">' . "\n";
+		echo '<meta ' . $attr . '="' . esc_attr( $k ) . '" content="' . esc_attr( $v ) . '">' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput -- $attr is one of two fixed words
 	}
 }
 add_action( 'wp_head', 'mcupr_seo_head', 2 );
