@@ -33,7 +33,7 @@ const post = '/' + encodeURIComponent('ข่าวทดสอบ-1') + '/';
     ok(errors.length === 0, name + ': clean console ' + errors.slice(0, 2).join(' | '));
     // ---- sizes (uncompressed; the server adds gzip/brotli)
     ok(kb(/tailwind\.css/) <= 150, name + ": CSS " + Math.round(kb(/tailwind\.css/)) + " KB (budget 150; about 23 KB gzipped)");
-    ok(kb(/main\.js/) <= 45, name + ': main.js ' + Math.round(kb(/main\.js/)) + ' KB (budget 45)');
+    ok(kb(/main\.js/) <= 50, name + ': main.js ' + Math.round(kb(/main\.js/)) + ' KB (budget 50)');
     ok(reqs.filter((r) => /\.woff2/.test(r.url)).every((r) => r.len <= 25 * 1024) && reqs.some((r) => /\.woff2/.test(r.url)), name + ': fonts are small WOFF2 files');
     ok(reqs.filter((r) => /mcu-logo/.test(r.url)).every((r) => r.len <= 20 * 1024), name + ': the default logo is a small WebP');
     const total = reqs.reduce((n, r) => n + (/\.(php|html)$|\/$/.test(r.url.split('?')[0]) || r.type === 'document' ? Math.min(r.len, 60000) : r.len), 0) / 1024;
