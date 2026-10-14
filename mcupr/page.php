@@ -27,8 +27,10 @@ get_header();
 			<div class="no-print mb-6 space-y-3">
 				<?php get_template_part( 'template-parts/listen', null, array( 'target' => '#article-body', 'title' => wp_strip_all_tags( get_the_title() ) ) ); ?>
 				<div class="flex flex-wrap items-center gap-3">
-					<button type="button" class="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-line bg-bg px-4 text-fg hover:border-primary hover:text-link" data-print><?php mcupr_e( 'print' ); ?></button>
-					<span class="text-sm text-muted"><?php mcupr_e( 'updated_on' ); ?> <?php echo esc_html( mcupr_date_text( get_post_timestamp( null, 'modified' ) ) ); ?></span>
+					<div class="pill-tabs !flex items-center" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'article_tools' ) ); ?>">
+						<button type="button" class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border-0 bg-transparent px-4 font-semibold text-fg2 hover:bg-tint hover:text-link" data-print><?php mcupr_e( 'print' ); ?></button>
+					</div>
+					<span class="inline-flex items-center gap-1.5 text-sm text-muted"><?php echo mcupr_icon( 'clock', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php mcupr_e( 'updated_on' ); ?> <?php echo esc_html( mcupr_date_text( get_post_timestamp( null, 'modified' ) ) ); ?></span>
 				</div>
 			</div>
 			<div id="article-body" class="reader"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
@@ -37,6 +39,26 @@ get_header();
 				wp_link_pages();
 				?>
 			</div>
+			<?php
+			// On the section's first page: its sub-pages as tiles (Certify Hub "tile" cards).
+			if ( $section && get_the_ID() === $root ) :
+				$kids = get_pages( array( 'child_of' => $root, 'parent' => $root, 'sort_column' => 'menu_order,post_title' ) );
+				if ( $kids ) :
+					?>
+					<ul class="not-prose no-print m-0 mt-10 grid list-none gap-4 p-0 min-[600px]:grid-cols-2" aria-label="<?php echo esc_attr( mcupr_t( 'in_section' ) ); ?>">
+						<?php foreach ( $kids as $k ) : ?>
+							<li class="contents">
+								<a class="soft-card lift flex items-center gap-4 p-4 text-fg no-underline" href="<?php echo esc_url( get_permalink( $k ) ); ?>">
+									<span class="stat-ic" aria-hidden="true"><?php echo mcupr_icon( 'news', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+									<span class="min-w-0"><b class="block"><?php echo esc_html( get_the_title( $k ) ); ?></b><span class="block text-sm text-muted"><?php echo esc_html( wp_trim_words( get_the_excerpt( $k ), 14, '…' ) ); ?></span></span>
+								</a>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+					<?php
+				endif;
+			endif;
+			?>
 			<?php
 			if ( comments_open() ) {
 				comments_template();
@@ -49,10 +71,10 @@ get_header();
 				<?php if ( $section ) : ?>
 				<div class="soft-card p-5">
 					<h2 id="section-title" class="mcu-title mb-4 text-xl font-bold"><?php mcupr_e( 'in_section' ); ?></h2>
-					<ul class="m-0 list-none p-0">
-						<li><a class="flex min-h-11 items-center rounded-lg px-2 font-bold text-fg no-underline hover:bg-surface <?php echo get_the_ID() === $root ? 'bg-tint' : ''; ?>" href="<?php echo esc_url( get_permalink( $root ) ); ?>" <?php echo get_the_ID() === $root ? 'aria-current="page"' : ''; ?>><?php echo esc_html( get_the_title( $root ) ); ?></a></li>
+					<ul class="side-tabs">
+						<li><a class="font-bold" href="<?php echo esc_url( get_permalink( $root ) ); ?>" <?php echo get_the_ID() === $root ? 'aria-current="page"' : ''; ?>><?php echo esc_html( get_the_title( $root ) ); ?></a></li>
 						<?php foreach ( $section as $p ) : ?>
-							<li><a class="flex min-h-11 items-center rounded-lg py-1 pr-2 text-fg no-underline hover:bg-surface <?php echo get_the_ID() === $p->ID ? 'bg-tint font-bold' : ''; ?>" style="padding-left: <?php echo esc_attr( 0.5 + 1 * count( get_post_ancestors( $p->ID ) ) ); ?>rem" href="<?php echo esc_url( get_permalink( $p ) ); ?>" <?php echo get_the_ID() === $p->ID ? 'aria-current="page"' : ''; ?>><?php echo esc_html( get_the_title( $p ) ); ?></a></li>
+							<li><a style="margin-left: <?php echo esc_attr( 0.75 * count( get_post_ancestors( $p->ID ) ) ); ?>rem" href="<?php echo esc_url( get_permalink( $p ) ); ?>" <?php echo get_the_ID() === $p->ID ? 'aria-current="page"' : ''; ?>><?php echo esc_html( get_the_title( $p ) ); ?></a></li>
 						<?php endforeach; ?>
 					</ul>
 				</div>
