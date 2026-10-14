@@ -157,7 +157,7 @@ if ( get_theme_mod( 'mcupr_home_cats_on', true ) ) :
 	if ( $cat_terms ) :
 		?>
 <section class="wrap mt-14" aria-label="<?php echo esc_attr( mcupr_t( 'news_categories' ) ); ?>">
-	<div class="grid gap-8 min-[900px]:grid-cols-3">
+	<div class="grid grid-cols-[repeat(auto-fit,minmax(min(20rem,100%),1fr))] gap-8">
 		<?php
 		foreach ( $cat_terms as $term ) {
 			get_template_part( 'template-parts/home-cat', null, array( 'term' => $term ) );
