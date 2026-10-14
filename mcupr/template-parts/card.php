@@ -13,7 +13,7 @@ $featured  = isset( $args['variant'] ) && 'featured' === $args['variant'];
 <article id="post-<?php the_ID(); ?>" <?php post_class( 'tilt lift soft-card relative flex flex-col overflow-hidden' . ( $featured ? ' min-[900px]:col-span-2 min-[900px]:flex-row' : '' ) ); ?>>
 	<?php if ( has_post_thumbnail() ) : ?>
 		<a class="noimg:hidden <?php echo $featured ? 'min-[900px]:w-1/2' : ''; ?>" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
-			<?php the_post_thumbnail( 'mcupr-card', array( 'alt' => '', 'loading' => 'lazy', 'class' => 'block aspect-[16/10] w-full object-cover' . ( $featured ? ' min-[900px]:h-full' : '' ) ) ); ?>
+			<?php the_post_thumbnail( 'mcupr-card', array( 'alt' => '', 'loading' => 'lazy', 'fetchpriority' => 'low', 'decoding' => 'async', 'sizes' => '(min-width: 1000px) 400px, (min-width: 700px) 45vw, 100vw', 'class' => 'block aspect-[16/10] w-full object-cover' . ( $featured ? ' min-[900px]:h-full' : '' ) ) ); ?>
 		</a>
 	<?php endif; ?>
 	<div class="px-4 pt-4 pb-5 <?php echo $featured ? 'min-[900px]:flex min-[900px]:w-1/2 min-[900px]:flex-col min-[900px]:justify-center min-[900px]:p-8' : ''; ?>"<?php echo $part_lang; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
