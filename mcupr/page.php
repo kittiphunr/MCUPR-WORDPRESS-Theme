@@ -16,7 +16,7 @@ if ( ! mcupr_elementor_location( 'single' ) ) :
 			continue;
 		}
 		list( $root, $section ) = mcupr_section_pages( get_the_ID() );
-		$has_side               = (bool) $section;
+		$has_side               = $section || is_active_sidebar( 'sidebar-page' );
 		?>
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 	<header class="mcu-wheel bg-tint py-10"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
@@ -50,7 +50,8 @@ if ( ! mcupr_elementor_location( 'single' ) ) :
 		</div>
 
 		<?php if ( $has_side ) : ?>
-			<aside class="no-print min-[1000px]:sticky min-[1000px]:top-6 min-[1000px]:self-start" aria-labelledby="section-title">
+			<aside class="no-print min-[1000px]:sticky min-[1000px]:top-6 min-[1000px]:self-start" <?php echo $section ? 'aria-labelledby="section-title"' : 'aria-label="' . esc_attr( mcupr_t( 'in_section' ) ) . '"'; ?>>
+				<?php if ( $section ) : ?>
 				<div class="rounded-2xl border border-line bg-bg p-5">
 					<h2 id="section-title" class="mcu-title mb-4 text-xl font-bold"><?php mcupr_e( 'in_section' ); ?></h2>
 					<ul class="m-0 list-none p-0">
@@ -60,6 +61,8 @@ if ( ! mcupr_elementor_location( 'single' ) ) :
 						<?php endforeach; ?>
 					</ul>
 				</div>
+				<?php endif; ?>
+				<?php mcupr_widget_area( 'sidebar-page', 'mt-6 space-y-6' ); ?>
 			</aside>
 		<?php endif; ?>
 	</div>

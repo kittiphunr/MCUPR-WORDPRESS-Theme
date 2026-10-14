@@ -30,6 +30,11 @@ $alt     = mcupr_alt_name();
 			</nav>
 		</div>
 	<?php endif; ?>
+	<?php if ( is_active_sidebar( 'footer-1' ) || is_active_sidebar( 'footer-2' ) || is_active_sidebar( 'footer-3' ) ) : ?>
+		<div class="wrap grid gap-8 border-b border-line py-10 min-[800px]:grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
+			<?php foreach ( array( 'footer-1', 'footer-2', 'footer-3' ) as $area ) { mcupr_widget_area( $area, 'space-y-6' ); } ?>
+		</div>
+	<?php endif; ?>
 	<div class="wrap grid gap-8 py-10 min-[900px]:grid-cols-[2fr_1fr]">
 		<div class="flex items-start gap-4">
 			<?php echo mcupr_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>

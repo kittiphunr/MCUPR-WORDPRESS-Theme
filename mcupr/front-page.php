@@ -108,6 +108,10 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 <?php endif; ?>
 <?php wp_reset_postdata(); ?>
 
+<?php if ( is_active_sidebar( 'home-after' ) ) : ?>
+<div class="wrap mt-14"><?php mcupr_widget_area( 'home-after', 'grid gap-6 min-[800px]:grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]' ); ?></div>
+<?php endif; ?>
+
 <?php if ( $cta_title ) : ?>
 <section class="wrap mt-16" aria-label="<?php echo esc_attr( $cta_title ); ?>">
 	<div class="flex flex-wrap items-center justify-between gap-6 rounded-3xl bg-tint px-8 py-12 contrast:border-2 contrast:border-line">
