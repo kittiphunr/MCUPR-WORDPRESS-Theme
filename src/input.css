@@ -723,3 +723,11 @@ html:not([data-menu="side"]) #content > article > .mcu-wheel:first-child { margi
 .ev-link { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.75rem; font-weight: 600; color: var(--link); }
 html[data-contrast] .cal, html[data-contrast] .cal td, html[data-contrast] .ev-row { border-color: var(--border); }
 @media print { .cal-nav .cal-btn { display: none; } }
+
+/* ===== Recent Posts widget (inc/widgets.php): short title + "Read more..." ===== */
+.mcupr-recent { margin: 0; padding: 0; list-style: none; }
+.widget .mcupr-recent li { display: grid; gap: .15rem; padding: .75rem 0; }
+.mcupr-recent .rp-date { font-size: .8125rem; color: var(--muted); }
+.widget .mcupr-recent a.rp-title { display: block; min-height: 0; font-weight: 700; line-height: 1.4; }
+.widget .mcupr-recent a.rp-more { display: inline-flex; align-items: center; justify-self: start; min-height: 2.25rem; padding: 0 .9rem; border-radius: 9999px; background: var(--tint); color: var(--link); font-size: .875rem; font-weight: 700; text-decoration: none; }
+.widget .mcupr-recent a.rp-more:hover { background: var(--primary); color: var(--on-primary); text-decoration: none; }
