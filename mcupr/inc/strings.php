@@ -150,6 +150,7 @@ return array(
 		'このコンテンツは選択された言語では未提供です。原文を表示しています。',
 	),
 	'tags'           => array( 'แท็ก', 'Tags', '标签', 'タグ' ),
+	'more_menu'      => array( 'เพิ่มเติม', 'More', '更多', 'その他' ),
 	'grp_display'    => array( 'การแสดงผล', 'Display', '显示', '表示' ),
 	'grp_text'       => array( 'ตัวอักษร', 'Text', '文字', '文字' ),
 	'grp_access'     => array( 'การเข้าถึง', 'Accessibility', '无障碍', 'アクセシビリティ' ),
