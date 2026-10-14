@@ -19,21 +19,21 @@ function mcupr_customize_register( $wp_customize ) {
 	$wp_customize->add_setting( 'mcupr_default_lang', array( 'default' => 'th', 'sanitize_callback' => 'mcupr_sanitize_lang' ) );
 	$choices = array();
 	foreach ( mcupr_ui_languages() as $code => $l ) {
-		$choices[ $code ] = $l['label'] . ' (' . $l['name'] . ')';
+		$choices[ $code ] = $l['label'] . ' (' . mcupr_admin_lang_name( $l['name'] ) . ')';
 	}
 	$wp_customize->add_control( 'mcupr_default_lang', array( 'section' => 'mcupr_org', 'label' => __( 'Default language (language of the main editor)', 'mcupr' ), 'type' => 'select', 'choices' => $choices ) );
 
 	foreach ( mcupr_ui_languages() as $code => $l ) {
 		$wp_customize->add_setting( "mcupr_name_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
-		$wp_customize->add_control( "mcupr_name_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'Organisation name (%s)', 'mcupr' ), $l['name'] ), 'type' => 'text' ) );
+		$wp_customize->add_control( "mcupr_name_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'Organisation name (%s)', 'mcupr' ), mcupr_admin_lang_name( $l['name'] ) ), 'type' => 'text' ) );
 
 		$wp_customize->add_setting( "mcupr_address_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
-		$wp_customize->add_control( "mcupr_address_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'Address / contact (%s)', 'mcupr' ), $l['name'] ), 'type' => 'textarea' ) );
+		$wp_customize->add_control( "mcupr_address_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'Address / contact (%s)', 'mcupr' ), mcupr_admin_lang_name( $l['name'] ) ), 'type' => 'textarea' ) );
 	}
 
 	foreach ( mcupr_ui_languages() as $code => $l ) {
 		$wp_customize->add_setting( "mcupr_hours_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
-		$wp_customize->add_control( "mcupr_hours_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'Opening hours (%s) – footer', 'mcupr' ), $l['name'] ), 'type' => 'textarea' ) );
+		$wp_customize->add_control( "mcupr_hours_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'Opening hours (%s) – footer', 'mcupr' ), mcupr_admin_lang_name( $l['name'] ) ), 'type' => 'textarea' ) );
 	}
 	$wp_customize->add_setting( 'mcupr_map_on', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 	$wp_customize->add_control( 'mcupr_map_on', array( 'section' => 'mcupr_org', 'label' => __( 'Show the Google Maps location card in the footer (loads only when the visitor presses “Show map”)', 'mcupr' ), 'type' => 'checkbox' ) );
@@ -54,12 +54,12 @@ function mcupr_customize_register( $wp_customize ) {
 		/* translators: %s: language name */
 		foreach ( array( 'hero_l1' => __( 'Hero headline, light line (%s)', 'mcupr' ), 'hero_l2' => __( 'Hero headline, bold line (%s)', 'mcupr' ), 'cta_title' => __( 'Bottom banner text (%s)', 'mcupr' ) ) as $key => $label ) {
 			$wp_customize->add_setting( "mcupr_{$key}_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
-			$wp_customize->add_control( "mcupr_{$key}_{$code}", array( 'section' => 'mcupr_home', 'label' => sprintf( $label, $l['name'] ), 'type' => 'text' ) );
+			$wp_customize->add_control( "mcupr_{$key}_{$code}", array( 'section' => 'mcupr_home', 'label' => sprintf( $label, mcupr_admin_lang_name( $l['name'] ) ), 'type' => 'text' ) );
 		}
 	}
 	foreach ( mcupr_ui_languages() as $code => $l ) {
 		$wp_customize->add_setting( "mcupr_popular_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
-		$wp_customize->add_control( "mcupr_popular_{$code}", array( 'section' => 'mcupr_home', 'label' => sprintf( /* translators: %s: language */ __( 'Popular searches, comma separated (%s)', 'mcupr' ), $l['name'] ), 'type' => 'text' ) );
+		$wp_customize->add_control( "mcupr_popular_{$code}", array( 'section' => 'mcupr_home', 'label' => sprintf( /* translators: %s: language */ __( 'Popular searches, comma separated (%s)', 'mcupr' ), mcupr_admin_lang_name( $l['name'] ) ), 'type' => 'text' ) );
 	}
 	// Home sections
 	$wp_customize->add_setting( 'mcupr_home_about_page', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
@@ -148,7 +148,7 @@ function mcupr_customize_register( $wp_customize ) {
 	$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'mcupr_credit_photo', array( 'section' => 'mcupr_org', 'label' => __( 'Site credit: photo (optional, shown round)', 'mcupr' ), 'mime_type' => 'image' ) ) );
 	foreach ( mcupr_ui_languages() as $code => $l ) {
 		$wp_customize->add_setting( "mcupr_about_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
-		$wp_customize->add_control( "mcupr_about_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'About text (%s) – shown in the About dialog', 'mcupr' ), $l['name'] ), 'type' => 'textarea' ) );
+		$wp_customize->add_control( "mcupr_about_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'About text (%s) – shown in the About dialog', 'mcupr' ), mcupr_admin_lang_name( $l['name'] ) ), 'type' => 'textarea' ) );
 	}
 	$wp_customize->add_setting( 'mcupr_anim_default', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 	$wp_customize->add_control( 'mcupr_anim_default', array( 'section' => 'mcupr_display', 'label' => __( 'Animations on by default (visitors can switch them off in the accessibility dialog)', 'mcupr' ), 'type' => 'checkbox' ) );

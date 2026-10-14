@@ -281,7 +281,7 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     const c = await newCtx({}, null, { mcupr_credit_name: 'ทีมงานเว็บไซต์', mcupr_credit_url: 'https://example.org/', mcupr_about_th: 'เว็บไซต์ทดสอบสำหรับธีม MCUPR' });
     const p = await c.newPage();
     await p.goto(B + '/');
-    ok((await text(p, '#colophon')).includes('จัดทำโดย ทีมงานเว็บไซต์') && (await p.locator('#colophon a[href="https://example.org/"]').count()) === 1, 'footer credit with link');
+    ok((await text(p, '#colophon')).includes('ทีมงานเว็บไซต์') && (await p.locator('#colophon .fcredit-n a[href="https://example.org/"]').count()) === 1 && (await p.locator('#colophon a[href="https://example.org/"]').count()) === 1, 'footer credit card with link (once)');
     await p.click('#about-toggle');
     await p.waitForSelector('.swal2-popup');
     const t = await text(p, '.swal2-html-container');
