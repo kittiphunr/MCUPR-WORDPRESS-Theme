@@ -78,18 +78,15 @@ foreach ( $policy as $row ) {
 		</nav>
 		<?php endif; ?>
 	</div>
+	<?php if ( trim( (string) get_theme_mod( 'mcupr_credit_name', '' ) ) !== '' ) : ?>
+	<div class="fcredit-wrap px-6"><?php mcupr_credit_card(); ?></div>
+	<?php endif; ?>
 	<div class="border-t border-line py-4 text-[.9375rem] text-muted">
 		<div class="px-6">
 			<p class="m-0">© <?php echo esc_html( wp_date( 'Y' ) ); ?> <?php echo esc_html( mcupr_org_name() ); ?>. <?php mcupr_e( 'rights' ); ?></p>
 			<p class="m-0 mt-1">
 				<?php
-				$credit     = get_theme_mod( 'mcupr_credit_name', '' );
-				$credit_url = get_theme_mod( 'mcupr_credit_url', '' );
-				if ( $credit ) {
-					echo esc_html( mcupr_t( 'about_credit' ) ) . ' ';
-					echo $credit_url ? '<a href="' . esc_url( $credit_url ) . '" rel="noopener">' . esc_html( $credit ) . '</a>' : esc_html( $credit );
-					echo ' · ';
-				}
+				// the site creator has their own card above (mcupr_credit_card)
 				echo esc_html( mcupr_t( 'theme_credit' ) . ' ' . MCUPR_VERSION ) . ' · ';
 				?>
 				<button type="button" class="min-h-8 cursor-pointer border-0 bg-transparent p-0 text-link underline" data-open-about><?php mcupr_e( 'about' ); ?></button>

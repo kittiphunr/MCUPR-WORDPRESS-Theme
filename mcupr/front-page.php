@@ -37,26 +37,39 @@ if ( '' === $line1 . $line2 ) {
 $cta_title = mcupr_text_mod( 'mcupr_cta_title' );
 $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 ?>
-<div class="wrap mt-6"><section class="relative isolate flex min-h-[26rem] rounded-3xl flex-col items-center justify-center overflow-hidden px-3 py-16 text-center min-[400px]:min-h-[30rem] min-[400px]:px-6 min-[900px]:min-h-[min(36rem,70vh)] <?php echo $hero_img ? 'bg-neutral-800 text-white' : 'bg-gradient-to-br from-primary to-brand2 text-on-primary'; ?>">
+<?php $hero = mcupr_hero_options(); $left = 'left' === $hero['align']; ?>
+<div class="wrap mt-6"><section class="hero hero-<?php echo esc_attr( $hero['height'] ); ?> relative isolate flex flex-col overflow-hidden rounded-3xl px-3 py-16 min-[400px]:px-6 <?php echo $left ? 'items-start justify-center text-left min-[900px]:px-14' : 'items-center justify-center text-center'; ?> <?php echo $hero_img ? 'bg-neutral-800 text-white' : 'bg-gradient-to-br from-primary to-brand2 text-on-primary'; ?>">
 	<?php if ( $hero_img ) : ?>
 		<?php
 		// The LCP element: right size (srcset), eager, high priority, decoded off the main thread.
-		echo wp_get_attachment_image( $hero_id, 'mcupr-hero', false, array( 'class' => 'noimg:hidden absolute inset-0 -z-20 size-full object-cover', 'alt' => '', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async', 'sizes' => '(min-width: 1260px) 1200px, 100vw' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
+		echo wp_get_attachment_image( $hero_id, 'mcupr-hero', false, array( 'class' => 'noimg:hidden absolute inset-0 -z-20 size-full object-cover', 'style' => 'object-position:' . ( 'center' === $hero['focus'] ? 'center' : $hero['focus'] ), 'alt' => '', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async', 'sizes' => '(min-width: 1260px) 1200px, 100vw' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 		?>
+		<span class="absolute inset-0 -z-10" style="background:rgb(0 0 0 / <?php echo esc_attr( $hero['overlay'] / 100 ); ?>)" aria-hidden="true"></span>
 	<?php endif; ?>
-	<?php if ( $hero_img ) : ?><span class="absolute inset-0 -z-10 bg-black/50" aria-hidden="true"></span><?php endif; ?>
 
-	<h1 class="mb-10 max-w-4xl animate-fade-up leading-tight [text-shadow:0_2px_12px_rgb(0_0_0/.5)]">
+	<?php if ( '' !== $hero['eyebrow'] ) : ?>
+		<p class="hero-eyebrow animate-fade-up"><?php echo esc_html( $hero['eyebrow'] ); ?></p>
+	<?php endif; ?>
+	<h1 class="animate-fade-up leading-tight [text-shadow:0_2px_12px_rgb(0_0_0/.5)] max-w-4xl <?php echo ( '' !== $hero['sub'] || $hero['btn1'][0] ) ? 'mb-5' : 'mb-10'; ?>">
 		<?php if ( $line1 ) : ?><span class="block text-2xl font-light min-[400px]:text-3xl min-[900px]:text-5xl"><?php echo esc_html( $line1 ); ?></span><?php endif; ?>
 		<?php if ( $line2 ) : ?><span class="block text-3xl font-bold min-[400px]:text-4xl min-[900px]:text-6xl"><?php echo esc_html( $line2 ); ?></span><?php endif; ?>
 	</h1>
+	<?php if ( '' !== $hero['sub'] ) : ?>
+		<p class="hero-sub animate-fade-up"><?php echo esc_html( $hero['sub'] ); ?></p>
+	<?php endif; ?>
+	<?php if ( ( $hero['btn1'][0] && $hero['btn1'][1] ) || ( $hero['btn2'][0] && $hero['btn2'][1] ) ) : ?>
+		<p class="hero-btns animate-fade-up">
+			<?php if ( $hero['btn1'][0] && $hero['btn1'][1] ) : ?><a class="hero-btn hero-btn-1" href="<?php echo esc_url( $hero['btn1'][1] ); ?>"><?php echo esc_html( $hero['btn1'][0] ); ?></a><?php endif; ?>
+			<?php if ( $hero['btn2'][0] && $hero['btn2'][1] ) : ?><a class="hero-btn hero-btn-2" href="<?php echo esc_url( $hero['btn2'][1] ); ?>"><?php echo esc_html( $hero['btn2'][0] ); ?></a><?php endif; ?>
+		</p>
+	<?php endif; ?>
 
 	<?php
 	// Quick links: the "Quick links" menu; until one is assigned, the first items of the main menu.
 	$quick_args = has_nav_menu( 'quick' ) ? array( 'theme_location' => 'quick' ) : ( has_nav_menu( 'primary_' . mcupr_lang() ) ? array( 'theme_location' => 'primary_' . mcupr_lang() ) : ( has_nav_menu( 'primary_' . mcupr_default_lang() ) ? array( 'theme_location' => 'primary_' . mcupr_default_lang() ) : array() ) );
-	if ( $quick_args ) :
+	if ( $quick_args && $hero['quick'] ) :
 		?>
-		<nav class="w-full max-w-6xl animate-fade-up [animation-delay:.2s]" aria-label="<?php echo esc_attr( mcupr_t( 'quick_links' ) ); ?>">
+		<nav class="mt-5 w-full max-w-6xl animate-fade-up [animation-delay:.2s]" aria-label="<?php echo esc_attr( mcupr_t( 'quick_links' ) ); ?>">
 			<?php wp_nav_menu( $quick_args + array( 'container' => false, 'menu_class' => 'hero-menu', 'depth' => 1 ) ); ?>
 		</nav>
 	<?php endif; ?>
