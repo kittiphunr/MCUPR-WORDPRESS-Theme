@@ -800,7 +800,8 @@ html[data-contrast] .cal, html[data-contrast] .cal td, html[data-contrast] .ev-r
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-foot { position: fixed; left: .75rem; bottom: .75rem; z-index: 46; display: block; width: calc(var(--sbw) - 1.5rem); margin: 0; padding: .4rem; border-radius: 9999px; background: var(--bg); box-shadow: 0 10px 40px color-mix(in srgb, var(--text) 14%, transparent), 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent); }
 	html[data-contrast]:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-foot { box-shadow: none; border: 2px solid var(--border); }
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-foot .sb-btn { border-radius: 9999px; }
-	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-foot { padding: .4rem; }
+	/* collapsed: a perfect circle, as tall as it is wide */
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-foot { display: grid; place-items: center; height: calc(var(--sbw) - 1.5rem); padding: 0; border-radius: 50%; }
 	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-foot .sb-btn { margin-inline: auto; }
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav li > a { min-width: 0; }
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav li > a .t { min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.3; }
