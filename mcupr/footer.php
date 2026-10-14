@@ -23,20 +23,29 @@ $alt     = mcupr_alt_name();
 
 <?php if ( ! mcupr_elementor_location( 'footer' ) ) : ?>
 <footer id="colophon" class="mt-16 border-t-[6px] border-primary bg-bar text-on-bar contrast:border-line print:hidden" tabindex="-1">
-	<div class="wrap grid gap-8 py-10 min-[900px]:grid-cols-[2fr_1fr_1fr]">
-		<div>
+	<?php if ( has_nav_menu( 'footer' ) ) : ?>
+		<div class="wrap border-b border-on-bar/25 py-10">
+			<nav aria-label="<?php echo esc_attr( mcupr_t( 'site_links' ) ); ?>">
+				<?php wp_nav_menu( array( 'theme_location' => 'footer', 'container' => false, 'depth' => 2, 'menu_class' => 'footer-cols' ) ); ?>
+			</nav>
+		</div>
+	<?php endif; ?>
+	<div class="wrap grid gap-8 py-10 min-[900px]:grid-cols-[2fr_1fr]">
+		<div class="flex items-start gap-4">
 			<?php
 			if ( has_custom_logo() ) {
-				echo wp_get_attachment_image( get_theme_mod( 'custom_logo' ), 'full', false, array( 'class' => 'mb-4 h-16 w-auto', 'alt' => '' ) );
+				echo wp_get_attachment_image( get_theme_mod( 'custom_logo' ), 'full', false, array( 'class' => 'h-16 w-auto', 'alt' => '' ) );
 			}
 			?>
-			<p class="mb-1 text-xl font-bold"><?php echo esc_html( mcupr_org_name() ); ?></p>
-			<?php if ( $alt ) : ?>
-				<p class="mb-3" lang="<?php echo esc_attr( 'th' === mcupr_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></p>
-			<?php endif; ?>
-			<?php if ( $address ) : ?>
-				<address class="not-italic"><?php echo nl2br( esc_html( $address ) ); ?></address>
-			<?php endif; ?>
+			<div>
+				<p class="mb-1 text-xl font-bold"><?php echo esc_html( mcupr_org_name() ); ?></p>
+				<?php if ( $alt ) : ?>
+					<p class="mb-3" lang="<?php echo esc_attr( 'th' === mcupr_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></p>
+				<?php endif; ?>
+				<?php if ( $address ) : ?>
+					<address class="not-italic"><?php echo nl2br( esc_html( $address ) ); ?></address>
+				<?php endif; ?>
+			</div>
 		</div>
 
 		<nav aria-label="<?php echo esc_attr( mcupr_t( 'footer_nav' ) ); ?>">
@@ -50,13 +59,6 @@ $alt     = mcupr_alt_name();
 				<?php endforeach; ?>
 			</ul>
 		</nav>
-
-		<?php if ( has_nav_menu( 'footer' ) ) : ?>
-			<nav aria-label="<?php echo esc_attr( mcupr_t( 'quick_links' ) ); ?>">
-				<h2 class="mb-3 text-lg font-bold"><?php mcupr_e( 'quick_links' ); ?></h2>
-				<?php wp_nav_menu( array( 'theme_location' => 'footer', 'container' => false, 'depth' => 1, 'menu_class' => 'footer-menu' ) ); ?>
-			</nav>
-		<?php endif; ?>
 	</div>
 	<div class="border-t border-on-bar/25 py-4 text-[.9375rem]">
 		<div class="wrap">
