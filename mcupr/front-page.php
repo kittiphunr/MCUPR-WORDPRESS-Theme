@@ -16,12 +16,12 @@ $news   = new WP_Query(
 		'no_found_rows'       => true,
 	)
 );
-$posts  = $news->posts;
-$slider = array_slice( $posts, 0, 6 );
-$rest   = array_slice( $posts, 6 );
+$news_posts = $news->posts; // not $posts / $p: those are WordPress globals and templates run in the global scope
+$slider     = array_slice( $news_posts, 0, 6 );
+$rest       = array_slice( $news_posts, 6 );
 $blog   = get_option( 'page_for_posts' ) ? get_permalink( get_option( 'page_for_posts' ) ) : '';
 
-$hero_img = mcupr_hero_image_url( $posts ? $posts[0]->ID : 0 );
+$hero_img = mcupr_hero_image_url( $news_posts ? $news_posts[0]->ID : 0 );
 $line1    = mcupr_text_mod( 'mcupr_hero_l1' );
 $line2    = mcupr_text_mod( 'mcupr_hero_l2' );
 if ( '' === $line1 . $line2 ) {
@@ -60,8 +60,8 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 	</div>
 	<div id="news-slider" class="snap-row" tabindex="0" role="region" aria-label="<?php echo esc_attr( mcupr_t( 'news_slider' ) ); ?>" data-carousel-track>
 		<?php
-		foreach ( $slider as $p ) :
-			setup_postdata( $GLOBALS['post'] = $p ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride
+		foreach ( $slider as $item ) :
+			setup_postdata( $GLOBALS['post'] = $item ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride
 			?>
 			<article class="tilt group relative isolate flex min-h-72 min-w-[88%] flex-col justify-end overflow-hidden lift rounded-3xl bg-neutral-800 text-white min-[700px]:min-w-[26rem]">
 				<?php if ( has_post_thumbnail() ) : ?>
@@ -97,8 +97,8 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 	</div>
 	<div class="grid grid-cols-[repeat(auto-fill,minmax(min(17rem,100%),1fr))] gap-6" data-reveal-group>
 		<?php
-		foreach ( $rest as $i => $p ) {
-			setup_postdata( $GLOBALS['post'] = $p ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride
+		foreach ( $rest as $i => $item ) {
+			setup_postdata( $GLOBALS['post'] = $item ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride
 			get_template_part( 'template-parts/card', null, array( 'variant' => 0 === $i && has_post_thumbnail() ? 'featured' : '' ) );
 		}
 		?>
