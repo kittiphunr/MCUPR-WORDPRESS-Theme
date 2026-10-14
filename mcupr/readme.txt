@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.3.1 =
+* Recent Posts widget: titles cut to 30 characters with a Read more... button.
+
 = 1.3.0 =
 * Events calendar (event post type, month grid, upcoming list, shortcodes, Google Calendar / .ics, schema.org Event).
 
