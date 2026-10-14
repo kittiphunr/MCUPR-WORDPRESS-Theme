@@ -339,6 +339,28 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await rmp.evaluate(() => getComputedStyle(document.querySelector('.sb-ring-spin')).animationName)) === 'none', 'ring: no spinning with reduced motion');
     await rm.close();
   }
+  // ---------- accessibility dialog: extra options are icon tiles
+  {
+    const oc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    await oc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const op = await oc.newPage();
+    await op.goto(B + '/');
+    await op.click('#a11y-toggle'); await op.waitForSelector('.swal2-popup');
+    await op.click('.swal2-popup summary');
+    const tiles = await op.$$eval('.opt', (a) => a.map((l) => ({ svg: !!l.querySelector('.opt-b svg'), name: l.getAttribute('data-tip'), sr: (l.querySelector('.sr-only:not(input)') || {}).textContent, w: l.querySelector('.opt-b').getBoundingClientRect().width, h: l.querySelector('.opt-b').getBoundingClientRect().height })));
+    ok(tiles.length === 8 && tiles.every((t) => t.svg && t.name && t.sr === t.name && t.w >= 44 && Math.abs(t.w - t.h) <= 1), 'options: 8 square icon tiles (>= 44px) with an icon, a tooltip and a screen-reader name');
+    ok((await op.locator('.opt-grid label:has-text("โหมดสีเทา")').count()) === 1 && (await op.locator('.opt-grid .opt-b').first().innerText()).trim() !== undefined, 'options: no visible text labels, only icons');
+    await op.check('input[data-pref=underline]', { force: true });
+    await op.waitForTimeout(400); // colour transition
+    const on = await op.evaluate(() => { const b = document.querySelector('input[data-pref=underline] + .opt-b'); const s = getComputedStyle(b); return [s.backgroundColor, getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(), document.documentElement.dataset.underline]; });
+    ok(on[2] === '1' && on[0] !== 'rgb(255, 255, 255)' && on[0] !== 'rgba(0, 0, 0, 0)', 'options: a switched-on tile is filled and the option applies (' + on[0] + ')');
+    await op.hover('.opt:nth-child(3) .opt-b');
+    await op.waitForTimeout(250);
+    ok((await op.evaluate(() => getComputedStyle(document.querySelector('.opt:nth-child(3)'), '::after').opacity)) === '1', 'options: hovering a tile shows its name');
+    await op.focus('input[data-pref=tv]'); await op.keyboard.press('Space');
+    ok((await op.evaluate(() => document.documentElement.dataset.tv)) === '1', 'options: tiles work from the keyboard');
+    await oc.close();
+  }
   // works & awards (own categories), administration chart, attachments, views
   await p.goto(B + '/works/');
   ok((await p.$$('.work-card')).length === 3, '/works/ lists the 3 sample works');

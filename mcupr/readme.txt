@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.11.1 =
+* Accessibility dialog: the extra options are icon tiles with tooltips.
+
 = 1.11.0 =
 * Ring around the sidebar expand button: a runner while the page loads, then the scroll progress.
 
