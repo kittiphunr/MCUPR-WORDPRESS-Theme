@@ -15,6 +15,7 @@ require_once MCUPR_DIR . '/inc/i18n.php';
 require_once MCUPR_DIR . '/inc/translations.php';
 require_once MCUPR_DIR . '/inc/customizer.php';
 require_once MCUPR_DIR . '/inc/template-tags.php';
+require_once MCUPR_DIR . '/inc/elementor.php';
 
 function mcupr_setup() {
 	load_theme_textdomain( 'mcupr', MCUPR_DIR . '/languages' );
@@ -44,6 +45,7 @@ function mcupr_setup() {
 		/* translators: %s: language name */
 		$locations[ 'primary_' . $code ] = sprintf( __( 'Main menu (%s)', 'mcupr' ), $l['name'] );
 	}
+	$locations['utility'] = __( 'Utility bar links (students, staff, alumni…)', 'mcupr' );
 	$locations['quick']  = __( 'Quick links', 'mcupr' );
 	$locations['footer'] = __( 'Footer links', 'mcupr' );
 	register_nav_menus( $locations );

@@ -219,6 +219,25 @@
 		});
 	}
 
+	/* ---- Skip-to-menu link only makes sense when the default menu exists ---- */
+	if (!document.getElementById('site-nav')) {
+		$$('[data-skip-nav]').forEach(function (a) { a.remove(); });
+	}
+
+	/* ---- Back to top ---- */
+	var topBtn = $('#back-to-top');
+	if (topBtn) {
+		var toggleTop = function () { topBtn.classList.toggle('hidden', window.scrollY < 600); };
+		window.addEventListener('scroll', toggleTop, { passive: true });
+		toggleTop();
+		topBtn.addEventListener('click', function () {
+			window.scrollTo({ top: 0, behavior: motionOff() ? 'auto' : 'smooth' });
+			var h = $('#skip-top') || $('#masthead') || document.body;
+			var first = $('a, button', h);
+			if (first) { first.focus({ preventScroll: true }); }
+		});
+	}
+
 	/* ---- Navigation ---- */
 	var nav = $('#site-nav');
 	var navBtn = $('.nav-toggle');
