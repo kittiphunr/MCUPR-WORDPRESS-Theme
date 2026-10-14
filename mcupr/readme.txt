@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.6.0 =
+* Layout v2: floating capsules (top menu), sidebar card + content frame (side / hybrid) with the black bar's links in the header, Facebook / LINE share buttons.
+
 = 1.5.0 =
 * Side / hybrid menu as a bento layout: separate rounded content frame, sidebar card with margins, round icons when collapsed.
 
