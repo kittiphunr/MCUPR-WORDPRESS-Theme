@@ -5,7 +5,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
 (async () => {
   const br = await launch();
   const ctx = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
-  await ctx.addInitScript(() => localStorage.setItem('mcupr_consent', '1'));
+  await ctx.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* cross-origin frame (the map) */ } });
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', (e) => errors.push(String(e)));
@@ -137,6 +137,28 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   await p.goto(B + '/events/?lang=zh');
   ok(/年/.test(await p.textContent('.cal-title')), 'Chinese: 2026年10月-style title');
   await p.goto(B + '/events/?lang=th');
+
+  // footer: contact details + click-to-load map
+  await p.goto(B + '/');
+  const ft = await p.textContent('#colophon');
+  ok(ft.includes('111 หมู่ที่ 5') && ft.includes('054 646 273') && ft.includes('เวลาทำการ'), 'footer shows address, telephone and opening hours');
+  ok((await p.getAttribute('#colophon a[href^="tel:"]', 'href')) === 'tel:054646273', 'footer: the telephone is a tap-to-call link');
+  ok((await p.$$('#colophon iframe')).length === 0, 'footer: no Google iframe until the visitor asks (no third-party request, fast page)');
+  const ext = [];
+  p.on('request', (r) => { if (/google\.com\/maps|maps\.google/.test(r.url())) ext.push(r.url()); });
+  await p.goto(B + '/');
+  ok(ext.length === 0, 'footer: no request to Google Maps on page load');
+  await p.click('#colophon [data-map-load]');
+  await p.waitForSelector('#colophon iframe.fmap-frame');
+  ok((await p.getAttribute('#colophon iframe', 'src')).includes('output=embed') && !!(await p.getAttribute('#colophon iframe', 'title')), 'footer: pressing "Show map" loads the titled Google map');
+  ok((await p.$$eval('#colophon a[href*="google.com/maps"]', (a) => a.length)) === 2, 'footer: "Open in Google Maps" and "Directions" links');
+  await p.addScriptTag({ content: axeSource() });
+  const fx = await p.evaluate(() => axe.run(document.getElementById('colophon'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+  ok(fx.violations.length === 0, 'footer axe: ' + (fx.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  await p.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+  const fd = await p.evaluate(() => axe.run(document.getElementById('colophon'), { runOnly: ['wcag2aa'] }));
+  ok(fd.violations.length === 0, 'footer axe (dark): ' + (fd.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  await p.evaluate(() => document.documentElement.removeAttribute('data-theme'));
 
   // every link in header + footer menus resolves (200) and is not "#"
   const links = [...new Set(await p.$$eval('header a[href], footer a[href]', (a) => a.map((x) => x.href).filter((h) => h.startsWith(location.origin) && !h.includes('#') && !/wp-admin|wp-login|\?lang=|replytocom|feed/.test(h))))];
