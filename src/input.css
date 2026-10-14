@@ -72,22 +72,25 @@
 		--link: var(--link-light, var(--primary));
 		--focus: #0b57d0;
 		--shadow-card: 0 1px 2px #0f172a14, 0 1px 3px #0f172a0f;
+		--shadow-soft: 0 2px 16px rgb(15 23 42 / .07);
+		--edge: transparent;
 		--font: "Sarabun", "Noto Sans Thai", "Noto Sans SC", "Noto Sans JP", "Leelawadee UI", "Tahoma", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
 		color-scheme: light;
 	}
 	:root[data-theme="dark"] {
 		--bar-bg: #0a0f1d; --bar-fg: #fff; --tint: var(--tint-dark, #26233f);
-		--canvas: #0f172a; --bg: #1e293b; --surface: #162033; --text: #f1f5f9; --text-2: #cbd5e1; --muted: #94a3b8; --border: #334155; --control: #7c8ba1; --shadow-card: none;
+		--canvas: #0f172a; --bg: #1e293b; --surface: #162033; --text: #f1f5f9; --text-2: #cbd5e1; --muted: #94a3b8; --border: #334155; --control: #7c8ba1; --shadow-card: none; --shadow-soft: none; --edge: var(--border);
 		--link: var(--link-dark, color-mix(in srgb, var(--primary) 35%, #fff)); --focus: #8ab4f8; color-scheme: dark;
 	}
 	@media (prefers-color-scheme: dark) {
 		:root:not([data-theme="light"]):not([data-theme="dark"]) {
 			--bar-bg: #0a0f1d; --bar-fg: #fff; --tint: var(--tint-dark, #26233f);
-			--canvas: #0f172a; --bg: #1e293b; --surface: #162033; --text: #f1f5f9; --text-2: #cbd5e1; --muted: #94a3b8; --border: #334155; --control: #7c8ba1; --shadow-card: none;
+			--canvas: #0f172a; --bg: #1e293b; --surface: #162033; --text: #f1f5f9; --text-2: #cbd5e1; --muted: #94a3b8; --border: #334155; --control: #7c8ba1; --shadow-card: none; --shadow-soft: none; --edge: var(--border);
 			--link: var(--link-dark, color-mix(in srgb, var(--primary) 35%, #fff)); --focus: #8ab4f8; color-scheme: dark;
 		}
 	}
 	/* High-contrast modes override light/dark */
+	:root[data-contrast] { --shadow-soft: none; --edge: var(--border); }
 	:root[data-contrast="wb"] { --canvas:#000; --tint: #000; --bg:#000; --surface:#000; --text:#fff; --text-2:#fff; --muted:#fff; --border:#fff; --control:#fff; --link:#fff; --primary:#000; --on-primary:#fff; --accent:#fff; --bar-bg:#000; --bar-fg:#fff; --focus:#ffea00; --shadow-card:none; color-scheme: dark; }
 	:root[data-contrast="yb"] { --canvas:#000; --tint: #000; --bg:#000; --surface:#000; --text:#ffea00; --text-2:#ffea00; --muted:#ffea00; --border:#ffea00; --control:#ffea00; --link:#ffea00; --primary:#000; --on-primary:#ffea00; --accent:#ffea00; --bar-bg:#000; --bar-fg:#ffea00; --focus:#fff; --shadow-card:none; color-scheme: dark; }
 	:root[data-contrast="by"] { --canvas:#ffea00; --tint: #ffea00; --bg:#ffea00; --surface:#ffea00; --text:#000; --text-2:#000; --muted:#000; --border:#000; --control:#000; --link:#000; --primary:#ffea00; --on-primary:#000; --accent:#000; --bar-bg:#000; --bar-fg:#ffea00; --focus:#000; --shadow-card:none; color-scheme: light; }
@@ -153,8 +156,27 @@
 
 /* ------------------------------------------------------------ components */
 @layer components {
-	.widget { @apply rounded-2xl border border-line bg-bg p-5; }
-	.site-footer .widget { @apply rounded-none border-0 bg-transparent p-0; }
+	/* Certify Hub look: borderless rounded cards with a soft shadow (a hairline edge in dark / contrast modes) */
+	.soft-card, .widget { @apply rounded-3xl bg-bg; border: 1px solid var(--edge); box-shadow: var(--shadow-soft); }
+	html[data-contrast] .soft-card, html[data-contrast] .widget { border-width: 2px; }
+	.lift { transition: transform .18s, box-shadow .18s; }
+	.lift:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgb(15 23 42 / .13); }
+	html[data-contrast] .lift:hover, html[data-motion] .lift:hover { transform: none; }
+	/* Centered status card: 404, no results */
+	.state-card { @apply mx-auto my-10 max-w-xl rounded-[1.75rem] bg-bg px-7 pt-9 pb-7 text-center; border: 1px solid var(--edge); box-shadow: var(--shadow-soft); }
+	.state-card .st-ic { @apply mx-auto mb-4 grid size-[4.75rem] place-items-center rounded-full bg-tint text-link; }
+	.state-card h1, .state-card h2 { @apply mb-3 text-2xl font-bold; }
+	/* Round icon + number tile (home statistics) */
+	.stat { @apply flex items-center gap-4 rounded-[1.4rem] bg-bg px-5 py-4; border: 1px solid var(--edge); box-shadow: var(--shadow-soft); }
+	.stat-ic { @apply grid size-12 flex-none place-items-center rounded-full bg-tint text-link; }
+	.stat small { @apply block text-sm text-muted; }
+	.stat b { @apply block text-3xl leading-tight font-bold; }
+	/* Pill tab group: white capsule, active tab in the brand colour */
+	.pill-tabs { @apply inline-flex max-w-full flex-wrap gap-1 rounded-[1.6rem] bg-bg p-1; border: 1px solid var(--edge); box-shadow: var(--shadow-soft); }
+	.pill-tabs a { @apply inline-flex min-h-11 items-center rounded-full px-4 font-semibold text-fg2 no-underline hover:bg-tint; }
+	.pill-tabs a[aria-current] { background: var(--primary); color: var(--on-primary); box-shadow: 0 6px 14px color-mix(in srgb, var(--primary) 35%, transparent); }
+	.widget { @apply p-5; }
+	.site-footer .widget { @apply rounded-none border-0 bg-transparent p-0 shadow-none; }
 	.widget-title { @apply mb-4 text-xl font-bold; }
 	.widget ul, .widget ol { @apply m-0 list-none p-0; }
 	.widget li { @apply border-b border-line py-1 last:border-b-0; }
@@ -182,7 +204,7 @@
 	html[data-tv="1"] .btn-tool, html[data-tv="1"] .btn, html[data-tv="1"] .btn-outline { min-width: 4rem; }
 
 	/* White content card on the slate canvas (Certify Hub look) */
-	.panel-card { @apply rounded-3xl bg-bg p-5 shadow-[var(--shadow-card)] min-[700px]:p-9 contrast:border-2 contrast:border-line; }
+	.panel-card { @apply rounded-3xl bg-bg p-5 shadow-[var(--shadow-soft)] min-[700px]:p-9 contrast:border-2 contrast:border-line; }
 
 	/* Translucent sticky header. The blur lives on a pseudo-element: backdrop-filter on the header itself would
 	   become the containing block of the fixed sidebar / drawer inside it. */
