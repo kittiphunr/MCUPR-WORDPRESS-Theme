@@ -307,48 +307,50 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await c.close();
   }
 
-  // ================= hybrid: floating pill bar on top + always-collapsed icon rail
+  // ================= side (collapsed): floating header capsule + slim icon card; a saved legacy "hybrid" choice is the sidebar
   {
     const c = await newCtx({}, '{"menu":"hybrid"}');
+    await c.addInitScript(() => { if (!sessionStorage.getItem('sbseed')) { localStorage.setItem('mcupr_sbmin', '1'); sessionStorage.setItem('sbseed', '1'); } });
     const p = await c.newPage();
     await p.goto(B + '/');
-    ok((await attr(p)) === 'hybrid', 'hybrid: applied before paint from the saved choice');
-    ok(!(await p.locator('#masthead .brand').isVisible()) && (await p.locator('#site-nav .sb-brand').isVisible()), 'hybrid: the logo sits at the top of the sidebar card, not in the top bar');
-    ok((await css(p, '#masthead', 'borderTopLeftRadius')) !== '0px' && (await css(p, '#masthead', 'boxShadow')) !== 'none', 'hybrid: header floats as a rounded pill with a shadow');
+    ok((await attr(p)) === 'side', 'legacy hybrid choice: becomes the sidebar, applied before paint');
+    ok(!(await p.locator('#masthead .brand').isVisible()) && (await p.locator('#site-nav .sb-brand').isVisible()), 'side: the logo sits at the top of the sidebar card, not in the top bar');
+    ok((await css(p, '#masthead', 'borderTopLeftRadius')) !== '0px' && (await css(p, '#masthead', 'boxShadow')) !== 'none', 'side: header floats as a rounded pill with a shadow');
     const nav = await p.evaluate(() => { const r = document.querySelector('#site-nav').getBoundingClientRect(); return [Math.round(r.left), Math.round(r.width)]; });
-    ok((await css(p, '#site-nav', 'position')) === 'fixed' && nav[0] === 12 && nav[1] <= 90, 'hybrid: slim icon card on the left ' + nav);
-    ok((await css(p, 'body', 'paddingLeft')) === '92px', 'hybrid: content offset by the slim rail');
+    ok((await css(p, '#site-nav', 'position')) === 'fixed' && nav[0] === 12 && nav[1] <= 90, 'side: slim icon card on the left ' + nav);
+    ok((await css(p, 'body', 'paddingLeft')) === '92px', 'side: content offset by the slim rail');
     const pill = await p.evaluate(() => { const n = document.querySelector('#site-nav'); const f = document.querySelector('#site-nav .sb-foot'); return { w: n.getBoundingClientRect().width, r: parseFloat(getComputedStyle(n).borderTopLeftRadius), fw: f.getBoundingClientRect().width, fh: f.getBoundingClientRect().height, fr: parseFloat(getComputedStyle(f).borderTopLeftRadius) }; });
-    ok(pill.r >= pill.w / 2 && Math.abs(pill.fw - pill.fh) <= 1 && pill.fr >= pill.fw / 2 - 1, 'hybrid: the collapsed card is a full pill and the expand button a perfect circle (corners meet in full semicircles) ' + JSON.stringify(pill));
-    ok(await p.locator('#site-nav .sb-foot').isVisible(), 'hybrid: the expand button is shown');
+    ok(pill.r >= pill.w / 2 && Math.abs(pill.fw - pill.fh) <= 1 && pill.fr >= pill.fw / 2 - 1, 'side: the collapsed card is a full pill and the expand button a perfect circle (corners meet in full semicircles) ' + JSON.stringify(pill));
+    ok(await p.locator('#site-nav .sb-foot').isVisible(), 'side: the expand button is shown');
     const fb = await p.evaluate(() => { const r = document.querySelector('#site-nav .sb-foot').getBoundingClientRect(); const n = document.querySelector('#site-nav').getBoundingClientRect(); return { gap: Math.round(innerHeight - r.bottom), sep: r.top >= n.bottom }; });
-    ok(fb.gap === 12 && fb.sep, 'hybrid: the expand button is its own card pinned to the bottom, apart from the menu card ' + JSON.stringify(fb));
+    ok(fb.gap === 12 && fb.sep, 'side: the expand button is its own card pinned to the bottom, apart from the menu card ' + JSON.stringify(fb));
     await p.hover('#site-nav .menu > li > a');
     await p.waitForTimeout(350);
-    ok((await p.evaluate(() => document.querySelector('#site-nav').getBoundingClientRect().width)) <= 90, 'hybrid: hover does not open the rail');
+    ok((await p.evaluate(() => document.querySelector('#site-nav').getBoundingClientRect().width)) <= 90, 'side: hover does not open the rail');
     await p.mouse.move(900, 500);
     await p.click('[data-sb-toggle]');
     await p.waitForTimeout(350);
-    ok((await p.evaluate(() => document.querySelector('#site-nav').getBoundingClientRect().width)) > 200 && (await css(p, 'body', 'paddingLeft')) === '272px', 'hybrid: the button expands the card to full width');
+    ok((await p.evaluate(() => document.querySelector('#site-nav').getBoundingClientRect().width)) > 200 && (await css(p, 'body', 'paddingLeft')) === '272px', 'side: the button expands the card to full width');
     await p.reload();
-    ok(!(await p.evaluate(() => document.documentElement.classList.contains('sb-min'))), 'hybrid: expanded choice is remembered');
+    ok(!(await p.evaluate(() => document.documentElement.classList.contains('sb-min'))), 'side: expanded choice is remembered');
     await p.click('[data-sb-toggle]');
     await p.waitForTimeout(300);
-    ok(await p.evaluate(() => document.documentElement.classList.contains('sb-min')), 'hybrid: collapses again with the button');
+    ok(await p.evaluate(() => document.documentElement.classList.contains('sb-min')), 'side: collapses again with the button');
     await p.mouse.move(900, 500);
     await p.screenshot({ path: shot('layout-hybrid.png') });
     await p.addScriptTag({ content: axeSource() });
     const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
-    ok(r.violations.length === 0, 'axe (hybrid mode): ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    ok(r.violations.length === 0, 'axe (collapsed sidebar): ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
     await p.click('#a11y-toggle'); await p.waitForSelector('.swal2-popup');
-    ok(await p.locator('input[data-pref=menu][value=hybrid]').isChecked(), 'hybrid: settings dialog offers and reflects the hybrid choice');
+    ok(await p.locator('input[data-pref=menu][value=side]').isChecked() && (await p.locator('input[data-pref=menu]').count()) === 2 && (await p.locator('input[data-pref=menu][value=hybrid]').count()) === 0, 'settings dialog: only top / side, as icon tiles, and the legacy choice shows as side');
+    ok((await p.locator('.mode-grid .opt-b svg').count()) === 2 && (await p.locator('.mode-grid .opt').first().getAttribute('data-tip')).length > 0, 'settings dialog: the two menu positions are icons with tooltips');
     await p.check('input[data-pref=menu][value=top]', { force: true });
-    ok((await attr(p)) === 'top' && (await p.evaluate(() => !document.documentElement.classList.contains('sb-min'))), 'hybrid → top: switches at once, slim-rail flag cleared');
+    ok((await attr(p)) === 'top' && (await p.evaluate(() => !document.documentElement.classList.contains('sb-min'))), 'side → top: switches at once, slim-rail flag cleared');
     await c.close();
     const c2 = await newCtx({ viewport: { width: 390, height: 820 } }, '{"menu":"hybrid"}');
     const p2 = await c2.newPage();
     await p2.goto(B + '/');
-    ok(await p2.isVisible('.nav-toggle') && (await p2.evaluate(() => document.documentElement.scrollWidth <= 390)), 'hybrid on phones: header hamburger + drawer, no horizontal scroll');
+    ok(await p2.isVisible('#nav-fab') && (await p2.evaluate(() => document.documentElement.scrollWidth <= 390)), 'legacy hybrid on phones: the sidebar is the floating menu button + drawer, no horizontal scroll');
     await c2.close();
   }
 
