@@ -29,5 +29,8 @@ SweetAlert2: MIT License.
 
 == Changelog ==
 
+= 1.1.0 =
+* Starter import (pages + menus), speed improvements, 'More' menu opens inline, duplicate-import clean-up.
+
 = 1.0.0 =
 * Initial release.
