@@ -34,22 +34,30 @@ $name = mcupr_org_name();
 
 		<div class="flex flex-wrap items-center gap-1.5 min-[1100px]:order-3">
 			<?php if ( has_nav_menu( 'utility' ) ) : ?>
-				<?php // There is no black bar any more: the utility links (students, staff, alumni…) sit in the header capsule (desktop) and at the end of the menu drawer (mobile). Copies without ids. ?>
-				<?php add_filter( 'nav_menu_item_id', '__return_empty_string' ); ?>
-				<?php
-				wp_nav_menu(
-					array(
-						'theme_location'       => 'utility',
-						'container'            => 'nav',
-						'container_class'      => 'hdr-util',
-						'container_aria_label' => mcupr_t( 'utility_links' ),
-						'menu_id'              => 'utility-menu-header',
-						'menu_class'           => '',
-						'depth'                => 1,
-					)
-				);
-				?>
-				<?php remove_filter( 'nav_menu_item_id', '__return_empty_string' ); ?>
+				<?php // No black bar any more: the quick links (students, staff, alumni…) are tucked into one drop-down button (or shown inline when chosen in the Customizer) here, and sit at the end of the menu drawer on phones. Copies without ids. ?>
+				<?php $tuck = ! get_theme_mod( 'mcupr_util_inline', false ); ?>
+				<div class="hdr-util-wrap<?php echo $tuck ? ' is-tucked' : ''; ?>"<?php echo $tuck ? ' data-util' : ''; ?>>
+					<?php if ( $tuck ) : ?>
+						<button type="button" class="util-btn" aria-expanded="false" aria-controls="util-panel" data-util-toggle><?php echo mcupr_icon( 'users', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'quick_links' ); ?></span><?php echo mcupr_icon( 'chevron', 14 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
+					<?php endif; ?>
+					<div class="util-panel"<?php echo $tuck ? ' id="util-panel" hidden' : ''; ?>>
+						<?php add_filter( 'nav_menu_item_id', '__return_empty_string' ); ?>
+						<?php
+						wp_nav_menu(
+							array(
+								'theme_location'       => 'utility',
+								'container'            => 'nav',
+								'container_class'      => 'hdr-util',
+								'container_aria_label' => mcupr_t( 'utility_links' ),
+								'menu_id'              => 'utility-menu-header',
+								'menu_class'           => '',
+								'depth'                => 1,
+							)
+						);
+						?>
+						<?php remove_filter( 'nav_menu_item_id', '__return_empty_string' ); ?>
+					</div>
+				</div>
 			<?php endif; ?>
 			<?php if ( get_theme_mod( 'mcupr_fs_menu', true ) ) : ?>
 			<button type="button" class="fs-open" aria-haspopup="dialog" aria-controls="fs-menu" aria-expanded="false" data-fs-open>

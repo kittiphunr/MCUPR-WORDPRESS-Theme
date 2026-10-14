@@ -54,6 +54,9 @@ function mcupr_assets() {
 			'expandMenu'  => mcupr_t( 'expand_menu' ),
 				'moreMenu'    => mcupr_t( 'more_menu' ),
 			'allMenu'     => mcupr_t( 'all_menu' ),
+			'fsFind'      => mcupr_t( 'fs_find' ),
+			'fsNone'      => mcupr_t( 'fs_none' ),
+			'quickLinks'  => mcupr_t( 'quick_links' ),
 			'closeMenu'   => mcupr_t( 'close_menu' ),
 			'collapseMenu' => mcupr_t( 'collapse_menu' ),
 			'aboutTitle'  => mcupr_t( 'about' ),
@@ -76,7 +79,7 @@ function mcupr_head_prefs() {
 	$pat_off  = get_theme_mod( 'mcupr_pattern', true ) ? 0 : 1;
 	$menu     = mcupr_menu_default();
 	?>
-<script>(function(){try{var d=document.documentElement;d.classList.add('page-loading');var p=JSON.parse(localStorage.getItem('mcupr_prefs')||'{}');if(localStorage.getItem('mcupr_consent')!=='1'){d.classList.add('needs-consent');}['theme','font','contrast','gray','underline','readable','spacing','cursor','motion','images','pattern','tv'].forEach(function(k){if(p[k]!==undefined&&p[k]!==''){d.setAttribute('data-'+k,p[k]);}});d.setAttribute('data-menu',(p.menu==='top'||p.menu==='side'||p.menu==='hybrid')?p.menu:'<?php echo esc_js( $menu ); ?>');var m=d.getAttribute('data-menu');var sm=localStorage.getItem('mcupr_sbmin');if(m!=='top'&&(sm==='1'||(m==='hybrid'&&sm!=='0'))){d.classList.add('sb-min');}if(p.cv&&typeof p.cv==='object'){var s=document.createElement('style');s.id='mcupr-user-colors';var t='';for(var k in p.cv){if(/^--[a-z0-9-]+$/.test(k)&&/^#[0-9a-f]{6}$/i.test(p.cv[k])){t+=k+':'+p.cv[k]+';';}}s.textContent='@layer base{:root:root{'+t+'}}';document.head.appendChild(s);}if(p.motion===undefined&&<?php echo (int) $anim_off; ?>){d.setAttribute('data-motion','1');}if(p.pattern===undefined&&<?php echo (int) $pat_off; ?>){d.setAttribute('data-pattern','off');}if(p.tv===undefined&&/SMART-?TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Roku|AFT[A-Z]|BRAVIA|CrKey|GoogleTV|Android TV|AppleTV|Viera|PlayStation|Xbox/i.test(navigator.userAgent)){d.setAttribute('data-tv','1');if(p.theme===undefined){d.setAttribute('data-theme','dark');}}}catch(e){}})();</script>
+<script>(function(){try{var d=document.documentElement;d.classList.add('page-loading');var p=JSON.parse(localStorage.getItem('mcupr_prefs')||'{}');if(localStorage.getItem('mcupr_consent')!=='1'){d.classList.add('needs-consent');}['theme','font','contrast','gray','underline','readable','spacing','cursor','motion','images','pattern','tv'].forEach(function(k){if(p[k]!==undefined&&p[k]!==''){d.setAttribute('data-'+k,p[k]);}});d.setAttribute('data-menu',p.menu==='top'?'top':((p.menu==='side'||p.menu==='hybrid')?'side':'<?php echo esc_js( $menu ); ?>'));var m=d.getAttribute('data-menu');var sm=localStorage.getItem('mcupr_sbmin');if(m!=='top'&&sm==='1'){d.classList.add('sb-min');}if(p.cv&&typeof p.cv==='object'){var s=document.createElement('style');s.id='mcupr-user-colors';var t='';for(var k in p.cv){if(/^--[a-z0-9-]+$/.test(k)&&/^#[0-9a-f]{6}$/i.test(p.cv[k])){t+=k+':'+p.cv[k]+';';}}s.textContent='@layer base{:root:root{'+t+'}}';document.head.appendChild(s);}if(p.motion===undefined&&<?php echo (int) $anim_off; ?>){d.setAttribute('data-motion','1');}if(p.pattern===undefined&&<?php echo (int) $pat_off; ?>){d.setAttribute('data-pattern','off');}if(p.tv===undefined&&/SMART-?TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Roku|AFT[A-Z]|BRAVIA|CrKey|GoogleTV|Android TV|AppleTV|Viera|PlayStation|Xbox/i.test(navigator.userAgent)){d.setAttribute('data-tv','1');if(p.theme===undefined){d.setAttribute('data-theme','dark');}}}catch(e){}})();</script>
 	<?php
 }
 add_action( 'wp_head', 'mcupr_head_prefs', 1 );
