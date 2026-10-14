@@ -22,6 +22,25 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   const policy = await p.$$eval('footer a', (a) => a.map((x) => x.getAttribute('href') || '').filter((h) => /privacy-policy|cookie-policy|accessibility-statement|sitemap|contact/.test(h)));
   ok(policy.length >= 4, 'footer: policy / accessibility / sitemap / contact links present (' + policy.length + ')');
 
+  // narrow desktop: the overflow "More" menu opens its mega item inline (no tall flyout over the page)
+  await p.setViewportSize({ width: 1280, height: 720 });
+  await p.goto(B + '/');
+  await p.waitForTimeout(600);
+  if (await p.$('.more-btn')) {
+    await p.click('.more-btn');
+    const tog = await p.$('.menu-more .mcupr-mega > .submenu-toggle');
+    if (tog) { await tog.click(); }
+    const box = await p.evaluate(() => {
+      const more = document.querySelector('.menu-more > .sub-menu').getBoundingClientRect();
+      const inner = document.querySelector('.menu-more .mcupr-mega > .sub-menu');
+      const r = inner ? inner.getBoundingClientRect() : null;
+      return { more: more.toJSON(), inner: r && r.toJSON(), pos: inner && getComputedStyle(inner).position, vh: innerHeight, vw: innerWidth };
+    });
+    ok(box.more.bottom <= box.vh && box.more.left >= 0 && box.more.right <= box.vw, 'More panel stays inside the viewport');
+    ok(!box.inner || (box.pos === 'static' && box.inner.left >= box.more.left - 1), 'a mega item inside More opens inline, not as a flyout');
+  }
+  await p.setViewportSize({ width: 1366, height: 900 });
+
   // every link in header + footer menus resolves (200) and is not "#"
   const links = [...new Set(await p.$$eval('header a[href], footer a[href]', (a) => a.map((x) => x.href).filter((h) => h.startsWith(location.origin) && !h.includes('#') && !/wp-admin|wp-login|\?lang=|replytocom|feed/.test(h))))];
   const bad = [];
