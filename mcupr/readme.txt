@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.10.3 =
+* Collapsed sidebar expand button is a perfect circle.
+
 = 1.10.2 =
 * Collapsed sidebar card is a true pill (full semicircle ends).
 
