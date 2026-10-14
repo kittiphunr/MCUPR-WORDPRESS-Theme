@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MCUPR_MIN_WP', '6.4' );
+define( 'MCUPR_MIN_WP', '5.9' );
 define( 'MCUPR_MIN_PHP', '7.0' );
 
 define( 'MCUPR_VERSION', '1.0.0' );

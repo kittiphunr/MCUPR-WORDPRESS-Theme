@@ -16,6 +16,7 @@ npm run check              # ตรวจเร็ว (ไม่ต้องม�
 ```
 
 ตัวแปรสภาพแวดล้อม: `PORT` (ค่าเริ่มต้น 8080), `CHROMIUM_PATH` (ใช้ Chromium ที่ติดตั้งไว้แล้วแทน Playwright; ถ้าไม่ตั้ง สคริปต์จะรัน `npx playwright install chromium` ให้)  
+ทดสอบบน WordPress รุ่นอื่น: `WP_VERSION=6.2.2 SITE_DIR=.site-6.2 PORT=8383 bash bootstrap.sh` แล้วรัน `WP_DEBUG_DISPLAY=0 SITE_DIR=.site-6.2 PORT=8383 bash run.sh` (ปิดการแสดงคำเตือน deprecated ของ WordPress รุ่นเก่าบน PHP ใหม่)  
 สร้างไซต์ใหม่ทั้งหมด: `bash bootstrap.sh --fresh` · ภาพหน้าจอจะอยู่ที่ `tests/screenshots/` (ไม่ถูก commit)
 
 ## แต่ละชุดทดสอบ
