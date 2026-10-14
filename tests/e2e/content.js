@@ -536,6 +536,53 @@ const speechStub = (speakMs) => `(() => {
     await c.close();
   }
 
+  // ================= Home page: complete without a static page ("latest posts" mode)
+  {
+    const mods = { mcupr_about_th: 'ข้อความแนะนำหน่วยงานสำหรับทดสอบ', mcupr_org_email: 'info@example.org', mcupr_org_tel: '054-000-000' };
+    const c = await newCtx({ viewport: { width: 1280, height: 900 } }, mods);
+    const p = await c.newPage();
+    await p.goto(B + '/');
+    ok((await p.evaluate(() => document.body.className)).includes('home'), 'home page is the "latest posts" home (no static page needed)');
+    ok(/ข้อความแนะนำหน่วยงานสำหรับทดสอบ/.test(await text(p, '#about-intro + p')) && (await p.locator('#about-intro').count()) === 1, 'intro block: organisation name + About text');
+    ok((await p.locator('section[aria-label] [id^=cat-]').count()) === 2, 'news by category: a block per category that has posts, up to 3 (the seed has 2 real categories)');
+    const cat = p.locator('section[aria-label] section').first();
+    ok((await cat.locator('li').count()) >= 1 && (await cat.locator('li').count()) <= 3 && (await cat.locator('a[href*="/category/"]').count()) >= 1, 'each block lists up to 3 posts and links to its category');
+    ok(!(await p.locator('[id^=cat-]').allTextContents()).some((t) => /Uncategorized/i.test(t)), 'the default "Uncategorized" category is skipped in the automatic choice');
+    ok((await p.locator('#visit-title').count()) === 1 && (await p.locator('a[href="tel:054000000"]').count()) === 1 && (await p.locator('main a[href="mailto:info@example.org"]').count()) === 1 && /123 ถนนทดสอบ/.test(await text(p, '#visit-title + div')), 'contact strip: address, telephone, email');
+    const allNews = p.locator('#news-title').locator('xpath=ancestor::section//a[contains(@href,"mcupr_all=1")]');
+    ok((await allNews.count()) === 1, '"View all news" link works without a Posts page (?mcupr_all=1)');
+    await allNews.click();
+    await p.waitForLoadState();
+    ok((await p.locator('header.mcu-wheel h1').count()) === 1 && /ข่าวสารและกิจกรรม/.test(await text(p, 'header.mcu-wheel h1')) && (await p.locator('#about-intro').count()) === 0, 'the full list view: news band + cards, no landing sections');
+    ok((await p.locator('main article').count()) >= 5, 'the full list shows the news (' + (await p.locator('main article').count()) + ')');
+    await p.goto(B + '/page/2/');
+    ok((await p.locator('#about-intro').count()) === 0 && (await p.locator('header.mcu-wheel').count()) === 1, 'page 2 of the home is the plain news list too');
+    await p.goto(B + '/');
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe on the complete home page: ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    r.violations.forEach((v) => console.log('   ', v.id, v.nodes.slice(0, 2).map((x) => x.target.join(' ')).join(' || ')));
+    await c.close();
+    // nothing configured: still a sensible page
+    const c2 = await newCtx({}, { mcupr_home_cats_on: false });
+    const p2 = await c2.newPage();
+    await p2.goto(B + '/');
+    ok((await p2.locator('[id^=cat-]').count()) === 0 && (await p2.locator('#about-intro').count()) === 0 && (await p2.locator('#visit-title').count()) === 1 && (await p2.locator('#visit-title + div > *').count()) === 1, 'optional sections vanish when switched off / not filled in (here only the address is set: one contact card)');
+    await c2.close();
+    // quick links fall back to the main menu until a "Quick links" menu is assigned
+    const c3 = await newCtx({}, { nav_menu_locations: { primary_th: 'MENU:Main TH' } });
+    const p3 = await c3.newPage();
+    await p3.goto(B + '/');
+    ok((await p3.locator('.hero-menu li').count()) >= 2, 'quick links: fall back to the main menu (' + (await p3.locator('.hero-menu li').count()) + ' items)');
+    await c3.close();
+    // chosen categories
+    const c4 = await newCtx({}, { mcupr_home_cat_1: 'CAT:กิจกรรม' });
+    const p4 = await c4.newPage();
+    await p4.goto(B + '/');
+    ok((await p4.locator('[id^=cat-]').first().textContent()).trim() === 'กิจกรรม' && (await p4.locator('[id^=cat-]').count()) === 2, 'a category chosen in the Customizer comes first; the rest are filled in automatically');
+    await c4.close();
+  }
+
   await br.close();
   finish();
 })();
