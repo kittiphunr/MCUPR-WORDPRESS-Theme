@@ -11,16 +11,29 @@
 - **SweetAlert2** ใช้สำหรับการแจ้งเตือนทั้งหมด: ประกาศคุกกี้/PDPA, ยืนยันการรีเซ็ตการตั้งค่า, toast แจ้งสถานะ (เช่น ขนาดอักษร), เตือนเมื่อค้นหาโดยไม่ใส่คำ — ไฟล์เก็บในธีม (`assets/vendor/`) ไม่โหลดจาก CDN
 - ไฟล์ CSS ที่ build แล้ว (`mcupr/assets/css/tailwind.css`) ถูก commit ไว้ ติดตั้งธีมได้เลยโดยไม่ต้องมี Node
 
-### แก้ไขสไตล์
+### โครงสร้างรีโป
 
-```bash
-cd mcupr
-npm install
-npm run watch    # หรือ npm run build ก่อน commit
-npm run vendor   # คัดลอก sweetalert2 จาก node_modules (เมื่ออัปเดตเวอร์ชัน)
+```
+mcupr/            ← ธีมที่ติดตั้งจริง (มีเฉพาะไฟล์ที่ใช้งาน)
+  functions.php   ← ตัวโหลด + ตรวจเวอร์ชันขั้นต่ำ (inc/compat.php)
+  inc/            ← setup, assets, i18n, colors, customizer, widgets, shortcodes, seo, dates ...
+  template-parts/ assets/ (css, js, fonts, vendor)  readme.txt  screenshot.png
+src/input.css     ← ต้นฉบับ Tailwind (ไม่อยู่ในไฟล์ติดตั้ง)
+scripts/package.sh← สร้างไฟล์ zip สำหรับติดตั้ง
+tests/            ← ชุดทดสอบ (ไม่อยู่ในไฟล์ติดตั้ง)
+package.json      ← คำสั่ง build/package
 ```
 
-ต้นฉบับอยู่ที่ `mcupr/src/input.css` — เพิ่ม/แก้ class ในเทมเพลต `.php` หรือ `assets/js/main.js` แล้ว build ใหม่
+### แก้ไขสไตล์ / สร้างไฟล์ติดตั้ง
+
+```bash
+npm install
+npm run watch     # หรือ npm run build ก่อน commit
+npm run vendor    # คัดลอก sweetalert2 จาก node_modules (เมื่ออัปเดตเวอร์ชัน)
+npm run package   # → dist/mcupr-<เวอร์ชัน>.zip  (Appearance → Themes → Add New → Upload Theme)
+```
+
+ต้นฉบับอยู่ที่ `src/input.css` — เพิ่ม/แก้ class ในเทมเพลต `.php` หรือ `mcupr/assets/js/main.js` แล้ว build ใหม่ ไฟล์ zip มีเฉพาะโฟลเดอร์ `mcupr/` (ไม่มี node_modules / src / tests) ธีมไม่ยอมเปิดใช้บน WordPress < 6.4 หรือ PHP < 7.4 (จะย้อนกลับธีมเดิมพร้อมข้อความอธิบาย) และมีสไตล์พรีวิวในตัวแก้ไขบล็อก
 
 ## อินเทอร์เฟซแบบ Certify Hub + ผู้เข้าชมปรับเองได้
 
