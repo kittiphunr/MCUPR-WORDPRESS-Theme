@@ -25,7 +25,7 @@ get_header();
 		</div>
 		<?php mcupr_pagination(); ?>
 	<?php else : ?>
-		<p><?php mcupr_e( 'no_results' ); ?>. <?php mcupr_e( 'no_results_tip' ); ?></p>
+		<?php mcupr_state_card( 'search', mcupr_t( 'no_results' ), mcupr_t( 'no_results_tip' ), '', 'h2' ); ?>
 		<div class="my-6"><?php get_search_form(); ?></div>
 	<?php endif; ?>
 </div>
