@@ -1,7 +1,0 @@
-{
-    "name": "mcupr/tests",
-    "require": {
-        "johnpbloch/wordpress-core": "^7.1",
-        "aaemnnosttv/wp-sqlite-db": "^1.3"
-    }
-}
