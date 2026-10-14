@@ -149,6 +149,8 @@ function mcupr_hero_image_url( $fallback_post_id = 0 ) {
 /** The inline SVG icon set (24x24, stroke, Feather style): name => inner markup. */
 function mcupr_icon_paths() {
 	return array(
+		'layout-top'  => '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9.5h18"/><path d="M7 6.8h4"/>',
+		'layout-side' => '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9.5 4v16"/><path d="M6.2 8h0M6.2 11h0M6.2 14h0"/>',
 		'tag'      => '<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.2"/>',
 		'rows'     => '<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/>',
 		'contrast' => '<circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"/>',
@@ -269,10 +271,10 @@ function mcupr_tools_cluster( $btn = 'text-fg2 hover:bg-surface' ) {
 	<?php
 }
 
-/** Site default menu position (top | side | hybrid). */
+/** Site default menu position (top | side). The old "hybrid" choice is now the sidebar. */
 function mcupr_menu_default() {
 	$v = get_theme_mod( 'mcupr_menu_layout', 'top' );
-	return in_array( $v, array( 'side', 'hybrid' ), true ) ? $v : 'top';
+	return in_array( $v, array( 'side', 'hybrid' ), true ) ? 'side' : 'top';
 }
 /** The university emblem shipped with the theme: the main logo until a logo is uploaded (Site Identity). */
 function mcupr_default_logo( $class = '' ) {

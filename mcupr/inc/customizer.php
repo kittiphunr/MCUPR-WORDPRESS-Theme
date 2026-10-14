@@ -127,8 +127,10 @@ function mcupr_customize_register( $wp_customize ) {
 
 	// ---- display
 	$wp_customize->add_section( 'mcupr_display', array( 'title' => __( 'MCUPR: Animation, news & reading', 'mcupr' ), 'priority' => 33 ) );
-	$wp_customize->add_setting( 'mcupr_menu_layout', array( 'default' => 'top', 'sanitize_callback' => static function ( $v ) { return in_array( $v, array( 'side', 'hybrid' ), true ) ? $v : 'top'; } ) );
-	$wp_customize->add_control( 'mcupr_menu_layout', array( 'section' => 'mcupr_display', 'label' => __( 'Menu position (default for new visitors – each visitor can change it)', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'top' => __( 'Top navigation bar', 'mcupr' ), 'side' => __( 'Sidebar (left)', 'mcupr' ), 'hybrid' => __( 'Hybrid: floating top bar + icon rail on the left', 'mcupr' ) ) ) );
+	$wp_customize->add_setting( 'mcupr_menu_layout', array( 'default' => 'top', 'sanitize_callback' => static function ( $v ) { return in_array( $v, array( 'side', 'hybrid' ), true ) ? 'side' : 'top'; } ) );
+	$wp_customize->add_control( 'mcupr_menu_layout', array( 'section' => 'mcupr_display', 'label' => __( 'Menu position (default for new visitors – each visitor can change it)', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'top' => __( 'Top navigation bar', 'mcupr' ), 'side' => __( 'Sidebar (left)', 'mcupr' ) ) ) );
+	$wp_customize->add_setting( 'mcupr_util_inline', array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+	$wp_customize->add_control( 'mcupr_util_inline', array( 'section' => 'mcupr_display', 'label' => __( 'Show the quick links (students, staff, alumni…) in the header instead of tucking them into a "Quick links" button', 'mcupr' ), 'type' => 'checkbox' ) );
 	$wp_customize->add_setting( 'mcupr_cat_zones', array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
 	$wp_customize->add_control( 'mcupr_cat_zones', array( 'section' => 'mcupr_display', 'label' => __( 'Category zones for the news browser (one per line: Zone name: slug, slug, …). Leave empty to group by parent category.', 'mcupr' ), 'type' => 'textarea' ) );
 	$wp_customize->add_setting( 'mcupr_credit_name', array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
