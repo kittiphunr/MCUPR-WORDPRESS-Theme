@@ -222,9 +222,10 @@ function mcupr_tools_cluster( $btn = 'text-fg2 hover:bg-surface' ) {
 	<?php
 }
 
-/** Site default menu position (top | side). */
+/** Site default menu position (top | side | hybrid). */
 function mcupr_menu_default() {
-	return 'side' === get_theme_mod( 'mcupr_menu_layout', 'top' ) ? 'side' : 'top';
+	$v = get_theme_mod( 'mcupr_menu_layout', 'top' );
+	return in_array( $v, array( 'side', 'hybrid' ), true ) ? $v : 'top';
 }
 /** Header / footer logo (<img>), with optional dark-mode variant. $where: header | footer. */
 function mcupr_logo( $where = 'header', $class = '' ) {
