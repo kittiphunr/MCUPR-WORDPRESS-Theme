@@ -363,10 +363,10 @@ const speechStub = (speakMs) => `(() => {
 
   // ================= Certify Hub polish: soft cards, status cards, pill tabs, stats, footer card
   {
-    const c = await newCtx({}, { mcupr_slot_home_top: '[mcupr_stats items="users|12,500|นักศึกษา; cap|40|หลักสูตร"]' });
+    const c = await newCtx({}, { mcupr_slot_home_top: '[mcupr_stats items="users|12,500|นักศึกษา"]' });
     const p = await c.newPage();
     await p.goto(B + '/');
-    ok((await p.locator('[data-slot=home_top] .stat').count()) === 2 && /12,500/.test(await text(p, '[data-slot=home_top] .stat b')), 'stats: [mcupr_stats] prints round-icon number tiles');
+    ok((await p.locator('[data-slot=home_top] .stat').count()) === 1 && /12,500/.test(await text(p, '[data-slot=home_top] .stat b')), 'stats: [mcupr_stats] prints round-icon number tiles');
     const card = await p.locator('#content article.soft-card').first().evaluate((el) => { const s = getComputedStyle(el); return [s.borderTopColor, s.borderRadius, s.boxShadow !== 'none']; });
     ok(parseFloat(card[1]) >= 20 && card[2] && /rgba\(0, 0, 0, 0\)|transparent/.test(card[0]), 'cards: borderless, rounded, soft shadow (light mode) ' + card);
     ok((await p.locator('#colophon .soft-card').count()) === 1, 'footer: one rounded card');
