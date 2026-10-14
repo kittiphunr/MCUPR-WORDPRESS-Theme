@@ -6,6 +6,9 @@
  */
 
 get_header();
+?>
+<h1 class="screen-reader-text"><?php echo esc_html( mcupr_org_name() ); ?></h1>
+<?php
 
 $news = new WP_Query(
 	array(

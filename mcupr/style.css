@@ -133,6 +133,7 @@ p { margin: 0 0 1em; }
 .btn-tool[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
 .tools { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .tools__font { display: flex; gap: .25rem; }
+.tools__font .btn-tool::before { content: attr(data-glyph); }
 
 /* Show moon in light mode, sun in dark */
 #theme-toggle .icon-sun { display: none; }
