@@ -49,9 +49,9 @@ $cur   = mcupr_lang();
 
 			<div class="tools" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'utility_nav' ) ); ?>">
 				<div class="tools__font" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'font_size' ) ); ?>">
-					<button type="button" class="btn-tool" data-font-action="dec" aria-label="<?php echo esc_attr( mcupr_t( 'font_dec' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'font_dec' ) ); ?>"><span aria-hidden="true">A−</span></button>
-					<button type="button" class="btn-tool" data-font-action="reset" aria-label="<?php echo esc_attr( mcupr_t( 'font_reset' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'font_reset' ) ); ?>"><span aria-hidden="true">A</span></button>
-					<button type="button" class="btn-tool" data-font-action="inc" aria-label="<?php echo esc_attr( mcupr_t( 'font_inc' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'font_inc' ) ); ?>"><span aria-hidden="true">A+</span></button>
+					<button type="button" class="btn-tool" data-font-action="dec" data-glyph="A−" aria-label="<?php echo esc_attr( mcupr_t( 'font_dec' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'font_dec' ) ); ?>"></button>
+					<button type="button" class="btn-tool" data-font-action="reset" data-glyph="A" aria-label="<?php echo esc_attr( mcupr_t( 'font_reset' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'font_reset' ) ); ?>"></button>
+					<button type="button" class="btn-tool" data-font-action="inc" data-glyph="A+" aria-label="<?php echo esc_attr( mcupr_t( 'font_inc' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'font_inc' ) ); ?>"></button>
 				</div>
 
 				<button type="button" class="btn-tool" id="theme-toggle" aria-pressed="false" aria-label="<?php echo esc_attr( mcupr_t( 'theme_toggle' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'theme_toggle' ) ); ?>">
