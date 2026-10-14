@@ -602,6 +602,32 @@ const speechStub = (speakMs) => `(() => {
     await c.close();
   }
 
+  // ================= notice bar (announcement / urgent / mourning)
+  {
+    const c0 = await newCtx();
+    const p0 = await c0.newPage();
+    await p0.goto(B + '/');
+    ok((await p0.locator('.notice-bar').count()) === 0, 'notice bar: not shown unless it is turned on');
+    await c0.close();
+    for (const [style, extra] of [['notice', {}], ['urgent', {}], ['mourning', { mcupr_notice_gray: true }]]) {
+      const c = await newCtx({}, Object.assign({ mcupr_notice_on: true, mcupr_notice_style: style, mcupr_notice_text_th: 'ปิดทำการในวันที่ ๑ มกราคม เนื่องในวันขึ้นปีใหม่', mcupr_notice_url: 'https://example.org/notice' }, extra));
+      const p = await c.newPage();
+      await p.goto(B + '/');
+      const box = await p.evaluate(() => { const n = document.querySelector('.notice-bar'); const r = n.getBoundingClientRect(); return { top: Math.round(r.top), role: n.getAttribute('role'), link: !!n.querySelector('a[href="https://example.org/notice"]'), bg: getComputedStyle(n).backgroundColor, gray: getComputedStyle(document.documentElement).filter }; });
+      ok(box.top <= 14 && box.role === 'region' && box.link, 'notice bar (' + style + '): at the very top, a labelled region with its link');
+      if (style === 'mourning') { ok(box.bg === 'rgb(11, 11, 11)' && /grayscale/.test(box.gray), 'notice bar (mourning): black bar and the whole site in black and white'); }
+      await p.addScriptTag({ content: axeSource() });
+      const r = await p.evaluate(() => axe.run(document.querySelector('.notice-bar'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+      ok(r.violations.length === 0, 'notice bar (' + style + ') axe: ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+      if (style === 'mourning') {
+        await p.evaluate(() => window.scrollTo(0, 600));
+        const fixedOk = await p.evaluate(() => { const b = document.getElementById('back-to-top'); const r = b.getBoundingClientRect(); return b.classList.contains('hidden') || (r.bottom <= innerHeight + 2 && r.bottom > 0); });
+        ok(fixedOk, 'mourning grey filter keeps fixed elements in the viewport');
+      }
+      await c.close();
+    }
+  }
+
   await br.close();
   finish();
 })();
