@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.8.0 =
+* Notice bar (announcement / urgent / mourning), hero slider, social links, statistics, people directory, document centre, contact and complaint forms.
+
 = 1.7.0 =
 * Thai admin text, richer hero options, footer credit card, view counter, file attachments with download counter / limit, works & awards, administration chart.
 
