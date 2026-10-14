@@ -106,4 +106,23 @@ $loc = array(
 	'utility'    => mcupr_test_menu( 'Utility', array( 'นักศึกษา' => array(), 'บุคลากร' => array(), 'ศิษย์เก่า' => array() ) ),
 );
 set_theme_mod( 'nav_menu_locations', $loc );
+
+// ---- widgets (footer-3 is left empty on purpose: empty areas must render nothing)
+$w = array( 'text' => array(), 'search' => array(), 'categories' => array() );
+$w['text'][2]       = array( 'title' => 'ติดต่อเรา', 'text' => 'โทร 02-000-0000' );
+$w['text'][3]       = array( 'title' => 'Page widget', 'text' => 'Beside pages' );
+$w['text'][4]       = array( 'title' => 'Home widget', 'text' => 'Below the news' );
+$w['text'][5]       = array( 'title' => 'Footer widget', 'text' => 'In the footer' );
+$w['search'][2]     = array( 'title' => 'ค้นหา' );
+$w['categories'][2] = array( 'title' => 'หมวดหมู่', 'count' => 0, 'hierarchical' => 0, 'dropdown' => 0 );
+foreach ( $w as $base => $inst ) { $inst['_multiwidget'] = 1; update_option( 'widget_' . $base, $inst ); }
+update_option( 'sidebars_widgets', array(
+	'wp_inactive_widgets' => array(),
+	'sidebar-news' => array( 'search-2', 'text-2', 'categories-2' ),
+	'sidebar-page' => array( 'text-3' ),
+	'home-after'   => array( 'text-4' ),
+	'footer-1'     => array( 'text-5' ),
+	'footer-2'     => array(),
+	'footer-3'     => array(),
+) );
 echo "seeded\n";
