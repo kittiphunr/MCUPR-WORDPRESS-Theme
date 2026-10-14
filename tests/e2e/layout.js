@@ -221,6 +221,60 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await c2.close();
   }
 
+  // ================= ashoka flower background pattern
+  {
+    const pseudo = (p, which) => p.evaluate((w) => { const cs = getComputedStyle(document.body, w); return { display: cs.display, op: cs.opacity, mask: cs.webkitMaskImage || cs.maskImage, pos: cs.position, z: cs.zIndex, pe: cs.pointerEvents }; }, which);
+    const c = await newCtx();
+    const p = await c.newPage();
+    await p.goto(B + '/');
+    let a = await pseudo(p, '::before');
+    let b = await pseudo(p, '::after');
+    ok(a.display === 'block' && a.mask.includes('data:image/svg+xml') && a.pos === 'fixed' && a.pe === 'none', 'ashoka flowers pattern layer (fixed, non-interactive, SVG mask)');
+    ok(b.display === 'block' && b.mask.includes('data:image/svg+xml'), 'ashoka leaves layer');
+    ok(parseFloat(a.op) > 0 && parseFloat(a.op) <= 0.2, 'pattern is faint (opacity ' + a.op + ')');
+    ok((await p.evaluate(() => getComputedStyle(document.body, '::before').backgroundColor)) === 'rgb(194, 24, 91)', 'flowers take the main (pink) colour');
+    await p.screenshot({ path: shot('layout-pattern.png') });
+    // visitor switch
+    await openSettings(p);
+    await p.click('summary');
+    ok(!(await p.locator('input[data-pref=pattern]').isChecked()), 'dialog: "hide pattern" unchecked by default');
+    await p.check('input[data-pref=pattern]', { force: true });
+    ok((await p.evaluate(() => document.documentElement.dataset.pattern)) === 'off' && (await pseudo(p, '::before')).display === 'none', 'hiding the pattern works');
+    await p.keyboard.press('Escape');
+    await p.reload();
+    ok((await pseudo(p, '::before')).display === 'none', 'choice persisted');
+    await openSettings(p);
+    await p.click('[data-reset-prefs]');
+    ok((await pseudo(p, '::before')).display === 'block', 'reset shows it again');
+    await c.close();
+    // follows the colour scheme
+    const c2 = await newCtx({}, null, { mcupr_palette: 'navy' });
+    const p2 = await c2.newPage();
+    await p2.goto(B + '/');
+    ok((await p2.evaluate(() => getComputedStyle(document.body, '::before').backgroundColor)) === 'rgb(31, 58, 110)', 'pattern follows the colour scheme (navy)');
+    await c2.close();
+    // contrast mode hides it
+    const c3 = await newCtx({}, '{"contrast":"wb"}');
+    const p3 = await c3.newPage();
+    await p3.goto(B + '/');
+    ok((await pseudo(p3, '::before')).display === 'none' && (await pseudo(p3, '::after')).display === 'none', 'hidden in high-contrast mode');
+    await c3.close();
+    // Customizer default off, visitor can turn it on
+    const c4 = await newCtx({}, null, { mcupr_pattern: false });
+    const p4 = await c4.newPage();
+    await p4.goto(B + '/');
+    ok((await pseudo(p4, '::before')).display === 'none', 'Customizer default off hides it for new visitors');
+    await openSettings(p4);
+    await p4.click('summary');
+    ok(await p4.locator('input[data-pref=pattern]').isChecked(), 'dialog reflects the site default (hidden)');
+    await p4.uncheck('input[data-pref=pattern]', { force: true });
+    ok((await pseudo(p4, '::before')).display === 'block', 'visitor can turn it on');
+    await p4.keyboard.press('Escape');
+    await p4.reload();
+    ok((await pseudo(p4, '::before')).display === 'block', 'visitor choice beats the site default');
+    await c4.close();
+  }
+
   // ================= About dialog + credit
   {
     const c = await newCtx({}, null, { mcupr_credit_name: 'ทีมงานเว็บไซต์', mcupr_credit_url: 'https://example.org/', mcupr_about_th: 'เว็บไซต์ทดสอบสำหรับธีม MCUPR' });
