@@ -9,8 +9,8 @@ defined( 'ABSPATH' ) || exit;
 
 /** Menu for the current language, falling back to default language, then pages. */
 function mcupr_primary_menu() {
-	$lang = mcupr_lang();
-	$loc  = 'primary_' . $lang;
+	// Polylang gives every location a per-language variant itself.
+	$loc = mcupr_has_polylang() ? 'primary' : 'primary_' . mcupr_lang();
 	if ( ! has_nav_menu( $loc ) ) {
 		$loc = 'primary_' . mcupr_default_lang();
 	}
@@ -27,17 +27,17 @@ function mcupr_primary_menu() {
 }
 
 function mcupr_menu_fallback() {
-	echo '<ul class="menu"><li><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html( mcupr_t( 'home' ) ) . '</a></li>';
+	echo '<ul class="menu"><li><a href="' . esc_url( mcupr_home_url() ) . '">' . esc_html( mcupr_t( 'home' ) ) . '</a></li>';
 	wp_list_pages( array( 'title_li' => '', 'depth' => 2 ) );
 	echo '</ul>';
 }
 
 /** Breadcrumb (WCAG: multiple ways to locate pages). */
 function mcupr_breadcrumb() {
-	if ( is_front_page() ) {
+	if ( is_front_page() || mcupr_plugin_breadcrumb() ) {
 		return;
 	}
-	$items = array( array( mcupr_t( 'home' ), home_url( '/' ) ) );
+	$items = array( array( mcupr_t( 'home' ), mcupr_home_url() ) );
 	if ( is_singular( 'post' ) ) {
 		$cats = get_the_category();
 		if ( $cats ) {
@@ -86,7 +86,7 @@ function mcupr_pagination() {
 function mcupr_date( $post = null ) {
 	$post = get_post( $post );
 	$ts   = get_post_timestamp( $post );
-	$lang = mcupr_lang();
+	$lang = mcupr_ui_lang();
 	$text = wp_date( get_option( 'date_format' ), $ts );
 	if ( 'th' === $lang ) {
 		// Buddhist Era, Thai month names.
@@ -117,7 +117,7 @@ function mcupr_search_role_attr() {
 
 /** The organisation name in the "other" language, for the Chula-style bilingual brand. */
 function mcupr_alt_name() {
-	$alt  = 'th' === mcupr_lang() ? 'en' : 'th';
+	$alt  = 'th' === mcupr_ui_lang() ? 'en' : 'th';
 	$name = mcupr_text_mod( 'mcupr_name', $alt );
 	return $name && $name !== mcupr_org_name() ? $name : '';
 }

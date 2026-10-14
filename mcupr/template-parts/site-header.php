@@ -13,7 +13,7 @@ $over = mcupr_header_over_hero();
 ?>
 <header id="masthead" class="<?php echo $over ? 'absolute inset-x-0 z-30 bg-gradient-to-b from-black/70 to-transparent text-white' : 'border-b border-line bg-bg'; ?> print:hidden">
 	<div class="wrap flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4">
-		<a class="flex min-w-0 flex-1 items-center gap-4 no-underline <?php echo $over ? 'text-white' : 'text-fg'; ?>" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
+		<a class="flex min-w-0 flex-1 items-center gap-4 no-underline <?php echo $over ? 'text-white' : 'text-fg'; ?>" href="<?php echo esc_url( mcupr_home_url() ); ?>" rel="home">
 			<?php
 			if ( has_custom_logo() ) {
 				echo wp_get_attachment_image( get_theme_mod( 'custom_logo' ), 'full', false, array( 'class' => 'h-14 w-auto min-[900px]:h-16', 'alt' => '' ) );
@@ -22,7 +22,7 @@ $over = mcupr_header_over_hero();
 			<span class="flex flex-col leading-tight">
 				<span class="text-xl font-bold min-[900px]:text-2xl"><?php echo esc_html( mcupr_org_name() ); ?></span>
 				<?php if ( $alt ) : ?>
-					<span class="text-sm min-[900px]:text-base <?php echo $over ? 'text-white/85' : 'text-muted'; ?>" lang="<?php echo esc_attr( 'th' === mcupr_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></span>
+					<span class="text-sm min-[900px]:text-base <?php echo $over ? 'text-white/85' : 'text-muted'; ?>" lang="<?php echo esc_attr( 'th' === mcupr_ui_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></span>
 				<?php endif; ?>
 			</span>
 		</a>
