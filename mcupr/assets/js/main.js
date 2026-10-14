@@ -224,6 +224,21 @@
 		$$('[data-skip-nav]').forEach(function (a) { a.remove(); });
 	}
 
+	/* ---- News slider (scroll-snap row with prev/next buttons) ---- */
+	$$('[data-carousel]').forEach(function (box) {
+		var track = $('[data-carousel-track]', box);
+		if (!track) { return; }
+		var step = function (dir) {
+			var card = track.firstElementChild;
+			var w = card ? card.getBoundingClientRect().width + 16 : track.clientWidth * 0.8;
+			track.scrollBy({ left: dir * w, behavior: motionOff() ? 'auto' : 'smooth' });
+		};
+		var prev = $('[data-carousel-prev]', box);
+		var next = $('[data-carousel-next]', box);
+		if (prev) { prev.addEventListener('click', function () { step(-1); }); }
+		if (next) { next.addEventListener('click', function () { step(1); }); }
+	});
+
 	/* ---- Back to top ---- */
 	var topBtn = $('#back-to-top');
 	if (topBtn) {
@@ -291,6 +306,9 @@
 	if (!seen && window.Swal && i18n.cookieMsg) {
 		var link = i18n.cookieLink ? ' <a href="' + esc(i18n.cookieLink) + '" target="_blank" rel="noopener">' + esc(i18n.cookiePolicy) + '</a>' : '';
 		window.Swal.fire(swalBase({
+			position: 'bottom-end',
+			backdrop: false,
+			grow: false,
 			icon: 'info',
 			title: i18n.cookieTitle,
 			html: esc(i18n.cookieMsg) + link,
