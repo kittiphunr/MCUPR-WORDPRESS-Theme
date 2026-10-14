@@ -106,3 +106,21 @@ add_shortcode( 'mcupr_button', 'mcupr_sc_button' );
 
 /** Let widgets that print raw text (excerpts, custom HTML) run shortcodes too. */
 add_filter( 'widget_text', 'do_shortcode' );
+
+/**
+ * [mcupr_stats items="users|12,500|Students; cap|40|Programmes; bank|3|Campuses"]
+ * Round-icon number tiles (icon names: see mcupr_icon()).
+ */
+function mcupr_sc_stats( $atts ) {
+	$a = shortcode_atts( array( 'items' => '' ), $atts, 'mcupr_stats' );
+	$out = '';
+	foreach ( explode( ';', (string) $a['items'] ) as $row ) {
+		$p = array_map( 'trim', explode( '|', $row ) );
+		if ( count( $p ) < 3 ) {
+			continue;
+		}
+		$out .= '<div class="stat"><span class="stat-ic" aria-hidden="true">' . mcupr_icon( sanitize_key( $p[0] ), 22 ) . '</span><span><small>' . esc_html( $p[2] ) . '</small><b>' . esc_html( $p[1] ) . '</b></span></div>';
+	}
+	return $out ? '<div class="grid grid-cols-[repeat(auto-fit,minmax(min(13rem,100%),1fr))] gap-4">' . $out . '</div>' : '';
+}
+add_shortcode( 'mcupr_stats', 'mcupr_sc_stats' );
