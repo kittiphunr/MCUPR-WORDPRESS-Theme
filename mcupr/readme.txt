@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.12.1 =
+* Drop-downs (reading speed, filters, forms) are rounded pills with their own arrow.
+
 = 1.12.0 =
 * Menu refresh: hybrid layout removed, menu position as icons, clearer hover, quick links tucked into a button, full-screen menu in both modes (one screen, filter, quick links).
 

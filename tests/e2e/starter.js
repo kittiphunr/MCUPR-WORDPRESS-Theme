@@ -402,6 +402,18 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await mp2.screenshot({ path: shot('menu-fullscreen-' + mode + '.png') });
     await mc.close();
   }
+  // ---------- drop-downs are styled pills with their own arrow
+  {
+    const sc = await br.newContext({ viewport: { width: 1280, height: 800 } });
+    await sc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const sp = await sc.newPage();
+    await sp.goto(B + '/about/');
+    const sel = await sp.$eval('[data-listen-rate]', (e) => { const s = getComputedStyle(e); return { app: s.appearance, r: parseFloat(s.borderTopLeftRadius), h: e.getBoundingClientRect().height, bg: s.backgroundImage.startsWith('url('), pr: parseFloat(s.paddingRight) }; });
+    ok(sel.app === 'none' && sel.r >= sel.h / 2 - 1 && sel.bg && sel.pr >= 36 && sel.h >= 40, 'drop-down: rounded pill with its own arrow and room for it (' + Math.round(sel.h) + 'px high)');
+    await sp.hover('[data-listen-rate]'); await sp.waitForTimeout(250);
+    ok((await sp.$eval('[data-listen-rate]', (e) => getComputedStyle(e).borderTopColor)) !== 'rgb(255, 255, 255)', 'drop-down: hover changes the outline');
+    await sc.close();
+  }
   // works & awards (own categories), administration chart, attachments, views
   await p.goto(B + '/works/');
   ok((await p.$$('.work-card')).length === 3, '/works/ lists the 3 sample works');
