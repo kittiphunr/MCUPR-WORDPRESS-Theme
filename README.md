@@ -123,6 +123,20 @@ npm run package   # → dist/mcupr-<เวอร์ชัน>.zip  (Appearance �
 - **ช่องในตัวปรับแต่ง** Customizer → *MCUPR: Shortcodes & HTML areas* วาง `[shortcode]` (ของธีมหรือปลั๊กอินใดก็ได้) หรือ HTML ได้ 4 จุด: ใต้ส่วนหัวทุกหน้า, หน้าแรกใต้ Hero, ท้ายบทความ/หน้า, เหนือฟุตเตอร์ (ว่าง = ไม่แสดง)
 - **วิดเจ็ต** (Text / Custom HTML) และเนื้อหาโพสต์/หน้า รัน shortcode ได้อยู่แล้ว
 - **shortcode ของธีม:** `[mcupr_tools]` (ปุ่มภาษา/ขนาดอักษร/โหมดมืด/การเข้าถึง/ค้นหา), `[mcupr_news count="3" category="slug" columns="3"]` (การ์ดข่าวล่าสุด), `[mcupr_button url="/ติดต่อ/" style="solid|outline"]ข้อความ[/mcupr_button]`, `[mcupr_stats items="users|12,500|นักศึกษา; cap|40|หลักสูตร"]` (การ์ดตัวเลขไอคอนกลม — ชื่อไอคอน: edit, book, bulb, money, bank, user, users, calendar, mail, cap, news, globe …)
+- **shortcode ของหน้าแบบราชการ:** `[mcupr_org field="name|alt|address|tel|email"]` (ข้อมูลหน่วยงานจาก Customizer), `[mcupr_contact]` (ที่อยู่/โทร/อีเมลเป็นการ์ด), `[mcupr_sitemap]` (แผนผังเว็บไซต์อัตโนมัติ)
+
+## ไฟล์เริ่มต้น (Starter import): เมนู + หน้าแบบเว็บไซต์ราชการ
+
+`mcupr/starter/mcupr-starter.xml` — นำเข้าครั้งเดียวได้ **54 หน้า** (เกี่ยวกับ, การศึกษา, วิจัย, นักศึกษา, ธรรมาภิบาล/ITA/OIC/ข้อมูลเปิด/จัดซื้อจัดจ้าง/ร้องเรียน/ป้องกันทุจริต, นโยบายความเป็นส่วนตัว (PDPA), คุกกี้, แถลงการณ์การเข้าถึง, ความปลอดภัย, ข้อกำหนดการใช้งาน, แผนผังเว็บไซต์, FAQ, ติดต่อ, e-Service), **3 หมวดข่าว** และ **7 เมนู** (เมนูหลัก 4 ภาษา พร้อม mega menu + ไอคอน, ลิงก์ท้ายเว็บ 4 คอลัมน์, ลิงก์ด่วน, แถบยูทิลิตี้) ที่ผูกเข้าตำแหน่งเมนูให้อัตโนมัติ
+
+1. ติดตั้งและเปิดใช้ธีม → Tools → Import → *WordPress* (ติดตั้งปลั๊กอิน WordPress Importer ชั่วคราวเมื่อระบบถาม) → เลือกไฟล์ → *Assign posts to an existing user* → Submit
+2. หน้าทุกหน้ามีกล่อง **โครงร่างหน้า (Draft)** และข้อความ `[ ]` ให้แก้เป็นข้อมูลจริง — ค้นหา `mcupr-todo` เพื่อดูว่าเหลือหน้าไหน; เนื้อหานโยบาย (PDPA/คุกกี้/ความปลอดภัย) เป็นแม่แบบ **ต้องให้ฝ่ายกฎหมาย/DPO ตรวจก่อนเผยแพร่**
+3. ชื่อหน้าแปลครบ 4 ภาษา (เมนูแต่ละภาษามีป้ายของตัวเอง); ตั้งค่า Settings → Reading → หน้าแรกเป็นหน้าแบบคงที่ได้ตามต้องการ — ลิงก์ท้ายเว็บใช้ slug (`privacy-policy`, `cookie-policy`, `accessibility-statement`, `sitemap`, `contact`) จึงทำงานโดยไม่ต้องตั้ง Customizer
+4. นำเข้า **ครั้งเดียว** — นำเข้าซ้ำจะไม่ซ้ำหน้า แต่จะซ้ำรายการเมนู
+5. สร้างไฟล์ใหม่หลังแก้เนื้อหา: แก้ `scripts/starter_content.py` แล้วรัน `python3 scripts/make-starter.py`; ทดสอบด้วย `cd tests && bash starter.sh` (นำเข้าจริงด้วย WordPress Importer + ตรวจเมนู/หน้า/axe ทุกชนิดหน้า)
+
+### คะแนน PageSpeed
+ธีมโหลดฟอนต์ woff2 เฉพาะตัวที่ใช้ (preload ตัวเดียว), SweetAlert2 โหลดเมื่อต้องใช้เท่านั้น, แบนเนอร์คุกกี้เป็น HTML ล้วน, ภาพมี width/height + lazy/`fetchpriority`, ไม่โหลด emoji/embed — ทดสอบ Lighthouse มือถือ (4G จำลอง) ได้ Performance 99, Accessibility / Best Practices / SEO 100 ในสภาพแวดล้อมทดสอบ **คะแนนจริงบนโฮสต์ขึ้นกับเซิร์ฟเวอร์** (TTFB, การบีบอัด gzip/brotli, HTTP/2, แคชหน้า, ขนาดรูปที่อัปโหลด) — แนะนำเปิดแคชหน้าและบีบอัดที่เซิร์ฟเวอร์ และอัปโหลดรูปภาพเป็น WebP/ขนาดไม่เกินที่แสดงจริง
 
 ## ทดสอบ
 
