@@ -104,9 +104,8 @@ const speechStub = (speakMs) => `(() => {
     // archive
     await p.goto(B + '/category/' + encodeURIComponent('กิจกรรม') + '/');
     ok((await p.locator('header.mcu-wheel').count()) === 1, 'archive: band');
-    ok((await p.getAttribute('header nav[aria-label] a[aria-current]', 'href')).includes('category'), 'archive: current category chip highlighted');
-    const span = await p.evaluate(() => { const a = document.querySelector('main article'); return a ? getComputedStyle(a).gridColumnEnd : ''; });
-    ok(span === 'span 2' || (await p.locator('main article.min-\\[900px\\]\\:col-span-2').count()) === 1, 'archive: first news item shown large');
+    ok((await p.getAttribute('.fb-side a[aria-current]', 'href')).includes('category'), 'archive: current category highlighted in the source list');
+    ok((await p.locator('.fb-items article').count()) >= 1, 'archive: items listed in the browser');
     await p.screenshot({ path: shot('archive.png') });
     await c.close();
   }
@@ -165,7 +164,7 @@ const speechStub = (speakMs) => `(() => {
     ok(await p.locator('#masthead .brand img.logo-light').isVisible() && !(await p.locator('#masthead .brand img.logo-dark').isVisible()), 'light mode shows the default logo');
     const h = await p.evaluate(() => document.querySelector('#masthead .brand img.logo-light').getBoundingClientRect().height);
     ok(Math.round(h) === 80, 'logo height from Customizer (80px): ' + Math.round(h));
-    ok((await p.locator('#colophon img').count()) === 1, 'footer logo shown');
+    ok((await p.locator('#colophon img:not(.fcredit-ph)').count()) === 1, 'footer logo shown');
     await p.evaluate(() => localStorage.setItem('mcupr_prefs', '{"theme":"dark"}'));
     await p.reload();
     ok(!(await p.locator('#masthead .brand img.logo-light').isVisible()) && (await p.locator('#masthead .brand img.logo-dark').isVisible()), 'dark mode swaps to the dark logo');
@@ -372,7 +371,7 @@ const speechStub = (speakMs) => `(() => {
     ok((await p.locator('#colophon .soft-card').count()) === 1, 'footer: one rounded card');
     await p.goto(B + '/category/' + encodeURIComponent('ข่าวประชาสัมพันธ์') + '/');
     ok(!/Category:/.test(await text(p, 'main h1')), 'archive title has no English "Category:" prefix');
-    ok((await p.locator('.pill-tabs [aria-current]').count()) === 1, 'category chips: pill tab group with the current one marked');
+    ok((await p.locator('.fb-side a[aria-current]').count()) === 1 && (await p.locator('.pill-tabs').count()) === 0, 'category browser: one current entry in the source list, no chip wall');
     await p.goto(B + '/no-such-page-xyz/');
     ok((await p.locator('.state-card .st-ic svg').count()) === 1 && (await p.locator('.state-card h1').count()) === 1, '404: centered status card with round icon');
     await p.goto(B + '/?s=zzzzqqqq');
