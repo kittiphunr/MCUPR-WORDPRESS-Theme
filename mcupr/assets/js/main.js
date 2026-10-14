@@ -1,6 +1,7 @@
 /**
  * MCUPR theme: display preferences (text size, dark mode, high contrast…),
- * accessible navigation and cookie notice.
+ * accessible navigation, and SweetAlert2 dialogs / toasts (cookie notice,
+ * reset confirmation, status messages, empty-search warning).
  * Preferences are stored only in the visitor's browser (localStorage).
  */
 (function () {
@@ -28,11 +29,39 @@
 		try { localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) { /* storage blocked */ }
 	}
 
+	/* ---- SweetAlert2 helpers (skin classes are defined in src/input.css) ---- */
+	function motionOff() {
+		return root.getAttribute('data-motion') === '1' ||
+			(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+	}
+
+	function swalBase(extra) {
+		var base = {
+			buttonsStyling: false,
+			customClass: {
+				popup: 'swal-popup',
+				title: 'swal-title',
+				htmlContainer: 'swal-text',
+				confirmButton: 'swal-confirm',
+				cancelButton: 'swal-cancel'
+			}
+		};
+		if (motionOff()) { base.showClass = { popup: '', backdrop: '' }; base.hideClass = { popup: '', backdrop: '' }; }
+		return Object.assign(base, extra);
+	}
+
+	/* Short, non-blocking status message (SweetAlert2 toasts are role="status") */
 	function announce(msg) {
-		var el = $('#mcupr-status');
-		if (!el) { return; }
-		el.textContent = '';
-		window.setTimeout(function () { el.textContent = msg; }, 50);
+		if (!window.Swal) { return; }
+		window.Swal.fire(swalBase({
+			toast: true,
+			position: 'bottom-end',
+			icon: 'success',
+			title: msg,
+			showConfirmButton: false,
+			timer: 1800,
+			customClass: { popup: 'swal-toast', title: 'swal-title' }
+		}));
 	}
 
 	function fontIndex() {
@@ -112,10 +141,22 @@
 			return;
 		}
 		if (e.target.closest('[data-reset-prefs]')) {
-			prefs = {};
-			save();
-			apply();
-			announce(i18n.reset || 'Settings reset');
+			var doReset = function () {
+				prefs = {};
+				save();
+				apply();
+				announce(i18n.reset || 'Settings reset');
+			};
+			if (!window.Swal) { doReset(); return; }
+			window.Swal.fire(swalBase({
+				icon: 'question',
+				title: i18n.resetQ,
+				text: i18n.resetQTxt,
+				showCancelButton: true,
+				confirmButtonText: i18n.resetAll,
+				cancelButtonText: i18n.cancel,
+				focusCancel: true
+			})).then(function (r) { if (r.isConfirmed) { doReset(); } });
 		}
 	});
 
@@ -135,6 +176,22 @@
 		var onMq = function () { sync(); };
 		if (mq.addEventListener) { mq.addEventListener('change', onMq); } else if (mq.addListener) { mq.addListener(onMq); }
 	}
+
+	/* ---- Empty search warning ---- */
+	document.addEventListener('submit', function (e) {
+		var form = e.target.closest && e.target.closest('.search-form');
+		if (!form || !window.Swal) { return; }
+		var input = form.querySelector('input[type="search"]');
+		if (input && !input.value.trim()) {
+			e.preventDefault();
+			window.Swal.fire(swalBase({
+				icon: 'warning',
+				text: i18n.searchEmpty,
+				confirmButtonText: i18n.ok,
+				willClose: function () { input.focus(); }
+			}));
+		}
+	});
 
 	/* ---- Accessibility panel (disclosure) ---- */
 	var panelBtn = $('#a11y-toggle');
@@ -203,19 +260,27 @@
 		});
 	}
 
-	/* ---- Cookie notice (essential cookies only; remembers acknowledgement) ---- */
-	var notice = $('#cookie-notice');
-	if (notice) {
-		var seen = false;
-		try { seen = localStorage.getItem(CONSENT_KEY) === '1'; } catch (e) { /* ignore */ }
-		if (!seen) { notice.hidden = false; }
-		var ok = $('#cookie-accept');
-		if (ok) {
-			ok.addEventListener('click', function () {
-				try { localStorage.setItem(CONSENT_KEY, '1'); } catch (e) { /* ignore */ }
-				notice.hidden = true;
-			});
-		}
+	/* ---- Cookie / PDPA notice (essential cookies only) ---- */
+	function esc(t) {
+		var d = document.createElement('div');
+		d.textContent = t;
+		return d.innerHTML;
+	}
+
+	var seen = false;
+	try { seen = localStorage.getItem(CONSENT_KEY) === '1'; } catch (e) { /* ignore */ }
+	if (!seen && window.Swal && i18n.cookieMsg) {
+		var link = i18n.cookieLink ? ' <a href="' + esc(i18n.cookieLink) + '" target="_blank" rel="noopener">' + esc(i18n.cookiePolicy) + '</a>' : '';
+		window.Swal.fire(swalBase({
+			icon: 'info',
+			title: i18n.cookieTitle,
+			html: esc(i18n.cookieMsg) + link,
+			confirmButtonText: i18n.cookieOk,
+			allowOutsideClick: false,
+			allowEscapeKey: false
+		})).then(function () {
+			try { localStorage.setItem(CONSENT_KEY, '1'); } catch (e) { /* ignore */ }
+		});
 	}
 
 	apply();

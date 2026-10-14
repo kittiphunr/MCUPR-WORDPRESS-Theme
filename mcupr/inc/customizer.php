@@ -81,5 +81,6 @@ function mcupr_custom_css() {
 	if ( ! $primary || ! $accent ) {
 		return '';
 	}
-	return ":root{--primary:{$primary};--accent:{$accent};}";
+	// Same cascade layer as the theme tokens so high-contrast modes still win.
+	return "@layer base{:root{--primary:{$primary};--accent:{$accent};}}";
 }

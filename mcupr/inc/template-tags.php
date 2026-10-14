@@ -56,13 +56,14 @@ function mcupr_breadcrumb() {
 	} elseif ( is_404() ) {
 		$items[] = array( mcupr_t( 'not_found' ), '' );
 	}
-	echo '<nav class="breadcrumb" aria-label="' . esc_attr( mcupr_t( 'breadcrumb' ) ) . '"><ol>';
+	echo '<nav class="wrap my-4 text-[.9375rem] text-muted" aria-label="' . esc_attr( mcupr_t( 'breadcrumb' ) ) . '"><ol class="m-0 flex list-none flex-wrap gap-x-2 gap-y-1 p-0">';
 	$last = count( $items ) - 1;
 	foreach ( $items as $i => $item ) {
+		$sep = $i ? '<span class="mr-2" aria-hidden="true">›</span>' : '';
 		if ( $i === $last || '' === $item[1] ) {
-			echo '<li><span aria-current="page">' . esc_html( $item[0] ) . '</span></li>';
+			echo '<li>' . $sep . '<span aria-current="page">' . esc_html( $item[0] ) . '</span></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		} else {
-			echo '<li><a href="' . esc_url( $item[1] ) . '">' . esc_html( $item[0] ) . '</a></li>';
+			echo '<li>' . $sep . '<a href="' . esc_url( $item[1] ) . '">' . esc_html( $item[0] ) . '</a></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		}
 	}
 	echo '</ol></nav>';
@@ -104,7 +105,7 @@ function mcupr_date( $post = null ) {
 /** Notice shown when a translation is missing. */
 function mcupr_missing_translation_notice() {
 	if ( mcupr_lang() !== mcupr_default_lang() && ! mcupr_is_translated() ) {
-		echo '<p class="notice" role="note">' . esc_html( mcupr_t( 'tr_missing' ) ) . '</p>';
+		echo '<p class="mb-4 rounded-lg border-l-4 border-accent bg-surface px-4 py-3" role="note">' . esc_html( mcupr_t( 'tr_missing' ) ) . '</p>';
 	}
 }
 

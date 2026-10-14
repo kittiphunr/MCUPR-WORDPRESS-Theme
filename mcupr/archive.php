@@ -8,11 +8,11 @@
 get_header();
 ?>
 <div class="wrap">
-	<h1 class="page-title"><?php the_archive_title(); ?></h1>
-	<?php the_archive_description( '<div class="archive-desc">', '</div>' ); ?>
+	<h1 class="mb-5 mt-4 border-b-4 border-accent pb-2 text-3xl font-bold contrast:border-line max-[700px]:text-2xl"><?php the_archive_title(); ?></h1>
+	<?php the_archive_description( '<div class="mb-4 text-muted">', '</div>' ); ?>
 
 	<?php if ( have_posts() ) : ?>
-		<div class="grid">
+		<div class="my-6 grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-6">
 			<?php
 			while ( have_posts() ) :
 				the_post();
