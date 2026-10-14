@@ -73,3 +73,23 @@ add_action(
 	},
 	2
 );
+
+/** ?mcupr_all=1 : the full, paged news list when the home page shows the latest posts (no separate "Posts page"). */
+add_filter(
+	'query_vars',
+	static function ( $vars ) {
+		$vars[] = 'mcupr_all';
+		return $vars;
+	}
+);
+
+/** "All news" URL: the Posts page if one is set, else the full list on the home page. */
+function mcupr_news_url() {
+	$page = (int) get_option( 'page_for_posts' );
+	return $page ? get_permalink( $page ) : add_query_arg( 'mcupr_all', '1', home_url( '/' ) );
+}
+
+/** Home page is showing the plain news list (page 2+, or ?mcupr_all=1) rather than the landing sections. */
+function mcupr_is_news_list_view() {
+	return is_home() && ( is_paged() || get_query_var( 'mcupr_all' ) );
+}
