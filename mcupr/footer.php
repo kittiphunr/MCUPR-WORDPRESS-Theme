@@ -87,6 +87,15 @@ $alt     = mcupr_alt_name();
 	<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </button>
 
+<?php
+$cookie_url = mcupr_policy_url( 'cookie' ) ? mcupr_policy_url( 'cookie' ) : mcupr_policy_url( 'privacy' );
+?>
+<div id="cookie-notice" class="cookie-notice soft-card" role="region" aria-labelledby="cookie-title">
+	<p id="cookie-title" class="m-0 mb-1 font-bold"><?php mcupr_e( 'cookie_title' ); ?></p>
+	<p class="m-0 mb-3 text-sm text-fg2"><?php mcupr_e( 'cookie_msg' ); ?><?php if ( $cookie_url ) : ?> <a href="<?php echo esc_url( $cookie_url ); ?>"><?php mcupr_e( 'cookie_policy' ); ?></a><?php endif; ?></p>
+	<button type="button" class="btn" data-cookie-ok><?php mcupr_e( 'cookie_ok' ); ?></button>
+</div>
+
 <?php get_template_part( 'template-parts/modals' ); ?>
 
 <?php wp_footer(); ?>

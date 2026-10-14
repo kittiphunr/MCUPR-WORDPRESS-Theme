@@ -26,7 +26,8 @@ $slider     = array_slice( $news_posts, 0, 6 );
 $rest       = array_slice( $news_posts, 6 );
 $blog   = mcupr_news_url();
 
-$hero_img = mcupr_hero_image_url( $news_posts ? $news_posts[0]->ID : 0 );
+$hero_id  = mcupr_hero_image_id( $news_posts ? $news_posts[0]->ID : 0 );
+$hero_img = (bool) $hero_id;
 $line1    = mcupr_text_mod( 'mcupr_hero_l1' );
 $line2    = mcupr_text_mod( 'mcupr_hero_l2' );
 if ( '' === $line1 . $line2 ) {
@@ -38,7 +39,10 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 ?>
 <div class="wrap mt-6"><section class="relative isolate flex min-h-[26rem] rounded-3xl flex-col items-center justify-center overflow-hidden px-3 py-16 text-center min-[400px]:min-h-[30rem] min-[400px]:px-6 min-[900px]:min-h-[min(36rem,70vh)] <?php echo $hero_img ? 'bg-neutral-800 text-white' : 'bg-gradient-to-br from-primary to-brand2 text-on-primary'; ?>">
 	<?php if ( $hero_img ) : ?>
-		<img class="noimg:hidden absolute inset-0 -z-20 size-full object-cover" src="<?php echo esc_url( $hero_img ); ?>" alt="" fetchpriority="high">
+		<?php
+		// The LCP element: right size (srcset), eager, high priority, decoded off the main thread.
+		echo wp_get_attachment_image( $hero_id, 'mcupr-hero', false, array( 'class' => 'noimg:hidden absolute inset-0 -z-20 size-full object-cover', 'alt' => '', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async', 'sizes' => '(min-width: 1260px) 1200px, 100vw' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
+		?>
 	<?php endif; ?>
 	<?php if ( $hero_img ) : ?><span class="absolute inset-0 -z-10 bg-black/50" aria-hidden="true"></span><?php endif; ?>
 
@@ -94,7 +98,7 @@ if ( $about_text ) :
 			?>
 			<article class="tilt group relative isolate flex min-h-72 min-w-[88%] flex-col justify-end overflow-hidden lift rounded-3xl bg-neutral-800 text-white min-[700px]:min-w-[26rem]">
 				<?php if ( has_post_thumbnail() ) : ?>
-					<span class="noimg:hidden absolute inset-0 -z-20" aria-hidden="true"><?php the_post_thumbnail( 'mcupr-hero', array( 'alt' => '', 'class' => 'size-full object-cover transition-transform duration-500 group-hover:scale-105' ) ); ?></span>
+					<span class="noimg:hidden absolute inset-0 -z-20" aria-hidden="true"><?php the_post_thumbnail( 'mcupr-hero', array( 'alt' => '', 'class' => 'size-full object-cover transition-transform duration-500 group-hover:scale-105', 'loading' => 'lazy', 'fetchpriority' => 'low', 'decoding' => 'async', 'sizes' => '(min-width: 700px) 416px, 88vw' ) ); ?></span>
 				<?php endif; ?>
 				<span class="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/50 to-black/10" aria-hidden="true"></span>
 				<div class="p-5"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
