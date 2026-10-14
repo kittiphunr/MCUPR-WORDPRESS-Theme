@@ -29,7 +29,7 @@ defined( 'ABSPATH' ) || exit;
 				<?php get_template_part( 'template-parts/article-tools' ); ?>
 			</div>
 		</aside>
-		<div>
+		<div class="panel-card min-w-0">
 			<?php mcupr_missing_translation_notice(); ?>
 			<div id="article-body" class="reader"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 				<?php

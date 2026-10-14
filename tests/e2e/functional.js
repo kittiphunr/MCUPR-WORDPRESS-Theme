@@ -78,12 +78,13 @@ const post2 = '/' + encodeURIComponent('ข่าวทดสอบ-2') + '/';
   // ---- accessibility helper: text size
   ok((await fontSize()) === '16px', 'default text size 16px');
   await openDialog('#a11y-toggle');
-  ok((await page.textContent('.swal2-title')).includes('ตัวช่วยการเข้าถึง'), 'accessibility dialog title');
+  ok((await page.textContent('.swal2-title')).includes('ตั้งค่าการแสดงผล'), 'settings dialog title');
   ok(await page.evaluate(() => document.activeElement.getAttribute('aria-checked') === 'true'), 'focus on the selected text size');
   const level = (n) => page.click(`[data-font-level="${n}"]`);
   await level(2);
   ok((await fontSize()) === '20px', 'level 125% => 20px');
   ok((await page.getAttribute('[data-font-level="2"]', 'aria-checked')) === 'true', 'selected level marked aria-checked');
+  await page.waitForFunction(() => document.querySelector('[data-a11y-status]').textContent.includes('125%'), null, { timeout: 3000 }).catch(() => {});
   ok((await page.textContent('[data-a11y-status]')).includes('125%'), 'status announced inside the dialog');
   await level(4);
   ok((await fontSize()) === '32px', 'max 200% => 32px');
@@ -102,7 +103,7 @@ const post2 = '/' + encodeURIComponent('ข่าวทดสอบ-2') + '/';
   const light = await bodyBg();
   await page.check('input[data-pref=theme][value=dark]', { force: true });
   const dark = await bodyBg();
-  ok(light !== dark && dark === 'rgb(18, 18, 20)', `dark mode (${light} -> ${dark})`);
+  ok(light !== dark && dark === 'rgb(15, 23, 42)', `dark mode (${light} -> ${dark})`);
   await closeDialog();
   await page.reload();
   ok((await bodyBg()) === dark, 'dark mode persisted without a flash on reload');
@@ -132,6 +133,7 @@ const post2 = '/' + encodeURIComponent('ข่าวทดสอบ-2') + '/';
   await openDialog('#a11y-toggle');
   await page.click('[data-reset-prefs]');
   ok(await page.evaluate(() => !document.documentElement.dataset.contrast && !document.documentElement.dataset.gray && !document.documentElement.dataset.theme), 'reset all');
+  await page.waitForFunction(() => document.querySelector('[data-a11y-status]').textContent.length > 0, null, { timeout: 3000 }).catch(() => {});
   ok((await page.textContent('[data-a11y-status]')).length > 0, 'reset confirmed in the live region');
   await closeDialog();
 
@@ -171,10 +173,10 @@ const post2 = '/' + encodeURIComponent('ข่าวทดสอบ-2') + '/';
     const c = await newCtx({ colorScheme: 'dark' });
     const p = await c.newPage();
     await p.goto(B + '/');
-    ok((await p.evaluate(() => getComputedStyle(document.body).backgroundColor)) === 'rgb(18, 18, 20)', 'auto theme follows OS dark');
+    ok((await p.evaluate(() => getComputedStyle(document.body).backgroundColor)) === 'rgb(15, 23, 42)', 'auto theme follows OS dark');
     await p.evaluate(() => localStorage.setItem('mcupr_prefs', '{"theme":"light"}'));
     await p.reload();
-    ok((await p.evaluate(() => getComputedStyle(document.body).backgroundColor)) === 'rgb(255, 255, 255)', 'explicit light overrides OS dark');
+    ok((await p.evaluate(() => getComputedStyle(document.body).backgroundColor)) === 'rgb(241, 245, 249)', 'explicit light overrides OS dark');
     await c.close();
   }
 

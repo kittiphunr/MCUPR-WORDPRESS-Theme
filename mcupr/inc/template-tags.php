@@ -142,6 +142,11 @@ function mcupr_icon( $name, $size = 24 ) {
 		'globe'    => '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>',
 		'search'   => '<circle cx="11" cy="11" r="7.5"/><path d="M16.5 16.5L22 22"/>',
 		'link'     => '<path d="M7 17L17 7M8 7h9v9"/>',
+		'sliders'  => '<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
+		'help'     => '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>',
+		'panel'    => '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/>',
+		'chevron'  => '<path d="M9 6l6 6-6 6"/>',
+		'home'     => '<path d="M3 11l9-8 9 8M5 10v10h14V10"/>',
 	);
 	$p = isset( $paths[ $name ] ) ? $paths[ $name ] : $paths['link'];
 	return '<svg width="' . (int) $size . '" height="' . (int) $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $p . '</svg>';
@@ -151,16 +156,24 @@ function mcupr_icon( $name, $size = 24 ) {
 add_filter(
 	'nav_menu_item_title',
 	static function ( $title, $item, $args ) {
-		if ( empty( $args->menu_class ) || 'hero-menu' !== $args->menu_class ) {
+		if ( empty( $args->menu_class ) ) {
 			return $title;
 		}
-		$icon = 'link';
+		$icon = '';
 		foreach ( (array) $item->classes as $c ) {
 			if ( 0 === strpos( $c, 'icon-' ) ) {
 				$icon = substr( $c, 5 );
 			}
 		}
-		return '<span class="mb-auto text-white/90">' . mcupr_icon( $icon, 28 ) . '</span><span>' . $title . '</span>';
+		if ( 'hero-menu' === $args->menu_class ) {
+			return '<span class="mb-auto text-white/90">' . mcupr_icon( $icon ? $icon : 'link', 28 ) . '</span><span>' . $title . '</span>';
+		}
+		if ( 'menu' === $args->menu_class && 0 === (int) $item->menu_item_parent ) {
+			// Main menu: icon (or initial letter) for the sidebar / drawer, text in .t
+			$ic = $icon ? mcupr_icon( $icon, 20 ) : esc_html( mb_strtoupper( mb_substr( wp_strip_all_tags( $title ), 0, 1 ) ) );
+			return '<span class="ic" aria-hidden="true">' . $ic . '</span><span class="t">' . $title . '</span>';
+		}
+		return $title;
 	},
 	10,
 	3
@@ -187,24 +200,33 @@ function mcupr_lang_label() {
 	return isset( $langs[ $cur ]['label'] ) ? $langs[ $cur ]['label'] : $cur;
 }
 
-/** The three icon buttons (accessibility, language, search) – used by the default header and [mcupr_tools]. */
-function mcupr_tools_cluster( $btn = 'text-fg hover:bg-surface' ) {
+/** Icon buttons: search, language, display settings, about – used by the default header and [mcupr_tools]. */
+function mcupr_tools_cluster( $btn = 'text-fg2 hover:bg-surface' ) {
 	mcupr_tools_rendered( true );
-	$base = 'relative inline-flex size-11 items-center justify-center rounded-full border-0 bg-transparent p-0 cursor-pointer ' . $btn;
+	$base = 'relative inline-flex size-11 items-center justify-center rounded-xl border border-control/60 bg-bg p-0 cursor-pointer ' . $btn;
 	?>
-	<div class="flex items-center gap-1" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'utility_nav' ) ); ?>">
-		<button type="button" id="a11y-toggle" class="<?php echo esc_attr( $base ); ?> text-xl font-medium" aria-haspopup="dialog" aria-label="<?php echo esc_attr( mcupr_t( 'a11y_helper' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'a11y_helper' ) ); ?>"><span aria-hidden="true">Aa</span></button>
-		<button type="button" id="lang-toggle" class="<?php echo esc_attr( $base ); ?>" aria-haspopup="dialog" aria-label="<?php echo esc_attr( mcupr_lang_badge() . ' ' . mcupr_t( 'language' ) . ': ' . mcupr_lang_label() ); ?>" title="<?php echo esc_attr( mcupr_t( 'language' ) ); ?>">
-			<?php echo mcupr_icon( 'globe', 26 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			<span class="absolute -top-0.5 -right-1 rounded-full bg-primary px-1.5 text-[.65rem] font-bold leading-4 text-on-primary" aria-hidden="true"><?php echo esc_html( mcupr_lang_badge() ); ?></span>
-		</button>
+	<div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'utility_nav' ) ); ?>">
 		<a id="search-toggle" class="<?php echo esc_attr( $base ); ?> no-underline" href="<?php echo esc_url( add_query_arg( 's', '', mcupr_home_url() ) ); ?>" aria-haspopup="dialog" aria-label="<?php echo esc_attr( mcupr_t( 'search' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'search' ) ); ?>">
-			<?php echo mcupr_icon( 'search', 26 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+			<?php echo mcupr_icon( 'search', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		</a>
+		<button type="button" id="lang-toggle" class="<?php echo esc_attr( $base ); ?>" aria-haspopup="dialog" aria-label="<?php echo esc_attr( mcupr_lang_badge() . ' ' . mcupr_t( 'language' ) . ': ' . mcupr_lang_label() ); ?>" title="<?php echo esc_attr( mcupr_t( 'language' ) ); ?>">
+			<?php echo mcupr_icon( 'globe', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+			<span class="absolute -top-1.5 -right-1.5 rounded-full bg-primary px-1.5 text-[.65rem] font-bold leading-4 text-on-primary" aria-hidden="true"><?php echo esc_html( mcupr_lang_badge() ); ?></span>
+		</button>
+		<button type="button" id="a11y-toggle" class="<?php echo esc_attr( $base ); ?>" aria-haspopup="dialog" aria-label="<?php echo esc_attr( mcupr_t( 'settings_title' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'settings_btn' ) ); ?>">
+			<?php echo mcupr_icon( 'sliders', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+		</button>
+		<button type="button" id="about-toggle" class="<?php echo esc_attr( $base ); ?>" aria-haspopup="dialog" aria-label="<?php echo esc_attr( mcupr_t( 'about' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'about' ) ); ?>">
+			<?php echo mcupr_icon( 'help', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+		</button>
 	</div>
 	<?php
 }
 
+/** Site default menu position (top | side). */
+function mcupr_menu_default() {
+	return 'side' === get_theme_mod( 'mcupr_menu_layout', 'top' ) ? 'side' : 'top';
+}
 /** Header / footer logo (<img>), with optional dark-mode variant. $where: header | footer. */
 function mcupr_logo( $where = 'header', $class = '' ) {
 	$main = (int) get_theme_mod( 'custom_logo' );

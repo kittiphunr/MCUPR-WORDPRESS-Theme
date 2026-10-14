@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <?php wp_head(); ?>
 </head>
-<body <?php body_class( 'bg-bg text-fg' ); ?>>
+<body <?php body_class( "bg-canvas text-fg" ); ?>>
 <?php wp_body_open(); ?>
 
 <div id="progress" class="fixed inset-x-0 top-0 z-[60] h-1 origin-left scale-x-0 bg-primary print:hidden" aria-hidden="true"></div>

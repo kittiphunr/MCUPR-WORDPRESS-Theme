@@ -119,7 +119,7 @@ const speechStub = (speakMs) => `(() => {
   const probe = (p) => p.evaluate(() => {
     const cs = getComputedStyle(document.documentElement); const s = document.createElement('a'); s.href = '#'; s.className = 'btn'; document.body.appendChild(s);
     const l = document.createElement('a'); l.href = '#'; l.id = 'probe-link'; document.body.appendChild(l);
-    const o = { primary: cs.getPropertyValue('--primary').trim(), btnBg: getComputedStyle(s).backgroundColor, btnFg: getComputedStyle(s).color, link: getComputedStyle(l).color, bg: getComputedStyle(document.body).backgroundColor, bar: getComputedStyle(document.querySelector('#colophon')).backgroundColor, barFg: getComputedStyle(document.querySelector('#colophon')).color };
+    const o = { primary: cs.getPropertyValue('--primary').trim(), btnBg: getComputedStyle(s).backgroundColor, btnFg: getComputedStyle(s).color, link: getComputedStyle(l).color, bg: getComputedStyle(document.body).backgroundColor, bar: getComputedStyle(document.querySelector('#colophon')).backgroundColor, barFg: getComputedStyle(document.querySelector('#colophon')).color, canvas: getComputedStyle(document.body).backgroundColor };
     s.remove(); l.remove(); return o;
   });
   for (const [name, mods] of [
@@ -135,7 +135,7 @@ const speechStub = (speakMs) => `(() => {
       await p.goto(B + '/');
       const o = await probe(p);
       const rb = await ratio(p, o.btnBg, o.btnFg);
-      const rl = await ratio(p, o.link, o.bg);
+      const rl = await ratio(p, o.link, o.canvas);
       const rf = await ratio(p, o.bar, o.barFg);
       ok(rb >= 4.5 && rl >= 4.5 && rf >= 4.5, `${name}/${theme}: button ${rb.toFixed(1)}:1, link ${rl.toFixed(1)}:1, footer text ${rf.toFixed(1)}:1`);
       if (theme === 'light' && name.startsWith('navy')) ok(o.primary === '#1f3a6e', 'navy preset applies --primary');
@@ -161,19 +161,19 @@ const speechStub = (speakMs) => `(() => {
     const c = await newCtx({}, { custom_logo: 'ATT', mcupr_logo_dark: 'ATT', mcupr_logo_footer: 'ATT', mcupr_logo_height: 80 });
     const p = await c.newPage();
     await p.goto(B + '/');
-    ok((await p.locator('#masthead img.logo-light').count()) === 1 && (await p.locator('#masthead img.logo-dark').count()) === 1, 'header: light + dark logo rendered');
-    ok(await p.locator('#masthead img.logo-light').isVisible() && !(await p.locator('#masthead img.logo-dark').isVisible()), 'light mode shows the default logo');
-    const h = await p.evaluate(() => document.querySelector('#masthead img.logo-light').getBoundingClientRect().height);
+    ok((await p.locator('#masthead .brand img.logo-light').count()) === 1 && (await p.locator('#masthead .brand img.logo-dark').count()) === 1, 'header: light + dark logo rendered');
+    ok(await p.locator('#masthead .brand img.logo-light').isVisible() && !(await p.locator('#masthead .brand img.logo-dark').isVisible()), 'light mode shows the default logo');
+    const h = await p.evaluate(() => document.querySelector('#masthead .brand img.logo-light').getBoundingClientRect().height);
     ok(Math.round(h) === 80, 'logo height from Customizer (80px): ' + Math.round(h));
     ok((await p.locator('#colophon img').count()) === 1, 'footer logo shown');
     await p.evaluate(() => localStorage.setItem('mcupr_prefs', '{"theme":"dark"}'));
     await p.reload();
-    ok(!(await p.locator('#masthead img.logo-light').isVisible()) && (await p.locator('#masthead img.logo-dark').isVisible()), 'dark mode swaps to the dark logo');
+    ok(!(await p.locator('#masthead .brand img.logo-light').isVisible()) && (await p.locator('#masthead .brand img.logo-dark').isVisible()), 'dark mode swaps to the dark logo');
     await c.close();
     const c2 = await newCtx({}, { custom_logo: 'ATT' });
     const p2 = await c2.newPage();
     await p2.goto(B + '/');
-    ok((await p2.locator('#masthead img.logo-dark').count()) === 0, 'no dark logo -> single logo only');
+    ok((await p2.locator('#masthead .brand img.logo-dark').count()) === 0, 'no dark logo -> single logo only');
     await c2.close();
   }
 
