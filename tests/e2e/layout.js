@@ -305,6 +305,38 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await c.close();
   }
 
+  // ================= hybrid: floating pill bar on top + always-collapsed icon rail
+  {
+    const c = await newCtx({}, '{"menu":"hybrid"}');
+    const p = await c.newPage();
+    await p.goto(B + '/');
+    ok((await attr(p)) === 'hybrid', 'hybrid: applied before paint from the saved choice');
+    ok(await p.locator('#masthead .brand').isVisible() && !(await p.locator('#site-nav .sb-brand').isVisible()), 'hybrid: brand stays in the top bar, not in the rail');
+    ok((await css(p, '#masthead', 'borderTopLeftRadius')) !== '0px' && (await css(p, '#masthead', 'boxShadow')) !== 'none', 'hybrid: header floats as a rounded pill with a shadow');
+    const nav = await p.evaluate(() => { const r = document.querySelector('#site-nav').getBoundingClientRect(); return [Math.round(r.left), Math.round(r.width)]; });
+    ok((await css(p, '#site-nav', 'position')) === 'fixed' && nav[0] === 0 && nav[1] <= 100, 'hybrid: slim icon rail on the left ' + nav);
+    ok((await css(p, 'body', 'paddingLeft')) === '92px', 'hybrid: content offset by the slim rail');
+    ok(!(await p.locator('#site-nav .sb-foot').isVisible()), 'hybrid: no collapse button (rail is always slim)');
+    await p.hover('#site-nav .menu > li > a');
+    await p.waitForTimeout(350);
+    ok((await p.evaluate(() => document.querySelector('#site-nav').getBoundingClientRect().width)) > 200, 'hybrid: rail expands on hover');
+    await p.mouse.move(900, 500);
+    await p.screenshot({ path: shot('layout-hybrid.png') });
+    await p.addScriptTag({ content: axeSource() });
+    const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(r.violations.length === 0, 'axe (hybrid mode): ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    await p.click('#a11y-toggle'); await p.waitForSelector('.swal2-popup');
+    ok(await p.locator('input[data-pref=menu][value=hybrid]').isChecked(), 'hybrid: settings dialog offers and reflects the hybrid choice');
+    await p.check('input[data-pref=menu][value=top]', { force: true });
+    ok((await attr(p)) === 'top' && (await p.evaluate(() => !document.documentElement.classList.contains('sb-min'))), 'hybrid → top: switches at once, slim-rail flag cleared');
+    await c.close();
+    const c2 = await newCtx({ viewport: { width: 390, height: 820 } }, '{"menu":"hybrid"}');
+    const p2 = await c2.newPage();
+    await p2.goto(B + '/');
+    ok(await p2.isVisible('.nav-toggle') && (await p2.evaluate(() => document.documentElement.scrollWidth <= 390)), 'hybrid on phones: header hamburger + drawer, no horizontal scroll');
+    await c2.close();
+  }
+
   await br.close();
   finish();
   async function text(p, sel) { return p.evaluate((s) => (document.querySelector(s) || {}).textContent || '', sel); }
