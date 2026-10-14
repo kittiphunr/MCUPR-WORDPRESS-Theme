@@ -40,7 +40,7 @@ $alt     = mcupr_alt_name();
 			<div>
 				<p class="mb-1 text-xl font-bold"><?php echo esc_html( mcupr_org_name() ); ?></p>
 				<?php if ( $alt ) : ?>
-					<p class="mb-3" lang="<?php echo esc_attr( 'th' === mcupr_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></p>
+					<p class="mb-3" lang="<?php echo esc_attr( 'th' === mcupr_ui_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></p>
 				<?php endif; ?>
 				<?php if ( $address ) : ?>
 					<address class="not-italic"><?php echo nl2br( esc_html( $address ) ); ?></address>
@@ -62,7 +62,7 @@ $alt     = mcupr_alt_name();
 	</div>
 	<div class="border-t border-on-bar/25 py-4 text-[.9375rem]">
 		<div class="wrap">
-			<p class="m-0">© <?php echo esc_html( (int) wp_date( 'Y' ) + ( 'th' === mcupr_lang() ? 543 : 0 ) ); ?> <?php echo esc_html( mcupr_org_name() ); ?>. <?php mcupr_e( 'rights' ); ?></p>
+			<p class="m-0">© <?php echo esc_html( (int) wp_date( 'Y' ) + ( 'th' === mcupr_ui_lang() ? 543 : 0 ) ); ?> <?php echo esc_html( mcupr_org_name() ); ?>. <?php mcupr_e( 'rights' ); ?></p>
 		</div>
 	</div>
 </footer>

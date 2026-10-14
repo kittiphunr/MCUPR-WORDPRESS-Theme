@@ -16,14 +16,16 @@ function mcupr_customize_register( $wp_customize ) {
 		)
 	);
 
+	if ( ! mcupr_has_polylang() ) {
 	$wp_customize->add_setting( 'mcupr_default_lang', array( 'default' => 'th', 'sanitize_callback' => 'mcupr_sanitize_lang' ) );
 	$choices = array();
-	foreach ( mcupr_languages() as $code => $l ) {
+	foreach ( mcupr_ui_languages() as $code => $l ) {
 		$choices[ $code ] = $l['label'] . ' (' . $l['name'] . ')';
 	}
 	$wp_customize->add_control( 'mcupr_default_lang', array( 'section' => 'mcupr_org', 'label' => __( 'Default language (language of the main editor)', 'mcupr' ), 'type' => 'select', 'choices' => $choices ) );
+	}
 
-	foreach ( mcupr_languages() as $code => $l ) {
+	foreach ( mcupr_ui_languages() as $code => $l ) {
 		$wp_customize->add_setting( "mcupr_name_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
 		$wp_customize->add_control( "mcupr_name_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'Organisation name (%s)', 'mcupr' ), $l['name'] ), 'type' => 'text' ) );
 
@@ -38,7 +40,7 @@ function mcupr_customize_register( $wp_customize ) {
 	$wp_customize->add_section( 'mcupr_home', array( 'title' => __( 'MCUPR: Home hero & banner', 'mcupr' ), 'priority' => 32 ) );
 	$wp_customize->add_setting( 'mcupr_hero_image', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
 	$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'mcupr_hero_image', array( 'section' => 'mcupr_home', 'label' => __( 'Hero background image (falls back to the newest post image)', 'mcupr' ), 'mime_type' => 'image' ) ) );
-	foreach ( mcupr_languages() as $code => $l ) {
+	foreach ( mcupr_ui_languages() as $code => $l ) {
 		foreach ( array( 'hero_l1' => __( 'Hero headline, light line (%s)', 'mcupr' ), 'hero_l2' => __( 'Hero headline, bold line (%s)', 'mcupr' ), 'cta_title' => __( 'Bottom banner text (%s)', 'mcupr' ) ) as $key => $label ) {
 			$wp_customize->add_setting( "mcupr_{$key}_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
 			$wp_customize->add_control( "mcupr_{$key}_{$code}", array( 'section' => 'mcupr_home', 'label' => sprintf( $label, $l['name'] ), 'type' => 'text' ) );
@@ -75,7 +77,7 @@ function mcupr_customize_register( $wp_customize ) {
 add_action( 'customize_register', 'mcupr_customize_register' );
 
 function mcupr_sanitize_lang( $value ) {
-	return isset( mcupr_languages()[ $value ] ) ? $value : 'th';
+	return isset( mcupr_ui_languages()[ $value ] ) ? $value : 'th';
 }
 
 /** Policy page URL for a given customizer key, with WP privacy page fallback. */
