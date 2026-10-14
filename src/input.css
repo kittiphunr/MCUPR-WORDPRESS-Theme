@@ -674,3 +674,7 @@ html.fs-open-lock { overflow: hidden; }
 	html[data-menu="top"] .fs-open span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 	html[data-menu="top"] .fs-open { width: 2.75rem; padding: 0; justify-content: center; }
 }
+
+/* ===== Page band reaches up to the top bar: the floating header sits ON it (--hdr-h = header height + margin, set in site-header.php) ===== */
+html:not([data-menu="side"]) #content > .mcu-wheel:first-child,
+html:not([data-menu="side"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: calc(var(--hdr-h, 5.5rem) + 2.5rem); }
