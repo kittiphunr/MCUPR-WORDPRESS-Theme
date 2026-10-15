@@ -1196,6 +1196,25 @@
 		});
 	});
 
+	/* ---- FAQ: live search (opens the matching questions) ---- */
+	$$('[data-faq]').forEach(function (box) {
+		var inp = $('[data-faq-find]', box);
+		if (!inp) { return; }
+		var none = $('.faq-none', box);
+		inp.addEventListener('input', function () {
+			var q = inp.value.trim().toLowerCase();
+			var shown = 0;
+			$$('.faq-item', box).forEach(function (d) {
+				var hit = !q || (d.textContent || '').toLowerCase().indexOf(q) !== -1;
+				d.hidden = !hit;
+				if (q && hit) { d.open = true; }
+				if (hit) { shown++; }
+			});
+			$$('.faq-group', box).forEach(function (g) { g.hidden = !$$('.faq-item:not([hidden])', g).length; });
+			if (none) { none.hidden = shown > 0; }
+		});
+	});
+
 	apply();
 	reveal();
 })();
