@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.14.0 =
+* Staff hub: import people from Excel (.xlsx) or CSV with a preview, template download and export.
+
 = 1.13.1 =
 * Removed the creator card from the footer (the creator stays in the About dialog).
 
