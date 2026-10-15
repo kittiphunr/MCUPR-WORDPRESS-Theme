@@ -78,6 +78,14 @@ foreach ( $pre as $k => $p ) {
 	$l = function ( $hex ) { $c = array_map( 'hexdec', str_split( ltrim( $hex, '#' ), 2 ) ); foreach ( $c as &$v ) { $v /= 255; $v = $v <= 0.03928 ? $v / 12.92 : pow( ( $v + 0.055 ) / 1.055, 2.4 ); } return 0.2126 * $c[0] + 0.7152 * $c[1] + 0.0722 * $c[2]; };
 	t( 1.05 / ( $l( $p[1] ) + 0.05 ) >= 7 && 1.05 / ( $l( $p[2] ) + 0.05 ) >= 4.5, 'presets: white text is readable on the colours of "' . $k . '"' );
 }
+// samples (open to everyone, for the starter file's demo page)
+wp_set_current_user( 0 );
+$_GET['mcupr_welcome'] = 'sample'; $_GET['occasion'] = 'songkran';
+t( mcupr_welcome_wanted(), 'sample: a known occasion shows its sample to anyone' );
+$_GET['occasion'] = 'nonsense';
+t( ! mcupr_welcome_wanted(), 'sample: an unknown occasion shows nothing' );
+unset( $_GET['mcupr_welcome'], $_GET['occasion'] );
+t( substr_count( do_shortcode( '[mcupr_welcome_samples]' ), 'mcupr_welcome=sample' ) === count( $pre ) - 1, 'sample: [mcupr_welcome_samples] links every occasion except "my own"' );
 // mourning
 mcupr_status_save( array( 'n_on' => '1', 'n_from' => gmdate( 'Y-m-d', strtotime( $today ) - 86400 ), 'n_to' => gmdate( 'Y-m-d', strtotime( $today ) + 86400 ) ) );
 t( false !== strpos( apply_filters( 'language_attributes', 'lang="th"' ), 'data-mourning="1"' ), 'mourning: the page is marked inside the dates' );
