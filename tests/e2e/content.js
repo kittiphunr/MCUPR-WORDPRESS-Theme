@@ -238,7 +238,7 @@ const speechStub = (speakMs) => `(() => {
     await p.waitForTimeout(400);
     ok((await p.evaluate(() => window.__spoken.length)) <= before, 'no more speech while paused');
     // resume + speed
-    await p.selectOption('[data-listen-rate]', '1.5');
+    await p.check('input[data-listen-rate][value="1.5"]', { force: true });
     await play.click();
     await p.waitForFunction((n) => window.__spoken.length > n, before);
     ok((await p.evaluate(() => window.__spoken[window.__spoken.length - 1].rate)) === 1.5, 'speed 1.5× applied');
