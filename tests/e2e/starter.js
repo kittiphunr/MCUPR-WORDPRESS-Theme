@@ -910,7 +910,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await ap.click('#wp-submit');
       await ap.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' }).catch(async (e) => { console.log('DEBUG login at ' + w + 'px stuck on ' + ap.url() + ' :: ' + (await ap.content().catch(() => '')).replace(/\s+/g, ' ').slice(0, 700)); throw e; });
       await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
-      const cardsInfo = await ap.evaluate(() => ({ cards: document.querySelectorAll('.wrap a.card').length, hscroll: document.documentElement.scrollWidth > innerWidth + 1 }));
+      const cardsInfo = await ap.evaluate(() => ({ cards: document.querySelectorAll('.mcupr-ov .ov-card').length, hero: !!document.querySelector('.mcupr-ov .ov-hero h1'), chips: document.querySelectorAll('.mcupr-ov .ov-chip').length, acts: document.querySelectorAll('.mcupr-ov .ov-act').length, tools: document.querySelectorAll('.mcupr-ov h2').length, hscroll: document.documentElement.scrollWidth > innerWidth + 1 }));
       if (w < 783) { await ap.click('#wp-admin-bar-menu-toggle a'); await ap.waitForTimeout(300); }
       const m = await ap.evaluate(() => {
         const tops = [...document.querySelectorAll('#adminmenu > li.menu-top')].map((l) => (l.querySelector('.wp-menu-name') || {}).textContent.trim());
@@ -918,10 +918,11 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         const subs = mc ? [...mc.querySelectorAll('.wp-submenu li a')].map((a) => a.textContent.trim()) : [];
         return { tops, subs, open: !!mc && mc.classList.contains('wp-has-current-submenu') };
       });
-      m.cards = cardsInfo.cards; m.hscroll = cardsInfo.hscroll;
+      m.cards = cardsInfo.cards; m.hscroll = cardsInfo.hscroll; m.info = cardsInfo;
       ok(m.tops.filter((t) => /MCUPR/.test(t)).length === 1 && m.subs.length >= 18 && m.open, 'admin ' + w + 'px: one MCUPR menu, open on its overview, with ' + m.subs.length + ' entries');
       ok(!m.tops.some((t) => /กระดาน|วิดีโอ|อัลบั้ม|กิจกรรม|ผลงาน|บุคลากร|Forum|Video|Album|Event|Work|Staff|Polls|FAQ|Form messages/i.test(t)), 'admin ' + w + 'px: none of the theme sections is scattered in the main menu (' + m.tops.join(' | ') + ')');
       ok(m.cards >= 12 && !m.hscroll, 'admin ' + w + 'px: the overview shows ' + m.cards + ' cards without sideways scroll');
+      ok(m.info.hero && m.info.chips >= 3 && m.info.acts >= 4 && m.info.tools >= 5, 'admin ' + w + 'px: the control page has the banner, the status chips (' + m.info.chips + '), the quick actions (' + m.info.acts + ') and its sections');
       if (w === 1366) {
         for (const u of ['edit.php?post_type=mcupr_video', 'edit-tags.php?taxonomy=mcupr_video_cat&post_type=mcupr_video', 'post-new.php?post_type=mcupr_faq', 'admin.php?page=mcupr-forum', 'admin.php?page=mcupr-staff-hub', 'admin.php?page=mcupr-status', 'edit.php?post_type=mcupr_unit']) {
           const r = await ap.goto(B + '/wp-admin/' + u);
@@ -929,6 +930,10 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
           ok(r.status() === 200 && open && !(await ap.locator('.wp-die-message').count()), 'admin: ' + u + ' opens and keeps the MCUPR menu open');
         }
         await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
+        await ap.addScriptTag({ content: axeSource() });
+        const axo = await ap.evaluate(() => axe.run(document.querySelector('.mcupr-ov'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+        ok(axo.violations.length === 0, 'axe (the control page): ' + (axo.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        ok(await ap.evaluate(() => { const r = {}; document.querySelectorAll('.ov-grid').forEach((g) => { [...g.children].forEach((c) => { const t = Math.round(c.getBoundingClientRect().top); (r[t] = r[t] || new Set()).add(Math.round(c.getBoundingClientRect().height)); }); }); return Object.values(r).every((x) => x.size === 1); }), 'the control page: the cards of a row are the same height');
         await ap.screenshot({ path: shot('admin-mcupr.png') });
         // import an .ics file through the admin page
         const fs = require('fs'); const os = require('os'); const path = require('path');
