@@ -1054,6 +1054,31 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       }
       await ap.setViewportSize({ width: 1366, height: 900 });
     }
+    // pictures: an uploaded JPEG becomes a WebP
+    {
+      const { execSync } = require('child_process');
+      const big = require('os').tmpdir() + '/e2e-photo.jpg';
+      execSync("php -r '$im=imagecreatetruecolor(2600,1800);mt_srand(3);for($i=0;$i<2500;$i++){imagefilledellipse($im,mt_rand(0,2600),mt_rand(0,1800),mt_rand(5,80),mt_rand(5,80),imagecolorallocate($im,mt_rand(0,255),mt_rand(0,255),mt_rand(0,255)));}imagejpeg($im,\"" + big + "\",95);'");
+      await ap.goto(B + '/wp-admin/media-new.php');
+      const nonce = await ap.evaluate(() => (window.wpApiSettings && window.wpApiSettings.nonce) || '');
+      await ap.setInputFiles('input[type=file]', big);
+      await ap.waitForSelector('.media-item .edit-attachment, .media-item .pinkynail, .upload-success, .media-item .filename', { timeout: 60000 });
+      await ap.waitForTimeout(3000);
+      const media = await ap.evaluate(async (n) => { const r = await fetch('/wp-json/wp/v2/media?per_page=1&orderby=date&order=desc&_fields=id,mime_type,source_url,media_details', { headers: { 'X-WP-Nonce': n } }); return r.json(); }, nonce);
+      const mi = media && media[0];
+      ok(!!mi && mi.mime_type === 'image/webp' && /\.webp$/.test(mi.source_url) && Math.max(mi.media_details.width, mi.media_details.height) <= 2000, 'pictures: a 2600 px JPEG uploaded in the browser is stored as a WebP of at most 2000 px (' + (mi ? mi.mime_type + ' ' + mi.media_details.width + 'x' + mi.media_details.height : 'no media') + ')');
+      ok(!!mi && mi.media_details.sizes && mi.media_details.sizes.medium && mi.media_details.sizes.medium.mime_type === 'image/webp', 'pictures: the smaller sizes WordPress makes are WebP too');
+      if (mi) { await ap.evaluate(async (a) => { await fetch('/wp-json/wp/v2/media/' + a.id + '?force=true', { method: 'DELETE', headers: { 'X-WP-Nonce': a.n } }); }, { id: mi.id, n: nonce }); }
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-images');
+      const imBody = await ap.locator('#wpbody-content').innerText();
+      ok(/WebP/.test(imBody) && (await ap.locator('input[name=quality]').inputValue()) === '82', 'pictures: the settings page shows the status and the defaults');
+      for (const [w, h] of [[1920, 1080], [768, 1024], [390, 844], [320, 568]]) {
+        await ap.setViewportSize({ width: w, height: h });
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr-images');
+        ok(!(await ap.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)), 'pictures settings page at ' + w + 'px: no sideways scroll of the page');
+      }
+      await ap.setViewportSize({ width: 1366, height: 900 });
+    }
     // speed check
     await ap.goto(B + '/wp-admin/admin.php?page=mcupr-speed');
     await ap.click('button:has-text("ตรวจเลย"), button:has-text("Check now")');
