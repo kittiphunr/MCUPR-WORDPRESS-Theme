@@ -289,6 +289,8 @@ EN_BODY = {
 L = {  # menu-only labels (th, en, zh, ja)
  'home': ('หน้าหลัก', 'Home', '首页', 'ホーム'),
  'news': ('ข่าวสาร', 'News', '新闻', 'ニュース'),
+ 'albums': ('อัลบั้มภาพ', 'Photo albums', '相册', 'フォトアルバム'),
+ 'videos': ('วิดีโอ', 'Videos', '视频', '動画'),
  'works': ('ผลงานและรางวัล', 'Works and awards', '作品与奖项', '実績・受賞'),
  'cat-pr': ('ข่าวประชาสัมพันธ์', 'Press releases', '新闻公告', 'お知らせ'),
  'cat-act': ('ข่าวกิจกรรม', 'Activities', '活动', '活動'),
@@ -334,7 +336,9 @@ MAIN = [
    LBL('col-during', [P('calendar'), P('registrar'), P('library')]),
    LBL('col-students', [P('students'), P('career'), P('alumni')])]),
  P('research', 'bulb', kids=[P('research-policy'), P('research-centers'), P('journals'), P('academic-service'), P('research-grants'), P('research-ethics'), {'label': L['works'], 'target': ('url', '/works/'), 'icon': 'trophy', 'kids': []}]),
- {'label': L['news'], 'target': ('url', '/?mcupr_all=1'), 'icon': 'news', 'kids': [CAT('cat-pr', 'press-releases'), CAT('cat-act', 'activities'), CAT('cat-ann', 'announcements'), P('events-calendar', 'calendar')]},
+ {'label': L['news'], 'target': ('url', '/?mcupr_all=1'), 'icon': 'news', 'kids': [CAT('cat-pr', 'press-releases'), CAT('cat-act', 'activities'), CAT('cat-ann', 'announcements'), P('events-calendar', 'calendar'),
+   {'label': L['albums'], 'target': ('url', '/albums/'), 'icon': 'image', 'kids': []},
+   {'label': L['videos'], 'target': ('url', '/videos/'), 'icon': 'play', 'kids': []}]},
  P('governance', 'shield', mega=3, kids=[
    LBL('col-transparent', [P('ita'), P('oic'), P('open-data')]),
    LBL('col-ops', [P('plans-reports'), P('procurement'), P('hr')]),
