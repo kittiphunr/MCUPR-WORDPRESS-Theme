@@ -1120,7 +1120,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       const big = require('os').tmpdir() + '/e2e-photo.jpg';
       execSync("php -r '$im=imagecreatetruecolor(2600,1800);mt_srand(3);for($i=0;$i<2500;$i++){imagefilledellipse($im,mt_rand(0,2600),mt_rand(0,1800),mt_rand(5,80),mt_rand(5,80),imagecolorallocate($im,mt_rand(0,255),mt_rand(0,255),mt_rand(0,255)));}imagejpeg($im,\"" + big + "\",95);'");
       await ap.goto(B + '/wp-admin/media-new.php');
-      const nonce = await ap.evaluate(() => (window.wpApiSettings && window.wpApiSettings.nonce) || '');
+      const nonce = await ap.evaluate(async () => (await fetch('/wp-admin/admin-ajax.php?action=rest-nonce', { credentials: 'same-origin' })).text()); // wpApiSettings does not exist on media-new.php
       await ap.setInputFiles('input[type=file]', big);
       await ap.waitForSelector('.media-item .edit-attachment, .media-item .pinkynail, .upload-success, .media-item .filename', { timeout: 60000 });
       await ap.waitForTimeout(3000);
