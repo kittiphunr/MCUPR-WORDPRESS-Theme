@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.22.0 =
+* Numbers block: students, teachers, faculties, students per level
+
 = 1.21.1 =
 * Category browser: clear tree for sub-categories; space above the pager
 
