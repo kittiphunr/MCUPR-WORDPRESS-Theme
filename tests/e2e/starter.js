@@ -1212,22 +1212,25 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       flip(false);
       await ap.setViewportSize({ width: 1366, height: 900 });
     }
-    // the top menu's "More" panel: a card grid with every group open, never a scroll bar
+    // the top menu's "More" dropdown: long text wraps onto a new line, no scroll bar is drawn
     {
-      for (const [w, h, hc] of [[1100, 800, false], [1280, 700, false], [1920, 900, false], [1366, 800, true]]) {
+      for (const [w, h] of [[1100, 800], [1280, 700], [1920, 900]]) {
         const mc = await br.newContext({ viewport: { width: w, height: h }, reducedMotion: 'reduce' });
-        await mc.addInitScript((c) => { try { localStorage.setItem('mcupr_consent', '1'); if (c) { localStorage.setItem('mcupr_prefs', JSON.stringify({ contrast: 'high' })); } } catch (e) { /* frame */ } }, hc);
+        await mc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
         const mp = await mc.newPage();
         await mp.goto(B + '/');
         await mp.waitForTimeout(600);
-        const tag = w + 'px' + (hc ? ' high contrast' : '');
         if (!(await mp.locator('.menu-more > .more-btn').count())) { await mc.close(); continue; }
-        ok(await mp.evaluate(() => document.querySelector('.menu-more > .more-btn').getBoundingClientRect().width > 20), 'More panel at ' + tag + ': the "More" button is visible');
-        await mp.evaluate(() => document.querySelector('.menu-more > .more-btn').click());
+        await mp.evaluate(() => {
+          const li = document.createElement('li'); li.className = 'menu-item menu-item-has-children is-open';
+          li.innerHTML = '<a href="#">ธรรมาภิบาลและความโปร่งใส</a><ul class="sub-menu"><li class="menu-item menu-item-has-children is-open"><a href="#">ความโปร่งใส</a><ul class="sub-menu"><li><a href="#">การประเมินคุณธรรมและความโปร่งใส (ITA) ของหน่วยงานภาครัฐประจำปีงบประมาณ</a></li><li><a href="#">Verylongwordwithoutanyspacesthatwouldnormallyrunpasttheedgeofthepanel1234567890</a></li></ul></li></ul>';
+          document.querySelector('.menu-more > .sub-menu').prepend(li);
+          document.querySelector('.menu-more > .more-btn').click();
+        });
         await mp.waitForTimeout(300);
-        const r = await mp.evaluate(() => { const s = document.querySelector('.menu-more > .sub-menu'); const b = s.getBoundingClientRect(); const cs = getComputedStyle(s); return { noX: s.scrollWidth <= s.clientWidth + 1, noY: s.scrollHeight <= s.clientHeight + 1, sb: cs.scrollbarWidth, grid: cs.display, left: b.left, right: b.right, vw: innerWidth, toggles: [...s.querySelectorAll('.submenu-toggle')].filter((t) => getComputedStyle(t).display !== 'none').length }; });
-        ok(r.noX && r.noY && r.sb === 'none', 'More panel at ' + tag + ': no scroll bar (nothing to scroll, bars hidden)');
-        ok(r.grid === 'grid' && r.left >= 0 && r.right <= r.vw && r.toggles === 0, 'More panel at ' + tag + ': a grid that fits the window (' + Math.round(r.left) + '–' + Math.round(r.right) + ' of ' + r.vw + '), no accordion arrows');
+        const r = await mp.evaluate(() => { const s = document.querySelector('.menu-more > .sub-menu'); const b = s.getBoundingClientRect(); let over = 0; s.querySelectorAll('a').forEach((a) => { if (a.getBoundingClientRect().right > b.right + 1 || a.scrollWidth > a.clientWidth + 1) { over++; } }); return { noX: s.scrollWidth <= s.clientWidth + 1, sb: getComputedStyle(s).scrollbarWidth, over, grid: getComputedStyle(s).display === 'grid', left: b.left, right: b.right, vw: innerWidth }; });
+        ok(r.noX && r.over === 0, 'More dropdown at ' + w + 'px: long text wraps, nothing runs past the edge or scrolls sideways');
+        ok(r.sb === 'none' && !r.grid && r.left >= 0 && r.right <= r.vw, 'More dropdown at ' + w + 'px: no scroll bar drawn, still the ordinary dropdown, inside the window');
         await mc.close();
       }
     }
