@@ -394,7 +394,7 @@ html.cursor-visible .cursor-dot, html.cursor-visible .cursor-ring { opacity: 1; 
 .cursor-dot.is-hidden { opacity: 0 !important; }
 .cursor-ring { width: 0; height: 0; display: grid; place-items: center; }
 .cursor-ring::before { content: ""; position: absolute; width: 36px; height: 36px; left: -18px; top: -18px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--primary) 65%, transparent); background: transparent; transition: width .3s cubic-bezier(.2,.7,.2,1), height .3s cubic-bezier(.2,.7,.2,1), left .3s cubic-bezier(.2,.7,.2,1), top .3s cubic-bezier(.2,.7,.2,1), background .3s, border-color .3s; }
-.cursor-ring span { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font: 600 13px/1 var(--font); letter-spacing: .04em; color: #fff; opacity: 0; transition: opacity .2s; }
+.cursor-ring span { display: grid; place-items: center; position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font: 600 13px/1 var(--font); letter-spacing: .04em; color: #fff; opacity: 0; transition: opacity .2s; }
 .cursor-ring.is-link::before { width: 56px; height: 56px; left: -28px; top: -28px; background: color-mix(in srgb, var(--primary) 16%, transparent); border-color: color-mix(in srgb, var(--primary) 90%, transparent); }
 .cursor-ring.is-media::before { width: 48px; height: 48px; left: -24px; top: -24px; }
 .cursor-ring.is-view::before { width: 84px; height: 84px; left: -42px; top: -42px; border-color: transparent; background: color-mix(in srgb, var(--primary) 92%, #000); box-shadow: 0 10px 30px color-mix(in srgb, var(--primary) 35%, transparent); }
@@ -800,7 +800,7 @@ html[data-contrast] .cal, html[data-contrast] .cal td, html[data-contrast] .ev-r
 	html[data-contrast]:is([data-menu="side"],[data-menu="hybrid"]) .site-page { box-shadow: none; border: 2px solid var(--border); }
 	/* the band reaches the top of the frame; the capsule floats on it */
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child,
-	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: calc(var(--hdr-h, 5.5rem) + 2.5rem); }
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: 1.7rem; }
 
 	/* ---------- the sidebar: ONE card that is only as tall as its menu ---------- */
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav { left: .75rem; top: .75rem; bottom: auto; width: calc(var(--sbw) - 1.5rem); max-height: calc(100vh - 1.5rem); gap: .25rem; padding: .6rem; background: var(--bg); border-radius: 1.75rem; box-shadow: 0 10px 40px color-mix(in srgb, var(--text) 14%, transparent), 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent); overflow-x: hidden; overflow-y: auto; }
@@ -1182,11 +1182,9 @@ html[data-contrast] .fb-views button[aria-checked="true"] { border: 2px solid va
 .opt-b:hover { background: var(--tint); border-color: var(--primary); }
 .opt input:checked + .opt-b { border-color: var(--primary); background: var(--primary); color: var(--on-primary); }
 .opt input:checked + .opt-b:hover { background: var(--primary); }
-.opt::after { content: attr(data-tip); position: absolute; z-index: 5; left: 50%; bottom: calc(100% + .35rem); transform: translateX(-50%); width: max-content; max-width: 14rem; padding: .35rem .7rem; border-radius: .6rem; background: var(--text); color: var(--bg); font-size: .85rem; font-weight: 600; line-height: 1.35; text-align: center; opacity: 0; pointer-events: none; transition: opacity .12s; }
-.opt:hover::after, .opt:has(input:focus-visible)::after { opacity: 1; }
-.opt:nth-child(-n+2)::after { left: 0; transform: none; }
-.opt:nth-last-child(-n+2)::after { left: auto; right: 0; transform: none; }
-html[data-motion="1"] .opt::after, html[data-motion="1"] .opt-b { transition: none; }
+.opt-tip { position: absolute; z-index: 5; left: 50%; bottom: calc(100% + .35rem); transform: translateX(calc(-50% + var(--tx, 0px))); width: max-content; max-width: min(14rem, 80vw); padding: .35rem .7rem; border-radius: .6rem; background: var(--text); color: var(--bg); font-size: .85rem; font-weight: 600; line-height: 1.35; text-align: center; opacity: 0; pointer-events: none; transition: opacity .12s; }
+.opt:hover .opt-tip, .opt:has(input:focus-visible) .opt-tip { opacity: 1; }
+html[data-motion="1"] .opt-tip, html[data-motion="1"] .opt-b { transition: none; }
 
 /* ===== Clearer hover for the menus (top bar + sidebar) ===== */
 :root { --hover-bg: color-mix(in srgb, var(--primary) 15%, var(--bg)); }
@@ -1461,3 +1459,19 @@ html.lb-open { overflow: hidden; }
 .poll-bar { height: .7rem; overflow: clip; border-radius: 9999px; background: var(--tint); }
 .poll-bar span { display: block; height: 100%; border-radius: 9999px; background: var(--primary); }
 .poll-note, .poll-tot { margin: .75rem 0 0; font-size: .95rem; }
+
+/* ===== Page band: the introduction (excerpt / description) as a lead ===== */
+.band-lead { position: relative; max-width: 46rem; margin-top: 1.1rem; padding: .9rem 1.2rem .9rem 1.4rem; border-radius: 1.25rem; background: color-mix(in srgb, var(--bg) 72%, transparent); box-shadow: 0 6px 24px color-mix(in srgb, var(--text) 8%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--primary) 14%, transparent); font-size: 1.12rem; line-height: 1.7; color: var(--text-2, var(--text)); }
+.band-lead::before { content: ""; position: absolute; left: .55rem; top: .9rem; bottom: .9rem; width: 4px; border-radius: 2px; background: linear-gradient(180deg, var(--primary), var(--accent)); }
+.band-lead p { margin: 0; }
+.band-lead p + p { margin-top: .5rem; }
+html[data-contrast] .band-lead { background: var(--bg); box-shadow: none; border: 2px solid var(--border); }
+
+/* ===== Back-to-top: press and hold for the quick links ===== */
+.top-quick { position: fixed; z-index: 45; right: 1rem; bottom: 4.9rem; min-width: 12rem; max-width: min(20rem, calc(100vw - 2rem)); padding: .45rem; border: 1px solid var(--edge); border-radius: 1.3rem; background: var(--bg); box-shadow: 0 16px 44px color-mix(in srgb, var(--text) 22%, transparent); animation: tq-in .16s ease-out; }
+.top-quick ul { margin: 0; padding: 0; list-style: none; }
+.top-quick a { display: block; padding: .6rem .95rem; border-radius: .9rem; color: var(--text); font-weight: 600; text-decoration: none; }
+.top-quick a:hover, .top-quick a:focus-visible { background: var(--hover-bg); color: var(--link); }
+@keyframes tq-in { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+html[data-motion="1"] .top-quick { animation: none; }
+@media print { .top-quick { display: none; } }
