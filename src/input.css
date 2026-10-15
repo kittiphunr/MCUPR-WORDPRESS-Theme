@@ -1604,6 +1604,6 @@ html[data-contrast] .swal-fullscreen:has(.sr-box) { background: var(--bg) !impor
 .swal-fullscreen .swal-close:focus-visible { outline: 3px solid var(--primary) !important; outline-offset: 2px; }
 
 /* ===== Menu drop-down buttons: always a true circle (also under the mouse) in every menu layout and screen size ===== */
-.site-nav .submenu-toggle { width: 2.75rem; height: 2.75rem; min-width: 2.75rem; min-height: 2.75rem; border-radius: 9999px; flex: none; }
-html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .submenu-toggle { width: 2.75rem; height: 2.75rem; min-width: 2.75rem; margin: 0 .1rem 0 0; }
-html[data-menu="top"] .site-nav .menu > li > .submenu-toggle { width: 2.5rem; height: 2.5rem; min-width: 2.5rem; min-height: 2.5rem; margin-left: -.25rem; margin-right: .2rem; }
+.site-nav .submenu-toggle:not(.more-btn) { width: 2.75rem; height: 2.75rem; min-width: 2.75rem; min-height: 2.75rem; border-radius: 9999px; flex: none; }
+html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .submenu-toggle:not(.more-btn) { width: 2.75rem; height: 2.75rem; min-width: 2.75rem; margin: 0 .1rem 0 0; }
+html[data-menu="top"] .site-nav .menu > li > .submenu-toggle:not(.more-btn) { width: 2.5rem; height: 2.5rem; min-width: 2.5rem; min-height: 2.5rem; margin-left: -.25rem; margin-right: .2rem; }
