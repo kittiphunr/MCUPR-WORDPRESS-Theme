@@ -1,4 +1,4 @@
-=== MCUPR ===
+=== MCUPR-S.A.T.U.R.N ===
 Contributors: kittiphunr
 Requires at least: 5.9
 Tested up to: 6.8
@@ -29,6 +29,12 @@ SweetAlert2: MIT License.
 
 == Changelog ==
 
+
+= 1.25.1 =
+* Theme renamed MCUPR-S.A.T.U.R.N with a new screenshot
+
+= 1.25.0 =
+* Home blocks moved from widgets to the Customizer (MCUPR: Home page sections)
 
 = 1.24.1 =
 * Weather source link underlined (axe link-in-text-block)

@@ -17,8 +17,6 @@ function mcupr_widgets_init() {
 	$areas    = array(
 		'sidebar-news' => array( __( 'News sidebar', 'mcupr' ), __( 'Shown beside articles that use the “Sidebar” news layout.', 'mcupr' ) ),
 		'sidebar-page' => array( __( 'Page sidebar', 'mcupr' ), __( 'Shown beside pages (below the “in this section” list).', 'mcupr' ) ),
-		'home-top'     => array( __( 'Home – under the hero', 'mcupr' ), __( 'Full-width area right under the hero on the front page: audience cards, figures strip, weather bar.', 'mcupr' ) ),
-		'home-mid'     => array( __( 'Home – services', 'mcupr' ), __( 'Full-width area on the front page after the introduction: link cards, about block.', 'mcupr' ) ),
 		'home-after'   => array( __( 'Home – below the news', 'mcupr' ), __( 'Full-width area on the front page, between the news and the call-to-action banner.', 'mcupr' ) ),
 		'footer-1'     => array( __( 'Footer – column 1', 'mcupr' ), __( 'First column above the footer credits.', 'mcupr' ) ),
 		'footer-2'     => array( __( 'Footer – column 2', 'mcupr' ), __( 'Second column above the footer credits.', 'mcupr' ) ),

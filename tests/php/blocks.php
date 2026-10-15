@@ -1,10 +1,10 @@
 <?php
-/** Home blocks: parsing, safety, the five blocks, widgets, weather (with a faked Open-Meteo), samples.   php php/blocks.php [site] */
+/** Home blocks: parsing, safety, the five blocks, the Customizer fields, weather (with a faked Open-Meteo), samples.   php php/blocks.php [site] */
 $site = isset( $argv[1] ) ? $argv[1] : __DIR__ . '/../.site-starter';
 require rtrim( $site, '/' ) . '/wp-load.php';
 $fails = 0;
 function t( $ok, $label ) { global $fails; echo ( $ok ? 'PASS ' : 'FAIL ' ) . $label . "\n"; if ( ! $ok ) { $fails++; } }
-$keep_sb = wp_get_sidebars_widgets();
+$mods_before = get_theme_mods();
 
 // ---- parsing
 $r = mcupr_blk_parse( "edit | A | B\n\n  \nbook|C", 2 );
@@ -62,31 +62,60 @@ remove_all_filters( 'pre_http_request', 10 );
 add_filter( 'pre_http_request', function ( $pre, $args, $url ) { return false !== strpos( $url, 'api.open-meteo.com' ) ? new WP_Error( 'x', 'down' ) : $pre; }, 10, 3 );
 t( '' === mcupr_blk_weather( '1.5', '2.5' ), 'weather: when Open-Meteo is down the bar is simply not shown' );
 remove_all_filters( 'pre_http_request' );
-// ---- widgets
-foreach ( array( 'MCUPR_Widget_Audience', 'MCUPR_Widget_Figures', 'MCUPR_Widget_Cards', 'MCUPR_Widget_About', 'MCUPR_Widget_Weather' ) as $cls ) { t( class_exists( $cls ) && isset( $GLOBALS['wp_widget_factory']->widgets[ $cls ] ), "widget: $cls is registered" ); }
-$w = new MCUPR_Widget_Cards();
-$u = $w->update( array( 'title' => '<b>T</b>', 'style' => 'evil', 'items' => "a|b|/c/\n<script>", 'more' => 'x', 'more_url' => '/y/', 'sub' => '' ), array() );
-t( 'service' === $u['style'] && false === strpos( $u['title'], '<' ) && false === strpos( $u['items'], '<script>' ), 'widget: saved values are cleaned (a bad style falls back)' );
-ob_start(); $w->widget( array( 'widget_id' => 'mcupr_cards-9', 'before_widget' => '', 'after_widget' => '' ), array( 'title' => 'บริการ', 'style' => 'service', 'items' => 'book | ทะเบียน | /reg/' ) ); $o = ob_get_clean();
-t( false !== strpos( $o, 'aria-labelledby="mcupr_cards-9-t"' ), 'widget: the section is labelled by its heading' );
-ob_start(); $w->widget( array( 'widget_id' => 'mcupr_cards-9' ), array( 'items' => '' ) ); t( '' === ob_get_clean(), 'widget: nothing when there is nothing to show' );
-ob_start(); $w->form( array() ); t( false !== strpos( ob_get_clean(), '<textarea' ), 'widget: the form has the items box' );
-// ---- samples: only empty areas, only pages that exist
-$sb = $keep_sb; unset( $sb['home-top'], $sb['home-mid'] ); $sb['home-mid'] = array(); $sb['home-top'] = array( 'mcupr_figures-77' );
-wp_set_sidebars_widgets( $sb );
-$opt_fig = get_option( 'widget_mcupr_figures' );
-$n = mcupr_blk_install_samples();
-$after = wp_get_sidebars_widgets();
-t( array( 'mcupr_figures-77' ) === $after['home-top'], 'samples: an area that already has a widget is not touched' );
-t( 3 === $n && 3 === count( $after['home-mid'] ), 'samples: the empty area got its three blocks (' . $n . ')' );
-t( get_option( 'widget_mcupr_figures' ) === $opt_fig, 'samples: the existing widget settings are untouched' );
-$before_n = count( get_option( 'widget_mcupr_cards', array() ) );
-t( 0 === mcupr_blk_install_samples() && count( get_option( 'widget_mcupr_cards', array() ) ) === $before_n, 'samples: pressing the button again adds nothing' );
-$cards_opt = get_option( 'widget_mcupr_cards' ); $mid = $after['home-mid'];
-$txt = wp_json_encode( $cards_opt, JSON_UNESCAPED_UNICODE );
-t( false !== strpos( $txt, 'บริการและระบบสารสนเทศ' ), 'samples: Thai texts saved intact' );
-// restore
-wp_set_sidebars_widgets( $keep_sb );
-foreach ( $mid as $id ) { list( $base, $num ) = explode( '-', $id ); $o2 = get_option( 'widget_' . $base ); unset( $o2[ (int) $num ] ); update_option( 'widget_' . $base, $o2 ); }
+// ---- the Customizer: what is typed becomes the block
+$keys = array(); foreach ( mcupr_blk_defs() as $k => $d ) { for ( $i = 1; $i <= $d[0]; $i++ ) { foreach ( array_keys( $d[1] ) as $f ) { $keys[] = "mcupr_{$k}_{$i}_{$f}"; } } }
+foreach ( $keys as $k ) { remove_theme_mod( $k ); }
+t( 5 === count( mcupr_blk_defs() ) && 3 === mcupr_blk_defs()['aud'][0] && 8 === mcupr_blk_defs()['svc'][0], 'customizer: five blocks with the number of items the Customizer offers' );
+t( array() === mcupr_blk_rows( 'aud' ) && '' === mcupr_blk_home( 'audience' ) && '' === mcupr_blk_section( 'audience', 'audience' ), 'customizer: nothing typed = nothing shown' );
+set_theme_mod( 'mcupr_aud_1_title', 'สมัคร' ); set_theme_mod( 'mcupr_aud_1_icon', 'edit' ); set_theme_mod( 'mcupr_aud_1_url', '/a/' );
+set_theme_mod( 'mcupr_aud_2_eyebrow', 'no title: left out' );
+set_theme_mod( 'mcupr_aud_3_title', 'หลักสูตร' );
+$rows = mcupr_blk_rows( 'aud' );
+t( 2 === count( $rows ) && 'edit' === $rows[0][0] && 'สมัคร' === $rows[0][2], 'customizer: an item without its main field is skipped; fields come in the order the block expects' );
+$h = mcupr_blk_home( 'audience' );
+t( 2 === substr_count( $h, 'class="aud-card' ) + substr_count( $h, 'class="aud-card is-lead"' ) - substr_count( $h, 'class="aud-card is-lead"' ) && 1 === substr_count( $h, 'is-lead' ), 'customizer: the audience block shows the two cards, the first leading' );
+$sec = mcupr_blk_section( 'audience', 'audience' );
+t( 0 === strpos( $sec, '<section' ) && false !== strpos( $sec, 'blk-audience' ), 'section: wrapped as a home page section' );
+set_theme_mod( 'mcupr_home_audience_on', false );
+t( '' === mcupr_blk_section( 'audience', 'audience' ), 'section: the show/hide box switches it off without losing what was typed' );
+remove_theme_mod( 'mcupr_home_audience_on' );
+set_theme_mod( 'mcupr_fig_1_num', '{news}' ); set_theme_mod( 'mcupr_fig_1_label', 'ข่าว' ); set_theme_mod( 'mcupr_fig_2_num', '1,250' ); set_theme_mod( 'mcupr_fig_2_label', 'บุคลากร' );
+t( 2 === substr_count( mcupr_blk_home( 'figures' ), 'class="fig"' ), 'customizer: figures from two filled boxes' );
+set_theme_mod( 'mcupr_svc_1_title', 'ทะเบียน' ); set_theme_mod( 'mcupr_svc_1_url', '/reg/' ); set_theme_mod( 'mcupr_svc_title', 'บริการ' ); set_theme_mod( 'mcupr_svc_more', 'ทั้งหมด' ); set_theme_mod( 'mcupr_svc_more_url', '/all/' );
+$h = mcupr_blk_home( 'services' );
+t( false !== strpos( $h, 'lcs-service' ) && false !== strpos( $h, 'blk-svc-t' ) && false !== strpos( $h, 'blk-more' ), 'customizer: service cards with heading and "see all"' );
+set_theme_mod( 'mcupr_lnk_1_title', 'หลักสูตร' ); set_theme_mod( 'mcupr_lnk_1_url', '/p/' );
+t( false !== strpos( mcupr_blk_home( 'links' ), 'lcs-links' ), 'customizer: compact links' );
+set_theme_mod( 'mcupr_abt_title', 'เกี่ยวกับ' ); set_theme_mod( 'mcupr_abt_1_title', 'วิสัยทัศน์' );
+$h = mcupr_blk_home( 'about' );
+t( false !== strpos( $h, 'id="blk-abt-t"' ) && 1 === substr_count( $h, 'class="ab-card"' ), 'customizer: about block with its card' );
+t( false !== strpos( mcupr_blk_section( 'about', 'aboutblock' ), 'aria-labelledby="blk-abt-t"' ), 'section: labelled by its heading' );
+// the url setting
+t( '' === mcupr_blk_clean_url_setting( '//evil.test/x' ) && '' === mcupr_blk_clean_url_setting( 'javascript:alert(1)' ) && false === strpos( mcupr_blk_clean_url_setting( '/thai/หน้า/<script>' ), '<' ) && 0 === strpos( mcupr_blk_clean_url_setting( '/thai/หน้า/<script>' ), '/thai/หน้า/' ) && 'https://a.test/x' === mcupr_blk_clean_url_setting( ' https://a.test/x ' ) && '' === mcupr_blk_clean_url_setting( '' ), 'url setting: paths and https kept; script, protocol-relative and tags removed' );
+// the Customizer really offers them
+require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
+global $wp_customize; $wp_customize = new WP_Customize_Manager(); do_action( 'customize_register', $wp_customize );
+t( null !== $wp_customize->get_panel( 'mcupr_home_panel' ) && 'mcupr_home_panel' === $wp_customize->get_section( 'mcupr_home_sections' )->panel && 'mcupr_home_panel' === $wp_customize->get_section( 'mcupr_numbers' )->panel, 'customizer: one panel “Home page sections” holds the show/hide section, the numbers and the blocks' );
+$in_panel = 0; foreach ( $wp_customize->sections() as $sid => $sc ) { if ( 'mcupr_home_panel' === $sc->panel ) { $in_panel++; } }
+t( $in_panel >= 8, "customizer: the panel has its sections ($in_panel)" );
+t( null !== $wp_customize->get_control( 'mcupr_aud_3_url' ) && null !== $wp_customize->get_control( 'mcupr_svc_8_title' ) && null !== $wp_customize->get_control( 'mcupr_abt_4_desc' ) && null !== $wp_customize->get_control( 'mcupr_wx_lat' ) && null !== $wp_customize->get_control( 'mcupr_home_services_on' ), 'customizer: the boxes and the show/hide checkbox exist' );
+$st = $wp_customize->get_setting( 'mcupr_aud_1_icon' ); t( 'edit' === $st->sanitize( 'edit' ) && '' === $st->sanitize( 'no-such-icon' ), 'customizer: the icon setting accepts only known icons' );
+$wl = $wp_customize->get_setting( 'mcupr_fig_1_label' ); t( 'x' === $wl->sanitize( '<b>x</b>' ), 'customizer: text boxes are cleaned' );
+t( ! isset( $GLOBALS['wp_widget_factory']->widgets['MCUPR_Widget_Audience'] ) && ! is_registered_sidebar( 'home-top' ) && ! is_registered_sidebar( 'home-mid' ), 'no widgets and no extra widget areas any more' );
+// ---- samples: only empty blocks, only pages that exist
+foreach ( $keys as $k ) { remove_theme_mod( $k ); }
+foreach ( array( 'mcupr_svc_title', 'mcupr_svc_sub', 'mcupr_svc_more', 'mcupr_svc_more_url', 'mcupr_lnk_title', 'mcupr_lnk_more', 'mcupr_lnk_more_url', 'mcupr_abt_title', 'mcupr_abt_text', 'mcupr_abt_button', 'mcupr_abt_url' ) as $k ) { remove_theme_mod( $k ); }
+set_theme_mod( 'mcupr_fig_1_num', '77' ); set_theme_mod( 'mcupr_fig_1_label', 'ของฉัน' ); // the figures block is "in use"
+$done = mcupr_blk_install_samples();
+t( ! in_array( 'fig', $done, true ) && '77' === get_theme_mod( 'mcupr_fig_1_num' ) && 'ของฉัน' === get_theme_mod( 'mcupr_fig_1_label' ) && '' === (string) get_theme_mod( 'mcupr_fig_2_num', '' ), 'samples: a block that already has content is not touched, not even its empty boxes' );
+t( in_array( 'svc', $done, true ) && 'บริการและระบบสารสนเทศ' === get_theme_mod( 'mcupr_svc_title' ) && 'ระบบทะเบียน' === get_theme_mod( 'mcupr_svc_1_title' ), 'samples: an empty block gets its heading and items (Thai text intact)' );
+$n_aud = count( mcupr_blk_rows( 'aud' ) );
+t( $n_aud >= 1 && 0 === strpos( get_theme_mod( 'mcupr_aud_1_url' ), '/' ), 'samples: addresses are the paths of the pages that exist (' . $n_aud . ' audience cards)' );
+t( array() === mcupr_blk_install_samples(), 'samples: pressing the button again changes nothing' );
+set_theme_mod( 'mcupr_svc_1_title', 'แก้ไขแล้ว' ); mcupr_blk_install_samples();
+t( 'แก้ไขแล้ว' === get_theme_mod( 'mcupr_svc_1_title' ), 'samples: an edited item stays as it is' );
+// ---- restore
+foreach ( get_theme_mods() as $k => $v ) { if ( ! array_key_exists( $k, $mods_before ) ) { remove_theme_mod( $k ); } }
+foreach ( $mods_before as $k => $v ) { set_theme_mod( $k, $v ); }
 echo $fails ? "\n$fails FAILED\n" : "\nall passed\n";
 exit( $fails ? 1 : 0 );
