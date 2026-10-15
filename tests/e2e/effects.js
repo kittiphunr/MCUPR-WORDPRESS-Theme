@@ -60,7 +60,7 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     ok((await p.locator('.cursor-dot').count()) === 1 && (await p.locator('.cursor-ring').count()) === 1, 'cursor dot + ring created');
     ok(await p.evaluate(() => document.documentElement.classList.contains('cursor-visible')), 'custom cursor visible after mouse movement');
     ok(await p.locator('.cursor-ring.is-view').count() === 1, 'ring becomes a "view" bubble over a clickable card');
-    ok((await p.textContent('.cursor-ring span')) === 'ดู', 'bubble label localised (Thai)');
+    ok((await p.locator('.cursor-ring span svg circle').count()) === 1 && (await p.textContent('.cursor-ring span')) === '', 'bubble shows an eye icon instead of the word "view"');
     await p.mouse.move(5, 5);
     await p.hover('#lang-toggle');
     await p.waitForTimeout(150);
