@@ -299,6 +299,7 @@ return array(
 	'settings_btn'  => array( 'ตั้งค่าการแสดงผล', 'Display settings', '显示设置', '表示設定' ),
 	'menu_layout'   => array( 'ตำแหน่งเมนู', 'Menu position', '菜单位置', 'メニューの位置' ),
 	'menu_top'      => array( 'แถบด้านบน', 'Top bar', '顶部栏', '上部バー' ),
+	'menu_bar'      => array( 'แถบเดียว', 'One bar', '单栏', '一体バー' ),
 	'menu_side'     => array( 'แถบด้านข้าง', 'Sidebar', '侧边栏', 'サイドバー' ),
 	'site_colors'   => array( 'สีของเว็บไซต์', 'Site colours', '网站颜色', 'サイトの色' ),
 	'custom_color'  => array( 'เลือกสีเอง', 'Pick your own', '自选颜色', '色を選ぶ' ),

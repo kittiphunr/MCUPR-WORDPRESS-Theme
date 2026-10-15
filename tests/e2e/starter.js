@@ -1197,6 +1197,34 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       flip(false);
       await ap.setViewportSize({ width: 1366, height: 900 });
     }
+    // menu layout "one bar": the top menu drawn as a single capsule
+    {
+      const bc = await br.newContext({ viewport: { width: 1366, height: 800 }, reducedMotion: 'reduce' });
+      await bc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+      const bp = await bc.newPage();
+      await bp.goto(B + '/');
+      await bp.click('#a11y-toggle');
+      await bp.waitForSelector('input[data-pref=menu]');
+      const opts = await bp.$$eval('input[data-pref=menu]', (a) => a.map((x) => x.value));
+      ok(opts.join(',') === 'top,bar,side', 'one bar: the display settings offer three menu layouts (' + opts.join(', ') + ')');
+      await bp.evaluate(() => document.querySelector('input[data-pref=menu][value=bar]').click());
+      await bp.waitForTimeout(300);
+      await bp.keyboard.press('Escape');
+      await bp.waitForTimeout(300);
+      const m = await bp.evaluate(() => { const hd = document.querySelector('.site-header'); const hr = hd.getBoundingClientRect(); const st = getComputedStyle(hd); const kids = ['#masthead .brand', '.site-nav', '#masthead > .wrap > div'].map((q) => { const e = document.querySelector(q); const r = e.getBoundingClientRect(); const c = getComputedStyle(e); return { inside: r.left >= hr.left - 1 && r.right <= hr.right + 1 && r.top >= hr.top - 1 && r.bottom <= hr.bottom + 1, bare: c.backgroundColor === 'rgba(0, 0, 0, 0)' && c.boxShadow === 'none' && parseFloat(c.borderTopWidth) === 0 }; }); return { menu: document.documentElement.dataset.menu, bar: document.documentElement.dataset.menubar, bg: st.backgroundColor !== 'rgba(0, 0, 0, 0)', round: parseFloat(st.borderTopLeftRadius) >= hr.height / 2 - 0.5, shadow: st.boxShadow !== 'none', kids, saved: JSON.parse(localStorage.getItem('mcupr_prefs') || '{}').menu, hs: document.documentElement.scrollWidth > innerWidth }; });
+      ok(m.menu === 'top' && m.bar === '1' && m.saved === 'bar', 'one bar: choosing it sets the top menu in one-capsule form and remembers the choice');
+      ok(m.bg && m.round && m.shadow && m.kids.every((k) => k.inside && k.bare) && !m.hs, 'one bar: logo, menu and tools sit inside ONE rounded capsule; none of them has its own box');
+      await bp.reload();
+      ok((await bp.evaluate(() => document.documentElement.dataset.menubar)) === '1', 'one bar: still on after the page is reloaded (no flash of the other layout)');
+      await bp.click('.site-nav .menu > li.mcupr-mega > .submenu-toggle, .site-nav .menu > li.menu-item-has-children > .submenu-toggle');
+      await bp.waitForTimeout(300);
+      const mega = await bp.evaluate(() => { const d = document.querySelector('.site-nav .menu > li.is-open > .sub-menu'); if (!d) { return null; } const r = d.getBoundingClientRect(); const h = document.querySelector('.site-header').getBoundingClientRect(); return { top: r.top >= h.bottom - 1, within: r.left >= h.left - 1 && r.right <= h.right + 1, visible: r.height > 40 }; });
+      ok(!!mega && mega.top && mega.within && mega.visible, 'one bar: a drop-down opens below the capsule and stays within its width ' + JSON.stringify(mega));
+      await bp.evaluate(() => document.querySelector('[data-pref=menu][value=top], .site-nav') && localStorage.setItem('mcupr_prefs', JSON.stringify({})));
+      await bp.reload();
+      ok((await bp.evaluate(() => document.documentElement.dataset.menubar)) === undefined, 'one bar: without the choice the usual three capsules come back');
+      await bc.close();
+    }
     // speed check
     await ap.goto(B + '/wp-admin/admin.php?page=mcupr-speed');
     await ap.click('button:has-text("ตรวจเลย"), button:has-text("Check now")');

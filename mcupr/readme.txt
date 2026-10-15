@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.29.0 =
+* New menu layout: one bar (logo, menu and tools in a single capsule)
+
 = 1.28.10 =
 * Maintenance bar fixed to the top, full width; header and side bar start below it
 
