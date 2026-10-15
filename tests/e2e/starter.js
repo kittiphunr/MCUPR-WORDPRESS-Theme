@@ -12,7 +12,6 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   p.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(m.text()); });
 
   await p.goto(B + '/');
-  ok((await p.locator('#numbers-title').count()) === 1 && (await p.locator('.nm-tile').count()) === 6 && /21,850/.test(await p.locator('.nm').innerText()), 'home: the numbers block shows six figures (the total is the sum of the levels)');
   ok((await p.locator('.aud .aud-card').count()) === 3 && (await p.locator('.aud .is-lead').count()) === 1 && (await p.locator('.lcs-service .lc').count()) === 4 && (await p.locator('.lcs-links .lc').count()) === 4 && (await p.locator('.ab-card').count()) === 4 && (await p.locator('.figs .fig').count()) === 4, 'home blocks: audience cards, figures, service cards, compact links and the about block are shown');
   ok((await p.locator('[data-wx]').count()) === 1 && /Open-Meteo/.test(await p.locator('.wx-src').innerText()) && (await p.locator('.wx-windy').getAttribute('href')).includes('windy.com'), 'home blocks: the weather bar shows data, its source and the Windy link');
   ok((await p.locator('.wx-pause').isHidden()) && (await p.locator('.wx-track').evaluate((e) => getComputedStyle(e).animationName)) === 'none', 'home blocks: with "reduce motion" the weather text does not scroll (and there is nothing to pause)');
@@ -1016,7 +1015,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.waitForTimeout(1200);
     const czSecs = await ap.locator('#sub-accordion-panel-mcupr_home_panel > li.control-section').count();
     const czFirst = (await ap.locator('#sub-accordion-panel-mcupr_home_panel > li.control-section').first().innerText()).replace(/\s+/g, ' ');
-    ok(czSecs >= 8 && /เปิด\/ปิด|Show or hide/.test(czFirst), 'customizer: one panel “Home page sections” holds the show/hide section first, then numbers and the blocks (' + czSecs + ' sections)');
+    ok(czSecs >= 7 && /เปิด\/ปิด|Show or hide/.test(czFirst), 'customizer: one panel “Home page sections” holds the show/hide section first, then the blocks (' + czSecs + ' sections)');
     ok((await ap.locator('#customize-control-mcupr_svc_8_title, #customize-control-mcupr_aud_3_url, #customize-control-mcupr_wx_lat').count()) === 3, 'customizer: the fields of the service cards, audience cards and weather bar exist');
     // import / export settings
     {
