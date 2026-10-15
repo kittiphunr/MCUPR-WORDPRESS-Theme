@@ -1079,6 +1079,40 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       }
       await ap.setViewportSize({ width: 1366, height: 900 });
     }
+    // home page demo: made, shown on the home page, removed
+    {
+      await ap.setViewportSize({ width: 1366, height: 900 });
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+      await ap.click('form:has(input[value=demo]) button');
+      await ap.waitForSelector('.notice-success', { timeout: 120000 });
+      const dm = await ap.locator('.notice-success').innerText();
+      ok(/10/.test(dm) && /4/.test(dm), 'home demo: the button makes the demo (' + dm.replace(/\s+/g, ' ').slice(0, 110) + ')');
+      const dc = await ac.newPage();
+      await dc.goto(B + '/');
+      await dc.evaluate(async () => { for (let y = 0; y < 8000; y += 700) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 150)); } });
+      const seen = await dc.evaluate(() => ({ slider: document.querySelectorAll('#news-slider article').length, ev: [...document.querySelectorAll('.ev-title')].filter((e) => /ตัวอย่าง/.test(e.textContent)).length, vid: document.querySelectorAll('.vcard').length, alb: [...document.querySelectorAll('.album-grid a')].filter((e) => /ตัวอย่าง/.test(e.textContent)).length, tiles: document.querySelectorAll('.hero-menu li').length, demoImgs: [...document.querySelectorAll('img')].filter((i) => /demo-/.test(i.currentSrc) && i.naturalWidth > 0).length, hs: document.documentElement.scrollWidth > innerWidth }));
+      ok(seen.slider >= 5 && seen.ev >= 3 && seen.vid === 1 && seen.alb >= 4 && seen.tiles >= 5 && seen.demoImgs >= 8 && !seen.hs, 'home demo: the home page shows the slider, the demo events, the video, four albums, the quick-link tiles and the pictures ' + JSON.stringify(seen));
+      await dc.close();
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+      await ap.click('form:has(input[value=demo]) button');
+      await ap.waitForSelector('.notice-success');
+      ok(/ไม่ได้สร้างอะไรใหม่|Nothing new/.test(await ap.locator('.notice-success').innerText()), 'home demo: pressing it again makes nothing twice');
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+      await ap.click('form:has(input[value=demo_remove]) button');
+      await ap.waitForSelector('.notice-success');
+      const dc2 = await ac.newPage();
+      await dc2.goto(B + '/');
+      
+      const left = await dc2.evaluate(() => [...document.querySelectorAll('img')].filter((i) => /demo-/.test(i.currentSrc || i.src)).length);
+      ok(left === 0, 'home demo: after removing, none of its pictures are left on the home page (' + left + ')');
+      await dc2.close();
+      for (const [w, h] of [[1920, 1080], [768, 1024], [390, 844], [320, 568]]) {
+        await ap.setViewportSize({ width: w, height: h });
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+        ok(!(await ap.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)), 'home demo page section at ' + w + 'px: no sideways scroll of the page');
+      }
+      await ap.setViewportSize({ width: 1366, height: 900 });
+    }
     // speed check
     await ap.goto(B + '/wp-admin/admin.php?page=mcupr-speed');
     await ap.click('button:has-text("ตรวจเลย"), button:has-text("Check now")');
