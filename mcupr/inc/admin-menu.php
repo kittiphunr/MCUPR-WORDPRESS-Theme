@@ -119,6 +119,7 @@ add_action(
 		}
 		$take( 'mcupr-blocks' );
 		$take( 'mcupr-speed' );
+		$take( 'mcupr-settings-io' );
 		$take( 'mcupr-insights' );
 		$take( 'mcupr-status' );
 		$out[] = array( __( 'Theme options', 'mcupr' ), 'edit_theme_options', 'customize.php?return=' . rawurlencode( admin_url( 'admin.php?page=mcupr' ) ) );
