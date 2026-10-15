@@ -20,6 +20,10 @@ function mcupr_stu_opts() {
 }
 
 function mcupr_student_portal_url( $args = array() ) {
+	// Plain permalinks have no /student/ rule (and a server without rewriting would answer 404): use the query variable instead.
+	if ( ! get_option( 'permalink_structure' ) ) {
+		return add_query_arg( array_merge( array( 'mcupr_student' => 1 ), $args ), home_url( '/' ) );
+	}
 	return add_query_arg( $args, home_url( '/student/' ) );
 }
 
