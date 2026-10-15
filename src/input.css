@@ -1597,3 +1597,8 @@ html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav :is(.current-menu-ite
 @media (hover: none) { .sr-hint { display: none; } }
 html[data-motion="1"] .sr-chips a { transition: none; }
 html[data-contrast] .swal-fullscreen:has(.sr-box) { background: var(--bg) !important; }
+
+/* ===== Full-screen dialogs (search): the close button sits inside the corner, never against the edge ===== */
+.swal-fullscreen .swal-close { position: absolute !important; top: max(1rem, env(safe-area-inset-top)) !important; right: max(1rem, env(safe-area-inset-right)) !important; inset-inline-end: auto; margin: 0 !important; width: 3rem !important; height: 3rem !important; display: grid; place-items: center; border: 1px solid var(--border) !important; background: var(--bg) !important; box-shadow: 0 4px 14px color-mix(in srgb, var(--text) 14%, transparent) !important; font-size: 1.75rem !important; z-index: 5; }
+.swal-fullscreen .swal-close:hover, .swal-fullscreen .swal-close:focus-visible { background: var(--tint) !important; border-color: var(--primary) !important; color: var(--text) !important; }
+.swal-fullscreen .swal-close:focus-visible { outline: 3px solid var(--primary) !important; outline-offset: 2px; }
