@@ -485,4 +485,69 @@ return array(
 	'mt_d' => array( 'วัน', 'days', '天', '日' ),
 	'mt_h' => array( 'ชม.', 'hours', '小时', '時間' ),
 	'mt_m' => array( 'นาที', 'min', '分钟', '分' ),
+	'stu_portal' => array( 'พอร์ทัลนิสิต', 'Student portal', '学生门户', '学生ポータル' ),
+	'stu_bad' => array( 'รหัสนิสิตหรือรหัสผ่านไม่ถูกต้อง', 'Wrong student ID or password.', '学号或密码错误。', '学籍番号またはパスワードが違います。' ),
+	'stu_wait' => array( 'ลองผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่', 'Too many attempts. Please wait a few minutes and try again.', '尝试次数过多，请稍等几分钟后再试。', '試行回数が多すぎます。しばらくしてからもう一度お試しください。' ),
+	'stu_need' => array( 'เนื้อหานี้สำหรับนิสิตเท่านั้น กรุณาเข้าสู่ระบบก่อน', 'This content is for students only. Please log in first.', '此内容仅限学生查看，请先登录。', 'このコンテンツは学生専用です。先にログインしてください。' ),
+	'stu_pw_cur_bad' => array( 'รหัสผ่านปัจจุบันไม่ถูกต้อง', 'The current password is not right.', '当前密码不正确。', '現在のパスワードが違います。' ),
+	'stu_pw_short' => array( 'รหัสผ่านใหม่ต้องยาวอย่างน้อย 8 ตัวอักษร', 'The new password must be at least 8 characters.', '新密码至少需要8个字符。', '新しいパスワードは8文字以上にしてください。' ),
+	'stu_pw_same' => array( 'รหัสผ่านใหม่ทั้งสองช่องไม่ตรงกัน', 'The two new passwords are not the same.', '两次输入的新密码不一致。', '新しいパスワードが一致しません。' ),
+	'stu_login' => array( 'เข้าสู่ระบบ', 'Log in', '登录', 'ログイン' ),
+	'stu_id' => array( 'รหัสนิสิต หรืออีเมล', 'Student ID or e-mail', '学号或邮箱', '学籍番号またはメール' ),
+	'stu_pass' => array( 'รหัสผ่าน', 'Password', '密码', 'パスワード' ),
+	'stu_remember' => array( 'จำฉันไว้ในเครื่องนี้', 'Keep me logged in on this device', '在此设备上保持登录', 'この端末でログイン状態を保つ' ),
+	'stu_first' => array( 'ครั้งแรก หรือลืมรหัสผ่าน?', 'First time, or forgot your password?', '首次使用，或忘记密码？', '初めての方・パスワードを忘れた方' ),
+	'stu_first_txt' => array( 'กรอกรหัสนิสิต ระบบจะส่งลิงก์สำหรับตั้งรหัสผ่านไปยังอีเมลที่ลงทะเบียนไว้', 'Enter your student ID and we will send a link to set a password to your registered e-mail.', '输入学号，系统会向登记的邮箱发送设置密码的链接。', '学籍番号を入力すると、登録済みメールにパスワード設定リンクを送ります。' ),
+	'stu_sent' => array( 'ถ้ารหัสนี้มีอยู่ในระบบ เราได้ส่งลิงก์ไปยังอีเมลที่ลงทะเบียนไว้แล้ว (ตรวจในกล่องจดหมายขยะด้วย)', 'If this ID is in our system, a link has been sent to its registered e-mail (check your spam folder too).', '如果系统中有此学号，已向其登记的邮箱发送链接（请同时检查垃圾邮件）。', 'この学籍番号が登録されている場合、登録済みメールにリンクを送りました（迷惑メールも確認してください）。' ),
+	'stu_f_id' => array( 'รหัสนิสิต', 'Student ID', '学号', '学籍番号' ),
+	'stu_send' => array( 'ส่งลิงก์', 'Send the link', '发送链接', 'リンクを送る' ),
+	'stu_hello' => array( 'สวัสดี %s', 'Hello, %s', '你好，%s', 'こんにちは、%sさん' ),
+	'stu_logout' => array( 'ออกจากระบบ', 'Log out', '退出登录', 'ログアウト' ),
+	'stu_pw_ok' => array( 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว', 'Your password has been changed.', '密码已更改。', 'パスワードを変更しました。' ),
+	'stu_not_student' => array( 'บัญชีนี้ไม่ใช่บัญชีนิสิต (คุณเห็นเนื้อหาเฉพาะนิสิตได้ในฐานะเจ้าหน้าที่)', 'This is not a student account (you can see student-only content as staff).', '此账号不是学生账号（您以工作人员身份可查看学生专属内容）。', 'これは学生アカウントではありません（職員として学生専用コンテンツを閲覧できます）。' ),
+	'stu_ended' => array( 'สถานะของคุณไม่ใช่ “กำลังศึกษา” จึงเข้าถึงเนื้อหาเฉพาะนิสิตไม่ได้ หากเห็นว่าไม่ถูกต้องโปรดติดต่อฝ่ายทะเบียน', 'Your status is not “studying”, so student-only content is closed to you. If this is wrong, please contact the registrar.', '您的状态不是“在读”，因此无法访问学生专属内容。如有误请联系教务处。', '在学中ではないため、学生専用コンテンツは利用できません。誤りの場合は教務課にご連絡ください。' ),
+	'stu_profile' => array( 'ข้อมูลของฉัน', 'My details', '我的信息', 'マイ情報' ),
+	'stu_wrong' => array( 'ข้อมูลไม่ถูกต้อง? แจ้งฝ่ายทะเบียนให้แก้ไข', 'Something wrong? Ask the registrar to correct it.', '信息有误？请联系教务处更正。', '間違いがある場合は教務課に修正を依頼してください。' ),
+	'stu_pw' => array( 'เปลี่ยนรหัสผ่าน', 'Change password', '更改密码', 'パスワードを変更' ),
+	'stu_pw_now' => array( 'รหัสผ่านปัจจุบัน', 'Current password', '当前密码', '現在のパスワード' ),
+	'stu_pw_new' => array( 'รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)', 'New password (at least 8 characters)', '新密码（至少8个字符）', '新しいパスワード（8文字以上）' ),
+	'stu_pw_new2' => array( 'พิมพ์รหัสผ่านใหม่อีกครั้ง', 'New password again', '再次输入新密码', '新しいパスワード（確認）' ),
+	'stu_pw_save' => array( 'บันทึกรหัสผ่านใหม่', 'Save the new password', '保存新密码', '新しいパスワードを保存' ),
+	'stu_only' => array( 'เนื้อหาสำหรับนิสิต', 'Content for students', '学生专属内容', '学生向けコンテンツ' ),
+	'stu_none' => array( 'ยังไม่มีเนื้อหาสำหรับนิสิต', 'Nothing for students yet.', '暂无学生专属内容。', '学生向けコンテンツはまだありません。' ),
+	'stu_f_level' => array( 'ระดับ', 'Level', '层次', '課程' ),
+	'stu_f_year' => array( 'ชั้นปี', 'Year', '年级', '学年' ),
+	'stu_f_faculty' => array( 'คณะ', 'Faculty', '学院', '学部' ),
+	'stu_f_major' => array( 'สาขา', 'Major', '专业', '専攻' ),
+	'stu_f_email' => array( 'อีเมล', 'E-mail', '邮箱', 'メール' ),
+	'stu_f_status' => array( 'สถานะ', 'Status', '状态', '状況' ),
+	'stu_lv_bachelor' => array( 'ปริญญาตรี', 'Bachelor', '本科', '学士' ),
+	'stu_lv_master' => array( 'ปริญญาโท', 'Master', '硕士', '修士' ),
+	'stu_lv_doctor' => array( 'ปริญญาเอก', 'Doctoral', '博士', '博士' ),
+	'stu_lv_other' => array( 'อื่นๆ', 'Other', '其他', 'その他' ),
+	'stu_st_studying' => array( 'กำลังศึกษา', 'Studying', '在读', '在学中' ),
+	'stu_st_leave' => array( 'พักการศึกษา', 'On leave', '休学', '休学中' ),
+	'stu_st_graduated' => array( 'สำเร็จการศึกษา', 'Graduated', '已毕业', '卒業' ),
+	'stu_st_withdrawn' => array( 'ลาออก/พ้นสภาพ', 'Withdrawn', '退学', '退学' ),
+	'stu_mail_subject' => array( 'ตั้งรหัสผ่านสำหรับพอร์ทัลนิสิต %s', 'Set your password for the student portal of %s', '设置 %s 学生门户的密码', '%s 学生ポータルのパスワード設定' ),
+	'stu_mail_body' => array( 'เรียน %1$s
+
+มีการเตรียมบัญชีเข้าสู่ระบบของนิสิตสำหรับ %2$s ไว้ให้คุณแล้ว กรุณาตั้งรหัสผ่านของคุณเองที่ลิงก์ด้านล่าง (ลิงก์ใช้ได้ในเวลาจำกัด):
+
+%3$s
+
+หลังตั้งรหัสผ่านแล้ว เข้าสู่ระบบได้ที่ %4$s ด้วยรหัสนิสิตของคุณ
+
+หากคุณไม่ได้ขอสิ่งนี้ ไม่ต้องดำเนินการใด ๆ', 'Dear %1$s,
+
+A student login for %2$s has been prepared for you. Please set your own password with the link below (the link works for a limited time):
+
+%3$s
+
+After that, log in at %4$s with your student ID.
+
+If you did not ask for this, you can ignore this message.', '您好 %1$s，已为您准备 %2$s 的学生账号。请通过下方链接设置密码（链接有时效）：%3$s 之后用学号在 %4$s 登录。', '%1$s さん、%2$s の学生アカウントを用意しました。次のリンクからパスワードを設定してください：%3$s 設定後は %4$s から学籍番号でログインできます。' ),
+	'stu_denied_t' => array( 'เนื้อหานี้สำหรับนิสิตเท่านั้น', 'This content is for students only', '此内容仅限学生', 'このコンテンツは学生専用です' ),
+	'stu_denied_txt' => array( 'กรุณาเข้าสู่ระบบด้วยบัญชีนิสิต', 'Please log in with a student account.', '请使用学生账号登录。', '学生アカウントでログインしてください。' ),
+	'stu_denied_txt2' => array( 'บัญชีของคุณไม่มีสิทธิ์ดูเนื้อหานี้ (เฉพาะนิสิตที่กำลังศึกษา หรือเฉพาะบางระดับ)', 'Your account may not see this content (only students who are currently studying, or only some levels).', '您的账号无权查看此内容（仅限在读学生，或仅限部分层次）。', 'このアカウントではこのコンテンツを閲覧できません（在学中の学生のみ、または特定の課程のみ）。' ),
 );
