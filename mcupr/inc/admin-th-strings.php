@@ -493,6 +493,7 @@ return array(
 	'When' => 'เมื่อไร',
 	'Who can reply' => 'ใครตอบได้',
 	'Who can start a topic' => 'ใครตั้งหัวข้อได้',
+	'Wide logo (logo with the name inside): show only the logo, not the name beside it' => 'โลโก้แบบกว้าง (มีชื่อหน่วยงานอยู่ในโลโก้แล้ว): แสดงเฉพาะโลโก้ ไม่แสดงชื่อข้างโลโก้',
 	'With a hidden contact item' => 'มีข้อมูลติดต่อที่ซ่อนไว้',
 	'With royal decorations' => 'มีเครื่องราชอิสริยาภรณ์',
 	'Without a header graphic: print the logo and the organisation name as the letterhead' => 'เมื่อไม่มีกราฟิกหัวกระดาษ: พิมพ์โลโก้และชื่อหน่วยงานเป็นหัวกระดาษ',

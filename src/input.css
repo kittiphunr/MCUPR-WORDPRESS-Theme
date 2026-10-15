@@ -767,7 +767,7 @@ html[data-contrast] .cal, html[data-contrast] .cal td, html[data-contrast] .ev-r
 	/* ---------- top menu: brand, menu and tools are three separate floating capsules ---------- */
 	html[data-menu="top"] .site-header { background: none; border: 0; box-shadow: none; border-radius: 0; width: min(100% - 1.5rem, 96rem); margin: .75rem auto 0; }
 	html[data-menu="top"] .site-header::before { display: none; }
-	html[data-menu="top"] #masthead > .wrap { padding: 0; gap: .75rem; }
+	html[data-menu="top"] #masthead > .wrap { padding: 0; gap: .75rem; align-items: stretch; }
 	html[data-menu="top"] #masthead .brand,
 	html[data-menu="top"] .site-nav,
 	html[data-menu="top"] #masthead > .wrap > div { background: var(--bg); border-radius: 2rem; box-shadow: 0 6px 24px #0f172a1f; }
@@ -1476,3 +1476,8 @@ html[data-contrast] .band-lead { background: var(--bg); box-shadow: none; border
 @keyframes tq-in { from { opacity: 0; transform: translateY(8px) scale(.97); } }
 html[data-motion="1"] .top-quick { animation: none; }
 @media print { .top-quick { display: none; } }
+
+/* ===== Wide logo: only the logo in the brand capsule, as wide as it is ===== */
+#masthead .brand-wide { max-width: none; }
+#masthead .brand-wide img { width: auto; max-width: 100%; object-fit: contain; }
+@media (min-width: 1100px) { html[data-menu="top"] #masthead .brand-wide { max-width: min(34vw, 28rem); padding-right: .9rem; } }
