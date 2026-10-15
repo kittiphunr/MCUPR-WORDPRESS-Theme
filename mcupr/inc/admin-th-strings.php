@@ -26,6 +26,7 @@ return array(
 	'2. Keep in step with a calendar address (sync)' => '2. ซิงค์กับที่อยู่ปฏิทิน (อัปเดตอัตโนมัติ)',
 	'2. Pages that were asked for but do not exist (404)' => '2. หน้าที่มีคนเรียกแต่ไม่มีอยู่ (404)',
 	'2. Settings file (home page blocks, numbers, redirects)' => '2. ไฟล์การตั้งค่า (บล็อกหน้าแรก ตัวเลข การเปลี่ยนเส้นทาง)',
+	'2. Settings file (home page blocks, redirects)' => '2. ไฟล์การตั้งค่า (บล็อกหน้าแรก การเปลี่ยนเส้นทาง)',
 	'3. Home page demo' => '3. เดโม่หน้าหลัก',
 	'3. The other way: subscribe to this website’s calendar' => '3. ทางกลับกัน: ติดตามปฏิทินของเว็บไซต์นี้',
 	'3. What visitors search for' => '3. ผู้เข้าชมค้นหาอะไร',

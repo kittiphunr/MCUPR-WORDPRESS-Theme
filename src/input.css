@@ -203,12 +203,6 @@
 	.stat { @apply flex items-center gap-4 rounded-[1.4rem] bg-bg px-5 py-4; border: 1px solid var(--edge); box-shadow: var(--shadow-soft); }
 	.stat-ic { @apply grid size-12 flex-none place-items-center rounded-full bg-tint text-link; }
 	.stat small { @apply block text-sm text-muted; }
-	/* Numbers block: tiles, a quiet sub-heading for the levels, the percentage next to the figure */
-	.nm-sub { @apply mt-6 mb-3 text-lg font-bold text-fg; }
-	.nm-tile b { @apply tabular-nums; }
-	.nm-pct { @apply text-sm font-semibold text-muted; }
-	.nm-asof { @apply mt-4 mb-0 text-sm text-muted; }
-	.nm-compact .nm-sub { @apply mt-4 mb-2 text-base; }
 	.stat b { @apply block text-3xl leading-tight font-bold; }
 	/* Pill tab group: white capsule, active tab in the brand colour */
 	.pill-tabs { @apply inline-flex max-w-full flex-wrap gap-1 rounded-[1.6rem] bg-bg p-1; border: 1px solid var(--edge); box-shadow: var(--shadow-soft); }
