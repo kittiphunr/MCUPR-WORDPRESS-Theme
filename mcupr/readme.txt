@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.25.2 =
+* Home blocks framed like the other cards (weather bar, figures, about)
+
 = 1.25.1 =
 * Theme renamed MCUPR-S.A.T.U.R.N with a new screenshot
 
