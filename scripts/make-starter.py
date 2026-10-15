@@ -72,6 +72,10 @@ for slug, name in S.CATEGORIES:
 for n, (slug, (nm, _en)) in enumerate(S.WORK_CATS):
     out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>mcupr_work_cat</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name></wp:term>\n' % (30 + n, slug, cd(nm)))
 
+for n, (slug, nm) in enumerate(S.FAQ_CATS):
+    out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>mcupr_faq_cat</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name></wp:term>\n' % (60 + n, slug, cd(nm)))
+for n, (slug, nm, desc) in enumerate(S.FORUM_BOARDS):
+    out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>mcupr_board</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name><wp:term_description>%s</wp:term_description></wp:term>\n' % (50 + n, slug, cd(nm), cd(desc)))
 for n, (slug, nm) in enumerate(S.PEOPLE_GROUPS):
     out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>mcupr_person_group</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name></wp:term>\n' % (40 + n, slug, cd(nm)))
 
@@ -144,6 +148,13 @@ for n, (title, event, award, yoff, org, cat, team) in enumerate(S.WORKS):
     out.append(meta('_mcupr_work_event', event) + meta('_mcupr_work_award', award) + meta('_mcupr_work_year', datetime.date.today().year + yoff) + meta('_mcupr_work_org', org) + meta('_mcupr_work_team', team.replace('\\n', '\n')))
     out.append('</item>\n')
 
+
+# ---- FAQ (own post type + categories)
+for n, (cat, q, a) in enumerate(S.FAQS):
+    pid = next_id()
+    out.append(item_head(pid, q, 'faq-%d' % (n + 1), 'mcupr_faq', 0, n + 1, a, 'publish'))
+    out.append('\t<category domain="mcupr_faq_cat" nicename="%s">%s</category>\n' % (cat, cd(dict(S.FAQ_CATS)[cat])))
+    out.append('</item>\n')
 
 # ---- people directory (own post type + groups)
 for n, (slug, nm) in enumerate(S.PEOPLE_GROUPS):
