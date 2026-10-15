@@ -762,7 +762,7 @@
 			}
 			if (restore !== false && fsLast && fsLast.focus) { fsLast.focus({ preventScroll: true }); }
 		};
-		fsBtn.addEventListener('click', function () { if (fsBox && !fsBox.hidden) { closeFs(); } else { openFs(); } });
+		fsBtn.addEventListener('click', function () { if (fsBox && fsBox.classList.contains('is-in')) { closeFs(); } else { openFs(); } }); /* "open" means is-in: while it is still shrinking away a press opens it again */
 		document.addEventListener('keydown', function (e) {
 			if (!fsBox || fsBox.hidden) { return; }
 			if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeFs(); return; }
