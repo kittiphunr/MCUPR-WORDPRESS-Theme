@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.28.9 =
+* Full-screen menu: pressing the button while it is closing opens it again
+
 = 1.28.8 =
 * Key numbers (students / teachers / faculties) section restored in the home page panel
 
