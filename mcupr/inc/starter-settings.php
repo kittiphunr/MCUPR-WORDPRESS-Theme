@@ -291,7 +291,8 @@ function mcupr_ss_page() {
 		wp_nonce_field( 'mcupr_ss', 'mcupr_ss_nonce' );
 		echo $extra . '<button class="button' . ( $primary ? ' button-primary' : '' ) . '">' . esc_html( $btn ) . '</button></form>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	};
-	echo '<div class="wrap"><h1>' . esc_html__( 'Import / export settings', 'mcupr' ) . '</h1>';
+	echo '<style>.mcupr-ss .button{white-space:normal;height:auto;min-height:30px;line-height:1.4;padding:.35rem .8rem;text-align:center;max-width:100%}.mcupr-ss input[type=file]{max-width:100%}.mcupr-ss .card{overflow-wrap:anywhere}</style>';
+	echo '<div class="wrap mcupr-ss"><h1>' . esc_html__( 'Import / export settings', 'mcupr' ) . '</h1>';
 	if ( $msg ) {
 		echo '<div class="notice notice-success"><p>' . esc_html( $msg ) . '</p></div>';
 	}
