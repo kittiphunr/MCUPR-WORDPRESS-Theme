@@ -95,9 +95,9 @@ t( '' === mcupr_blk_clean_url_setting( '//evil.test/x' ) && '' === mcupr_blk_cle
 // the Customizer really offers them
 require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 global $wp_customize; $wp_customize = new WP_Customize_Manager(); do_action( 'customize_register', $wp_customize );
-t( null !== $wp_customize->get_panel( 'mcupr_home_panel' ) && 'mcupr_home_panel' === $wp_customize->get_section( 'mcupr_home_sections' )->panel, 'customizer: one panel “Home page sections” holds the show/hide section and the blocks' );
+t( null !== $wp_customize->get_panel( 'mcupr_home_panel' ) && 'mcupr_home_panel' === $wp_customize->get_section( 'mcupr_home_sections' )->panel && 'mcupr_home_panel' === $wp_customize->get_section( 'mcupr_numbers' )->panel, 'customizer: one panel “Home page sections” holds the show/hide section, the numbers and the blocks' );
 $in_panel = 0; foreach ( $wp_customize->sections() as $sid => $sc ) { if ( 'mcupr_home_panel' === $sc->panel ) { $in_panel++; } }
-t( $in_panel >= 7, "customizer: the panel has its sections ($in_panel)" );
+t( $in_panel >= 8, "customizer: the panel has its sections ($in_panel)" );
 t( null !== $wp_customize->get_control( 'mcupr_aud_3_url' ) && null !== $wp_customize->get_control( 'mcupr_svc_8_title' ) && null !== $wp_customize->get_control( 'mcupr_abt_4_desc' ) && null !== $wp_customize->get_control( 'mcupr_wx_lat' ) && null !== $wp_customize->get_control( 'mcupr_home_services_on' ), 'customizer: the boxes and the show/hide checkbox exist' );
 $st = $wp_customize->get_setting( 'mcupr_aud_1_icon' ); t( 'edit' === $st->sanitize( 'edit' ) && '' === $st->sanitize( 'no-such-icon' ), 'customizer: the icon setting accepts only known icons' );
 $wl = $wp_customize->get_setting( 'mcupr_fig_1_label' ); t( 'x' === $wl->sanitize( '<b>x</b>' ), 'customizer: text boxes are cleaned' );
