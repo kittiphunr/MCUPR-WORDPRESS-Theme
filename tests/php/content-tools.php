@@ -125,6 +125,16 @@ t( strpos( $html, 'รองอธิการบดีฝ่ายวิชา�
 $html = do_shortcode( '[mcupr_orgchart]' );
 t( strpos( $html, 'ผศ.ดร.ทดสอบ' ) !== false && strpos( $html, 'href="https://example.org/"' ) !== false && substr_count( $html, '<ul' ) >= 3, 'the full chart shows people, links and nested lists' );
 t( preg_match( '/<ul class="org">.*org-d2/s', $html ) === 1, 'second-level boxes carry their level class' );
+// kinds and colours of boxes
+$_POST = array( 'mcupr_unit_nonce' => wp_create_nonce( 'mcupr_unit_save' ), 'mcupr_unit' => array( 'kind' => 'side', 'color' => 'peach' ) ); mcupr_unit_save( $vp2 );
+$_POST = array( 'mcupr_unit_nonce' => wp_create_nonce( 'mcupr_unit_save' ), 'mcupr_unit' => array( 'kind' => 'evil', 'color' => 'neon' ) ); mcupr_unit_save( $dep ); $_POST = array();
+t( 'side' === mcupr_unit_kind( $vp2 ) && 'peach' === get_post_meta( $vp2, '_mcupr_unit_color', true ) && 'line' === mcupr_unit_kind( $dep ) && '' === get_post_meta( $dep, '_mcupr_unit_color', true ), 'unit kind and colour are saved; unknown values fall back to line / automatic' );
+$html = do_shortcode( '[mcupr_orgchart]' );
+t( strpos( $html, 'org-side' ) !== false && strpos( $html, 'org-sidebox' ) !== false && strpos( $html, '--org-bg:#fbd7b8' ) !== false, 'a unit drawn "beside" goes into the side list with its colour' );
+update_post_meta( $vp2, '_mcupr_unit_kind', 'list' );
+$html = do_shortcode( '[mcupr_orgchart]' );
+t( strpos( $html, 'org-panel' ) !== false && strpos( $html, '<section class="org-grp"' ) !== false, 'a unit drawn as "list" goes into the list panel of its parent' );
+update_post_meta( $vp2, '_mcupr_unit_kind', 'line' ); delete_post_meta( $vp2, '_mcupr_unit_color' );
 // a loop (A under B under A) must not hang
 wp_update_post( array( 'ID' => $top, 'post_parent' => $dep ) );
 $t0 = microtime( true ); mcupr_org_tree(); t( microtime( true ) - $t0 < 2, 'a circular parent setting cannot hang the page' );

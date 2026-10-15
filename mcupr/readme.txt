@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.15.0 =
+* Administration chart: boxes beside a unit (committees), list panels (sections and groups), box colours, wider rows; the sample chart follows the Phrae campus structure.
+
 = 1.14.0 =
 * Staff hub: import people from Excel (.xlsx) or CSV with a preview, template download and export.
 
