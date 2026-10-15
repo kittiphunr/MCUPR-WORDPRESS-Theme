@@ -22,7 +22,7 @@ function count_all() {
 	$o['menus'] = count( wp_get_nav_menus() );
 	return $o;
 }
-$new_pages = array( 'documents', 'events-calendar', 'forum', 'welcome-demo', 'internal-form', 'survey' );
+$new_pages = array( 'documents', 'events-calendar', 'forum', 'welcome-demo', 'internal-form', 'survey', 'student-portal', 'study-plan', 'donate', 'quality-assurance' );
 // make this site look like one that has only the OLD starter: remove the new pages and the new samples, edit an old page
 foreach ( $new_pages as $s ) { $p = by_slug( $s, 'page' ); if ( $p ) { wp_delete_post( $p->ID, true ); } }
 foreach ( array( 'mcupr_fb', 'mcupr_poll' ) as $t ) { foreach ( get_posts( array( 'post_type' => $t, 'post_status' => 'any', 'posts_per_page' => -1 ) ) as $p ) { wp_delete_post( $p->ID, true ); } }
@@ -40,7 +40,7 @@ $after = count_all();
 foreach ( $new_pages as $s ) { t( null !== by_slug( $s, 'page' ), 'add-ons: the new page "' . $s . '" arrived' ); }
 t( 'MY OWN TEXT – do not touch' === get_post_field( 'post_content', $hist->ID ) && 'ประวัติของเรา (แก้เอง)' === get_post_field( 'post_title', $hist->ID ), 'add-ons: an old page you edited is not overwritten' );
 t( 'mine' === get_post_field( 'post_content', $mine ), 'add-ons: your own page is untouched' );
-t( $after['page'] === $before['page'] + count( $new_pages ), 'add-ons: exactly the six new pages were added (' . $before['page'] . ' → ' . $after['page'] . ')' );
+t( $after['page'] === $before['page'] + count( $new_pages ), 'add-ons: exactly the ten new pages were added (' . $before['page'] . ' → ' . $after['page'] . ')' );
 t( $after['nav_menu_item'] === $before['nav_menu_item'] && $after['menus'] === $before['menus'], 'add-ons: menus are left alone (' . $after['nav_menu_item'] . ' items, ' . $after['menus'] . ' menus)' );
 $main2 = wp_get_nav_menu_items( get_nav_menu_locations()['primary_th'] );
 t( count( $main ) === count( $main2 ), 'add-ons: the main menu has the same items' );
