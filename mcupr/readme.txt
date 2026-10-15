@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.27.0 =
+* Pictures: JPEG/PNG uploads saved as WebP
+
 = 1.26.1 =
 * Header capsules fully round (100%)
 
