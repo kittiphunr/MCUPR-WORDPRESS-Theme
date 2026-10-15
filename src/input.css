@@ -1781,3 +1781,10 @@ html[data-contrast] .wx { border-width: 2px; }
 	#masthead #lang-toggle > span { top: -.05rem; right: -.1rem; padding-inline: .3rem; font-size: .6rem; line-height: .9rem; }
 	html[data-contrast] #masthead :is(.util-btn, .fs-open, #search-toggle, #lang-toggle, #a11y-toggle, #about-toggle) { border: 2px solid var(--border); }
 }
+
+/* ===== High-contrast modes: the on/off switches must show their state without colour tricks ===== */
+html[data-contrast] button[role="switch"] { background: var(--bg); border: 3px solid var(--text); }
+html[data-contrast] button[role="switch"] > span { background: var(--text); box-shadow: none; }
+html[data-contrast] button[role="switch"][aria-checked="true"] { background: var(--text); border-color: var(--text); }
+html[data-contrast] button[role="switch"][aria-checked="true"] > span { background: var(--bg); }
+html[data-contrast] button[role="switch"]:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
