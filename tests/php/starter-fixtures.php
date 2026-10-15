@@ -120,4 +120,16 @@ $pl = wp_insert_post( array( 'post_type' => 'mcupr_poll', 'post_status' => 'publ
 update_post_meta( $pl, '_mcupr_poll_type', 'satisfaction' );
 wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'แบบสำรวจตัวอย่าง', 'post_name' => 'fx-poll', 'post_content' => '[mcupr_poll id="' . $pl . '"]' ) );
 wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'หน้าทดสอบเกริ่นนำ', 'post_name' => 'fx-lead', 'post_excerpt' => 'คำเกริ่นนำของหน้านี้', 'post_content' => str_repeat( '<p>เนื้อหายาว</p>', 80 ) ) );
+// a news post with a tall poster picture (shown whole on a blurred copy) and a wide one (cropped as before)
+foreach ( array( array( 'fx-poster', 600, 900 ), array( 'fx-wide', 1600, 1000 ) ) as $pp ) {
+	$im = imagecreatetruecolor( $pp[1], $pp[2] ); imagefill( $im, 0, 0, imagecolorallocate( $im, 220, 60, 140 ) );
+	$u  = wp_upload_bits( $pp[0] . '.jpg', null, '' ); imagejpeg( $im, $u['file'], 70 );
+	$aid = wp_insert_attachment( array( 'post_mime_type' => 'image/jpeg', 'post_title' => $pp[0], 'post_status' => 'inherit' ), $u['file'] );
+	wp_update_attachment_metadata( $aid, wp_generate_attachment_metadata( $aid, $u['file'] ) );
+	$np = wp_insert_post( array( 'post_status' => 'publish', 'post_title' => 'ข่าวทดสอบ ' . $pp[0], 'post_name' => $pp[0], 'post_content' => str_repeat( 'เนื้อหาข่าวทดสอบที่ยาวมาก ', 60 ), 'post_excerpt' => str_repeat( 'คำนำข่าวทดสอบที่ยาวมาก ', 40 ) ) );
+	set_post_thumbnail( $np, $aid );
+}
+// a video (no cover picture: the server has no network here) and a news post with a poster-shaped picture
+$vd = wp_insert_post( array( 'post_type' => 'mcupr_video', 'post_status' => 'publish', 'post_title' => 'วิดีโอแนะนำมหาวิทยาลัยตัวอย่าง', 'post_name' => 'fx-video', 'post_content' => 'คำอธิบายวิดีโอ' ) );
+update_post_meta( $vd, '_mcupr_video_url', 'https://youtu.be/dQw4w9WgXcQ' );
 echo "ok $id\n";
