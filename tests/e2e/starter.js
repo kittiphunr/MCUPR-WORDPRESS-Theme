@@ -813,6 +813,41 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     }
     ok(seen >= 1, 'top menu: the "More" button was present at ' + seen + ' of the widths tested');
   }
+  // ---------- the admin: every theme menu is under one "MCUPR" menu, at desktop, tablet and phone sizes
+  {
+    for (const [w, h] of [[1366, 800], [782, 900], [390, 800]]) {
+      const ac = await br.newContext({ viewport: { width: w, height: h } });
+      const ap = await ac.newPage();
+      await ap.goto(B + '/wp-login.php');
+      await ap.fill('#user_login', 'e2eadmin');
+      await ap.fill('#user_pass', 'e2e-Admin-pass-1');
+      await ap.click('#wp-submit');
+      await ap.waitForURL(/wp-admin/);
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
+      const cardsInfo = await ap.evaluate(() => ({ cards: document.querySelectorAll('.wrap a.card').length, hscroll: document.documentElement.scrollWidth > innerWidth + 1 }));
+      if (w < 783) { await ap.click('#wp-admin-bar-menu-toggle a'); await ap.waitForTimeout(300); }
+      const m = await ap.evaluate(() => {
+        const tops = [...document.querySelectorAll('#adminmenu > li.menu-top')].map((l) => (l.querySelector('.wp-menu-name') || {}).textContent.trim());
+        const mc = document.querySelector('#adminmenu > li.toplevel_page_mcupr');
+        const subs = mc ? [...mc.querySelectorAll('.wp-submenu li a')].map((a) => a.textContent.trim()) : [];
+        return { tops, subs, open: !!mc && mc.classList.contains('wp-has-current-submenu') };
+      });
+      m.cards = cardsInfo.cards; m.hscroll = cardsInfo.hscroll;
+      ok(m.tops.filter((t) => /MCUPR/.test(t)).length === 1 && m.subs.length >= 18 && m.open, 'admin ' + w + 'px: one MCUPR menu, open on its overview, with ' + m.subs.length + ' entries');
+      ok(!m.tops.some((t) => /กระดาน|วิดีโอ|อัลบั้ม|กิจกรรม|ผลงาน|บุคลากร|Forum|Video|Album|Event|Work|Staff|Polls|FAQ|Form messages/i.test(t)), 'admin ' + w + 'px: none of the theme sections is scattered in the main menu (' + m.tops.join(' | ') + ')');
+      ok(m.cards >= 12 && !m.hscroll, 'admin ' + w + 'px: the overview shows ' + m.cards + ' cards without sideways scroll');
+      if (w === 1366) {
+        for (const u of ['edit.php?post_type=mcupr_video', 'edit-tags.php?taxonomy=mcupr_video_cat&post_type=mcupr_video', 'post-new.php?post_type=mcupr_faq', 'admin.php?page=mcupr-forum', 'admin.php?page=mcupr-staff-hub', 'admin.php?page=mcupr-status', 'edit.php?post_type=mcupr_unit']) {
+          const r = await ap.goto(B + '/wp-admin/' + u);
+          const open = await ap.evaluate(() => !!document.querySelector('#adminmenu > li.toplevel_page_mcupr.wp-has-current-submenu'));
+          ok(r.status() === 200 && open && !(await ap.locator('.wp-die-message').count()), 'admin: ' + u + ' opens and keeps the MCUPR menu open');
+        }
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
+        await ap.screenshot({ path: shot('admin-mcupr.png') });
+      }
+      await ac.close();
+    }
+  }
   // ---------- polls / satisfaction survey
   {
     const pc = await br.newContext({ viewport: { width: 1366, height: 900 } });
