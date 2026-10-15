@@ -31,9 +31,10 @@ php php/site-status.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" 
 php php/admin-menu.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || true
 php php/events-ics.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/blocks.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
+php php/speed.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/numbers.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/insights.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
-php -S "localhost:${PORT}" -t "$SITE_DIR" >.server.log 2>&1 &
+PHP_CLI_SERVER_WORKERS=4 php -S "localhost:${PORT}" -t "$SITE_DIR" >.server.log 2>&1 &
 pid=$!; trap 'kill $pid 2>/dev/null' EXIT
 for _ in $(seq 1 30); do curl -fs "$BASE_URL/" >/dev/null && break; sleep 0.5; done
 node e2e/starter.js || status=1

@@ -1003,6 +1003,19 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       ok(!(await ap.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)), 'insights admin at ' + w + 'px: no sideways scroll of the page');
     }
     await ap.setViewportSize({ width: 1366, height: 900 });
+    // speed check
+    await ap.goto(B + '/wp-admin/admin.php?page=mcupr-speed');
+    await ap.click('button:has-text("ตรวจเลย"), button:has-text("Check now")');
+    await ap.waitForSelector('table.widefat', { timeout: 90000 });
+    const sp0 = await ap.locator('#wpbody-content').innerText();
+    ok(/\/100/.test(sp0) && /PHP/.test(sp0) && /HTTPS|เอชทีทีพีเอส/.test(sp0) && (await ap.locator('table.widefat tbody tr').count()) >= 8, 'speed check: it runs and lists the checks with a score');
+    ok(/Brotli|gzip/.test(sp0) && /pagespeed\.web\.dev/.test(await ap.locator('a:has-text("PageSpeed")').getAttribute('href')), 'speed check: it says what to do and links to Google PageSpeed for this site');
+    for (const [w, h] of [[1920, 1080], [768, 1024], [390, 844], [320, 568]]) {
+      await ap.setViewportSize({ width: w, height: h });
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-speed');
+      ok(!(await ap.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)), 'speed check admin at ' + w + 'px: no sideways scroll of the page');
+    }
+    await ap.setViewportSize({ width: 1366, height: 900 });
     await ac.close();
   }
   // ---------- polls / satisfaction survey
