@@ -33,6 +33,12 @@ function mcupr_admin_sections() {
 				array( 'type' => 'mcupr_msg', 'icon' => 'dashicons-email-alt', 'desc' => __( 'Messages sent through the website forms', 'mcupr' ) ),
 			),
 		),
+		'students'  => array(
+			'label' => __( 'Students', 'mcupr' ),
+			'items' => array(
+				array( 'type' => 'mcupr_student', 'pages' => array( 'mcupr-student-import', 'mcupr-student-settings' ), 'icon' => 'dashicons-id-alt', 'desc' => __( 'Student database with bulk import, login accounts and student-only content', 'mcupr' ) ),
+			),
+		),
 		'people'    => array(
 			'label' => __( 'People', 'mcupr' ),
 			'items' => array(
@@ -71,8 +77,9 @@ add_filter(
 add_action(
 	'admin_menu',
 	static function () {
-		add_menu_page( __( 'MCUPR theme', 'mcupr' ), 'MCUPR', 'edit_pages', 'mcupr', 'mcupr_admin_overview', 'dashicons-superhero-alt', 3 );
-		add_submenu_page( 'mcupr', __( 'MCUPR overview', 'mcupr' ), __( 'Overview', 'mcupr' ), 'edit_pages', 'mcupr', 'mcupr_admin_overview' );
+		$cap = ! current_user_can( 'edit_pages' ) && current_user_can( MCUPR_STU_CAP ) ? MCUPR_STU_CAP : 'edit_pages'; // registrars (who cannot edit pages) get the menu too
+		add_menu_page( __( 'MCUPR theme', 'mcupr' ), 'MCUPR', $cap, 'mcupr', 'mcupr_admin_overview', 'dashicons-superhero-alt', 3 );
+		add_submenu_page( 'mcupr', __( 'MCUPR overview', 'mcupr' ), __( 'Overview', 'mcupr' ), $cap, 'mcupr', 'mcupr_admin_overview' );
 	},
 	5
 );
@@ -115,6 +122,9 @@ add_action(
 				}
 				if ( ! empty( $i['page'] ) ) {
 					$take( $i['page'] );
+				}
+				foreach ( isset( $i['pages'] ) ? $i['pages'] : array() as $pg ) {
+					$take( $pg );
 				}
 			}
 		}
@@ -179,7 +189,7 @@ function mcupr_admin_overview_css() {
 .mcupr-ov .ov-chip[data-mode="maint"].is-on{background:#b45309}
 .mcupr-ov .ov-chip[data-mode="welcome"].is-on{background:#1d4ed8}
 .mcupr-ov .ov-chip[data-mode="mourning"].is-on{background:#262626}
-.mcupr-ov .ov-chip[data-mode="forum"].is-on{background:#a21caf}
+.mcupr-ov .ov-chip[data-mode="forum"].is-on{background:#a21caf}.mcupr-ov .ov-chip[data-mode="students"].is-on{background:#1d4ed8}
 .mcupr-ov .ov-acts{display:flex;flex-wrap:wrap;gap:10px}
 .mcupr-ov .ov-act{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 18px;border:1px solid #c3c4c7;border-radius:12px;background:#fff;color:#1d2327;font-weight:600;text-decoration:none;box-shadow:0 1px 2px #0000000d}
 .mcupr-ov .ov-act .dashicons{color:var(--ov-a)}
@@ -193,7 +203,10 @@ function mcupr_admin_overview_css() {
 .mcupr-ov .ov-n{display:inline-block;margin-top:6px;padding:1px 10px;border-radius:999px;background:color-mix(in srgb,var(--c,#2271b1) 12%,#fff);color:#1d2327;font-size:12px;font-weight:700}
 .mcupr-ov .ov-add{position:absolute;top:10px;right:10px;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;color:var(--c,#2271b1);text-decoration:none}
 .mcupr-ov .ov-add:hover,.mcupr-ov .ov-add:focus{background:color-mix(in srgb,var(--c,#2271b1) 14%,#fff)}
-.mcupr-ov .ov-card .ov-body{min-width:0;padding-right:20px}
+.mcupr-ov .ov-card .ov-body{min-width:0;padding-right:20px}.mcupr-ov .ov-cell{display:flex;flex-direction:column}.mcupr-ov .ov-cell>.ov-card{flex:1}
+.mcupr-ov .ov-links{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0;padding:0;list-style:none}
+.mcupr-ov .ov-links a{display:inline-flex;align-items:center;min-height:32px;padding:2px 12px;border:1px solid color-mix(in srgb,var(--c,#2271b1) 40%,#fff);border-radius:999px;background:#fff;color:#1d2327;font-size:12px;font-weight:600;text-decoration:none}
+.mcupr-ov .ov-links a:hover,.mcupr-ov .ov-links a:focus{background:color-mix(in srgb,var(--c,#2271b1) 12%,#fff);border-color:var(--c,#2271b1)}
 .mcupr-ov .ov-warn{margin:0 0 4px;padding:12px 16px;border:1px solid #f0b849;border-left:6px solid #dba617;border-radius:10px;background:#fcf9e8}
 .mcupr-ov .ov-warn ul{margin:6px 0 0 1.2em;list-style:disc}
 .mcupr-ov .ov-mine{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border:1px solid #dcdcde;border-left:8px solid var(--c,#0f766e);border-radius:14px;background:#fff}
@@ -201,21 +214,56 @@ function mcupr_admin_overview_css() {
 }
 
 /** One card of the overview. */
-function mcupr_admin_card( $url, $icon, $title, $desc, $count = null, $color = '#2271b1', $add = '' ) {
+function mcupr_admin_card( $url, $icon, $title, $desc, $count = null, $color = '#2271b1', $add = '', $links = array() ) {
 	$o  = '<div class="ov-cell" style="position:relative;--c:' . esc_attr( $color ) . '"><a class="ov-card" href="' . esc_url( $url ) . '"><span class="ov-ic" aria-hidden="true"><span class="dashicons ' . esc_attr( $icon ) . '"></span></span><span class="ov-body"><span class="ov-t">' . esc_html( $title ) . '</span><span class="ov-d">' . esc_html( $desc ) . '</span>';
 	if ( null !== $count ) {
 		$o .= '<span class="ov-n">' . esc_html( sprintf( /* translators: %d: how many */ __( '%d items', 'mcupr' ), $count ) ) . '</span>';
 	}
 	$o .= '</span></a>';
+	if ( $links ) {
+		$o .= '<ul class="ov-links" style="--c:' . esc_attr( $color ) . '">';
+		foreach ( $links as $l ) {
+			$o .= '<li><a href="' . esc_url( $l[1] ) . '">' . esc_html( $l[0] ) . '</a></li>';
+		}
+		$o .= '</ul>';
+	}
 	if ( '' !== $add ) {
 		$o .= '<a class="ov-add" style="--c:' . esc_attr( $color ) . '" href="' . esc_url( $add ) . '" title="' . esc_attr__( 'Add new', 'mcupr' ) . '"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><span class="screen-reader-text">' . esc_html( sprintf( /* translators: %s: section */ __( 'Add new: %s', 'mcupr' ), $title ) ) . '</span></a>';
 	}
 	return $o . '</div>';
 }
 
+/** The small links under a card: its categories / groups, its settings pages, and where visitors see it. Only what the person may open. */
+function mcupr_admin_card_links( $i ) {
+	global $submenu;
+	$title = array();
+	foreach ( isset( $submenu['mcupr'] ) ? $submenu['mcupr'] : array() as $it ) {
+		$title[ $it[2] ] = array( preg_replace( '/^[—\s]+/u', '', $it[0] ), $it[1] );
+	}
+	$links = array();
+	foreach ( isset( $i['tax'] ) ? $i['tax'] : array() as $tx ) {
+		$t = get_taxonomy( $tx );
+		if ( $t && current_user_can( 'edit_pages' ) ) {
+			$links[] = array( $t->labels->name, admin_url( 'edit-tags.php?taxonomy=' . $tx . '&post_type=' . $i['type'] ) );
+		}
+	}
+	$pages = array_merge( ! empty( $i['page'] ) ? array( $i['page'] ) : array(), isset( $i['pages'] ) ? $i['pages'] : array() );
+	foreach ( $pages as $pg ) {
+		if ( isset( $title[ $pg ] ) && current_user_can( $title[ $pg ][1] ) ) {
+			$links[] = array( $title[ $pg ][0], admin_url( 'admin.php?page=' . $pg ) );
+		}
+	}
+	if ( 'mcupr_student' === $i['type'] ) {
+		$links[] = array( __( 'Open the student portal', 'mcupr' ), function_exists( 'mcupr_student_portal_url' ) ? mcupr_student_portal_url() : home_url( '/student/' ) );
+	} elseif ( 'mcupr_office' === $i['type'] ) {
+		$links[] = array( __( 'See the offices on the website', 'mcupr' ), get_post_type_archive_link( 'mcupr_office' ) );
+	}
+	return $links;
+}
+
 /** The overview ("control page"): a banner, what is on right now, quick actions, every theme section and the tools. */
 function mcupr_admin_overview() {
-	if ( ! current_user_can( 'edit_pages' ) ) {
+	if ( ! current_user_can( 'edit_pages' ) && ! current_user_can( MCUPR_STU_CAP ) ) {
 		return;
 	}
 	$mine   = function_exists( 'mcupr_user_offices' ) ? mcupr_user_offices() : null; // null = not limited to offices
@@ -233,6 +281,10 @@ function mcupr_admin_overview() {
 		$chips[] = array( 'maint', __( 'Maintenance mode', 'mcupr' ), ! empty( $st['maint']['on'] ), $url );
 		$chips[] = array( 'welcome', __( 'Welcome page', 'mcupr' ), ! empty( $st['welcome']['on'] ), $url );
 		$chips[] = array( 'mourning', __( 'Mourning', 'mcupr' ), in_array( 'mourning', $modes, true ), $url );
+	}
+	if ( current_user_can( MCUPR_STU_CAP ) && function_exists( 'mcupr_student_counts' ) ) {
+		$sc      = mcupr_student_counts();
+		$chips[] = array( 'students', __( 'Students studying', 'mcupr' ), true, admin_url( 'edit.php?post_type=mcupr_student&mcs_status=studying' ), (int) $sc['studying'] );
 	}
 	$waiting = array();
 	if ( post_type_exists( 'mcupr_topic' ) ) {
@@ -302,7 +354,7 @@ function mcupr_admin_overview() {
 				$all = (int) $cnt->publish + (int) $cnt->draft + (int) $cnt->pending + (int) $cnt->private + (int) $cnt->future;
 			}
 			$add    = current_user_can( $o->cap->create_posts ) ? admin_url( 'post-new.php?post_type=' . $i['type'] ) : '';
-			$cards .= mcupr_admin_card( admin_url( 'edit.php?post_type=' . $i['type'] ), $i['icon'], $o->labels->menu_name ? $o->labels->menu_name : $o->label, $i['desc'], $all, $color, $add );
+			$cards .= mcupr_admin_card( admin_url( 'edit.php?post_type=' . $i['type'] ), $i['icon'], $o->labels->menu_name ? $o->labels->menu_name : $o->label, $i['desc'], $all, $color, $add, mcupr_admin_card_links( $i ) );
 		}
 		if ( '' !== $cards ) {
 			echo '<h2>' . esc_html( $sec['label'] ) . '</h2><div class="ov-grid">' . $cards . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput

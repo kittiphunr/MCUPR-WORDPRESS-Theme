@@ -195,6 +195,28 @@ function mcupr_sanitize_lang( $value ) {
 
 /** Policy page URL for a given customizer key, with WP privacy page fallback. */
 function mcupr_policy_url( $key ) {
+	static $cache = array(); // asked about ten times on a page (footer, cookie notice, dialogs): looked up once
+	if ( ! isset( $cache[ $key ] ) ) {
+		$cache[ $key ] = mcupr_policy_url_lookup( $key );
+	}
+	return $cache[ $key ];
+}
+
+/** The pages with the conventional slugs, found with one query for all of them: slug => page id. */
+function mcupr_policy_pages( $slugs ) {
+	static $map = null;
+	if ( null === $map ) {
+		$map = array();
+		foreach ( get_posts( array( 'post_type' => 'page', 'post_name__in' => array_values( $slugs ), 'post_status' => 'publish', 'posts_per_page' => count( $slugs ), 'no_found_rows' => true, 'update_post_meta_cache' => false, 'update_post_term_cache' => false, 'suppress_filters' => true ) ) as $p ) {
+			if ( ! isset( $map[ $p->post_name ] ) ) {
+				$map[ $p->post_name ] = (int) $p->ID;
+			}
+		}
+	}
+	return $map;
+}
+
+function mcupr_policy_url_lookup( $key ) {
 	$id = (int) get_theme_mod( 'mcupr_page_' . $key, 0 );
 	if ( $id && 'publish' === get_post_status( $id ) ) {
 		return get_permalink( $id );
@@ -208,9 +230,9 @@ function mcupr_policy_url( $key ) {
 		'contact' => 'contact',
 	);
 	if ( isset( $slugs[ $key ] ) ) {
-		$found = get_posts( array( 'name' => $slugs[ $key ], 'post_type' => 'page', 'post_status' => 'publish', 'posts_per_page' => 1, 'no_found_rows' => true, 'suppress_filters' => true ) );
-		if ( $found ) {
-			return get_permalink( $found[0] );
+		$map = mcupr_policy_pages( $slugs );
+		if ( isset( $map[ $slugs[ $key ] ] ) ) {
+			return get_permalink( $map[ $slugs[ $key ] ] );
 		}
 	}
 	if ( 'privacy' === $key ) {

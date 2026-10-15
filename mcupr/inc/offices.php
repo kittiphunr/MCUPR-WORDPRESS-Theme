@@ -284,10 +284,13 @@ function mcupr_office_pages( $office_id ) {
 
 /* ------------------------------------------------------------------ the university's own lists leave office content out */
 
-/** Term ids of the offices that are kept off the main site. */
+/** Term ids of the offices that are kept off the main site (remembered in one option, so a page costs no query for it). */
 function mcupr_office_hidden_terms() {
-	static $ids = null;
-	if ( null === $ids ) {
+	if ( isset( $GLOBALS['mcupr_office_hidden'] ) ) {
+		return $GLOBALS['mcupr_office_hidden'];
+	}
+	$ids = get_option( 'mcupr_office_hidden', null );
+	if ( ! is_array( $ids ) ) {
 		$ids = array();
 		foreach ( mcupr_offices( 'any' ) as $o ) {
 			if ( ! mcupr_office_data( $o->ID )['main'] ) {
@@ -297,8 +300,32 @@ function mcupr_office_hidden_terms() {
 				}
 			}
 		}
+		update_option( 'mcupr_office_hidden', $ids, true );
 	}
+	$GLOBALS['mcupr_office_hidden'] = $ids;
 	return $ids;
+}
+
+/** Forget it: an office was saved or deleted, or its "also show on the main site" switch changed. */
+function mcupr_office_hidden_reset() {
+	delete_option( 'mcupr_office_hidden' );
+	unset( $GLOBALS['mcupr_office_hidden'] );
+}
+add_action( 'save_post_mcupr_office', 'mcupr_office_hidden_reset', 99 );
+add_action( 'deleted_post', 'mcupr_office_hidden_reset' );
+add_action( 'trashed_post', 'mcupr_office_hidden_reset' );
+add_action( 'untrashed_post', 'mcupr_office_hidden_reset' );
+foreach ( array( 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ) as $mcupr_h ) {
+	add_action(
+		$mcupr_h,
+		static function ( $mid, $post_id, $key ) {
+			if ( '_mcupr_of_main' === $key ) {
+				mcupr_office_hidden_reset();
+			}
+		},
+		10,
+		3
+	);
 }
 
 add_action(
