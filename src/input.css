@@ -1846,3 +1846,26 @@ html[data-contrast] button[role="switch"]:focus-visible { outline: 3px solid var
 @media (max-width: 1099px) {
 	.site-nav { transition: transform .42s cubic-bezier(.22, .8, .2, 1), visibility .42s; }
 }
+
+/* ===== "One bar" menu: logo, menu and tools in ONE capsule (top menu, data-menubar) ===== */
+@media (min-width: 1100px) {
+	html[data-menubar][data-menu="top"] .site-header { background: var(--bg); border-radius: 9999px; box-shadow: 0 6px 24px #0f172a1f; padding: 0 .9rem; }
+	html[data-menubar][data-menu="top"] #masthead .brand,
+	html[data-menubar][data-menu="top"] .site-nav,
+	html[data-menubar][data-menu="top"] #masthead > .wrap > div { background: none; border: 0; border-radius: 0; box-shadow: none; }
+	html[data-menubar][data-menu="top"] #masthead > .wrap { gap: .5rem; align-items: center; }
+	html[data-menubar][data-menu="top"] #masthead .brand { min-height: 3.75rem; padding: .35rem .5rem .35rem .15rem; }
+	html[data-menubar][data-menu="top"] .site-nav { min-height: 3.75rem; padding: .35rem .25rem; }
+	html[data-menubar][data-menu="top"] #masthead > .wrap > div { min-height: 3.75rem; padding: .35rem 0 .35rem .25rem; }
+	/* thin dividers instead of three boxes: logo | menu | tools */
+	html[data-menubar][data-menu="top"] #masthead .brand { position: relative; }
+	html[data-menubar][data-menu="top"] #masthead .brand::after, html[data-menubar][data-menu="top"] #masthead > .wrap > div::before { content: ""; position: absolute; top: 22%; bottom: 22%; width: 1px; background: var(--edge, var(--border)); }
+	html[data-menubar][data-menu="top"] #masthead .brand::after { right: -.3rem; }
+	html[data-menubar][data-menu="top"] #masthead > .wrap > div { position: relative; padding-left: 1rem; }
+	html[data-menubar][data-menu="top"] #masthead > .wrap > div::before { left: -.25rem; }
+	/* the tools no longer need their own divider inside the capsule */
+	html[data-menubar][data-menu="top"] #masthead .min-\[1100px\]\:order-3 > [role="group"] { border-left: 0; margin-left: 0; padding-left: 0; }
+	html[data-contrast][data-menubar][data-menu="top"] .site-header { border: 2px solid var(--border); box-shadow: none; }
+	html[data-contrast][data-menubar][data-menu="top"] #masthead .brand, html[data-contrast][data-menubar][data-menu="top"] .site-nav, html[data-contrast][data-menubar][data-menu="top"] #masthead > .wrap > div { border: 0; }
+	html[data-contrast][data-menubar][data-menu="top"] #masthead .brand::after, html[data-contrast][data-menubar][data-menu="top"] #masthead > .wrap > div::before { background: var(--border); }
+}
