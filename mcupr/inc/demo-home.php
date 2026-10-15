@@ -27,18 +27,23 @@ function mcupr_demo_data() {
 	return is_array( $d ) && ! empty( $d['mcupr_demo'] ) ? $d : null;
 }
 
+/** Every post type ("any" leaves out the ones hidden from search, like staff). */
+function mcupr_demo_types() {
+	return array_values( get_post_types() );
+}
+
 /** The post made for a demo key (any status, any type), or 0. */
-function mcupr_demo_find( $key ) {
-	$p = get_posts( array( 'post_type' => 'any', 'post_status' => array( 'publish', 'draft', 'pending', 'private', 'future', 'inherit' ), 'meta_key' => '_mcupr_demo_key', 'meta_value' => $key, 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => true ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+function mcupr_demo_find( $key, $meta = '_mcupr_demo_key' ) {
+	$p = get_posts( array( 'post_type' => mcupr_demo_types(), 'post_status' => array( 'publish', 'draft', 'pending', 'private', 'future', 'inherit' ), 'meta_key' => $meta, 'meta_value' => $key, 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => true, 'mcupr_office_all' => 1 ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
 	return $p ? (int) $p[0] : 0;
 }
 
 /** A soft gradient picture (no text, no photo): attachment id or 0. $seed picks the colours. */
-function mcupr_demo_image( $key, $seed, $w = 1600, $h = 900 ) {
+function mcupr_demo_image( $key, $seed, $w = 1600, $h = 900, $meta = '_mcupr_demo_key' ) {
 	if ( ! function_exists( 'imagecreatetruecolor' ) ) {
 		return 0;
 	}
-	$have = mcupr_demo_find( 'img-' . $key );
+	$have = mcupr_demo_find( 'img-' . $key, $meta );
 	if ( $have ) {
 		return $have;
 	}
@@ -75,7 +80,7 @@ function mcupr_demo_image( $key, $seed, $w = 1600, $h = 900 ) {
 	}
 	wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 	update_post_meta( $id, '_wp_attachment_image_alt', 'ภาพตัวอย่าง' );
-	update_post_meta( $id, '_mcupr_demo_key', 'img-' . $key );
+	update_post_meta( $id, $meta, 'img-' . $key );
 	return (int) $id;
 }
 
@@ -229,7 +234,7 @@ function mcupr_demo_apply( $d ) {
 /** Delete what the demo made (also what was edited). Returns the number of items deleted. */
 function mcupr_demo_remove() {
 	$n   = 0;
-	$ids = get_posts( array( 'post_type' => 'any', 'post_status' => 'any', 'meta_key' => '_mcupr_demo_key', 'posts_per_page' => 300, 'fields' => 'ids', 'no_found_rows' => true ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+	$ids = get_posts( array( 'post_type' => mcupr_demo_types(), 'post_status' => 'any', 'meta_key' => '_mcupr_demo_key', 'posts_per_page' => 300, 'fields' => 'ids', 'no_found_rows' => true ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
 	$att = get_posts( array( 'post_type' => 'attachment', 'post_status' => 'inherit', 'meta_key' => '_mcupr_demo_key', 'posts_per_page' => 300, 'fields' => 'ids', 'no_found_rows' => true ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
 	foreach ( array_unique( array_merge( $ids, $att ) ) as $id ) {
 		if ( 'attachment' === get_post_type( $id ) && (int) get_theme_mod( 'mcupr_hero_image', 0 ) === (int) $id ) {
