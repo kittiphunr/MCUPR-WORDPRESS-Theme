@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.28.5 =
+* Full-screen menu: grows out of its button, parts arrive in turn, shrinks back on close
+
 = 1.28.4 =
 * High-contrast mode: on/off switches visible
 
