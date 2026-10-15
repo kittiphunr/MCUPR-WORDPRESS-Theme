@@ -132,4 +132,8 @@ foreach ( array( array( 'fx-poster', 600, 900 ), array( 'fx-wide', 1600, 1000 ) 
 // a video (no cover picture: the server has no network here) and a news post with a poster-shaped picture
 $vd = wp_insert_post( array( 'post_type' => 'mcupr_video', 'post_status' => 'publish', 'post_title' => 'วิดีโอแนะนำมหาวิทยาลัยตัวอย่าง', 'post_name' => 'fx-video', 'post_content' => 'คำอธิบายวิดีโอ' ) );
 update_post_meta( $vd, '_mcupr_video_url', 'https://youtu.be/dQw4w9WgXcQ' );
+// an administrator for the browser checks of the admin menu
+if ( ! username_exists( 'e2eadmin' ) ) {
+	wp_insert_user( array( 'user_login' => 'e2eadmin', 'user_pass' => 'e2e-Admin-pass-1', 'user_email' => 'e2eadmin@example.org', 'role' => 'administrator' ) );
+}
 echo "ok $id\n";

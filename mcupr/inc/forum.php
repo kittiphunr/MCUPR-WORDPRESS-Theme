@@ -562,7 +562,7 @@ add_action(
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'edit.php?post_type=mcupr_topic', __( 'Forum settings', 'mcupr' ), __( 'Forum settings', 'mcupr' ), 'edit_pages', 'mcupr-forum', 'mcupr_forum_settings_page', 0 );
+		add_submenu_page( 'mcupr', __( 'Forum settings', 'mcupr' ), __( 'Forum settings', 'mcupr' ), 'edit_pages', 'mcupr-forum', 'mcupr_forum_settings_page', 0 );
 	}
 );
 

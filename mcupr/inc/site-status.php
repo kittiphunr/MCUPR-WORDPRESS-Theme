@@ -81,14 +81,14 @@ function mcupr_maintenance_end_ts( $m ) {
 add_action(
 	'admin_menu',
 	static function () {
-		add_menu_page( __( 'Welcome & maintenance', 'mcupr' ), __( 'Welcome & maintenance', 'mcupr' ), 'manage_options', 'mcupr-status', 'mcupr_status_page', 'dashicons-lock', 3 );
+		add_submenu_page( 'mcupr', __( 'Welcome & maintenance', 'mcupr' ), __( 'Welcome & maintenance', 'mcupr' ), 'manage_options', 'mcupr-status', 'mcupr_status_page' );
 	}
 );
 
 add_action(
 	'admin_enqueue_scripts',
 	static function ( $hook ) {
-		if ( 'toplevel_page_mcupr-status' === $hook ) {
+		if ( false !== strpos( (string) $hook, 'mcupr-status' ) ) {
 			wp_enqueue_media();
 			wp_add_inline_script( 'media-editor', "document.addEventListener('click',function(e){var b=e.target.closest('[data-pick]');if(!b){return;}e.preventDefault();var f=wp.media({multiple:false,library:{type:'image'}});f.on('select',function(){var a=f.state().get('selection').first().toJSON();document.getElementById(b.getAttribute('data-pick')).value=a.id;var p=document.getElementById(b.getAttribute('data-pick')+'-pv');if(p){p.src=(a.sizes&&a.sizes.thumbnail?a.sizes.thumbnail.url:a.url);p.hidden=false;}});f.open();});" );
 		}
