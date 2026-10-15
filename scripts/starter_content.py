@@ -63,6 +63,10 @@ T = {
  'sitemap': ('แผนผังเว็บไซต์', 'Sitemap', '网站地图', 'サイトマップ'),
  'faq': ('คำถามที่พบบ่อย', 'FAQ', '常见问题', 'よくある質問'),
  'contact': ('ติดต่อเรา', 'Contact us', '联系我们', 'お問い合わせ'),
+ 'student-portal': ('พอร์ทัลนิสิต', 'Student portal', '学生门户', '学生ポータル'),
+ 'study-plan': ('แผนการเรียน', 'Study plans', '学习计划', '履修計画'),
+ 'donate': ('บริจาคสนับสนุน', 'Donate', '捐赠支持', '寄付のお願い'),
+ 'quality-assurance': ('ประกันคุณภาพการศึกษา', 'Quality assurance', '教育质量保证', '教育の質保証'),
  'forum': ('กระดานสนทนา', 'Discussion board', '讨论区', '掲示板'),
  'documents': ('ศูนย์เอกสารดาวน์โหลด', 'Document centre', '文档下载中心', '資料ダウンロード'),
  'events-calendar': ('ปฏิทินกิจกรรม', 'Events calendar', '活动日历', 'イベントカレンダー'),
@@ -75,16 +79,16 @@ T = {
 # page key -> parent key (None = top level), in menu_order
 PARENT = {}
 SECTIONS = {
- 'about': ['history', 'vision', 'emblem', 'structure', 'executives', 'council', 'staff', 'location', 'strategy', 'annual-report'],
- 'academics': ['programs', 'admissions', 'scholarships', 'calendar', 'registrar', 'library'],
+ 'about': ['history', 'vision', 'emblem', 'structure', 'executives', 'council', 'staff', 'location', 'strategy', 'annual-report', 'donate'],
+ 'academics': ['programs', 'admissions', 'scholarships', 'calendar', 'registrar', 'library', 'study-plan', 'quality-assurance'],
  'research': ['research-policy', 'research-centers', 'journals', 'academic-service', 'research-grants', 'research-ethics'],
- 'students': ['student-services', 'dormitory', 'health', 'activities', 'career', 'alumni', 'student-handbook', 'forum'],
+ 'students': ['student-services', 'dormitory', 'health', 'activities', 'career', 'alumni', 'student-handbook', 'student-portal', 'forum'],
  'governance': ['ita', 'oic', 'open-data', 'plans-reports', 'procurement', 'hr', 'complaints', 'anti-corruption', 'laws', 'documents'],
  'policies': ['privacy-policy', 'cookie-policy', 'accessibility-statement', 'security-policy', 'terms-of-use', 'copyright-notice', 'sitemap', 'faq'],
 }
 ROOTS = ['about', 'academics', 'research', 'students', 'governance', 'policies', 'contact', 'eservice', 'events-calendar', 'welcome-demo', 'internal-form', 'survey']
 # pages that the first starter file did not have: the "add-ons" file (scripts/make-starter.py --addons) carries only these
-ADDON_PAGES = ['documents', 'events-calendar', 'forum', 'welcome-demo', 'internal-form', 'survey']
+ADDON_PAGES = ['documents', 'events-calendar', 'forum', 'welcome-demo', 'internal-form', 'survey', 'student-portal', 'study-plan', 'donate', 'quality-assurance']
 for root, kids in SECTIONS.items():
     for k in kids:
         PARENT[k] = root
@@ -166,6 +170,20 @@ C['calendar'] = generic('ปฏิทิน', 'ปฏิทินการศึ
     ['วันเปิด-ปิดภาคเรียน', 'วันสอบกลางภาค/ปลายภาค', 'วันหยุดและกิจกรรมสำคัญ'], table(['กิจกรรม', 'ภาคเรียนที่ 1', 'ภาคเรียนที่ 2'], [['เปิดภาคเรียน', '[วว/ดด]', '[วว/ดด]'], ['สอบปลายภาค', '[วว/ดด]', '[วว/ดด]']]))
 C['registrar'] = generic('ทะเบียน', 'บริการงานทะเบียนและวัดผล', ['ขั้นตอนลงทะเบียนเรียน', 'ขอเอกสารทางการศึกษา (ใบรับรอง/ใบแสดงผล)', 'แบบฟอร์มดาวน์โหลด', 'ลิงก์ระบบทะเบียนออนไลน์ [ใส่ลิงก์]'])
 C['library'] = generic('ห้องสมุด', 'บริการห้องสมุดและทรัพยากรสารสนเทศ', ['เวลาทำการ', 'ฐานข้อมูลออนไลน์ / e-Book', 'บริการยืม-คืน และบริการสืบค้น', 'ติดต่อบรรณารักษ์'])
+
+C['study-plan'] = generic('แผนการเรียน', 'แผนการเรียนตลอดหลักสูตรของแต่ละหลักสูตร ให้นักศึกษาวางแผนรายภาคเรียนได้ล่วงหน้า',
+    ['แผนการเรียนรายภาคเรียนของแต่ละหลักสูตร (ตารางหรือไฟล์ PDF)', 'รายวิชาบังคับ วิชาเลือก และหน่วยกิตรวม', 'เงื่อนไขการลงทะเบียนและวิชาบังคับก่อน', 'ผู้ประสานงานหลักสูตรและช่องทางติดต่อ'],
+    table(['หลักสูตร', 'ปีที่เข้าศึกษา', 'ไฟล์แผนการเรียน'], [['[ชื่อหลักสูตร]', '[พ.ศ.]', '[แนบลิงก์ไฟล์]'], ['[ชื่อหลักสูตร]', '[พ.ศ.]', '[แนบลิงก์ไฟล์]']]))
+C['quality-assurance'] = generic('ประกันคุณภาพ', 'ข้อมูลการประกันคุณภาพการศึกษาภายในและภายนอกของหน่วยงาน',
+    ['นโยบายและระบบประกันคุณภาพการศึกษา', 'คณะกรรมการประกันคุณภาพ', 'รายงานผลการประเมินตนเอง (SAR) รายปี', 'ผลการประเมินคุณภาพภายนอกและแผนพัฒนา', 'หลักสูตรที่ได้รับการรับรองมาตรฐาน'], doc_table('รายงาน/เอกสาร'))
+C['donate'] = (todo('ใส่ช่องทางบริจาคจริงของหน่วยงาน (เลขบัญชี / QR Code / ลิงก์ e-Donation) และผู้ติดต่อ') +
+    '<p>ขอเชิญร่วมสนับสนุนการศึกษาและกิจกรรมของ [mcupr_org] การบริจาคทุกจำนวนช่วยให้เราพัฒนาการเรียนการสอน ทุนการศึกษา และงานบริการวิชาการ</p>\n'
+    '<h2>ช่องทางการบริจาค</h2>\n' + ul(['โอนเข้าบัญชี: [ชื่อบัญชี] ธนาคาร [ธนาคาร] เลขที่ [เลขบัญชี]', 'สแกน QR Code: [แทรกรูป QR Code]', 'บริจาคออนไลน์ / e-Donation: [ลิงก์]']) +
+    '<h2>การนำไปใช้</h2>\n<p>[อธิบายว่าเงินบริจาคนำไปใช้ในเรื่องใด เช่น ทุนการศึกษา อุปกรณ์การเรียน กิจกรรมนิสิต]</p>\n<h2>การลดหย่อนภาษีและหลักฐาน</h2>\n<p>[แจ้งสิทธิลดหย่อนภาษีและวิธีขอใบเสร็จ]</p>\n<h2>ติดต่อ</h2>\n<p>[มอบหมายผู้ประสานงาน] โทร [mcupr_org field="tel"] อีเมล [mcupr_org field="email"]</p>\n')
+C['student-portal'] = (todo('ใส่ลิงก์ระบบจริงของหน่วยงานในแต่ละรายการ (ระบบทะเบียน e-Learning อีเมลนิสิต ฯลฯ)') +
+    '<p>รวมระบบและข้อมูลที่นิสิตปัจจุบันใช้บ่อยไว้ในที่เดียว</p>\n<h2>ระบบที่ใช้บ่อย</h2>\n' + ul(['ระบบทะเบียนและผลการเรียน: [ลิงก์]', 'ระบบเรียนออนไลน์ (e-Learning): [ลิงก์]', 'อีเมลนิสิต: [ลิงก์]', 'ห้องสมุดและฐานข้อมูลออนไลน์: [ลิงก์]']) +
+    '<h2>ข้อมูลที่ควรรู้</h2>\n<ul>\n<li><a href="/calendar/">ปฏิทินการศึกษา</a></li>\n<li>ประกาศและกำหนดการสำคัญ: [ลิงก์]</li>\n<li>เอกสารและแบบฟอร์มดาวน์โหลด: [mcupr_documents หรือลิงก์ศูนย์เอกสาร]</li>\n</ul>\n'
+    '<h2>ต้องการความช่วยเหลือ</h2>\n<p>ติดต่องานบริการนักศึกษา: [ช่องทางติดต่อ]</p>\n')
 
 C['research'] = (todo('หน้าแรกของหมวด “วิจัยและบริการวิชาการ”') + '<p>[เขียนภาพรวมงานวิจัยและบริการวิชาการของหน่วยงาน]</p>\n')
 C['research-policy'] = generic('นโยบายวิจัย', 'ประกาศนโยบายและทิศทางการวิจัย', ['นโยบายและยุทธศาสตร์การวิจัย', 'ประเด็นวิจัยสำคัญ', 'ระบบสนับสนุนนักวิจัย'])
