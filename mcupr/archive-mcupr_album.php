@@ -14,7 +14,7 @@ get_template_part( 'template-parts/band', null, array( 'title' => esc_html( mcup
 			<?php
 			while ( have_posts() ) {
 				the_post();
-				echo mcupr_album_card( get_post() ); // phpcs:ignore WordPress.Security.EscapeOutput
+				echo mcupr_album_card( get_post(), 'h2' ); // phpcs:ignore WordPress.Security.EscapeOutput
 			}
 			?>
 		</div>
