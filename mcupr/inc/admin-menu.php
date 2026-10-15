@@ -16,7 +16,7 @@ function mcupr_admin_sections() {
 		'content'   => array(
 			'label' => __( 'Content', 'mcupr' ),
 			'items' => array(
-				array( 'type' => 'mcupr_event', 'icon' => 'dashicons-calendar-alt', 'desc' => __( 'Events and the calendar', 'mcupr' ) ),
+				array( 'type' => 'mcupr_event', 'page' => 'mcupr-ics', 'icon' => 'dashicons-calendar-alt', 'desc' => __( 'Events and the calendar', 'mcupr' ) ),
 				array( 'type' => 'mcupr_work', 'tax' => array( 'mcupr_work_cat' ), 'icon' => 'dashicons-awards', 'desc' => __( 'Works and awards', 'mcupr' ) ),
 				array( 'type' => 'mcupr_album', 'icon' => 'dashicons-format-gallery', 'desc' => __( 'Photo albums with a lightbox', 'mcupr' ) ),
 				array( 'type' => 'mcupr_video', 'tax' => array( 'mcupr_video_cat' ), 'icon' => 'dashicons-video-alt3', 'desc' => __( 'Videos from YouTube, Vimeo or a file', 'mcupr' ) ),

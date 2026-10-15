@@ -844,6 +844,36 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         }
         await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
         await ap.screenshot({ path: shot('admin-mcupr.png') });
+        // import an .ics file through the admin page
+        const fs = require('fs'); const os = require('os'); const path = require('path');
+        const yy = new Date().getFullYear() + 1;
+        const file = path.join(os.tmpdir(), 'e2e-cal.ics');
+        fs.writeFileSync(file, 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:e2e1@test\r\nSUMMARY:งานนำเข้าจากไฟล์ ics\r\nDTSTART:' + yy + '0912T020000Z\r\nDTEND:' + yy + '0912T050000Z\r\nLOCATION:ห้องประชุมใหญ่\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n');
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr-ics');
+        ok((await ap.locator('input[type=file]').count()) === 1 && (await ap.locator('input[name=url]').count()) === 1, 'calendar import page: a file box and an address box for syncing');
+        await ap.setInputFiles('input[type=file]', file);
+        await ap.click('form[enctype] input[type=submit]');
+        await ap.waitForURL(/msg=/);
+        ok(/1/.test(await ap.locator('.notice').first().innerText()) && !(await ap.locator('.wp-die-message').count()), 'calendar import: the file is read and the result is told ("' + (await ap.locator('.notice').first().innerText()).slice(0, 60) + '")');
+        await ap.goto(B + '/events/');
+        ok((await ap.locator('body').innerText()).includes('งานนำเข้าจากไฟล์ ics'), 'calendar import: the imported event shows on the events page');
+        fs.writeFileSync(file, 'not a calendar');
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr-ics');
+        await ap.setInputFiles('input[type=file]', file);
+        await ap.click('form[enctype] input[type=submit]');
+        await ap.waitForURL(/msg=/);
+        ok(/ไม่|not a calendar|\.ics/i.test(await ap.locator('.notice').first().innerText()), 'calendar import: a file that is not a calendar is refused politely');
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr-ics');
+        await ap.fill('input[name=url]', 'javascript:alert(1)');
+        await ap.evaluate(() => { document.querySelector('input[name=url]').type = 'text'; });
+        await ap.click('form:has(input[name=url]) input[type=submit]');
+        await ap.waitForURL(/msg=/);
+        ok(/ไม่|cannot|ใช้/i.test(await ap.locator('.notice').first().innerText()), 'calendar sync: an address that is not http(s) is refused');
+        await ap.screenshot({ path: shot('admin-ics.png'), fullPage: true });
+      }
+      if (w < 1100) {
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr-ics');
+        ok(!(await ap.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)), 'calendar import page at ' + w + 'px: no sideways scroll');
       }
       await ac.close();
     }
