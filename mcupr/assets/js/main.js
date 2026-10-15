@@ -476,7 +476,9 @@
 					if (min) { a.setAttribute('title', (t.textContent || '').trim()); } else { a.removeAttribute('title'); }
 				});
 			};
+			var sbTimer = 0;
 			sbBtn.addEventListener('click', function () {
+				if (motionOn()) { root.classList.add('sb-anim'); clearTimeout(sbTimer); sbTimer = setTimeout(function () { root.classList.remove('sb-anim'); }, 700); }
 				root.classList.toggle('sb-min');
 				try { localStorage.setItem('mcupr_sbmin', root.classList.contains('sb-min') ? '1' : '0'); } catch (err) { /* ignore */ }
 				syncSb();
