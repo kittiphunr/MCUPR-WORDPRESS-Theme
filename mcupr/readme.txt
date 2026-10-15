@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.21.0 =
+* Form builder, add-ons starter file, page-by-page audit, small fixes
+
 = 1.20.0 =
 * Calendar: import .ics files and sync with a calendar address
 

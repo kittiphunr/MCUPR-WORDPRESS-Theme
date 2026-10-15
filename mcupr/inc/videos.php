@@ -226,10 +226,11 @@ add_action(
 /* ------------------------------------------------------------------ front end */
 
 /** A card of the video list: cover with a play badge, title, date. */
-function mcupr_video_card( $p ) {
+function mcupr_video_card( $p, $h = 'h3' ) {
+	$h = 'h2' === $h ? 'h2' : 'h3';
 	$tid = get_post_thumbnail_id( $p );
 	$o   = '<article class="album-card video-card"><a class="album-cover" href="' . esc_url( get_permalink( $p ) ) . '" tabindex="-1" aria-hidden="true">' . ( $tid ? wp_get_attachment_image( $tid, 'medium_large', false, array( 'alt' => '', 'loading' => 'lazy', 'decoding' => 'async' ) ) : '<span class="album-none">' . mcupr_icon( 'play', 40 ) . '</span>' ) . '<span class="vid-badge">' . mcupr_icon( 'play', 22 ) . '</span></a>';
-	$o  .= '<h3 class="album-t"><a href="' . esc_url( get_permalink( $p ) ) . '">' . esc_html( get_the_title( $p ) ) . '</a></h3><p class="album-d">' . esc_html( get_the_date( 'j M Y', $p ) ) . '</p></article>';
+	$o  .= '<' . $h . ' class="album-t"><a href="' . esc_url( get_permalink( $p ) ) . '">' . esc_html( get_the_title( $p ) ) . '</a></' . $h . '><p class="album-d">' . esc_html( get_the_date( 'j M Y', $p ) ) . '</p></article>';
 	return $o;
 }
 

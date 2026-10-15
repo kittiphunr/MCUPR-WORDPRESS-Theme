@@ -136,4 +136,21 @@ update_post_meta( $vd, '_mcupr_video_url', 'https://youtu.be/dQw4w9WgXcQ' );
 if ( ! username_exists( 'e2eadmin' ) ) {
 	wp_insert_user( array( 'user_login' => 'e2eadmin', 'user_pass' => 'e2e-Admin-pass-1', 'user_email' => 'e2eadmin@example.org', 'role' => 'administrator' ) );
 }
+// every public address of the site, for the page-by-page audit (e2e/audit.js)
+$urls = array( home_url( '/' ) );
+foreach ( get_post_types( array( 'public' => true ) ) as $pt ) {
+	if ( in_array( $pt, array( 'attachment', 'mcupr_msg' ), true ) ) { continue; }
+	$ar = get_post_type_archive_link( $pt );
+	if ( $ar ) { $urls[] = $ar; }
+	$po = get_post_type_object( $pt );
+	if ( ! $po->publicly_queryable && 'page' !== $pt ) { continue; } // no page of its own (e.g. staff profiles switched off)
+	foreach ( get_posts( array( 'post_type' => $pt, 'post_status' => 'publish', 'posts_per_page' => -1, 'fields' => 'ids', 'orderby' => 'ID' ) ) as $pid ) { if ( 'mcupr_person' === $pt && 'off' === get_post_meta( $pid, '_mcupr_person_profile', true ) ) { continue; } $urls[] = get_permalink( $pid ); }
+}
+foreach ( get_taxonomies( array( 'public' => true ) ) as $tx ) {
+	foreach ( get_terms( array( 'taxonomy' => $tx, 'hide_empty' => true, 'number' => 6 ) ) as $t ) { $urls[] = get_term_link( $t ); }
+}
+$urls[] = home_url( '/?s=' . rawurlencode( 'ข่าว' ) );
+$urls[] = home_url( '/?s=zzzz-nothing-here' );
+$urls[] = home_url( '/?mcupr_all=1' );
+file_put_contents( ABSPATH . 'urls-fixture.json', wp_json_encode( array( 'urls' => array_values( array_unique( array_filter( $urls, 'is_string' ) ) ), 'notfound' => home_url( '/no-such-page-xyz/' ) ) ) );
 echo "ok $id\n";

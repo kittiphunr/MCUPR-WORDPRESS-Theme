@@ -191,8 +191,9 @@ function mcupr_form_html( $type = 'contact' ) {
 add_shortcode(
 	'mcupr_form',
 	static function ( $atts ) {
-		$a = shortcode_atts( array( 'type' => 'contact' ), $atts, 'mcupr_form' );
-		return mcupr_form_html( $a['type'] );
+		$a    = shortcode_atts( array( 'type' => 'contact', 'id' => '', 'slug' => '' ), $atts, 'mcupr_form' );
+		$html = mcupr_form_html( $a['type'] );
+		return ( '' !== $a['id'] || '' !== $a['slug'] ) ? apply_filters( 'mcupr_form_shortcode', '', $a ) : $html; // id / slug: a form made with the form builder (inc/formbuilder.php)
 	}
 );
 
