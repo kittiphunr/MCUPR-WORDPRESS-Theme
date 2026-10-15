@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.18.2 =
+* Sidebar menu: long names wrap
+
 = 1.18.1 =
 * Starter file: welcome page samples page
 
