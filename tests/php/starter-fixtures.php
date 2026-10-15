@@ -61,6 +61,8 @@ foreach ( array( 'head' => array( 2480, 425, array( 200, 40, 90 ) ), 'foot' => a
 	wp_update_attachment_metadata( $aid, wp_generate_attachment_metadata( $aid, $u['file'] ) );
 	set_theme_mod( "mcupr_print_{$k}_img", $aid );
 }
+// numbers block on the home page
+foreach ( array( 'teachers' => '1,250', 'faculties' => '12', 'bachelor' => '18,000', 'master' => '3,200', 'doctoral' => '650', 'asof' => 'ข้อมูล ณ ปีการศึกษา 2568' ) as $k => $v ) { set_theme_mod( 'mcupr_num_' . $k, $v ); }
 // staff hub: link people to units, decorations, education, works, privacy
 $units  = array();
 foreach ( array( 'unit-rector', 'unit-vice' ) as $us ) { $u = get_posts( array( 'post_type' => 'mcupr_unit', 'name' => $us, 'post_status' => 'publish' ) ); if ( $u ) { $units[] = $u[0]; } }

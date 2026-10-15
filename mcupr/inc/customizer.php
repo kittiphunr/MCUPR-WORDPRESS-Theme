@@ -76,6 +76,7 @@ function mcupr_customize_register( $wp_customize ) {
 	$wp_customize->add_section( 'mcupr_home_sections', array( 'title' => __( 'MCUPR: Home page sections', 'mcupr' ), 'description' => __( 'Show only what you need on the home page. The hero and the quick links are always shown. Events, videos and albums appear only when there are some.', 'mcupr' ), 'priority' => 33 ) );
 	foreach ( array(
 		'about'  => array( true, __( 'Introduction of the organisation (logo, text, “About us” button)', 'mcupr' ) ),
+		'numbers' => array( true, __( 'Numbers (students, teachers, faculties, students per level) – shown when filled in', 'mcupr' ) ),
 		'slider' => array( true, __( 'Featured news slider', 'mcupr' ) ),
 		'events' => array( true, __( 'Upcoming events', 'mcupr' ) ),
 		'media'  => array( true, __( 'Newest video and photo albums', 'mcupr' ) ),
