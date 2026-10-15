@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.18.5 =
+* Search overlay redesigned with example searches, tested from 320 to 1920 px
+
 = 1.18.4 =
 * Sidebar: active item keeps its icon on hover
 
