@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.30.4 =
+* Work / award page: badges and facts redesigned as cards
+
 = 1.30.3 =
 * 404 page redesigned: big 404, centred search with a guess from the address, buttons, menu pages, latest news
 
