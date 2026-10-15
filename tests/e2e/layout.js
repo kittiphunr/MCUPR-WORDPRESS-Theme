@@ -457,7 +457,18 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await p.waitForTimeout(500);
     const fill = await p.evaluate(() => { const n = document.querySelector('#site-nav'); const m = n.querySelector('.menu'); const nb = n.getBoundingClientRect(); const mb = m.getBoundingClientRect(); return [mb.width / nb.width, getComputedStyle(m).justifyContent]; });
     ok(fill[0] > 0.9 && /space/.test(fill[1]), 'top menu: the items are spread over the whole capsule (' + Math.round(fill[0] * 100) + '%, ' + fill[1] + ')');
+    const hs = await p.evaluate(() => ['#masthead .brand', '#site-nav', '#masthead > .wrap > div'].map((q) => Math.round(document.querySelector(q).getBoundingClientRect().height)));
+    ok(Math.max(...hs) - Math.min(...hs) <= 1, 'top bar: the logo, menu and tools capsules are the same height (' + hs.join(' / ') + ')');
+    ok((await p.locator('#masthead .brand-wide').count()) === 0, 'logo: the name stays beside it by default');
     await c.close();
+    const cw = await newCtx({ viewport: { width: 1440, height: 800 } }, null, { mcupr_logo_wide: true });
+    const pw = await cw.newPage();
+    await pw.goto(B + '/');
+    await pw.evaluate(() => { document.documentElement.setAttribute('data-menu', 'top'); });
+    await pw.waitForTimeout(400);
+    const wd = await pw.evaluate(() => { const b = document.querySelector('#masthead .brand-wide'); const t = b && b.lastElementChild; return b ? [t.className.includes('sr-only'), b.getBoundingClientRect().width, Math.round(b.getBoundingClientRect().height), Math.round(document.querySelector('#site-nav').getBoundingClientRect().height)] : null; });
+    ok(wd && wd[0] && wd[1] < 448 && Math.abs(wd[2] - wd[3]) <= 1, 'wide logo option: only the logo is shown (name kept for screen readers), capsule still as tall as the menu (' + JSON.stringify(wd) + ')');
+    await cw.close();
   }
 
   // ================= About dialog in the Precision QC layout

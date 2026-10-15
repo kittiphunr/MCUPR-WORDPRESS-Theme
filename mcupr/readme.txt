@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.16.4 =
+* Logo capsule same height as the menu; wide-logo option
+
 = 1.16.3 =
 * Top menu items spread over the whole capsule
 
