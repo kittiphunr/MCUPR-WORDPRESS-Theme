@@ -448,6 +448,18 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await c.close();
   }
 
+  // top menu: the items use the whole width of the menu capsule (no empty areas left and right)
+  {
+    const c = await newCtx({ viewport: { width: 1440, height: 800 } });
+    const p = await c.newPage();
+    await p.goto(B + '/');
+    await p.evaluate(() => { document.documentElement.setAttribute('data-menu', 'top'); });
+    await p.waitForTimeout(500);
+    const fill = await p.evaluate(() => { const n = document.querySelector('#site-nav'); const m = n.querySelector('.menu'); const nb = n.getBoundingClientRect(); const mb = m.getBoundingClientRect(); return [mb.width / nb.width, getComputedStyle(m).justifyContent]; });
+    ok(fill[0] > 0.9 && /space/.test(fill[1]), 'top menu: the items are spread over the whole capsule (' + Math.round(fill[0] * 100) + '%, ' + fill[1] + ')');
+    await c.close();
+  }
+
   // ================= About dialog in the Precision QC layout
   {
     const mods = { mcupr_credit_name: 'ผู้พัฒนาทดสอบ', mcupr_credit_role: 'นักวิชาการ', mcupr_credit_tag: 'Full-Stack', mcupr_credit_email: 'dev@example.org', mcupr_credit_tel: '089-000-0000', mcupr_credit_url: 'https://example.org/', mcupr_org_email: 'info@example.org', mcupr_org_tel: '054-000-000' };
