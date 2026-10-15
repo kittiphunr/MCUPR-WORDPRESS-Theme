@@ -1025,7 +1025,7 @@ html[data-contrast] .notice-bar { background: var(--bg); color: var(--text); bor
 .mform form { display: grid; gap: .9rem; }
 .mform p { margin: 0; }
 .mform label { display: block; margin-bottom: .3rem; font-weight: 700; font-size: .95rem; }
-.mform input[type=text], .mform input[type=email], .mform input[type=tel], .mform select, .mform textarea { width: 100%; min-height: 3rem; padding: .6rem 1rem; border: 1px solid var(--control); border-radius: 1rem; background: var(--bg); color: var(--text); font: inherit; }
+.mform input[type=text], .mform input[type=email], .mform input[type=tel], .mform input[type=date], .mform input[type=number], .mform select, .mform textarea { width: 100%; min-height: 3rem; padding: .6rem 1rem; border: 1px solid var(--control); border-radius: 1rem; background: var(--bg); color: var(--text); font: inherit; }
 .mform textarea { min-height: 9rem; }
 .mform [aria-invalid="true"] { border-color: #b91c1c; border-width: 2px; }
 .mform-row { display: grid; gap: .9rem; }
@@ -1607,3 +1607,26 @@ html[data-contrast] .swal-fullscreen:has(.sr-box) { background: var(--bg) !impor
 .site-nav .submenu-toggle:not(.more-btn) { width: 2.75rem; height: 2.75rem; min-width: 2.75rem; min-height: 2.75rem; border-radius: 9999px; flex: none; }
 html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .submenu-toggle:not(.more-btn) { width: 2.75rem; height: 2.75rem; min-width: 2.75rem; margin: 0 .1rem 0 0; }
 html[data-menu="top"] .site-nav .menu > li > .submenu-toggle:not(.more-btn) { width: 2.5rem; height: 2.5rem; min-width: 2.5rem; min-height: 2.5rem; margin-left: -.25rem; margin-right: .2rem; }
+
+/* ===== links inside running text are underlined (WCAG 1.4.1): visitors' comments, the forum's meta line ===== */
+.comment-bubble a:not(.no-underline), .forum-m a { text-decoration: underline; text-underline-offset: .18em; }
+
+/* ===== Form builder forms (inc/formbuilder.php) ===== */
+.fbform .fb-intro { margin-bottom: .4rem; color: var(--text-2, var(--text)); }
+.fbform .fbf-h { margin: 1.2rem 0 0; text-transform: none; letter-spacing: 0; font-weight: 700; color: var(--text); padding-bottom: .4rem; border-bottom: 2px solid var(--tint); font-size: 1.15rem; }
+.fbform .fb-note { padding: .8rem 1rem; border-radius: 1rem; background: var(--tint); }
+.fbform .fb-f label { cursor: pointer; }
+.fbform fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.fbform legend { padding: 0; margin-bottom: .45rem; font-weight: 700; font-size: .95rem; }
+.fbform .fb-opts { display: grid; gap: .5rem; }
+.fbform .fb-o { display: flex; align-items: center; gap: .65rem; min-height: 2.9rem; margin: 0; padding: .45rem .9rem; border: 1px solid var(--border); border-radius: .9rem; background: var(--bg); font-weight: 500; }
+.fbform .fb-o:hover, .fbform .fb-o:has(input:checked) { border-color: var(--primary); background: var(--tint); }
+.fbform .fb-o:has(input:focus-visible) { outline: 3px solid var(--primary); outline-offset: 2px; }
+.fbform .fb-o input { width: 1.2rem; height: 1.2rem; flex: none; margin: 0; }
+.fbform .fb-opts.is-rating { display: flex; flex-wrap: wrap; gap: .5rem; }
+.fbform .fb-opts.is-rating .fb-o { justify-content: center; min-width: 3.2rem; padding: .45rem .8rem; border-radius: 9999px; font-weight: 700; }
+.fbform .fb-help { display: block; margin-top: .3rem; color: var(--muted); font-size: .88rem; }
+.fbform .fb-err { display: block; margin-top: .3rem; color: #b91c1c; font-size: .92rem; font-weight: 700; }
+html[data-theme="dark"] .fbform .fb-err { color: #fca5a5; }
+@media (prefers-color-scheme: dark) { html:not([data-theme="light"]):not([data-theme="dark"]) .fbform .fb-err { color: #fca5a5; } }
+.fbform .mform-err a { color: inherit; text-decoration: underline; }
