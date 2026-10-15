@@ -73,8 +73,18 @@ function mcupr_customize_register( $wp_customize ) {
 		/* translators: %d: block number */
 		$wp_customize->add_control( 'mcupr_home_cat_' . $i, array( 'section' => 'mcupr_home', 'label' => sprintf( __( 'News by category: block %d', 'mcupr' ), $i ), 'type' => 'select', 'choices' => $cat_choices ) );
 	}
-	$wp_customize->add_setting( 'mcupr_home_cats_on', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
-	$wp_customize->add_control( 'mcupr_home_cats_on', array( 'section' => 'mcupr_home', 'label' => __( 'Show the “news by category” blocks on the home page', 'mcupr' ), 'type' => 'checkbox' ) );
+	$wp_customize->add_section( 'mcupr_home_sections', array( 'title' => __( 'MCUPR: Home page sections', 'mcupr' ), 'description' => __( 'Show only what you need on the home page. The hero and the quick links are always shown. Events, videos and albums appear only when there are some.', 'mcupr' ), 'priority' => 33 ) );
+	foreach ( array(
+		'about'  => array( true, __( 'Introduction of the organisation (logo, text, “About us” button)', 'mcupr' ) ),
+		'slider' => array( true, __( 'Featured news slider', 'mcupr' ) ),
+		'events' => array( true, __( 'Upcoming events', 'mcupr' ) ),
+		'media'  => array( true, __( 'Newest video and photo albums', 'mcupr' ) ),
+		'cats'   => array( false, __( 'News by category (three blocks)', 'mcupr' ) ),
+		'visit'  => array( true, __( 'Visit us (address, telephone, e-mail)', 'mcupr' ) ),
+	) as $key => $def ) {
+		$wp_customize->add_setting( 'mcupr_home_' . $key . '_on', array( 'default' => $def[0], 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+		$wp_customize->add_control( 'mcupr_home_' . $key . '_on', array( 'section' => 'mcupr_home_sections', 'label' => $def[1], 'type' => 'checkbox' ) );
+	}
 	$wp_customize->add_setting( 'mcupr_cta_url', array( 'default' => '', 'sanitize_callback' => 'esc_url_raw' ) );
 	$wp_customize->add_control( 'mcupr_cta_url', array( 'section' => 'mcupr_home', 'label' => __( 'Bottom banner link (optional)', 'mcupr' ), 'type' => 'url' ) );
 

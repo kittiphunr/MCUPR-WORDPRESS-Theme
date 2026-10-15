@@ -537,7 +537,7 @@ const speechStub = (speakMs) => `(() => {
 
   // ================= Home page: complete without a static page ("latest posts" mode)
   {
-    const mods = { mcupr_about_th: 'ข้อความแนะนำหน่วยงานสำหรับทดสอบ', mcupr_org_email: 'info@example.org', mcupr_org_tel: '054-000-000' };
+    const mods = { mcupr_about_th: 'ข้อความแนะนำหน่วยงานสำหรับทดสอบ', mcupr_org_email: 'info@example.org', mcupr_org_tel: '054-000-000', mcupr_home_cats_on: true };
     const c = await newCtx({ viewport: { width: 1280, height: 900 } }, mods);
     const p = await c.newPage();
     await p.goto(B + '/');
@@ -563,7 +563,7 @@ const speechStub = (speakMs) => `(() => {
     r.violations.forEach((v) => console.log('   ', v.id, v.nodes.slice(0, 2).map((x) => x.target.join(' ')).join(' || ')));
     await c.close();
     // nothing configured: still a sensible page
-    const c2 = await newCtx({}, { mcupr_home_cats_on: false });
+    const c2 = await newCtx({}, {}); // the category blocks are off by default now
     const p2 = await c2.newPage();
     await p2.goto(B + '/');
     ok((await p2.locator('[id^=cat-]').count()) === 0 && (await p2.locator('#about-intro').count()) === 0 && (await p2.locator('#visit-title').count()) === 1 && (await p2.locator('#visit-title + div > *').count()) === 1, 'optional sections vanish when switched off / not filled in (here only the address is set: one contact card)');
@@ -575,7 +575,7 @@ const speechStub = (speakMs) => `(() => {
     ok((await p3.locator('.hero-menu li').count()) >= 2, 'quick links: fall back to the main menu (' + (await p3.locator('.hero-menu li').count()) + ' items)');
     await c3.close();
     // chosen categories
-    const c4 = await newCtx({}, { mcupr_home_cat_1: 'CAT:กิจกรรม' });
+    const c4 = await newCtx({}, { mcupr_home_cat_1: 'CAT:กิจกรรม', mcupr_home_cats_on: true });
     const p4 = await c4.newPage();
     await p4.goto(B + '/');
     ok((await p4.locator('[id^=cat-]').first().textContent()).trim() === 'กิจกรรม' && (await p4.locator('[id^=cat-]').count()) === 2, 'a category chosen in the Customizer comes first; the rest are filled in automatically');
