@@ -1291,6 +1291,36 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await gone.close();
       await ap.setViewportSize({ width: 1366, height: 900 });
     }
+    // the 404 page: big 404, search with a guess from the address, buttons, menu pages and latest news
+    {
+      const nc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+      await nc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+      const np = await nc.newPage();
+      for (const [w, h] of [[1920, 1080], [1366, 900], [768, 1024], [390, 844], [320, 568]]) {
+        await np.setViewportSize({ width: w, height: h });
+        const r = await np.goto(B + '/old-admission-form-2563/');
+        const g = await np.evaluate(() => { const f = document.querySelector('.nf-search .search-form').getBoundingClientRect(); const c = document.querySelector('.nf').getBoundingClientRect(); const a = document.querySelector('.nf-guess a'); return { h1: document.querySelectorAll('h1').length, code: document.querySelector('.nf-code').getAttribute('aria-hidden'), guess: a ? a.textContent : '', href: a ? a.getAttribute('href') : '', fl: f.left - c.left, fr: c.right - f.right, fw: f.width, cw: c.width, hs: document.documentElement.scrollWidth > innerWidth + 1, chips: document.querySelectorAll('.nf-chips a').length, news: document.querySelectorAll('.nf-news a').length, minH: Math.min(...[...document.querySelectorAll('.nf-actions a, .nf-chips a, .nf-news a, .nf-search button')].map((e) => e.getBoundingClientRect().height)), inCard: [...document.querySelectorAll('.nf a, .nf button')].every((e) => e.getBoundingClientRect().right <= c.right + 1) }; });
+        ok(r.status() === 404 && g.h1 === 1 && g.code === 'true', '404 at ' + w + 'px: status 404, one h1, the big 404 is hidden from screen readers');
+        ok(Math.abs(g.fl - g.fr) <= 3 && g.fw >= Math.min(300, g.cw - 60), '404 at ' + w + 'px: the search form is centred and wide (' + Math.round(g.fw) + ' of ' + Math.round(g.cw) + ')');
+        ok(/old admission form 2563/.test(g.guess) && /s=old(%20|\+)admission/.test(g.href), '404 at ' + w + 'px: a search for what the address looked like (' + g.guess + ')');
+        ok(g.chips >= 3 && g.news >= 1 && g.minH >= 40 && g.inCard && !g.hs, '404 at ' + w + 'px: ' + g.chips + ' menu pages, ' + g.news + ' news, every target 40px or more, all inside the card, no sideways scroll');
+      }
+      await np.setViewportSize({ width: 1366, height: 900 });
+      await np.goto(B + '/old-admission-form-2563/');
+      await np.addScriptTag({ content: axeSource() });
+      const ax4 = await np.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+      ok(ax4.violations.length === 0, 'axe (404): ' + (ax4.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      await np.screenshot({ path: shot('404.png'), fullPage: true });
+      for (const path of ['/2563/', '/ab/']) {
+        await np.goto(B + path);
+        ok((await np.locator('.nf-guess').count()) === 0, '404: no search guess from an address like ' + path);
+      }
+      await np.goto(B + '/old-admission-form-2563/');
+      await np.evaluate(() => document.documentElement.setAttribute('data-contrast', 'high'));
+      const hc4 = await np.evaluate(() => { const c = getComputedStyle(document.querySelector('.nf-code')); return { fill: c.webkitTextFillColor, bg: c.backgroundImage }; });
+      ok(hc4.bg === 'none' && hc4.fill !== 'rgba(0, 0, 0, 0)', '404 in high contrast: the big 404 is a plain solid colour, not a gradient (' + hc4.fill + ')');
+      await nc.close();
+    }
     // special modes: the Info button is coloured (orange = maintenance) for editors and the panel lists the mode + settings link
     {
       const { execSync } = require('child_process');

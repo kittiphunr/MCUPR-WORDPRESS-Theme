@@ -373,7 +373,7 @@ const speechStub = (speakMs) => `(() => {
     ok(!/Category:/.test(await text(p, 'main h1')), 'archive title has no English "Category:" prefix');
     ok((await p.locator('.fb-side a[aria-current]').count()) === 1 && (await p.locator('.pill-tabs').count()) === 0, 'category browser: one current entry in the source list, no chip wall');
     await p.goto(B + '/no-such-page-xyz/');
-    ok((await p.locator('.state-card .st-ic svg').count()) === 1 && (await p.locator('.state-card h1').count()) === 1, '404: centered status card with round icon');
+    ok((await p.locator('.nf .nf-code').count()) === 1 && (await p.locator('.nf h1').count()) === 1 && (await p.locator('.nf .search-form').count()) === 1, '404: the big 404, one h1 and the search form in a centred card');
     await p.goto(B + '/?s=zzzzqqqq');
     ok((await p.locator('.state-card h2').count()) === 1, 'no results: status card');
     await p.addScriptTag({ content: axeSource() });
