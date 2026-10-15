@@ -39,9 +39,12 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 ?>
 <?php get_template_part( 'template-parts/hero', null, array( 'hero_id' => $hero_id, 'hero_img' => $hero_img, 'line1' => $line1, 'line2' => $line2 ) ); ?>
 <?php mcupr_slot( 'home_top' ); ?>
-<?php if ( is_active_sidebar( 'home-top' ) ) : ?>
-<div class="wrap mt-8"><?php mcupr_widget_area( 'home-top', 'grid gap-8' ); ?></div>
-<?php endif; ?>
+<?php
+// Customizer → MCUPR: Home page sections: weather bar, audience cards, figures
+echo mcupr_blk_section( 'weather', 'weather', 'mt-6' ); // phpcs:ignore WordPress.Security.EscapeOutput
+echo mcupr_blk_section( 'audience', 'audience', 'mt-8' ); // phpcs:ignore WordPress.Security.EscapeOutput
+echo mcupr_blk_section( 'figures', 'figures', 'mt-6' ); // phpcs:ignore WordPress.Security.EscapeOutput
+?>
 
 <?php
 $about_text = mcupr_text_mod( 'mcupr_about' );
@@ -69,9 +72,11 @@ if ( $about_text && mcupr_home_on( 'about', true ) ) :
 </section>
 <?php endif; ?>
 
-<?php if ( is_active_sidebar( 'home-mid' ) ) : ?>
-<div class="wrap mt-12"><?php mcupr_widget_area( 'home-mid', 'grid gap-10' ); ?></div>
-<?php endif; ?>
+<?php
+echo mcupr_blk_section( 'services', 'services', 'mt-12' ); // phpcs:ignore WordPress.Security.EscapeOutput
+echo mcupr_blk_section( 'links', 'links', 'mt-12' ); // phpcs:ignore WordPress.Security.EscapeOutput
+echo mcupr_blk_section( 'about', 'aboutblock', 'mt-14' ); // phpcs:ignore WordPress.Security.EscapeOutput
+?>
 
 <?php if ( $slider && mcupr_home_on( 'slider', true ) ) : ?>
 <section class="wrap mt-10" aria-labelledby="featured-title" data-carousel data-reveal>
