@@ -1816,7 +1816,11 @@ html[data-contrast] button[role="switch"]:focus-visible { outline: 3px solid var
 	/* the menu links keep their shape in the narrow rail: the label shrinks away and the padding centres the icon */
 	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .menu li > a { flex: 1; width: auto; height: auto; min-height: 2.9rem; padding: .5rem .7rem; gap: 0; justify-content: flex-start; }
 	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav { padding: .75rem .675rem; }
-	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-brand { gap: 0; justify-content: flex-start; padding-inline: .1rem; }
+	/* the logo sits in a box as wide as the rail's inside, so it is centred there and nothing has to jump when the card opens */
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-brand > img { flex: none; width: 2.9rem; height: 3rem; max-height: none; object-fit: contain; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-brand > .badge-logo { flex: none; }
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-brand { gap: 0; justify-content: flex-start; padding-inline: 0; }
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-brand > .badge-logo { margin-inline: auto; }
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .t { max-width: 18rem; overflow: hidden; opacity: 1; transition: max-width var(--sb-t) var(--sb-ease), opacity .28s ease .14s; }
 	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .t { display: block; width: auto; max-width: 0; opacity: 0; white-space: nowrap; transition: max-width var(--sb-t) var(--sb-ease), opacity .12s ease; }
 	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-brand .t { display: block; }
