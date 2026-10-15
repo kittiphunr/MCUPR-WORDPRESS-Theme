@@ -883,7 +883,7 @@ TH = {
 "Audience cards": "การ์ดกลุ่มผู้ใช้",
 "Audience cards (applicants, current students…) – shown when filled in": "การ์ดกลุ่มผู้ใช้ (ผู้สมัคร นิสิตปัจจุบัน…) – แสดงเมื่อกรอกข้อมูล",
 "Big cards under the hero for visitor groups (applicants, current students…). The first card stands out. A card without a title is left out.": "การ์ดใหญ่ใต้ภาพหลักสำหรับกลุ่มผู้เข้าชม (ผู้สมัคร นิสิตปัจจุบัน…) การ์ดแรกเด่นกว่า การ์ดที่ไม่มีหัวข้อจะไม่แสดง",
-"Big numbers in a row. Type a number, or one of {news} {staff} {units} {events} {works} {videos} {albums} to count by itself. A figure without a number is left out. (The students / teachers / faculties block is in “Numbers”.)": "ตัวเลขใหญ่เรียงแถว พิมพ์ตัวเลข หรือพิมพ์ {news} {staff} {units} {events} {works} {videos} {albums} ให้นับเอง ตัวเลขที่ไม่ได้กรอกจะไม่แสดง (บล็อกนิสิต/อาจารย์/คณะ อยู่ในส่วน “ตัวเลขสำคัญ”)",
+"Big numbers in a row. Type a number, or one of {news} {staff} {units} {events} {works} {videos} {albums} to count by itself. A figure without a number is left out. (The students / teachers / faculties block is in “Key numbers”.)": "ตัวเลขใหญ่เรียงแถว พิมพ์ตัวเลข หรือพิมพ์ {news} {staff} {units} {events} {works} {videos} {albums} ให้นับเอง ตัวเลขที่ไม่ได้กรอกจะไม่แสดง (บล็อกนิสิต/อาจารย์/คณะ อยู่ในส่วน “ตัวเลขสำคัญ”)",
 "Card %d: address": "การ์ดที่ %d: ที่อยู่ลิงก์",
 "Card %d: description": "การ์ดที่ %d: คำอธิบาย",
 "Card %d: icon": "การ์ดที่ %d: ไอคอน",
@@ -971,5 +971,6 @@ TH = {
 "sample pictures": "ภาพตัวอย่าง",
 "video": "วิดีโอ",
 "“Remove the demo items” deletes the news, events, video, albums, pictures and menu that the demo made (also if you edited them). The settings stay.": "“ลบรายการเดโม่” จะลบข่าว กิจกรรม วิดีโอ อัลบั้ม ภาพ และเมนูที่เดโม่สร้าง (รวมถึงที่คุณแก้ไขแล้ว) ส่วนการตั้งค่าจะคงไว้",
-"2. Settings file (home page blocks, redirects)": "2. ไฟล์การตั้งค่า (บล็อกหน้าแรก การเปลี่ยนเส้นทาง)"
+"Key numbers": "ตัวเลขสำคัญ",
+"Students, teachers, faculties and students at each level – figures for the home page block, the “MCUPR: Numbers” widget and the [mcupr_numbers] shortcode. Leave a box empty to leave that figure out. If “Students (total)” is empty it is the sum of the three levels.": "นิสิต อาจารย์ คณะ และนิสิตแต่ละระดับ – ตัวเลขสำหรับบล็อกหน้าแรก วิดเจ็ต “MCUPR: ตัวเลขสำคัญ” และชอร์ตโค้ด [mcupr_numbers] ช่องไหนเว้นว่างจะไม่แสดงตัวเลขนั้น ถ้า “นิสิตทั้งหมด” ว่าง ระบบจะใช้ผลรวมของสามระดับ"
 }
