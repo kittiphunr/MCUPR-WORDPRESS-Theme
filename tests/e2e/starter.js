@@ -1003,6 +1003,15 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       ok(!(await ap.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)), 'insights admin at ' + w + 'px: no sideways scroll of the page');
     }
     await ap.setViewportSize({ width: 1366, height: 900 });
+    // Customizer: the home page blocks live in one panel, "Home page sections"
+    await ap.setViewportSize({ width: 1366, height: 900 });
+    await ap.goto(B + '/wp-admin/customize.php?autofocus[panel]=mcupr_home_panel', { waitUntil: 'domcontentloaded' });
+    await ap.waitForSelector('#sub-accordion-panel-mcupr_home_panel', { state: 'attached', timeout: 60000 });
+    await ap.waitForTimeout(1200);
+    const czSecs = await ap.locator('#sub-accordion-panel-mcupr_home_panel > li.control-section').count();
+    const czFirst = (await ap.locator('#sub-accordion-panel-mcupr_home_panel > li.control-section').first().innerText()).replace(/\s+/g, ' ');
+    ok(czSecs >= 8 && /เปิด\/ปิด|Show or hide/.test(czFirst), 'customizer: one panel “Home page sections” holds the show/hide section first, then numbers and the blocks (' + czSecs + ' sections)');
+    ok((await ap.locator('#customize-control-mcupr_svc_8_title, #customize-control-mcupr_aud_3_url, #customize-control-mcupr_wx_lat').count()) === 3, 'customizer: the fields of the service cards, audience cards and weather bar exist');
     // speed check
     await ap.goto(B + '/wp-admin/admin.php?page=mcupr-speed');
     await ap.click('button:has-text("ตรวจเลย"), button:has-text("Check now")');
