@@ -23,7 +23,7 @@ $news   = new WP_Query(
 );
 $news_posts = $news->posts; // not $posts / $p: those are WordPress globals and templates run in the global scope
 $slider     = array_slice( $news_posts, 0, 6 );
-$rest       = array_slice( $news_posts, 6 );
+$rest       = array_slice( $news_posts, mcupr_home_on( 'slider', true ) ? 6 : 0 );
 $blog   = mcupr_news_url();
 
 $hero_id  = mcupr_hero_image_id( $news_posts ? $news_posts[0]->ID : 0 );
@@ -42,7 +42,7 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 
 <?php
 $about_text = mcupr_text_mod( 'mcupr_about' );
-if ( $about_text ) :
+if ( $about_text && mcupr_home_on( 'about', true ) ) :
 	$about_page = (int) get_theme_mod( 'mcupr_home_about_page', 0 );
 	?>
 <section class="wrap mt-10" aria-labelledby="about-intro" data-reveal>
@@ -59,7 +59,7 @@ if ( $about_text ) :
 </section>
 <?php endif; ?>
 
-<?php if ( $slider ) : ?>
+<?php if ( $slider && mcupr_home_on( 'slider', true ) ) : ?>
 <section class="wrap mt-10" aria-labelledby="featured-title" data-carousel data-reveal>
 	<div class="mb-5 flex items-center justify-between gap-4">
 		<h2 id="featured-title" class="m-0 flex items-center gap-3 text-2xl font-bold min-[900px]:text-3xl"><span class="stat-ic" aria-hidden="true"><?php echo mcupr_icon( 'bulb', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><?php mcupr_e( 'featured' ); ?></h2>
@@ -119,7 +119,8 @@ if ( $about_text ) :
 
 <?php
 // News by category: the three categories chosen in the Customizer, else the most used ones.
-if ( get_theme_mod( 'mcupr_home_cats_on', true ) ) :
+get_template_part( 'template-parts/home-media' );
+if ( mcupr_home_on( 'cats', false ) ) :
 	$cat_terms = array();
 	for ( $i = 1; $i <= 3; $i++ ) {
 		$term = (int) get_theme_mod( 'mcupr_home_cat_' . $i, 0 ) ? get_term( (int) get_theme_mod( 'mcupr_home_cat_' . $i, 0 ), 'category' ) : null;
@@ -157,7 +158,7 @@ if ( get_theme_mod( 'mcupr_home_cats_on', true ) ) :
 $visit_addr  = mcupr_text_mod( 'mcupr_address' );
 $visit_email = get_theme_mod( 'mcupr_org_email', '' );
 $visit_tel   = get_theme_mod( 'mcupr_org_tel', '' );
-if ( $visit_addr || $visit_email || $visit_tel ) :
+if ( ( $visit_addr || $visit_email || $visit_tel ) && mcupr_home_on( 'visit', true ) ) :
 	?>
 <section class="wrap mt-14" aria-labelledby="visit-title" data-reveal>
 	<h2 id="visit-title" class="mb-5 flex items-center gap-3 text-2xl font-bold min-[900px]:text-3xl"><span class="stat-ic" aria-hidden="true"><?php echo mcupr_icon( 'pin', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><?php mcupr_e( 'visit_us' ); ?></h2>
