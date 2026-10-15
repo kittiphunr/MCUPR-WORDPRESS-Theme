@@ -908,7 +908,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await ap.fill('#user_login', 'e2eadmin');
       await ap.fill('#user_pass', 'e2e-Admin-pass-1');
       await ap.click('#wp-submit');
-      await ap.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+      await ap.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' }).catch(async (e) => { console.log('DEBUG login at ' + w + 'px stuck on ' + ap.url() + ' :: ' + (await ap.content().catch(() => '')).replace(/\s+/g, ' ').slice(0, 700)); throw e; });
       await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
       const cardsInfo = await ap.evaluate(() => ({ cards: document.querySelectorAll('.wrap a.card').length, hscroll: document.documentElement.scrollWidth > innerWidth + 1 }));
       if (w < 783) { await ap.click('#wp-admin-bar-menu-toggle a'); await ap.waitForTimeout(300); }
