@@ -66,6 +66,8 @@ T = {
  'forum': ('กระดานสนทนา', 'Discussion board', '讨论区', '掲示板'),
  'documents': ('ศูนย์เอกสารดาวน์โหลด', 'Document centre', '文档下载中心', '資料ダウンロード'),
  'events-calendar': ('ปฏิทินกิจกรรม', 'Events calendar', '活动日历', 'イベントカレンダー'),
+ 'internal-form': ('แบบสอบถามภายใน (ตัวอย่าง)', 'Internal questionnaire (sample)', '内部问卷（示例）', '内部アンケート（サンプル）'),
+ 'survey': ('แบบสำรวจความพึงพอใจ', 'Satisfaction survey', '满意度调查', '満足度アンケート'),
  'welcome-demo': ('ตัวอย่างหน้าต้อนรับ', 'Welcome page samples', '欢迎页示例', 'ウェルカムページのサンプル'),
  'eservice': ('บริการอิเล็กทรอนิกส์ (e-Service)', 'e-Services', '电子服务', '電子サービス'),
 }
@@ -80,7 +82,9 @@ SECTIONS = {
  'governance': ['ita', 'oic', 'open-data', 'plans-reports', 'procurement', 'hr', 'complaints', 'anti-corruption', 'laws', 'documents'],
  'policies': ['privacy-policy', 'cookie-policy', 'accessibility-statement', 'security-policy', 'terms-of-use', 'copyright-notice', 'sitemap', 'faq'],
 }
-ROOTS = ['about', 'academics', 'research', 'students', 'governance', 'policies', 'contact', 'eservice', 'events-calendar', 'welcome-demo']
+ROOTS = ['about', 'academics', 'research', 'students', 'governance', 'policies', 'contact', 'eservice', 'events-calendar', 'welcome-demo', 'internal-form', 'survey']
+# pages that the first starter file did not have: the "add-ons" file (scripts/make-starter.py --addons) carries only these
+ADDON_PAGES = ['documents', 'events-calendar', 'forum', 'welcome-demo', 'internal-form', 'survey']
 for root, kids in SECTIONS.items():
     for k in kids:
         PARENT[k] = root
@@ -203,6 +207,10 @@ C['open-data'] = generic('ข้อมูลเปิด', 'ชุดข้อ�
 C['plans-reports'] = generic('แผนและรายงาน', 'แผนปฏิบัติการและรายงานผลการดำเนินงานของหน่วยงาน', ['แผนปฏิบัติการประจำปี', 'รายงานผลการดำเนินงานรอบ 6 เดือน / 12 เดือน', 'รายงานการเงิน', 'รายงานการประเมินตนเอง (SAR)'], doc_table('รายงาน'))
 C['procurement'] = generic('จัดซื้อจัดจ้าง', 'เปิดเผยข้อมูลการจัดซื้อจัดจ้างตามระเบียบที่เกี่ยวข้อง', ['แผนการจัดซื้อจัดจ้างประจำปี', 'ประกาศเชิญชวน/ประกาศผู้ชนะการเสนอราคา', 'สรุปผลการจัดซื้อจัดจ้างรายเดือน', 'รายงานผลการจัดซื้อจัดจ้างประจำปี', 'ลิงก์ระบบ e-GP (ถ้ามี)'], doc_table('ประกาศ'))
 C['hr'] = generic('งานบุคคล', 'ข้อมูลการบริหารงานบุคคลและการสรรหา', ['นโยบายการบริหารและพัฒนาทรัพยากรบุคคล', 'ประกาศรับสมัครงาน', 'ประกาศผลการสรรหา', 'หลักเกณฑ์การประเมินและเลื่อนตำแหน่ง'], doc_table('ประกาศ'))
+C['internal-form'] = (todo('แก้คำถามที่เมนู MCUPR → แบบฟอร์ม (เพิ่ม/ลบ/สลับลำดับคำถามได้ เลือกให้เฉพาะผู้ที่เข้าสู่ระบบตอบก็ได้) คำตอบดูและดาวน์โหลด CSV ได้ที่ “คำตอบแบบฟอร์ม”') +
+    '<p>แบบสอบถามนี้ใช้สำรวจความต้องการของบุคลากรภายใน ข้อมูลที่ท่านให้จะใช้เพื่อวางแผนเท่านั้น</p>\n[mcupr_form slug="staff-needs"]\n')
+C['survey'] = (todo('แก้คำถามที่เมนู MCUPR → โหวตและแบบสำรวจ (ชอร์ตโค้ดนี้แสดงโหวตล่าสุด หรือระบุ id ได้)') +
+    '<p>ช่วยบอกเราว่าท่านพึงพอใจกับเว็บไซต์นี้เพียงใด</p>\n[mcupr_poll]\n')
 C['welcome-demo'] = (todo('หน้านี้เป็นตัวอย่างเท่านั้น (ไม่อยู่ในเมนู) ลบหรือซ่อนได้เมื่อไม่ต้องการ') +
     '<p>หน้าต้อนรับคือหน้าเต็มจอที่แสดงเมื่อผู้เข้าชมเปิดหน้าแรกครั้งแรก เหมาะกับวันสำคัญ เช่น วันเฉลิมพระชนมพรรษา ปีใหม่ สงกรานต์ วันครบรอบก่อตั้ง รับปริญญา หรือการไว้อาลัย กดลิงก์ด้านล่างเพื่อดูตัวอย่างของแต่ละโอกาส (เปิดในแท็บใหม่)</p>\n[mcupr_welcome_samples]\n' +
     '<h2>วิธีเปิดใช้งานจริง</h2>\n' + ul([
@@ -454,3 +462,21 @@ PEOPLE = [
  ('staff', 3, '[ชื่อ-สกุล บุคลากร 3]', 'นักวิชาการคอมพิวเตอร์', 'ศูนย์เทคโนโลยีสารสนเทศ'),
  ('staff', 4, '[ชื่อ-สกุล บุคลากร 4]', 'นักวิชาการเงินและบัญชี', 'กองคลังและพัสดุ'),
 ]
+
+
+# ------------------------------------------------------------------ a sample form (form builder) and a sample poll
+import json as _json  # noqa: E402
+FORM_SAMPLE = ('staff-needs', 'แบบสอบถามความต้องการพัฒนาบุคลากร (ตัวอย่าง)', [
+    {'id': 'h1', 'type': 'heading', 'label': 'ข้อมูลทั่วไป'},
+    {'id': 'name', 'type': 'text', 'label': 'ชื่อ-สกุล', 'required': 1, 'help': 'ไม่ต้องใส่คำนำหน้า'},
+    {'id': 'unit', 'type': 'select', 'label': 'สังกัดหน่วยงาน', 'required': 1, 'options': ['สำนักงานวิทยาเขต', 'สำนักวิชาการ', 'ศูนย์คอมพิวเตอร์', 'อื่น ๆ']},
+    {'id': 'mail', 'type': 'email', 'label': 'อีเมล', 'help': 'ใช้ติดต่อกลับเท่านั้น'},
+    {'id': 'h2', 'type': 'heading', 'label': 'ความต้องการด้านการอบรม'},
+    {'id': 'topics', 'type': 'checkbox', 'label': 'หัวข้อที่สนใจ', 'required': 1, 'options': ['การใช้ AI ในงานสำนักงาน', 'ความปลอดภัยของข้อมูล (PDPA)', 'การเขียนหนังสือราชการ', 'ภาษาอังกฤษเพื่อการสื่อสาร']},
+    {'id': 'way', 'type': 'radio', 'label': 'รูปแบบที่สะดวก', 'options': ['เรียนที่ห้องอบรม', 'ออนไลน์', 'ผสมผสาน']},
+    {'id': 'rate', 'type': 'rating', 'label': 'ความพึงพอใจต่อการอบรมครั้งล่าสุด (1 น้อย – 5 มาก)'},
+    {'id': 'msg', 'type': 'textarea', 'label': 'ข้อเสนอแนะเพิ่มเติม'},
+    {'id': 'ok', 'type': 'consent', 'label': 'ยินยอมให้เก็บข้อมูลนี้เพื่อใช้วางแผนการพัฒนาบุคลากร', 'required': 1},
+], {'success': 'ขอบคุณ ระบบได้รับแบบสอบถามของท่านแล้ว', 'keep': 365})
+FORM_SAMPLE_JSON = _json.dumps(FORM_SAMPLE[2], ensure_ascii=False)
+POLL_SAMPLE = ('web-satisfaction', 'คุณพึงพอใจกับเว็บไซต์นี้เพียงใด', 'satisfaction')

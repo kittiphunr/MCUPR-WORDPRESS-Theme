@@ -28,7 +28,7 @@ $mcupr_terms = get_terms( array( 'taxonomy' => 'mcupr_video_cat', 'hide_empty' =
 			<?php
 			while ( have_posts() ) {
 				the_post();
-				echo mcupr_video_card( get_post() ); // phpcs:ignore WordPress.Security.EscapeOutput
+				echo mcupr_video_card( get_post(), 'h2' ); // phpcs:ignore WordPress.Security.EscapeOutput
 			}
 			?>
 		</div>
