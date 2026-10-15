@@ -166,17 +166,38 @@ function mcupr_org_node( $n, $depth, $max ) {
 	$role   = (string) get_post_meta( $u->ID, '_mcupr_unit_role', true );
 	$url    = (string) get_post_meta( $u->ID, '_mcupr_unit_url', true );
 	$name   = get_the_title( $u );
+	// the head linked in the Staff hub wins over the typed name: photo, name (to the profile) and position
+	$head   = null;
+	foreach ( function_exists( 'mcupr_unit_people' ) ? mcupr_unit_people( $u->ID ) : array() as $p ) {
+		if ( (int) get_post_meta( $p->ID, '_mcupr_person_head', true ) ) {
+			$head = $p;
+			break;
+		}
+	}
+	$opts = function_exists( 'mcupr_staff_opts' ) ? mcupr_staff_opts() : array( 'org_photo' => 1 );
 	echo '<li class="org-li org-d' . (int) min( $depth, 4 ) . '"><div class="org-node">';
-	if ( has_post_thumbnail( $u ) ) {
+	if ( $head && ! empty( $opts['org_photo'] ) && has_post_thumbnail( $head ) ) {
+		echo get_the_post_thumbnail( $head, 'thumbnail', array( 'alt' => '', 'class' => 'org-ph', 'loading' => 'lazy', 'decoding' => 'async' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
+	} elseif ( has_post_thumbnail( $u ) ) {
 		echo get_the_post_thumbnail( $u, 'thumbnail', array( 'alt' => '', 'class' => 'org-ph', 'loading' => 'lazy', 'decoding' => 'async' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 	echo '<span class="org-t">';
 	echo '<b class="org-name">' . ( $url ? '<a href="' . esc_url( $url ) . '">' . esc_html( $name ) . '</a>' : esc_html( $name ) ) . '</b>';
-	if ( '' !== $person ) {
-		echo '<span class="org-person">' . esc_html( $person ) . '</span>';
-	}
-	if ( '' !== $role ) {
-		echo '<span class="org-role">' . esc_html( $role ) . '</span>';
+	if ( $head ) {
+		$hurl = mcupr_person_url( $head->ID );
+		$hn   = get_the_title( $head );
+		echo '<span class="org-person">' . ( $hurl ? '<a href="' . esc_url( $hurl ) . '">' . esc_html( $hn ) . '</a>' : esc_html( $hn ) ) . '</span>';
+		$hr = mcupr_person_role( $head->ID );
+		if ( '' !== $hr ) {
+			echo '<span class="org-role">' . esc_html( $hr ) . '</span>';
+		}
+	} else {
+		if ( '' !== $person ) {
+			echo '<span class="org-person">' . esc_html( $person ) . '</span>';
+		}
+		if ( '' !== $role ) {
+			echo '<span class="org-role">' . esc_html( $role ) . '</span>';
+		}
 	}
 	echo '</span></div>';
 	if ( $n['kids'] && $depth < $max ) {

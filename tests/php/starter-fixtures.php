@@ -61,4 +61,26 @@ foreach ( array( 'head' => array( 2480, 425, array( 200, 40, 90 ) ), 'foot' => a
 	wp_update_attachment_metadata( $aid, wp_generate_attachment_metadata( $aid, $u['file'] ) );
 	set_theme_mod( "mcupr_print_{$k}_img", $aid );
 }
+// staff hub: link people to units, decorations, education, works, privacy
+$units  = get_posts( array( 'post_type' => 'mcupr_unit', 'post_status' => 'publish', 'posts_per_page' => 5, 'orderby' => 'menu_order title', 'order' => 'ASC' ) );
+$people = get_posts( array( 'post_type' => 'mcupr_person', 'post_status' => 'publish', 'posts_per_page' => 10, 'orderby' => 'menu_order title', 'order' => 'ASC' ) );
+if ( $units && count( $people ) >= 4 ) {
+	$p0 = $people[0]->ID; $p1 = $people[1]->ID; $p2 = $people[2]->ID;
+	update_post_meta( $p0, '_mcupr_person_unit', $units[0]->ID ); update_post_meta( $p0, '_mcupr_person_head', 1 );
+	update_post_meta( $p0, '_mcupr_person_rank', 'ผู้ช่วยศาสตราจารย์ ดร.' ); update_post_meta( $p0, '_mcupr_person_type', 'ข้าราชการ' );
+	update_post_meta( $p0, '_mcupr_person_email', 'head@example.org' ); update_post_meta( $p0, '_mcupr_person_tel', '054-000-111' ); update_post_meta( $p0, '_mcupr_person_office', 'อาคาร 1 ห้อง 101' );
+	update_post_meta( $p0, '_mcupr_person_hide', array( 'tel' ) );
+	update_post_meta( $p0, '_mcupr_person_expertise', 'พุทธศาสตร์, บาลี, จริยศาสตร์' );
+	update_post_meta( $p0, '_mcupr_person_edu', array( array( 'level' => 'ปริญญาเอก', 'degree' => 'พธ.ด. (พระพุทธศาสนา)', 'inst' => 'มหาวิทยาลัยมหาจุฬาลงกรณราชวิทยาลัย', 'year' => 2560 ), array( 'level' => 'ปริญญาโท', 'degree' => 'พธ.ม. (ปรัชญา)', 'inst' => 'มหาจุฬาลงกรณราชวิทยาลัย', 'year' => 2552 ) ) );
+	update_post_meta( $p0, '_mcupr_person_works', array( array( 'type' => 'research', 'title' => 'งานวิจัยตัวอย่าง ก', 'year' => 2565, 'url' => 'https://example.org/a' ), array( 'type' => 'article', 'title' => 'บทความตัวอย่าง ข', 'year' => 2023, 'url' => '' ), array( 'type' => 'research', 'title' => 'งานวิจัยตัวอย่าง ค', 'year' => 2020, 'url' => '' ) ) );
+	update_post_meta( $p0, '_mcupr_person_honors', array( array( 'key' => 'tc', 'year' => 2562, 'gazette' => 'เล่ม 136 ตอน 12 ข', 'note' => '' ), array( 'key' => 'trm', 'year' => 2557, 'gazette' => '', 'note' => 'ตัวอย่าง' ) ) );
+	wp_update_post( array( 'ID' => $p0, 'post_content' => 'ประวัติโดยสังเขปของผู้บริหารตัวอย่าง' ) );
+	update_post_meta( $p1, '_mcupr_person_profile', 'off' ); update_post_meta( $p1, '_mcupr_person_unit', $units[0]->ID );
+	update_post_meta( $p2, '_mcupr_person_unit', isset( $units[1] ) ? $units[1]->ID : $units[0]->ID ); update_post_meta( $p2, '_mcupr_person_head', 1 );
+	update_post_meta( $p2, '_mcupr_person_email', 'hidden@example.org' ); update_post_meta( $p2, '_mcupr_person_hide', array( 'email', 'works', 'edu' ) );
+	update_post_meta( $p2, '_mcupr_person_edu', array( array( 'level' => 'x', 'degree' => 'ปริญญาลับ', 'inst' => 'y', 'year' => 2550 ) ) );
+	update_post_meta( $p2, '_mcupr_person_note', 'บันทึกส่วนตัวห้ามแสดง' );
+	file_put_contents( ABSPATH . 'staff-fixture.json', wp_json_encode( array( 'p0' => get_post_field( 'post_name', $p0 ), 'p1' => get_post_field( 'post_name', $p1 ), 'p2' => get_post_field( 'post_name', $p2 ), 'name0' => get_the_title( $p0 ), 'name1' => get_the_title( $p1 ), 'unit0' => get_the_title( $units[0] ) ), JSON_UNESCAPED_UNICODE ) );
+	update_post_meta( $p2, '_mcupr_person_honors', array( array( 'key' => 'bm', 'year' => 2020, 'gazette' => '', 'note' => '' ) ) );
+}
 echo "ok $id\n";

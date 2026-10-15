@@ -9,6 +9,8 @@
 defined( 'ABSPATH' ) || exit;
 
 function mcupr_people_register() {
+	$o        = function_exists( 'mcupr_staff_opts' ) ? mcupr_staff_opts() : array( 'profiles' => 1 );
+	$profiles = ! empty( $o['profiles'] );
 	register_post_type(
 		'mcupr_person',
 		array(
@@ -22,13 +24,17 @@ function mcupr_people_register() {
 				'not_found'     => __( 'No people yet', 'mcupr' ),
 				'attributes'    => __( 'Order in the list', 'mcupr' ),
 			),
-			'public'          => false,
-			'show_ui'         => true,
-			'show_in_rest'    => true,
-			'menu_icon'       => 'dashicons-groups',
-			'menu_position'   => 9,
-			'supports'        => array( 'title', 'thumbnail', 'page-attributes' ),
-			'capability_type' => 'page',
+			'public'              => true,
+			'publicly_queryable'  => ! empty( $profiles ),
+			'exclude_from_search' => true,
+			'has_archive'         => false,
+			'rewrite'             => array( 'slug' => 'profile', 'with_front' => false ),
+			'show_ui'             => true,
+			'show_in_rest'        => true,
+			'menu_icon'           => 'dashicons-groups',
+			'menu_position'       => 9,
+			'supports'            => array( 'title', 'editor', 'thumbnail', 'page-attributes' ),
+			'capability_type'     => 'page',
 		)
 	);
 	register_taxonomy(
@@ -50,6 +56,7 @@ function mcupr_people_register() {
 	);
 }
 add_action( 'init', 'mcupr_people_register' );
+add_action( 'init', 'mcupr_staff_flush_once', 99 );
 
 function mcupr_person_box_add() {
 	add_meta_box( 'mcupr_person', __( 'Person details', 'mcupr' ), 'mcupr_person_box', 'mcupr_person', 'normal', 'high' );
@@ -126,9 +133,14 @@ function mcupr_person_card( $p ) {
 	$name  = get_the_title( $p );
 	$role  = mcupr_person_role( $id );
 	$dept  = (string) get_post_meta( $id, '_mcupr_person_dept', true );
-	$mail  = (string) get_post_meta( $id, '_mcupr_person_email', true );
-	$tel   = (string) get_post_meta( $id, '_mcupr_person_tel', true );
-	$url   = (string) get_post_meta( $id, '_mcupr_person_url', true );
+	$unit  = (int) get_post_meta( $id, '_mcupr_person_unit', true );
+	if ( '' === $dept && $unit ) {
+		$dept = get_the_title( $unit );
+	}
+	$mail  = mcupr_person_shows( $id, 'email' ) ? (string) get_post_meta( $id, '_mcupr_person_email', true ) : '';
+	$tel   = mcupr_person_shows( $id, 'tel' ) ? (string) get_post_meta( $id, '_mcupr_person_tel', true ) : '';
+	$url   = mcupr_person_url( $id );
+	$o     = mcupr_staff_opts();
 	echo '<article class="person-card">';
 	if ( has_post_thumbnail( $p ) ) {
 		echo get_the_post_thumbnail( $p, 'medium', array( 'alt' => '', 'class' => 'person-ph', 'loading' => 'lazy', 'decoding' => 'async' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
@@ -141,6 +153,16 @@ function mcupr_person_card( $p ) {
 	}
 	if ( '' !== $dept ) {
 		echo '<p class="person-d">' . esc_html( $dept ) . '</p>';
+	}
+	if ( ! empty( $o['card_honors'] ) && mcupr_person_shows( $id, 'honors' ) ) {
+		$hs = mcupr_person_honors( $id );
+		if ( $hs ) {
+			echo '<p class="person-h" aria-label="' . esc_attr( mcupr_t( 'st_honors' ) ) . '">';
+			foreach ( array_slice( $hs, 0, 3 ) as $h ) {
+				echo '<span class="person-hb" title="' . esc_attr( mcupr_honor_name( $h['item'] ) ) . '">' . mcupr_honor_medal( $h['item'], 28, 'medal-s' ) . '<span class="sr-only">' . esc_html( mcupr_honor_name( $h['item'] ) ) . '</span></span>'; // phpcs:ignore WordPress.Security.EscapeOutput
+			}
+			echo '</p>';
+		}
 	}
 	if ( $mail || $tel ) {
 		echo '<p class="person-c">';
@@ -159,7 +181,7 @@ function mcupr_person_card( $p ) {
 add_shortcode(
 	'mcupr_people',
 	static function ( $atts ) {
-		$a    = shortcode_atts( array( 'group' => '', 'columns' => 4, 'count' => 100 ), $atts, 'mcupr_people' );
+		$a    = shortcode_atts( array( 'group' => '', 'columns' => 4, 'count' => 100, 'unit' => 0, 'search' => 0 ), $atts, 'mcupr_people' );
 		$args = array(
 			'post_type'      => 'mcupr_person',
 			'post_status'    => 'publish',
@@ -171,12 +193,18 @@ add_shortcode(
 		if ( '' !== $a['group'] ) {
 			$args['tax_query'] = array( array( 'taxonomy' => 'mcupr_person_group', 'field' => 'slug', 'terms' => array_map( 'sanitize_title', explode( ',', $a['group'] ) ) ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
 		}
+		if ( (int) $a['unit'] ) {
+			$args['meta_query'] = array( array( 'key' => '_mcupr_person_unit', 'value' => (int) $a['unit'], 'type' => 'NUMERIC' ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+		}
 		$people = get_posts( $args );
 		if ( ! $people ) {
 			return '<p class="text-muted">' . esc_html( mcupr_t( 'no_people' ) ) . '</p>';
 		}
 		ob_start();
-		echo '<div class="people-grid people-cols-' . (int) max( 1, min( 5, (int) $a['columns'] ) ) . '">';
+		if ( $a['search'] ) {
+			echo '<label class="people-find"><span class="sr-only">' . esc_html( mcupr_t( 'st_search' ) ) . '</span>' . mcupr_icon( 'search', 18 ) . '<input type="search" placeholder="' . esc_attr( mcupr_t( 'st_search' ) ) . '" data-people-find autocomplete="off"></label>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		}
+		echo '<div class="people-grid people-cols-' . (int) max( 1, min( 5, (int) $a['columns'] ) ) . '"' . ( $a['search'] ? ' data-people-grid' : '' ) . '>';
 		foreach ( $people as $p ) {
 			mcupr_person_card( $p );
 		}
