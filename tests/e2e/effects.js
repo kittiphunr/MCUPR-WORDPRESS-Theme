@@ -36,6 +36,8 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     const prog = await p.evaluate(() => document.getElementById('progress').style.transform);
     ok(/scaleX\(0\.9|scaleX\(1\)/.test(prog), 'scroll progress bar reaches the end: ' + prog);
     ok(!(await p.locator('#back-to-top').evaluate((el) => el.classList.contains('hidden'))), 'back-to-top visible after scrolling');
+    const bt = await p.locator('#back-to-top').evaluate((el) => { const r = el.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), parseFloat(getComputedStyle(el).borderTopLeftRadius)]; });
+    ok(bt[0] === bt[1] && bt[0] >= 48 && bt[2] >= bt[0] / 2, 'back-to-top is a true circle (' + bt.join(' x ') + ')');
 
     // eased scroll-to-top
     await p.click('#back-to-top');
