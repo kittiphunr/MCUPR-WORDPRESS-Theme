@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.30.1 =
+* Offices: prettier pages (cover header, contact chips, floating tabs, figure tiles, icons, card covers)
+
 = 1.30.0 =
 * Offices: mini-sites inside the website (own news, events, people, pages, colour and staff accounts) with a demo
 
