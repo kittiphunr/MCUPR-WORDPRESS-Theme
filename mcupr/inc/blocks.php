@@ -499,85 +499,10 @@ function mcupr_blk_page_url( $slug ) {
 	return $p ? wp_make_link_relative( get_permalink( $p[0] ) ) : '';
 }
 
-/** What the sample button fills in: block => rows of fields (in the block's field order). "page:slug" addresses become the page's path; rows whose page does not exist are dropped. */
-function mcupr_blk_samples() {
-	return array(
-		'aud' => array(
-			array( 'edit', 'ผู้สนใจสมัคร', 'รับสมัครนิสิต/นักศึกษา', 'กำหนดการ หลักสูตร และระบบรับสมัคร', 'page:admissions' ),
-			array( 'user', 'นิสิตปัจจุบัน', 'พอร์ทัลนิสิต', 'เข้าสู่ระบบ ปฏิทิน และเอกสารดาวน์โหลด', 'page:student-portal' ),
-			array( 'book', 'การศึกษา', 'หลักสูตรที่เปิดสอน', 'หลักสูตรที่เปิดสอนและแผนการเรียน', 'page:programs' ),
-		),
-		'fig' => array(
-			array( '{news}', 'ข่าว/ประกาศ' ),
-			array( '{staff}', 'บุคลากร' ),
-			array( '{units}', 'คณะ/หน่วยงาน' ),
-			array( '{events}', 'กิจกรรม' ),
-		),
-		'svc' => array(
-			array( 'book', 'ระบบทะเบียน', 'page:registrar' ),
-			array( 'laptop', 'e-Learning', 'page:eservice' ),
-			array( 'mail', 'อีเมล', 'page:eservice' ),
-			array( 'calendar', 'ปฏิทินการศึกษา', 'page:calendar' ),
-		),
-		'lnk' => array(
-			array( 'book', 'หลักสูตรที่เปิดสอน', 'page:programs' ),
-			array( 'rows', 'แผนการเรียน', 'page:study-plan' ),
-			array( 'calendar', 'ปฏิทินการศึกษา', 'page:calendar' ),
-			array( 'file', 'ระเบียบ/ข้อบังคับ', 'page:laws' ),
-		),
-		'abt' => array(
-			array( 'flag', 'วิสัยทัศน์ / พันธกิจ', 'ทิศทางและเป้าหมายของหน่วยงาน', 'page:vision' ),
-			array( 'grid', 'โครงสร้างการบริหาร', 'หน่วยงานและคณะภายใน', 'page:structure' ),
-			array( 'heart', 'สนับสนุนหน่วยงาน', 'สนับสนุนการศึกษาและกิจกรรม', 'page:donate' ),
-			array( 'award', 'ประกันคุณภาพ', 'การประกันคุณภาพการศึกษา', 'page:quality-assurance' ),
-		),
-	);
-}
-
-/** Fill the blocks that are still empty with the samples. Returns the names of the blocks filled. */
+/** Fill the home blocks that are still empty with the theme's starter settings (the same file as MCUPR → Import / export settings). Returns the groups filled. */
 function mcupr_blk_install_samples() {
-	$defs   = mcupr_blk_defs();
-	$filled = array();
-	foreach ( mcupr_blk_samples() as $key => $rows ) {
-		if ( mcupr_blk_rows( $key ) ) {
-			continue; // something is already typed in this block: leave it alone
-		}
-		$fields = array_keys( $defs[ $key ][1] );
-		$url_at = array_search( 'url', $fields, true );
-		$n      = 0;
-		foreach ( $rows as $r ) {
-			if ( false !== $url_at && 0 === strpos( $r[ $url_at ], 'page:' ) ) {
-				$u = mcupr_blk_page_url( substr( $r[ $url_at ], 5 ) );
-				if ( '' === $u ) {
-					continue;
-				}
-				$r[ $url_at ] = $u;
-			}
-			$n++;
-			foreach ( $fields as $x => $f ) {
-				set_theme_mod( 'mcupr_' . $key . '_' . $n . '_' . $f, $r[ $x ] );
-			}
-		}
-		if ( $n ) {
-			$filled[] = $key;
-		}
-	}
-	// headings and the text of the about block, the same rule: only where nothing is typed
-	$extra = array(
-		'svc' => array( 'mcupr_svc_title' => 'บริการและระบบสารสนเทศ', 'mcupr_svc_sub' => 'แตะรายการเพื่อเข้าใช้ระบบ — ลิงก์ภายนอกจะเปิดแท็บใหม่', 'mcupr_svc_more' => 'ระบบสารสนเทศทั้งหมด', 'mcupr_svc_more_url' => mcupr_blk_page_url( 'eservice' ) ),
-		'lnk' => array( 'mcupr_lnk_title' => 'การศึกษา', 'mcupr_lnk_more' => 'ดูทั้งหมด', 'mcupr_lnk_more_url' => mcupr_blk_page_url( 'academics' ) ),
-		'abt' => array( 'mcupr_abt_title' => 'เกี่ยวกับ ' . get_bloginfo( 'name' ), 'mcupr_abt_text' => 'ใส่ข้อความแนะนำหน่วยงานสั้นๆ ที่นี่', 'mcupr_abt_button' => 'ดูประวัติและวิสัยทัศน์', 'mcupr_abt_url' => mcupr_blk_page_url( 'vision' ) ),
-	);
-	foreach ( $extra as $key => $mods ) {
-		if ( in_array( $key, $filled, true ) ) {
-			foreach ( $mods as $k => $v ) {
-				if ( '' === (string) get_theme_mod( $k, '' ) ) {
-					set_theme_mod( $k, $v );
-				}
-			}
-		}
-	}
-	return $filled;
+	$rep = mcupr_ss_apply( mcupr_ss_starter(), array( 'aud', 'fig', 'svc', 'lnk', 'abt' ) );
+	return $rep['added'];
 }
 
 add_action(
