@@ -83,6 +83,7 @@ function mcupr_customize_register( $wp_customize ) {
 		'links'    => array( true, __( 'Education links – shown when filled in', 'mcupr' ) ),
 		'aboutblock' => array( true, __( 'About block with cards – shown when filled in', 'mcupr' ) ),
 		'numbers' => array( true, __( 'Numbers (students, teachers, faculties, students per level) – shown when filled in', 'mcupr' ) ),
+		'offices' => array( true, __( 'Offices and units (cards of the offices) – shown when an office is published', 'mcupr' ) ),
 		'slider' => array( true, __( 'Featured news slider', 'mcupr' ) ),
 		'events' => array( true, __( 'Upcoming events', 'mcupr' ) ),
 		'media'  => array( true, __( 'Newest video and photo albums', 'mcupr' ) ),

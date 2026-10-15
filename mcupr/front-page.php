@@ -73,6 +73,7 @@ if ( $about_text && mcupr_home_on( 'about', true ) ) :
 <?php endif; ?>
 
 <?php
+echo mcupr_offices_home(); // phpcs:ignore WordPress.Security.EscapeOutput
 echo mcupr_blk_section( 'services', 'services', 'mt-12' ); // phpcs:ignore WordPress.Security.EscapeOutput
 echo mcupr_blk_section( 'links', 'links', 'mt-12' ); // phpcs:ignore WordPress.Security.EscapeOutput
 echo mcupr_blk_section( 'about', 'aboutblock', 'mt-14' ); // phpcs:ignore WordPress.Security.EscapeOutput
