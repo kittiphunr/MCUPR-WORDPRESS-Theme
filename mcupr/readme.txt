@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.19.0 =
+* All theme admin menus grouped under one MCUPR menu with an overview
+
 = 1.18.8 =
 * Top menu: the More button is a pill again
 
