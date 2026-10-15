@@ -270,7 +270,14 @@ function mcupr_tools_cluster( $btn = 'text-fg2 hover:bg-surface' ) {
 		<button type="button" id="a11y-toggle" class="<?php echo esc_attr( $base ); ?>" aria-haspopup="dialog" aria-label="<?php echo esc_attr( mcupr_t( 'settings_title' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'settings_btn' ) ); ?>">
 			<?php echo mcupr_icon( 'sliders', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		</button>
-		<button type="button" id="about-toggle" class="<?php echo esc_attr( $base ); ?>" aria-haspopup="dialog" aria-label="<?php echo esc_attr( mcupr_t( 'about' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'about' ) ); ?>">
+		<?php
+		$modes      = function_exists( 'mcupr_active_modes' ) ? mcupr_active_modes() : array();
+		$about_name = mcupr_t( 'about' );
+		if ( $modes ) { // editors only: say which special modes are on
+			$about_name .= ' — ' . mcupr_t( 'md_on' ) . ' ' . implode( ', ', array_map( static function ( $m ) { return mcupr_t( 'md_' . $m ); }, $modes ) );
+		}
+		?>
+		<button type="button" id="about-toggle" class="<?php echo esc_attr( $base ); ?>"<?php echo $modes ? ' data-mode="' . esc_attr( $modes[0] ) . '" data-modes="' . esc_attr( implode( ' ', $modes ) ) . '"' : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?> aria-haspopup="dialog" aria-label="<?php echo esc_attr( $about_name ); ?>" title="<?php echo esc_attr( $about_name ); ?>">
 			<?php echo mcupr_icon( 'help', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		</button>
 	</div>

@@ -37,15 +37,6 @@
 		try { localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) { /* storage blocked */ }
 	}
 
-	/* the maintenance reminder is fixed at the very top: tell the CSS how tall it really is */
-	var maintBar = $('.maint-bar');
-	if (maintBar) {
-		var setMaintH = function () { root.style.setProperty('--maint-h', maintBar.offsetHeight + 'px'); };
-		setMaintH();
-		window.addEventListener('resize', setMaintH);
-		if (window.ResizeObserver) { new ResizeObserver(setMaintH).observe(maintBar); }
-	}
-
 	/* ------------------------------------------------------------------ prefs */
 	function fontIndex() {
 		var i = parseInt(prefs.font, 10);
