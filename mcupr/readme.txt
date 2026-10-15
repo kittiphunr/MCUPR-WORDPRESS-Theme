@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.29.2 =
+* Top menu: the More dropdown is a card grid with every group open and no scroll bars
+
 = 1.29.1 =
 * Info button shows the special mode that is on (editors only); orange maintenance strip removed
 
