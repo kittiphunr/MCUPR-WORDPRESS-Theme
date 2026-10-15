@@ -4,7 +4,7 @@
  *
  * The starter *content* file (pages, sample events, forms…) goes in through Tools → Import (WordPress Importer). That
  * importer cannot carry Customizer settings, so this page does it for the theme's own settings: the home page blocks,
- * the switches of the home sections and the redirects. Two files can be read:
+ * the numbers block, the switches of the home sections and the redirects. Two files can be read:
  *   • the starter settings that come with the theme (starter/mcupr-starter-settings.json), or
  *   • a file exported from another site (“Download my settings”).
  * Nothing is ever overwritten: a block that already has something typed in is skipped as a whole, a switch that is already
@@ -31,10 +31,13 @@ function mcupr_ss_key( $key ) {
 	if ( preg_match( '/^mcupr_wx_(lat|lon|place)$/', $key, $m ) ) {
 		return array( 'wx', 'wx', 0, $m[1] );
 	}
+	if ( preg_match( '/^mcupr_num_(students|teachers|faculties|bachelor|master|doctoral|asof)$/', $key, $m ) ) {
+		return array( 'num', 'num', 0, $m[1] );
+	}
 	if ( preg_match( '/^mcupr_((hero_(eyebrow|l1|l2|sub|btn1|btn2)|about|address|cta_title)_(th|en|zh|ja)|hero_btn[12]_url|cta_url|org_tel|org_email)$/', $key ) ) {
 		return array( 'home', 'home', 0, $key );
 	}
-	if ( preg_match( '/^mcupr_home_(weather|audience|figures|services|links|aboutblock|about|slider|events|media|cats|visit)_on$/', $key ) ) {
+	if ( preg_match( '/^mcupr_home_(numbers|weather|audience|figures|services|links|aboutblock|about|slider|events|media|cats|visit)_on$/', $key ) ) {
 		return array( 'toggle', 'toggle', 0, $key );
 	}
 	return null;
@@ -61,6 +64,9 @@ function mcupr_ss_clean( $key, $field, $v ) {
 	if ( 'url' === $field || 'more_url' === $field ) {
 		return 0 === strpos( $v, 'page:' ) ? 'page:' . sanitize_title( substr( $v, 5 ) ) : mcupr_blk_clean_url_setting( $v );
 	}
+	if ( 0 === strpos( $key, 'mcupr_num_' ) && 'asof' !== $field ) {
+		return mcupr_numbers_clean( $v );
+	}
 	if ( 'lat' === $field || 'lon' === $field ) {
 		return preg_match( '/^-?\d{1,3}(\.\d{1,6})?$/', trim( $v ) ) ? trim( $v ) : '';
 	}
@@ -85,6 +91,13 @@ function mcupr_ss_in_use( $group ) {
 	}
 	if ( 'wx' === $group ) {
 		return '' !== trim( (string) get_theme_mod( 'mcupr_wx_lat', '' ) ) || '' !== trim( (string) get_theme_mod( 'mcupr_wx_lon', '' ) );
+	}
+	if ( 'num' === $group ) {
+		foreach ( array( 'students', 'teachers', 'faculties', 'bachelor', 'master', 'doctoral' ) as $f ) {
+			if ( '' !== trim( (string) get_theme_mod( 'mcupr_num_' . $f, '' ) ) ) {
+				return true;
+			}
+		}
 	}
 	return false;
 }
@@ -122,7 +135,7 @@ function mcupr_ss_apply( $data, $only = null ) {
 		} elseif ( 'home' === $g ) {
 			$plain['home'][ $k ] = $val;
 		} else {
-			$plain[ $g ][ 'mcupr_' . ( 'wx' === $g ? $g : $blk ) . '_' . $f ] = $val;
+			$plain[ $g ][ 'mcupr_' . ( 'wx' === $g || 'num' === $g ? $g : $blk ) . '_' . $f ] = $val;
 		}
 	}
 	$defs = mcupr_blk_defs();
@@ -276,7 +289,7 @@ function mcupr_ss_parse( $text ) {
 
 /** One line for a result. */
 function mcupr_ss_message( $rep ) {
-	$names = array( 'aud' => __( 'Audience cards', 'mcupr' ), 'fig' => __( 'Figures strip', 'mcupr' ), 'svc' => __( 'Service cards', 'mcupr' ), 'lnk' => __( 'Education links', 'mcupr' ), 'abt' => __( 'About block', 'mcupr' ), 'wx' => __( 'Weather bar', 'mcupr' ), 'home' => __( 'Home page texts', 'mcupr' ), 'toggle' => __( 'Show/hide switches', 'mcupr' ) );
+	$names = array( 'aud' => __( 'Audience cards', 'mcupr' ), 'fig' => __( 'Figures strip', 'mcupr' ), 'svc' => __( 'Service cards', 'mcupr' ), 'lnk' => __( 'Education links', 'mcupr' ), 'abt' => __( 'About block', 'mcupr' ), 'wx' => __( 'Weather bar', 'mcupr' ), 'num' => __( 'Numbers', 'mcupr' ), 'home' => __( 'Home page texts', 'mcupr' ), 'toggle' => __( 'Show/hide switches', 'mcupr' ) );
 	$map   = static function ( $a ) use ( $names ) { return implode( ', ', array_map( static function ( $g ) use ( $names ) { return isset( $names[ $g ] ) ? $names[ $g ] : $g; }, $a ) ); };
 	$out   = array();
 	$out[] = $rep['added'] ? sprintf( /* translators: %s: list */ __( 'Added: %s.', 'mcupr' ), $map( $rep['added'] ) ) : __( 'Nothing was added.', 'mcupr' );
@@ -320,7 +333,7 @@ function mcupr_ss_page() {
 	echo '<p style="max-width:62rem">' . esc_html__( 'Two kinds of files bring the theme’s ready-made content into a site. Neither ever overwrites what is already there.', 'mcupr' ) . '</p>';
 	echo '<div class="card" style="max-width:62rem"><h2>' . esc_html__( '1. Content file (pages and samples)', 'mcupr' ) . '</h2><p>' . esc_html__( 'Pages and sample items: the add-ons file has only what is new since the first starter file (document centre, events calendar, forum, welcome page samples, internal questionnaire, satisfaction survey, student portal, study plans, donate, quality assurance, and the sample events, works, FAQ, form, poll). WordPress Importer skips anything with the same title and date, so your own pages are not touched and importing twice adds nothing. Menus are not in it: add the new pages to a menu yourself.', 'mcupr' ) . '</p><p>';
 	echo '<a class="button" href="' . esc_url( get_theme_file_uri( 'starter/mcupr-starter-addons.xml' ) ) . '" download>' . esc_html__( 'Download the add-ons file (new items only)', 'mcupr' ) . '</a> <a class="button" href="' . esc_url( get_theme_file_uri( 'starter/mcupr-starter.xml' ) ) . '" download>' . esc_html__( 'Download the full starter file (for a new site)', 'mcupr' ) . '</a> <a class="button button-primary" href="' . esc_url( admin_url( 'import.php' ) ) . '">' . esc_html__( 'Open Tools → Import', 'mcupr' ) . '</a></p></div>';
-	echo '<div class="card" style="max-width:62rem"><h2>' . esc_html__( '2. Settings file (home page blocks, redirects)', 'mcupr' ) . '</h2><p>' . esc_html__( 'The home page blocks, the numbers block, the show/hide switches and the redirects. A block that already has something typed in is skipped as a whole, a switch that is already set stays, and a redirect whose old address exists is skipped.', 'mcupr' ) . '</p>';
+	echo '<div class="card" style="max-width:62rem"><h2>' . esc_html__( '2. Settings file (home page blocks, numbers, redirects)', 'mcupr' ) . '</h2><p>' . esc_html__( 'The home page blocks, the numbers block, the show/hide switches and the redirects. A block that already has something typed in is skipped as a whole, a switch that is already set stays, and a redirect whose old address exists is skipped.', 'mcupr' ) . '</p>';
 	$form( 'starter', __( 'Fill the empty parts from the theme’s starter settings', 'mcupr' ), true );
 	echo '<h3>' . esc_html__( 'Use a file', 'mcupr' ) . '</h3><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" enctype="multipart/form-data"><input type="hidden" name="action" value="mcupr_ss"><input type="hidden" name="do" value="upload">';
 	wp_nonce_field( 'mcupr_ss', 'mcupr_ss_nonce' );
