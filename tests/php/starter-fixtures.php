@@ -84,4 +84,40 @@ if ( $units && count( $people ) >= 4 ) {
 	file_put_contents( ABSPATH . 'staff-fixture.json', wp_json_encode( array( 'p0' => get_post_field( 'post_name', $p0 ), 'p1' => get_post_field( 'post_name', $p1 ), 'p2' => get_post_field( 'post_name', $p2 ), 'name0' => get_the_title( $p0 ), 'name1' => get_the_title( $p1 ), 'unit0' => get_the_title( $units[0] ) ), JSON_UNESCAPED_UNICODE ) );
 	update_post_meta( $p2, '_mcupr_person_honors', array( array( 'key' => 'bm', 'year' => 2020, 'gazette' => '', 'note' => '' ) ) );
 }
+// discussion board: topics, replies, a pinned and a locked topic
+$bg = get_term_by( 'slug', 'general', 'mcupr_board' ); $ba = get_term_by( 'slug', 'academic', 'mcupr_board' );
+if ( $bg && $ba ) {
+	$mk = function ( $title, $body, $board, $name, $email, $min ) {
+		$tid = wp_insert_post( array( 'post_type' => 'mcupr_topic', 'post_status' => 'publish', 'post_title' => $title, 'post_content' => $body, 'post_name' => sanitize_title( 'fx-' . md5( $title ) ) ) );
+		wp_set_object_terms( $tid, array( $board->term_id ), 'mcupr_board' );
+		if ( '' !== $email ) { update_post_meta( $tid, '_mcupr_topic_name', $name ); update_post_meta( $tid, '_mcupr_topic_email', $email ); }
+		update_post_meta( $tid, '_mcupr_topic_last', time() - $min * 60 );
+		return $tid;
+	};
+	$rp = function ( $tid, $name, $text, $min ) { wp_insert_comment( array( 'comment_post_ID' => $tid, 'comment_author' => $name, 'comment_author_email' => 'r@example.org', 'comment_content' => $text, 'comment_approved' => 1, 'comment_date' => gmdate( 'Y-m-d H:i:s', time() - $min * 60 ), 'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', time() - $min * 60 ) ) ); };
+	$t1 = $mk( 'ยินดีต้อนรับสู่กระดานสนทนา (ปักหมุด)', '<p>กติกา: ใช้ถ้อยคำสุภาพ ไม่โพสต์ข้อมูลส่วนบุคคลของผู้อื่น</p>', $bg, '', '', 500 );
+	update_post_meta( $t1, '_mcupr_topic_sticky', 1 );
+	$t2 = $mk( 'สอบถามเรื่องการลงทะเบียนเรียน', "ลงทะเบียนเรียนล่าช้าต้องทำอย่างไรครับ\nรบกวนผู้รู้ช่วยตอบด้วย", $ba, 'นักศึกษาตัวอย่าง', 'hidden-forum@example.org', 30 );
+	$rp( $t2, 'เจ้าหน้าที่ทะเบียน', 'ยื่นคำร้องที่กองบริการการศึกษาภายใน 7 วันค่ะ', 20 ); $rp( $t2, 'รุ่นพี่', 'ผมเคยทำ ใช้เวลาสองวันครับ', 10 );
+	$t3 = $mk( 'ประกาศปิดรับข้อเสนอ (ล็อก)', 'หัวข้อนี้ปิดการตอบแล้ว', $ba, 'ผู้ดูแล', 'mod@example.org', 600 );
+	update_post_meta( $t3, '_mcupr_topic_locked', 1 );
+	file_put_contents( ABSPATH . 'forum-fixture.json', wp_json_encode( array( 't1' => get_post_field( 'post_name', $t1 ), 't2' => get_post_field( 'post_name', $t2 ), 't3' => get_post_field( 'post_name', $t3 ), 't2id' => $t2 ) ) );
+}
+// photo album with four pictures (captions on three)
+$pics = array();
+foreach ( array( array( 200, 40, 90 ), array( 30, 100, 160 ), array( 40, 140, 80 ), array( 210, 150, 30 ) ) as $i => $rgb ) {
+	$im = imagecreatetruecolor( 1600, 1000 ); imagefill( $im, 0, 0, imagecolorallocate( $im, $rgb[0], $rgb[1], $rgb[2] ) );
+	$u  = wp_upload_bits( "e2e-album-$i.jpg", null, '' ); imagejpeg( $im, $u['file'], 70 );
+	$aid = wp_insert_attachment( array( 'post_mime_type' => 'image/jpeg', 'post_title' => "album $i", 'post_status' => 'inherit', 'post_excerpt' => $i < 3 ? 'คำบรรยายภาพที่ ' . ( $i + 1 ) : '' ), $u['file'] );
+	wp_update_attachment_metadata( $aid, wp_generate_attachment_metadata( $aid, $u['file'] ) );
+	update_post_meta( $aid, '_wp_attachment_image_alt', 'ภาพตัวอย่าง ' . ( $i + 1 ) );
+	$pics[] = $aid;
+}
+$alb = wp_insert_post( array( 'post_type' => 'mcupr_album', 'post_status' => 'publish', 'post_title' => 'กิจกรรมวันเปิดบ้านตัวอย่าง', 'post_name' => 'fx-album', 'post_content' => 'ภาพบรรยากาศงานเปิดบ้าน' ) );
+update_post_meta( $alb, '_mcupr_album_images', $pics );
+// a satisfaction survey on its own page
+$pl = wp_insert_post( array( 'post_type' => 'mcupr_poll', 'post_status' => 'publish', 'post_title' => 'คุณพึงพอใจกับเว็บไซต์นี้เพียงใด' ) );
+update_post_meta( $pl, '_mcupr_poll_type', 'satisfaction' );
+wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'แบบสำรวจตัวอย่าง', 'post_name' => 'fx-poll', 'post_content' => '[mcupr_poll id="' . $pl . '"]' ) );
+wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'หน้าทดสอบเกริ่นนำ', 'post_name' => 'fx-lead', 'post_excerpt' => 'คำเกริ่นนำของหน้านี้', 'post_content' => str_repeat( '<p>เนื้อหายาว</p>', 80 ) ) );
 echo "ok $id\n";
