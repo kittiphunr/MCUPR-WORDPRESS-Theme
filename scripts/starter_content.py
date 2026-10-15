@@ -63,6 +63,7 @@ T = {
  'sitemap': ('แผนผังเว็บไซต์', 'Sitemap', '网站地图', 'サイトマップ'),
  'faq': ('คำถามที่พบบ่อย', 'FAQ', '常见问题', 'よくある質問'),
  'contact': ('ติดต่อเรา', 'Contact us', '联系我们', 'お問い合わせ'),
+ 'forum': ('กระดานสนทนา', 'Discussion board', '讨论区', '掲示板'),
  'documents': ('ศูนย์เอกสารดาวน์โหลด', 'Document centre', '文档下载中心', '資料ダウンロード'),
  'events-calendar': ('ปฏิทินกิจกรรม', 'Events calendar', '活动日历', 'イベントカレンダー'),
  'eservice': ('บริการอิเล็กทรอนิกส์ (e-Service)', 'e-Services', '电子服务', '電子サービス'),
@@ -74,7 +75,7 @@ SECTIONS = {
  'about': ['history', 'vision', 'emblem', 'structure', 'executives', 'council', 'staff', 'location', 'strategy', 'annual-report'],
  'academics': ['programs', 'admissions', 'scholarships', 'calendar', 'registrar', 'library'],
  'research': ['research-policy', 'research-centers', 'journals', 'academic-service', 'research-grants', 'research-ethics'],
- 'students': ['student-services', 'dormitory', 'health', 'activities', 'career', 'alumni', 'student-handbook'],
+ 'students': ['student-services', 'dormitory', 'health', 'activities', 'career', 'alumni', 'student-handbook', 'forum'],
  'governance': ['ita', 'oic', 'open-data', 'plans-reports', 'procurement', 'hr', 'complaints', 'anti-corruption', 'laws', 'documents'],
  'policies': ['privacy-policy', 'cookie-policy', 'accessibility-statement', 'security-policy', 'terms-of-use', 'copyright-notice', 'sitemap', 'faq'],
 }
@@ -201,6 +202,8 @@ C['open-data'] = generic('ข้อมูลเปิด', 'ชุดข้อ�
 C['plans-reports'] = generic('แผนและรายงาน', 'แผนปฏิบัติการและรายงานผลการดำเนินงานของหน่วยงาน', ['แผนปฏิบัติการประจำปี', 'รายงานผลการดำเนินงานรอบ 6 เดือน / 12 เดือน', 'รายงานการเงิน', 'รายงานการประเมินตนเอง (SAR)'], doc_table('รายงาน'))
 C['procurement'] = generic('จัดซื้อจัดจ้าง', 'เปิดเผยข้อมูลการจัดซื้อจัดจ้างตามระเบียบที่เกี่ยวข้อง', ['แผนการจัดซื้อจัดจ้างประจำปี', 'ประกาศเชิญชวน/ประกาศผู้ชนะการเสนอราคา', 'สรุปผลการจัดซื้อจัดจ้างรายเดือน', 'รายงานผลการจัดซื้อจัดจ้างประจำปี', 'ลิงก์ระบบ e-GP (ถ้ามี)'], doc_table('ประกาศ'))
 C['hr'] = generic('งานบุคคล', 'ข้อมูลการบริหารงานบุคคลและการสรรหา', ['นโยบายการบริหารและพัฒนาทรัพยากรบุคคล', 'ประกาศรับสมัครงาน', 'ประกาศผลการสรรหา', 'หลักเกณฑ์การประเมินและเลื่อนตำแหน่ง'], doc_table('ประกาศ'))
+C['forum'] = (todo('ตั้งค่ากระดานและการอนุมัติโพสต์ที่ เมนู “กระดานสนทนา → ตั้งค่ากระดาน” ในหลังบ้าน (ค่าเริ่มต้น: โพสต์ใหม่ต้องรอผู้ดูแลอนุมัติ)') +
+    '<p>พื้นที่แลกเปลี่ยนความคิดเห็นและถามตอบของ [mcupr_org] กรุณาใช้ถ้อยคำสุภาพ ไม่โพสต์ข้อมูลส่วนบุคคลของผู้อื่น</p>\n[mcupr_forum]\n')
 C['documents'] = (todo('รวมไฟล์แนบของทุกข่าว/หน้า/กิจกรรม/ผลงานไว้ที่นี่โดยอัตโนมัติ — เพิ่มไฟล์ที่กล่อง “ไฟล์แนบ” ของแต่ละโพสต์ ผู้เข้าชมค้นหาและกรองตามประเภทไฟล์ได้') +
     '[mcupr_documents per_page="20"]\n')
 
@@ -424,6 +427,7 @@ WORKS = [
 ]
 
 # sample people: (group, order, name, role, dept)
+FORUM_BOARDS = [('general', 'ทั่วไป', 'พูดคุยเรื่องทั่วไปเกี่ยวกับมหาวิทยาลัย'), ('academic', 'ถามตอบเรื่องการเรียนการสอน', 'คำถามเรื่องหลักสูตร การลงทะเบียน และการเรียน'), ('suggest', 'ข้อเสนอแนะ', 'ข้อเสนอแนะเพื่อพัฒนาการให้บริการ')]
 PEOPLE_GROUPS = [('executives', 'ผู้บริหาร'), ('staff', 'บุคลากร')]
 PEOPLE = [
  ('executives', 1, '[ชื่ออธิการบดี]', 'อธิการบดี', 'สำนักอธิการบดี'),
