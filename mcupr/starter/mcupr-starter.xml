@@ -285,7 +285,7 @@
 	<description></description>
 	<content:encoded><![CDATA[<p class="mcupr-todo"><strong>โครงร่างหน้า (Draft):</strong> รายชื่อด้านล่างมาจากเมนู “บุคลากรและผู้บริหาร” ในหลังบ้าน (กลุ่ม: บุคลากร) — เพิ่มทีละคนหรือแยกกลุ่มตามส่วนงานได้ — ลบกล่องนี้ออกเมื่อแก้ไขเสร็จ</p>
 <p>ทำเนียบบุคลากรของ [mcupr_org]</p>
-[mcupr_people group="staff" columns="4"]
+[mcupr_people group="staff" columns="4" search="1"]
 ]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
 	<wp:post_id>108</wp:post_id>
@@ -2103,8 +2103,8 @@
 		<wp:postmeta><wp:meta_key>_mcupr_en_title</wp:meta_key><wp:meta_value><![CDATA[Opening ceremony (sample)]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_zh_title</wp:meta_key><wp:meta_value><![CDATA[开学典礼（示例）]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ja_title</wp:meta_key><wp:meta_value><![CDATA[新学期開会式（サンプル）]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-10-21 09:00:00]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-10-21 12:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-10-22 09:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-10-22 12:00:00]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_place</wp:meta_key><wp:meta_value><![CDATA[[สถานที่จัดงาน]]]></wp:meta_value></wp:postmeta>
 </item>
 <item>
@@ -2133,8 +2133,8 @@
 		<wp:postmeta><wp:meta_key>_mcupr_en_title</wp:meta_key><wp:meta_value><![CDATA[Academic seminar (sample)]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_zh_title</wp:meta_key><wp:meta_value><![CDATA[学术研讨会（示例）]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ja_title</wp:meta_key><wp:meta_value><![CDATA[学術セミナー（サンプル）]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-10-28 13:30:00]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-10-28 16:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-10-29 13:30:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-10-29 16:00:00]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_place</wp:meta_key><wp:meta_value><![CDATA[[ห้องประชุม]]]></wp:meta_value></wp:postmeta>
 </item>
 <item>
@@ -2163,8 +2163,8 @@
 		<wp:postmeta><wp:meta_key>_mcupr_en_title</wp:meta_key><wp:meta_value><![CDATA[Open House (sample)]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_zh_title</wp:meta_key><wp:meta_value><![CDATA[开放日（示例）]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ja_title</wp:meta_key><wp:meta_value><![CDATA[オープンハウス（サンプル）]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-11-13 00:00:00]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-11-13 23:59:59]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-11-14 00:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-11-14 23:59:59]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_allday</wp:meta_key><wp:meta_value><![CDATA[1]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_place</wp:meta_key><wp:meta_value><![CDATA[[มหาวิทยาลัย]]]></wp:meta_value></wp:postmeta>
 </item>
