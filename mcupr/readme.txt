@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.16.3 =
+* Top menu items spread over the whole capsule
+
 = 1.16.2 =
 * Fix: eye icon in the view cursor, tooltips clipped by the dialog body
 
