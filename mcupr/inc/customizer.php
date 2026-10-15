@@ -76,6 +76,12 @@ function mcupr_customize_register( $wp_customize ) {
 	$wp_customize->add_section( 'mcupr_home_sections', array( 'title' => __( 'MCUPR: Home page sections', 'mcupr' ), 'description' => __( 'Show only what you need on the home page. The hero and the quick links are always shown. Events, videos and albums appear only when there are some.', 'mcupr' ), 'priority' => 33 ) );
 	foreach ( array(
 		'about'  => array( true, __( 'Introduction of the organisation (logo, text, “About us” button)', 'mcupr' ) ),
+		'weather'  => array( true, __( 'Weather bar (needs latitude and longitude)', 'mcupr' ) ),
+		'audience' => array( true, __( 'Audience cards (applicants, current students…) – shown when filled in', 'mcupr' ) ),
+		'figures'  => array( true, __( 'Figures strip – shown when filled in', 'mcupr' ) ),
+		'services' => array( true, __( 'Service cards – shown when filled in', 'mcupr' ) ),
+		'links'    => array( true, __( 'Education links – shown when filled in', 'mcupr' ) ),
+		'aboutblock' => array( true, __( 'About block with cards – shown when filled in', 'mcupr' ) ),
 		'numbers' => array( true, __( 'Numbers (students, teachers, faculties, students per level) – shown when filled in', 'mcupr' ) ),
 		'slider' => array( true, __( 'Featured news slider', 'mcupr' ) ),
 		'events' => array( true, __( 'Upcoming events', 'mcupr' ) ),
