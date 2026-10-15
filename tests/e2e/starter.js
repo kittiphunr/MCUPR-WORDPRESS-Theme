@@ -270,11 +270,9 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     const hv = await hp.evaluate(() => ({ cls: document.documentElement.classList.contains('sb-min'), tip: document.querySelector('.site-nav .menu > li > a').title }));
     ok(hv.cls && hv.tip, 'sidebar: collapsing gives each icon a tooltip (' + hv.tip + ')');
     await hc.close();
-    // the creator, like the BDA-MCU-PHRAE project
+    // the creator is credited in the About dialog only (no footer card)
     await p.goto(B + '/');
-    ok((await p.locator('#colophon .fcredit-ph').getAttribute('src')).endsWith('developer.jpg') && (await p.locator('#colophon .fcredit-e').textContent()) === 'Kittiphun Ruttanakorn', 'footer: creator card with the photo and English name');
-    await p.locator('#colophon .fcredit-ph').scrollIntoViewIfNeeded();
-    await p.waitForFunction(() => { const i = document.querySelector('#colophon .fcredit-ph'); return i.complete && i.naturalWidth > 0; }, null, { timeout: 5000 }).then(() => ok(true, 'footer: the creator photo loads'), () => ok(false, 'footer: the creator photo loads'));
+    ok((await p.locator('#colophon .fcredit').count()) === 0, 'footer: no creator card');
   }
   // ---------- A4 print with the letterhead
   {

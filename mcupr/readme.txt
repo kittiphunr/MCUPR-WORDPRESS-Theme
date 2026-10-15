@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.13.1 =
+* Removed the creator card from the footer (the creator stays in the About dialog).
+
 = 1.13.0 =
 * Staff hub: profiles linked to the administration chart, privacy controls, works, education, royal decorations catalogue with editable medals, control centre, roll of honour.
 
