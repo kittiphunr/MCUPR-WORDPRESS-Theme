@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.28.4 =
+* High-contrast mode: on/off switches visible
+
 = 1.28.3 =
 * Removed the Numbers (students / teachers / faculties) block
 
