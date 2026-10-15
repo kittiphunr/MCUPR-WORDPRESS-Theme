@@ -12,6 +12,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   p.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(m.text()); });
 
   await p.goto(B + '/');
+  ok((await p.locator('#numbers-title').count()) === 1 && (await p.locator('.nm-tile').count()) === 6 && /21,850/.test(await p.locator('.nm').innerText()), 'home: the numbers block shows six figures (the total is the sum of the levels)');
   const bar = await p.$$eval('.sb-cap .menu > li:not(.menu-more), .sb-cap .menu-more > .sub-menu > li', (l) => l.map((x) => x.textContent.trim().replace(/\s+/g, ' ')));
   ok(bar.length >= 6, 'home: main menu shows ' + bar.length + ' items');
   ok(bar.some((t) => /เกี่ยวกับ/.test(t)) && bar.some((t) => /ธรรมาภิบาล/.test(t)), 'home: Thai labels in the main menu');
