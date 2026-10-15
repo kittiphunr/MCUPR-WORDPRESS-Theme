@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.16.0 =
+* Discussion board: boards, topics, replies, moderation, spam protection, reports.
+
 = 1.15.0 =
 * Administration chart: boxes beside a unit (committees), list panels (sections and groups), box colours, wider rows; the sample chart follows the Phrae campus structure.
 

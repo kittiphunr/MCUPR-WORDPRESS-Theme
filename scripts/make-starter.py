@@ -72,6 +72,8 @@ for slug, name in S.CATEGORIES:
 for n, (slug, (nm, _en)) in enumerate(S.WORK_CATS):
     out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>mcupr_work_cat</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name></wp:term>\n' % (30 + n, slug, cd(nm)))
 
+for n, (slug, nm, desc) in enumerate(S.FORUM_BOARDS):
+    out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>mcupr_board</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name><wp:term_description>%s</wp:term_description></wp:term>\n' % (50 + n, slug, cd(nm), cd(desc)))
 for n, (slug, nm) in enumerate(S.PEOPLE_GROUPS):
     out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>mcupr_person_group</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name></wp:term>\n' % (40 + n, slug, cd(nm)))
 
