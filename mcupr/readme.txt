@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.23.1 =
+* Home: events card and video card polished, video title bar
+
 = 1.23.0 =
 * Home blocks: audience cards, figures strip, link cards, about block, weather bar; 4 new sample pages
 
