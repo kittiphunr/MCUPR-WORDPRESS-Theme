@@ -970,5 +970,6 @@ TH = {
 "quick-link menu": "เมนูลิงก์ด่วน",
 "sample pictures": "ภาพตัวอย่าง",
 "video": "วิดีโอ",
-"“Remove the demo items” deletes the news, events, video, albums, pictures and menu that the demo made (also if you edited them). The settings stay.": "“ลบรายการเดโม่” จะลบข่าว กิจกรรม วิดีโอ อัลบั้ม ภาพ และเมนูที่เดโม่สร้าง (รวมถึงที่คุณแก้ไขแล้ว) ส่วนการตั้งค่าจะคงไว้"
+"“Remove the demo items” deletes the news, events, video, albums, pictures and menu that the demo made (also if you edited them). The settings stay.": "“ลบรายการเดโม่” จะลบข่าว กิจกรรม วิดีโอ อัลบั้ม ภาพ และเมนูที่เดโม่สร้าง (รวมถึงที่คุณแก้ไขแล้ว) ส่วนการตั้งค่าจะคงไว้",
+"2. Settings file (home page blocks, redirects)": "2. ไฟล์การตั้งค่า (บล็อกหน้าแรก การเปลี่ยนเส้นทาง)"
 }
