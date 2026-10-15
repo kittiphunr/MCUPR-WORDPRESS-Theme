@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.28.3 =
+* Removed the Numbers (students / teachers / faculties) block
+
 = 1.28.2 =
 * Theme credit: author name with link to profile
 
