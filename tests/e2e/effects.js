@@ -60,6 +60,7 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     ok((await p.locator('.cursor-dot').count()) === 1 && (await p.locator('.cursor-ring').count()) === 1, 'cursor dot + ring created');
     ok(await p.evaluate(() => document.documentElement.classList.contains('cursor-visible')), 'custom cursor visible after mouse movement');
     ok(await p.locator('.cursor-ring.is-view').count() === 1, 'ring becomes a "view" bubble over a clickable card');
+    ok(await p.evaluate(() => { const v = document.querySelector('.cursor-ring span svg').getBoundingClientRect(); const r = document.querySelector('.cursor-ring').getBoundingClientRect(); return v.width >= 24 && Math.abs(v.left + v.width / 2 - r.left) < 3 && Math.abs(v.top + v.height / 2 - r.top) < 3; }), 'the eye icon is visible and centred in the bubble');
     ok((await p.locator('.cursor-ring span svg circle').count()) === 1 && (await p.textContent('.cursor-ring span')) === '', 'bubble shows an eye icon instead of the word "view"');
     await p.mouse.move(5, 5);
     await p.hover('#lang-toggle');
