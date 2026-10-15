@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.18.7 =
+* Menu drop-down buttons are true circles
+
 = 1.18.6 =
 * Search overlay: close button inside the corner
 
