@@ -1,5 +1,7 @@
 === MCUPR-S.A.T.U.R.N ===
 Contributors: kittiphunr
+Author: Kittiphun Ruttanakorn
+Author URI: https://github.com/kittiphunr
 Requires at least: 5.9
 Tested up to: 6.8
 Requires PHP: 7.0
@@ -29,6 +31,9 @@ SweetAlert2: MIT License.
 
 == Changelog ==
 
+
+= 1.28.2 =
+* Theme credit: author name with link to profile
 
 = 1.28.1 =
 * Header tools capsule compact and quieter; weather pill no longer overflows at 320 px
