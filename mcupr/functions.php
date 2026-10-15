@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'MCUPR_MIN_WP', '5.9' );
 define( 'MCUPR_MIN_PHP', '7.0' );
 
-define( 'MCUPR_VERSION', '1.12.2' );
+define( 'MCUPR_VERSION', '1.13.0' );
 define( 'MCUPR_DIR', get_template_directory() );
 define( 'MCUPR_URI', get_template_directory_uri() );
 
@@ -39,6 +39,7 @@ require_once MCUPR_DIR . '/inc/works.php';
 require_once MCUPR_DIR . '/inc/browser.php';
 require_once MCUPR_DIR . '/inc/print.php';
 require_once MCUPR_DIR . '/inc/orgchart.php';
+require_once MCUPR_DIR . '/inc/staff.php';
 require_once MCUPR_DIR . '/inc/people.php';
 require_once MCUPR_DIR . '/inc/documents.php';
 require_once MCUPR_DIR . '/inc/forms.php';

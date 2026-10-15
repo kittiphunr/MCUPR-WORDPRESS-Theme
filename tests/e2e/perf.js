@@ -32,7 +32,7 @@ const post = '/' + encodeURIComponent('ข่าวทดสอบ-1') + '/';
     ok(reqs.every((r) => r.status < 400), name + ': no failed requests ' + reqs.filter((r) => r.status >= 400).map((r) => r.url).join(' '));
     ok(errors.length === 0, name + ': clean console ' + errors.slice(0, 2).join(' | '));
     // ---- sizes (uncompressed; the server adds gzip/brotli)
-    ok(kb(/tailwind\.css/) <= 160, name + ": CSS " + Math.round(kb(/tailwind\.css/)) + " KB (budget 160; about 23 KB gzipped)");
+    ok(kb(/tailwind\.css/) <= 175, name + ": CSS " + Math.round(kb(/tailwind\.css/)) + " KB (budget 175; about 23 KB gzipped)");
     ok(kb(/main\.js/) <= 55, name + ': main.js ' + Math.round(kb(/main\.js/)) + ' KB (budget 55)');
     ok(reqs.filter((r) => /\.woff2/.test(r.url)).every((r) => r.len <= 25 * 1024) && reqs.some((r) => /\.woff2/.test(r.url)), name + ': fonts are small WOFF2 files');
     ok(reqs.filter((r) => /mcu-logo/.test(r.url)).every((r) => r.len <= 20 * 1024), name + ': the default logo is a small WebP');

@@ -18,6 +18,7 @@ php php/suggestions.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
 php php/starter-fixtures.php "$SITE_DIR" 2>&1 | grep -v Deprecated
 php php/browser.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || true
 php php/print.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || true
+php php/staff.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || true
 php -S "localhost:${PORT}" -t "$SITE_DIR" >.server.log 2>&1 &
 pid=$!; trap 'kill $pid 2>/dev/null' EXIT
 for _ in $(seq 1 30); do curl -fs "$BASE_URL/" >/dev/null && break; sleep 0.5; done
