@@ -939,5 +939,18 @@ TH = {
 "That is not a MCUPR settings file (or it is larger than 200 KB).": "นี่ไม่ใช่ไฟล์การตั้งค่า MCUPR (หรือใหญ่กว่า 200 KB)",
 "The home page blocks, the numbers block, the show/hide switches and the redirects. A block that already has something typed in is skipped as a whole, a switch that is already set stays, and a redirect whose old address exists is skipped.": "บล็อกหน้าแรก ตัวเลขสำคัญ ปุ่มเปิด/ปิดส่วนต่างๆ และการเปลี่ยนเส้นทาง บล็อกที่มีข้อมูลอยู่แล้วจะถูกข้ามทั้งบล็อก ปุ่มที่ตั้งไว้แล้วจะคงเดิม และการเปลี่ยนเส้นทางที่ที่อยู่เดิมมีอยู่แล้วจะถูกข้าม",
 "Two kinds of files bring the theme’s ready-made content into a site. Neither ever overwrites what is already there.": "ไฟล์สองชนิดนำเนื้อหาสำเร็จรูปของธีมเข้าเว็บ ทั้งสองแบบไม่ทับสิ่งที่มีอยู่แล้ว",
-"Use a file": "ใช้ไฟล์"
+"Use a file": "ใช้ไฟล์",
+"82 is a good balance. Higher = bigger files.": "82 กำลังดี ยิ่งสูงไฟล์ยิ่งใหญ่",
+"Convert uploads to WebP": "แปลงรูปที่อัปโหลดเป็น WebP",
+"Converted so far: %1$d pictures, %2$s saved.": "แปลงแล้ว %1$d รูป ประหยัดได้ %2$s",
+"JPEG and PNG pictures are saved as WebP, and cut to a sensible size, the moment they are uploaded. WebP files are typically 25–35% smaller with no visible difference, which is the biggest single help for page speed. Pictures already in the Media Library are not changed (their addresses are used inside your pages).": "รูป JPEG และ PNG จะถูกบันทึกเป็น WebP และย่อให้ขนาดเหมาะสมทันทีที่อัปโหลด ไฟล์ WebP มักเล็กลง 25–35% โดยตาแทบไม่เห็นความต่าง ช่วยเรื่องความเร็วหน้าเว็บมากที่สุด รูปที่อยู่ในคลังสื่ออยู่แล้วจะไม่ถูกเปลี่ยน (เพราะที่อยู่รูปถูกใช้ในหน้าต่างๆ)",
+"Kept as they are: GIF (may be animated), SVG, WebP, and any picture where WebP would not be at least 10% smaller. Camera photos are turned the right way up first.": "ที่ปล่อยไว้ตามเดิม: GIF (อาจเป็นภาพเคลื่อนไหว), SVG, WebP และรูปที่ WebP ไม่ได้เล็กลงอย่างน้อย 10% ภาพถ่ายจากกล้องจะถูกหมุนให้ตั้งตรงก่อนแปลง",
+"Larger pictures are scaled down to this. 2000 is plenty for a full-width cover picture.": "รูปที่ใหญ่กว่านี้จะถูกย่อลง 2000 พอเพียงสำหรับรูปปกเต็มความกว้าง",
+"Leave pictures smaller than (KB)": "ไม่แปลงรูปที่เล็กกว่า (KB)",
+"Longest side (pixels)": "ด้านที่ยาวที่สุด (พิกเซล)",
+"Pictures (WebP)": "รูปภาพ (WebP)",
+"Quality (40–95)": "คุณภาพ (40–95)",
+"Small pictures (icons, logos) have nothing to gain.": "รูปเล็ก (ไอคอน โลโก้) ไม่ได้ประโยชน์จากการแปลง",
+"This server can write WebP.": "เซิร์ฟเวอร์นี้เขียนไฟล์ WebP ได้",
+"This server cannot write WebP (no WebP support in GD or Imagick). Nothing will be converted: ask the host to enable it.": "เซิร์ฟเวอร์นี้เขียนไฟล์ WebP ไม่ได้ (GD หรือ Imagick ไม่รองรับ WebP) จะไม่มีการแปลงรูป: ให้ขอผู้ให้บริการโฮสต์เปิดใช้"
 }
