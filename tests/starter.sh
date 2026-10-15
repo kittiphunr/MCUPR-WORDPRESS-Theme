@@ -30,6 +30,7 @@ php php/videos.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || tr
 php php/site-status.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || true
 php php/admin-menu.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || true
 php php/events-ics.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
+php php/blocks.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/numbers.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/insights.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php -S "localhost:${PORT}" -t "$SITE_DIR" >.server.log 2>&1 &

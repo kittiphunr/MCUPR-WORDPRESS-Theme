@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.23.0 =
+* Home blocks: audience cards, figures strip, link cards, about block, weather bar; 4 new sample pages
+
 = 1.22.0 =
 * Numbers block: students, teachers, faculties, students per level
 
