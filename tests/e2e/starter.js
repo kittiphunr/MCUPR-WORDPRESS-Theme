@@ -689,6 +689,20 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await p3.locator('section[aria-label="หมวดหมู่ข่าว"]').count()) === 0, 'home: the "news by category" blocks are off by default');
     await c3.close();
 
+    // the demo page of the starter file: a sample of every occasion
+    const dc = await fresh(); const dp = await dc.newPage();
+    await dp.goto(B + '/welcome-demo/');
+    ok((await dp.locator('.welcome-samples a').count()) === 6, 'welcome demo page: a link to a sample of each of the six occasions');
+    const sres = await dp.goto(B + '/?mcupr_welcome=sample&occasion=songkran');
+    ok(sres.status() === 200 && /noindex/.test(sres.headers()['x-robots-tag'] || '') && (await dp.locator('h1').innerText()).includes('สงกรานต์') && (await dp.locator('.status-btn').count()) === 1, 'welcome sample: Songkran shows its own greeting and the enter button, not indexed');
+    await axeOn(dp, 'welcome sample');
+    await dp.click('.status-btn');
+    await dp.waitForSelector('.site-header');
+    ok(!(await dc.cookies()).some((k) => k.name === 'mcupr_welcome'), 'welcome sample: entering does not set the visitor cookie');
+    await dp.goto(B + '/?mcupr_welcome=sample&occasion=mourning');
+    ok((await dp.locator('h1').innerText()).includes('อาลัย') && (await dp.evaluate(() => getComputedStyle(document.body).backgroundImage.includes('rgb(0, 0, 0)'))), 'welcome sample: the mourning occasion is black');
+    await dc.close();
+
     // welcome page
     setStatus(JSON.stringify({ welcome: { on: 1, preset: 'royal', title: { th: 'ถวายพระพรชัยมงคล' }, msg: { th: 'ขอพระองค์ทรงพระเจริญ' }, days: 1, auto: 0, from: '', to: '' } }));
     const w1 = await fresh(); const wp = await w1.newPage();
