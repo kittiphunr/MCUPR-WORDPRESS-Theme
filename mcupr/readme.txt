@@ -30,6 +30,12 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.28.1 =
+* Header tools capsule compact and quieter; weather pill no longer overflows at 320 px
+
+= 1.28.0 =
+* Home page demo (news, events, video, albums, quick links, all home settings)
+
 = 1.27.0 =
 * Pictures: JPEG/PNG uploads saved as WebP
 
