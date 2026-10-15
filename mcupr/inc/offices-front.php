@@ -74,7 +74,8 @@ function mcupr_office_chrome() {
 	$name = get_the_title( $oid );
 	$h1   = $full && '' === $sec;
 	$tag  = $h1 ? 'h1' : 'p';
-	echo '<section class="office-chrome" data-variant="' . ( $full ? 'full' : 'slim' ) . '" style="' . esc_attr( mcupr_office_style( $oid ) ) . '" aria-label="' . esc_attr( $name ) . '"><div class="of-band"><div class="wrap">';
+	$cover = $full ? get_the_post_thumbnail_url( $oid, 'large' ) : '';
+	echo '<section class="office-chrome' . ( $cover ? ' has-cover' : '' ) . '" data-variant="' . ( $full ? 'full' : 'slim' ) . '" style="' . esc_attr( mcupr_office_style( $oid ) . ( $cover ? ';--of-cover:url(' . esc_url_raw( $cover ) . ')' : '' ) ) . '" aria-label="' . esc_attr( $name ) . '"><div class="of-band"><div class="wrap">';
 	echo '<p class="of-up"><a href="' . esc_url( get_post_type_archive_link( 'mcupr_office' ) ) . '">' . esc_html( mcupr_t( 'of_offices' ) ) . '</a></p>';
 	echo '<div class="of-id">' . mcupr_office_badge( $oid ) . '<div class="min-w-0">'; // phpcs:ignore WordPress.Security.EscapeOutput
 	echo '<' . $tag . ' class="of-name"><a href="' . esc_url( get_permalink( $oid ) ) . '">' . esc_html( $name ) . '</a></' . $tag . '>'; // phpcs:ignore WordPress.Security.EscapeOutput
@@ -83,6 +84,16 @@ function mcupr_office_chrome() {
 	}
 	if ( $full && '' === $sec && has_excerpt( $oid ) ) {
 		echo '<p class="of-tag">' . esc_html( get_the_excerpt( $oid ) ) . '</p>';
+	}
+	if ( $full && ( '' !== $d['tel'] || '' !== $d['email'] ) ) {
+		echo '<ul class="of-chips">';
+		if ( '' !== $d['tel'] ) {
+			echo '<li><a href="tel:' . esc_attr( preg_replace( '/[^0-9+]/', '', $d['tel'] ) ) . '">' . mcupr_icon( 'phone', 16 ) . '<span class="sr-only">' . esc_html( mcupr_t( 'about_tel' ) ) . ': </span>' . esc_html( $d['tel'] ) . '</a></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		}
+		if ( '' !== $d['email'] ) {
+			echo '<li><a href="mailto:' . esc_attr( $d['email'] ) . '">' . mcupr_icon( 'mail', 16 ) . '<span class="sr-only">' . esc_html( mcupr_t( 'about_email' ) ) . ': </span>' . esc_html( $d['email'] ) . '</a></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		}
+		echo '</ul>';
 	}
 	echo '</div></div></div></div>';
 	echo '<nav class="of-tabs" aria-label="' . esc_attr( mcupr_t( 'of_nav' ) ) . '"><div class="wrap"><ul>';
@@ -97,7 +108,8 @@ function mcupr_office_card( $o, $h = 'h3' ) {
 	$h  = 'h2' === $h ? 'h2' : 'h3';
 	$d  = mcupr_office_data( $o->ID );
 	$ex = has_excerpt( $o ) ? get_the_excerpt( $o ) : wp_trim_words( wp_strip_all_tags( $o->post_content ), 28, '…' );
-	$s  = '<article class="office-card soft-card lift" style="' . esc_attr( mcupr_office_style( $o->ID ) ) . '"><div class="oc-top">' . mcupr_office_badge( $o->ID, 48 ) . '</div><div class="oc-body">'; // phpcs:ignore WordPress.Security.EscapeOutput
+	$cv = get_the_post_thumbnail_url( $o, 'medium_large' );
+	$s  = '<article class="office-card soft-card lift" style="' . esc_attr( mcupr_office_style( $o->ID ) . ( $cv ? ';--of-cover:url(' . esc_url_raw( $cv ) . ')' : '' ) ) . '"><div class="oc-top' . ( $cv ? ' has-cover' : '' ) . '">' . mcupr_office_badge( $o->ID, 48 ) . '</div><div class="oc-body">'; // phpcs:ignore WordPress.Security.EscapeOutput
 	$s .= '<' . $h . ' class="oc-name"><a href="' . esc_url( get_permalink( $o ) ) . '">' . esc_html( get_the_title( $o ) ) . '</a></' . $h . '>';
 	if ( '' !== $d['name_en'] ) {
 		$s .= '<p class="oc-en" lang="en">' . esc_html( $d['name_en'] ) . '</p>';
@@ -151,23 +163,23 @@ function mcupr_offices_home() {
 function mcupr_office_info_html( $oid, $big = false ) {
 	$d = mcupr_office_data( $oid );
 	$o = '<div class="of-info soft-card' . ( $big ? ' of-info-big' : '' ) . '"><h2 class="of-info-t">' . esc_html( mcupr_t( 'of_contact' ) ) . '</h2><dl class="of-dl">';
-	$row = static function ( $label, $html ) {
-		return '<div><dt>' . esc_html( $label ) . '</dt><dd>' . $html . '</dd></div>';
+	$row = static function ( $label, $html, $icon = 'info' ) {
+		return '<div><dt><span class="of-ic" aria-hidden="true">' . mcupr_icon( $icon, 18 ) . '</span>' . esc_html( $label ) . '</dt><dd>' . $html . '</dd></div>';
 	};
 	if ( '' !== $d['head'] ) {
-		$o .= $row( '' !== $d['head_role'] ? $d['head_role'] : mcupr_t( 'of_head' ), esc_html( $d['head'] ) );
+		$o .= $row( '' !== $d['head_role'] ? $d['head_role'] : mcupr_t( 'of_head' ), esc_html( $d['head'] ), 'user' );
 	}
 	if ( '' !== $d['address'] ) {
-		$o .= $row( mcupr_t( 'of_address' ), nl2br( esc_html( $d['address'] ) ) . ' <a class="of-map" href="' . esc_url( 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( preg_replace( '/\s+/u', ' ', $d['address'] ) ) ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( mcupr_t( 'of_map' ) ) . '<span class="sr-only"> (' . esc_html( mcupr_t( 'new_tab' ) ) . ')</span></a>' );
+		$o .= $row( mcupr_t( 'of_address' ), nl2br( esc_html( $d['address'] ) ) . ' <a class="of-map" href="' . esc_url( 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( preg_replace( '/\s+/u', ' ', $d['address'] ) ) ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( mcupr_t( 'of_map' ) ) . '<span class="sr-only"> (' . esc_html( mcupr_t( 'new_tab' ) ) . ')</span></a>', 'pin' );
 	}
 	if ( '' !== $d['tel'] ) {
-		$o .= $row( mcupr_t( 'about_tel' ), '<a href="tel:' . esc_attr( preg_replace( '/[^0-9+]/', '', $d['tel'] ) ) . '">' . esc_html( $d['tel'] ) . '</a>' );
+		$o .= $row( mcupr_t( 'about_tel' ), '<a href="tel:' . esc_attr( preg_replace( '/[^0-9+]/', '', $d['tel'] ) ) . '">' . esc_html( $d['tel'] ) . '</a>', 'phone' );
 	}
 	if ( '' !== $d['email'] ) {
-		$o .= $row( mcupr_t( 'about_email' ), '<a href="mailto:' . esc_attr( $d['email'] ) . '">' . esc_html( $d['email'] ) . '</a>' );
+		$o .= $row( mcupr_t( 'about_email' ), '<a href="mailto:' . esc_attr( $d['email'] ) . '">' . esc_html( $d['email'] ) . '</a>', 'mail' );
 	}
 	if ( '' !== $d['hours'] ) {
-		$o .= $row( mcupr_t( 'of_hours' ), esc_html( $d['hours'] ) );
+		$o .= $row( mcupr_t( 'of_hours' ), esc_html( $d['hours'] ), 'clock' );
 	}
 	$o .= '</dl>';
 	$links = array();
@@ -262,6 +274,18 @@ function mcupr_office_pager( $oid, $section, $current, $total ) {
 	return '<nav class="navigation pagination" aria-label="' . esc_attr( mcupr_t( 'pagination' ) ) . '"><div class="nav-links">' . $links . '</div></nav>'; // phpcs:ignore WordPress.Security.EscapeOutput
 }
 
+/** How much an office has, for the tiles on its home: array of array( section, label, count ), empty ones left out. */
+function mcupr_office_counts( $oid ) {
+	$out = array();
+	foreach ( array( 'news' => 'of_news', 'events' => 'of_events', 'people' => 'of_people', 'albums' => 'of_albums', 'videos' => 'of_videos' ) as $sec => $label ) {
+		$q = new WP_Query( mcupr_office_query_args( $oid, mcupr_office_section_type( $sec ), array( 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => false ) ) );
+		if ( (int) $q->found_posts ) {
+			$out[] = array( $sec, mcupr_t( $label ), (int) $q->found_posts );
+		}
+	}
+	return $out;
+}
+
 /** Print the body of an office page for a section ('' = the office home). */
 function mcupr_office_render( $oid, $section ) {
 	$post = get_post( $oid );
@@ -342,7 +366,15 @@ function mcupr_office_render( $oid, $section ) {
 			echo str_replace( '<h2 class="of-info-t">' . esc_html( mcupr_t( 'of_contact' ) ) . '</h2>', '', mcupr_office_info_html( $oid, true ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 			break;
 		default:
-			$about = trim( $post->post_content );
+			$about  = trim( $post->post_content );
+			$counts = mcupr_office_counts( $oid );
+			if ( $counts ) {
+				echo '<ul class="of-stats" aria-label="' . esc_attr( mcupr_t( 'of_nav' ) ) . '">';
+				foreach ( $counts as $c ) {
+					echo '<li><a href="' . esc_url( mcupr_office_url( $oid, $c[0] ) ) . '"><b>' . (int) $c[2] . '</b><span>' . esc_html( $c[1] ) . '</span></a></li>';
+				}
+				echo '</ul>';
+			}
 			echo '<div class="of-home' . ( $about ? '' : ' of-home-solo' ) . '">';
 			if ( $about ) {
 				echo '<section class="of-about panel-card min-w-0" aria-labelledby="of-about-t"><h2 id="of-about-t" class="of-sec-t">' . esc_html( mcupr_t( 'of_about' ) ) . '</h2><div class="reader"' . mcupr_part_lang_attr() . '>' . apply_filters( 'the_content', $post->post_content ) . '</div></section>'; // phpcs:ignore WordPress.Security.EscapeOutput
