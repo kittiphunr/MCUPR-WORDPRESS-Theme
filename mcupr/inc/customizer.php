@@ -122,6 +122,8 @@ function mcupr_customize_register( $wp_customize ) {
 	$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'mcupr_logo_dark', array( 'section' => 'mcupr_logos', 'label' => __( 'Logo for dark mode', 'mcupr' ), 'mime_type' => 'image' ) ) );
 	$wp_customize->add_setting( 'mcupr_logo_footer', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
 	$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'mcupr_logo_footer', array( 'section' => 'mcupr_logos', 'label' => __( 'Footer logo (light-on-dark)', 'mcupr' ), 'mime_type' => 'image' ) ) );
+	$wp_customize->add_setting( 'mcupr_logo_wide', array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+	$wp_customize->add_control( 'mcupr_logo_wide', array( 'section' => 'mcupr_logos', 'label' => __( 'Wide logo (logo with the name inside): show only the logo, not the name beside it', 'mcupr' ), 'type' => 'checkbox' ) );
 	$wp_customize->add_setting( 'mcupr_logo_height', array( 'default' => 56, 'sanitize_callback' => 'absint' ) );
 	$wp_customize->add_control( 'mcupr_logo_height', array( 'section' => 'mcupr_logos', 'label' => __( 'Logo height (px)', 'mcupr' ), 'type' => 'range', 'input_attrs' => array( 'min' => 24, 'max' => 140, 'step' => 2 ) ) );
 
