@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.20.0 =
+* Calendar: import .ics files and sync with a calendar address
+
 = 1.19.0 =
 * All theme admin menus grouped under one MCUPR menu with an overview
 
