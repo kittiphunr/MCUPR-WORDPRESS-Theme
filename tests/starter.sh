@@ -40,7 +40,7 @@ php php/images.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" 
 php php/demo-home.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/numbers.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/insights.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
-PHP_CLI_SERVER_WORKERS=4 php -S "localhost:${PORT}" -t "$SITE_DIR" >.server.log 2>&1 &
+PHP_CLI_SERVER_WORKERS=4 php -d upload_max_filesize=16M -d post_max_size=20M -S "localhost:${PORT}" -t "$SITE_DIR" >.server.log 2>&1 &
 pid=$!; trap 'kill $pid 2>/dev/null' EXIT
 for _ in $(seq 1 30); do curl -fs "$BASE_URL/" >/dev/null && break; sleep 0.5; done
 node e2e/starter.js || status=1
