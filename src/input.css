@@ -1518,3 +1518,8 @@ html[data-motion="1"] .vid-btn { transition: none; transform: translate(-50%, -5
 .vid-badge svg { margin-left: .12rem; }
 .video-card .album-cover { aspect-ratio: 16 / 9; }
 @media print { .vid-wrap { display: none; } }
+
+/* ===== Back-to-top: a true circle ===== */
+#back-to-top { width: 3.5rem; height: 3.5rem; min-height: 0; padding: 0; border-radius: 9999px; place-items: center; line-height: 1; box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 38%, transparent), 0 2px 6px rgb(0 0 0 / .18); }
+#back-to-top:not(.hidden) { display: grid; }
+#back-to-top svg { display: block; }
