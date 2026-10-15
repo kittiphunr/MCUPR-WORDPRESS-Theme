@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.16.1 =
+* UI polish: tooltips, page lead, back-to-top quick links, eye cursor
+
 = 1.16.0 =
 * Forum, FAQ, photo albums with lightbox, polls and satisfaction surveys
 
