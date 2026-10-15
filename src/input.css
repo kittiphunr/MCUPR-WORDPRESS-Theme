@@ -1415,3 +1415,49 @@ html[data-contrast] .org .org-node.org-c { border: 2px solid var(--border); }
 .faq-a > :last-child { margin-bottom: 0; }
 html[data-motion="1"] .faq-item > summary::after { transition: none; }
 @media print { .faq-item { break-inside: avoid; } .faq-item:not([open]) .faq-a { display: block; } .faq-find { display: none; } }
+
+/* ===== Photo albums + lightbox (inc/albums.php) ===== */
+.album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: 1.4rem; }
+.album-card { overflow: clip; border-radius: 1.5rem; background: var(--bg); box-shadow: var(--shadow-soft); border: 1px solid var(--edge, var(--border)); }
+.album-cover { position: relative; display: block; aspect-ratio: 4 / 3; background: var(--tint); }
+.album-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.album-none { display: grid; place-items: center; width: 100%; height: 100%; color: var(--link); }
+.album-n { position: absolute; right: .6rem; bottom: .6rem; display: inline-flex; align-items: center; gap: .3rem; padding: .15rem .65rem; border-radius: 9999px; background: rgb(0 0 0 / .62); color: #fff; font-size: .85rem; font-weight: 700; }
+.album-t { margin: 0; padding: .8rem 1rem .2rem; font-size: 1.08rem; line-height: 1.35; }
+.album-t a { color: var(--text); }
+.album-t a:hover { color: var(--link); }
+.album-d { margin: 0; padding: 0 1rem 1rem; color: var(--muted); font-size: .9rem; }
+.album-pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr)); gap: .7rem; margin: 0; padding: 0; list-style: none; }
+.album-pics li { margin: 0; }
+.album-pics a { display: block; overflow: clip; border-radius: 1rem; background: var(--tint); aspect-ratio: 1; }
+.album-pics img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
+.album-pics a:hover img, .album-pics a:focus-visible img { transform: scale(1.05); }
+html[data-motion="1"] .album-pics img { transition: none; transform: none !important; }
+html.lb-open { overflow: hidden; }
+.lb { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; background: rgb(8 10 16 / .94); }
+.lb[hidden] { display: none; }
+.lb-fig { display: grid; gap: .6rem; justify-items: center; max-width: min(96vw, 80rem); margin: 0; }
+.lb-img { display: block; max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: .6rem; background: #111; }
+.lb-fig figcaption { display: flex; flex-wrap: wrap; justify-content: center; gap: .3rem 1rem; max-width: 60rem; color: #f1f5f9; text-align: center; font-size: 1rem; }
+.lb-count { color: #cbd5e1; font-size: .9rem; }
+.lb-btn { position: absolute; display: grid; place-items: center; width: 3.25rem; height: 3.25rem; border: 0; border-radius: 9999px; background: rgb(255 255 255 / .16); color: #fff; cursor: pointer; }
+.lb-btn:hover, .lb-btn:focus-visible { background: rgb(255 255 255 / .34); }
+.lb-btn[hidden] { display: none; }
+.lb-close { top: 1rem; right: 1rem; }
+.lb-prev { left: 1rem; top: 50%; transform: translateY(-50%); }
+.lb-next { right: 1rem; top: 50%; transform: translateY(-50%); }
+@media (max-width: 640px) { .lb-prev, .lb-next { top: auto; bottom: 1rem; transform: none; } .lb-prev { left: calc(50% - 4rem); } .lb-next { right: calc(50% - 4rem); } }
+@media print { .lb { display: none !important; } }
+.poll { margin: 1.5rem 0; padding: 1.25rem; border: 1px solid var(--border); border-radius: 1.25rem; background: var(--surface); }
+.poll-q { margin: 0 0 .9rem; font-size: 1.2rem; font-weight: 700; }
+.poll-opts { display: grid; gap: .5rem; margin: 0 0 1rem; padding: 0; border: 0; }
+.poll-opts.is-scale { grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); }
+.poll-o { display: flex; align-items: center; gap: .6rem; padding: .7rem .9rem; border: 1px solid var(--border); border-radius: .9rem; cursor: pointer; font-weight: 500; }
+.poll-o:hover, .poll-o:has(input:checked) { border-color: var(--primary); background: var(--tint); }
+.poll-o:has(input:focus-visible) { outline: 3px solid var(--primary); outline-offset: 2px; }
+.poll-o input { width: 1.2rem; height: 1.2rem; flex: none; }
+.poll-res { display: grid; gap: .8rem; margin: 0; padding: 0; list-style: none; }
+.poll-rl { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .25rem; }
+.poll-bar { height: .7rem; overflow: clip; border-radius: 9999px; background: var(--tint); }
+.poll-bar span { display: block; height: 100%; border-radius: 9999px; background: var(--primary); }
+.poll-note, .poll-tot { margin: .75rem 0 0; font-size: .95rem; }
