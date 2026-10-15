@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.18.3 =
+* Welcome and maintenance pages stay centred with the sidebar menu layout
+
 = 1.18.2 =
 * Sidebar menu: long names wrap
 
