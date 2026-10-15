@@ -619,6 +619,39 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await lp.evaluate(() => scrollY)) < 50, 'back to top: a plain click still scrolls to the top');
     await lc.close();
   }
+  // ---------- news cards (posters shown whole, short excerpts) and videos from other sites
+  {
+    const vc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+    await vc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const vp = await vc.newPage();
+    await vp.goto(B + '/?s=fx');
+    const cards = await vp.evaluate(() => [...document.querySelectorAll('.news-card')].map((c) => { const m = c.querySelector('.news-media'); const e = c.querySelector('.news-excerpt'); return { fit: !!m && m.classList.contains('is-fit'), title: c.querySelector('.news-title a').textContent, fitStyle: m ? getComputedStyle(m.querySelector('img')).objectFit : '', exLines: e ? Math.round(e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).lineHeight)) : 0, more: !!c.querySelector('.news-more') }; }));
+    const poster = cards.find((c) => c.title.includes('fx-poster')), wide = cards.find((c) => c.title.includes('fx-wide'));
+    ok(poster && poster.fit && poster.fitStyle === 'contain' && wide && !wide.fit && wide.fitStyle === 'cover', 'news cards: a poster-shaped picture is shown whole, a wide one is cropped to fill');
+    ok(cards.length >= 2 && cards.every((c) => c.exLines <= 6 && c.more), 'news cards: excerpts are clamped and every card ends with "read more"');
+    const rows = await vp.evaluate(() => { const g = document.querySelector('.news-card').parentElement; const kids = [...g.children]; return kids.map((k) => Math.round(k.getBoundingClientRect().top)).reduce((m, t, i) => { (m[t] = m[t] || []).push(Math.round(kids[i].getBoundingClientRect().height)); return m; }, {}); });
+    ok(Object.values(rows).every((hs) => Math.max(...hs) - Math.min(...hs) <= 1), 'news cards: cards in a row are the same height');
+    await vp.screenshot({ path: shot('news-cards.png'), fullPage: true });
+
+    const asked = [];
+    vp.on('request', (r) => { if (/youtube|ytimg|vimeo/.test(r.url())) { asked.push(r.url()); } });
+    await vp.goto(B + '/videos/');
+    ok((await vp.locator('.video-card').count()) >= 1 && (await vp.locator('.vid-badge').count()) >= 1, 'videos: the list shows the video with a play badge');
+    await vp.goto(B + '/videos/fx-video/');
+    ok((await vp.locator('.vid-play').count()) === 1 && (await vp.locator('iframe').count()) === 0 && asked.length === 0, 'video: a click-to-play cover; nothing is requested from YouTube before play');
+    ok(/YouTube/.test(await vp.locator('.vid-note').innerText()), 'video: tells the visitor where it will play from');
+    await vp.addScriptTag({ content: axeSource() });
+    const va = await vp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(va.violations.length === 0, 'axe (video page): ' + (va.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    await vp.screenshot({ path: shot('video.png') });
+    await vp.route(/youtube-nocookie\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<html><body>player</body></html>' }));
+    await vp.focus('.vid-play'); await vp.keyboard.press('Enter');
+    await vp.waitForSelector('iframe.vid-frame');
+    const fr = await vp.locator('iframe.vid-frame').evaluate((f) => ({ src: f.src, title: f.title, allow: f.allow }));
+    ok(/^https:\/\/www\.youtube-nocookie\.com\/embed\/dQw4w9WgXcQ\?/.test(fr.src) && /autoplay=1/.test(fr.src) && fr.title.includes('วิดีโอแนะนำ'), 'video: pressing play (from the keyboard) builds the no-cookie player with a title');
+    ok((await vp.locator('.vid-note').count()) === 0, 'video: the notice goes away once it plays');
+    await vc.close();
+  }
   // ---------- polls / satisfaction survey
   {
     const pc = await br.newContext({ viewport: { width: 1366, height: 900 } });
