@@ -59,6 +59,13 @@ if ( $about_text && mcupr_home_on( 'about', true ) ) :
 </section>
 <?php endif; ?>
 
+<?php if ( mcupr_home_on( 'numbers', true ) && mcupr_numbers_has() ) : ?>
+<section class="wrap mt-10" aria-labelledby="numbers-title" data-reveal>
+	<h2 id="numbers-title" class="mb-5 flex items-center gap-3 text-2xl font-bold min-[900px]:text-3xl"><span class="stat-ic" aria-hidden="true"><?php echo mcupr_icon( 'cap', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><?php mcupr_e( 'nm_title' ); ?></h2>
+	<?php echo mcupr_numbers_html(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+</section>
+<?php endif; ?>
+
 <?php if ( $slider && mcupr_home_on( 'slider', true ) ) : ?>
 <section class="wrap mt-10" aria-labelledby="featured-title" data-carousel data-reveal>
 	<div class="mb-5 flex items-center justify-between gap-4">
