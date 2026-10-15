@@ -15,31 +15,31 @@ $bad = array_filter( array_keys( $st['theme_mods'] ), function ( $k ) { return !
 t( ! $bad, 'starter file: every key in it is one the importer accepts ' . implode( ',', $bad ) );
 
 // ---- the whitelist
-t( null !== mcupr_ss_key( 'mcupr_aud_3_url' ) && null !== mcupr_ss_key( 'mcupr_svc_8_icon' ) && null !== mcupr_ss_key( 'mcupr_wx_lat' ) && null !== mcupr_ss_key( 'mcupr_wx_place' ) && null !== mcupr_ss_key( 'mcupr_home_services_on' ), 'whitelist: the theme’s own block, weather, numbers and switch keys are accepted' );
+t( null !== mcupr_ss_key( 'mcupr_aud_3_url' ) && null !== mcupr_ss_key( 'mcupr_svc_8_icon' ) && null !== mcupr_ss_key( 'mcupr_wx_lat' ) && null !== mcupr_ss_key( 'mcupr_num_asof' ) && null !== mcupr_ss_key( 'mcupr_home_services_on' ), 'whitelist: the theme’s own block, weather, numbers and switch keys are accepted' );
 t( null === mcupr_ss_key( 'mcupr_aud_4_url' ) && null === mcupr_ss_key( 'mcupr_svc_9_title' ) && null === mcupr_ss_key( 'mcupr_aud_1_evil' ) && null === mcupr_ss_key( 'blogname' ) && null === mcupr_ss_key( 'custom_css' ) && null === mcupr_ss_key( 'mcupr_logo_img' ) && null === mcupr_ss_key( 'nav_menu_locations' ), 'whitelist: item numbers past the limit, unknown fields and anything else (site name, CSS, menus, images) are refused' );
 
 // ---- cleaning
 t( 1 === mcupr_ss_clean( 'mcupr_home_links_on', 'mcupr_home_links_on', '1' ) && 0 === mcupr_ss_clean( 'mcupr_home_links_on', 'mcupr_home_links_on', 'false' ) && 0 === mcupr_ss_clean( 'mcupr_home_links_on', 'mcupr_home_links_on', 0 ), 'clean: switches become 1 or 0' );
 t( '' === mcupr_ss_clean( 'mcupr_svc_1_icon', 'icon', 'no-such' ) && 'book' === mcupr_ss_clean( 'mcupr_svc_1_icon', 'icon', 'book' ), 'clean: unknown icons are dropped' );
 t( '' === mcupr_ss_clean( 'mcupr_svc_1_url', 'url', 'javascript:alert(1)' ) && '' === mcupr_ss_clean( 'mcupr_svc_1_url', 'url', '//evil.test' ) && 'page:vision' === mcupr_ss_clean( 'mcupr_svc_1_url', 'url', 'page:Vision' ), 'clean: script and protocol-relative addresses dropped; page:slug kept as a slug' );
-t( '13.69' === mcupr_ss_clean( 'mcupr_wx_lat', 'lat', '13.69' ) && '' === mcupr_ss_clean( 'mcupr_wx_lat', 'lat', '13.69; DROP' ), 'clean: coordinates must look like coordinates' );
+t( '12500' === mcupr_ss_clean( 'mcupr_num_students', 'students', '12,500 คน' ) && '13.69' === mcupr_ss_clean( 'mcupr_wx_lat', 'lat', '13.69' ) && '' === mcupr_ss_clean( 'mcupr_wx_lat', 'lat', '13.69; DROP' ), 'clean: numbers keep digits; coordinates must look like coordinates' );
 t( false === strpos( mcupr_ss_clean( 'mcupr_aud_1_title', 'title', '<script>x</script>หัวข้อ' ), '<' ) && 300 >= mb_strlen( mcupr_ss_clean( 'mcupr_aud_1_title', 'title', str_repeat( 'ก', 999 ) ) ), 'clean: tags removed and long text cut' );
 
 // ---- importing the starter into an empty site
 $rep = mcupr_ss_apply( $st );
-t( count( array_diff( array( 'aud', 'fig', 'svc', 'lnk', 'abt' ), $rep['added'] ) ) === 0 && 0 === $rep['rejected'], 'import: every group of the starter file arrived into an empty site (' . implode( ',', $rep['added'] ) . ')' );
-t( 'บริการและระบบสารสนเทศ' === get_theme_mod( 'mcupr_svc_title' ), 'import: Thai text intact' );
+t( count( array_diff( array( 'aud', 'fig', 'svc', 'lnk', 'abt', 'num' ), $rep['added'] ) ) === 0 && 0 === $rep['rejected'], 'import: every group of the starter file arrived into an empty site (' . implode( ',', $rep['added'] ) . ')' );
+t( '1250' === get_theme_mod( 'mcupr_num_teachers' ) && 'บริการและระบบสารสนเทศ' === get_theme_mod( 'mcupr_svc_title' ), 'import: Thai text and numbers intact' );
 t( 0 === strpos( (string) get_theme_mod( 'mcupr_aud_1_url' ), '/' ) || '' === (string) get_theme_mod( 'mcupr_aud_1_url' ), 'import: page:slug became the path of the page' );
 
 // ---- importing again, and over a site that has its own content: nothing is overwritten
 $before = get_theme_mods();
 $rep = mcupr_ss_apply( $st );
-t( ! array_diff( array( 'aud', 'fig', 'svc', 'lnk', 'abt' ), $rep['skipped'] ) && ! $rep['added'] && get_theme_mods() === $before, 'again: everything already filled in is skipped and nothing changes' );
+t( ! array_diff( array( 'aud', 'fig', 'svc', 'lnk', 'abt', 'num' ), $rep['skipped'] ) && ! $rep['added'] && get_theme_mods() === $before, 'again: everything already filled in is skipped and nothing changes' );
 wipe();
-set_theme_mod( 'mcupr_svc_1_title', 'ของฉัน' ); set_theme_mod( 'mcupr_svc_1_url', '/mine/' ); set_theme_mod( 'mcupr_wx_lat', '5' );
+set_theme_mod( 'mcupr_svc_1_title', 'ของฉัน' ); set_theme_mod( 'mcupr_svc_1_url', '/mine/' ); set_theme_mod( 'mcupr_num_teachers', '5' );
 $rep = mcupr_ss_apply( $st );
 t( 'ของฉัน' === get_theme_mod( 'mcupr_svc_1_title' ) && '' === (string) get_theme_mod( 'mcupr_svc_2_title', '' ) && '' === (string) get_theme_mod( 'mcupr_svc_title', '' ), 'overwrite: a block with the site’s own content is left whole (not even its empty boxes or heading are filled)' );
-t( '5' === get_theme_mod( 'mcupr_wx_lat' ) && in_array( 'svc', $rep['skipped'], true ) && in_array( 'aud', $rep['added'], true ), 'overwrite: an unrelated setting is untouched, while empty blocks are filled' );
+t( '5' === get_theme_mod( 'mcupr_num_teachers' ) && '' === (string) get_theme_mod( 'mcupr_num_faculties', '' ) && in_array( 'svc', $rep['skipped'], true ) && in_array( 'num', $rep['skipped'], true ) && in_array( 'aud', $rep['added'], true ), 'overwrite: the numbers block is skipped too, while empty blocks are filled' );
 
 // ---- switches
 wipe(); set_theme_mod( 'mcupr_home_links_on', false );
@@ -61,10 +61,10 @@ t( '' === (string) get_theme_mod( 'mcupr_lnk_title', '' ), 'pages: a heading is 
 // ---- only some groups
 wipe();
 $rep = mcupr_ss_apply( $st, array( 'fig' ) );
-t( array( 'fig' ) === $rep['added'] && '' === (string) get_theme_mod( 'mcupr_svc_title', '' ), 'only: limited to the groups asked for' );
+t( array( 'fig' ) === $rep['added'] && '' === (string) get_theme_mod( 'mcupr_svc_title', '' ) && '' === (string) get_theme_mod( 'mcupr_num_teachers', '' ), 'only: limited to the groups asked for' );
 // the Home blocks sample button goes through the same code
 wipe();
-t( in_array( 'svc', mcupr_blk_install_samples(), true ), 'home blocks button: fills the blocks through the same importer' );
+t( in_array( 'svc', mcupr_blk_install_samples(), true ) && '' === (string) get_theme_mod( 'mcupr_num_teachers', '' ), 'home blocks button: fills blocks (not the numbers) through the same importer' );
 
 // ---- rejected entries
 wipe();

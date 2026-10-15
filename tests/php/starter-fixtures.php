@@ -67,6 +67,8 @@ if ( function_exists( 'mcupr_blk_install_samples' ) ) {
 	set_theme_mod( 'mcupr_wx_lat', '13.69' ); set_theme_mod( 'mcupr_wx_lon', '101.076' ); set_theme_mod( 'mcupr_wx_place', 'ฉะเชิงเทรา' );
 	set_transient( 'mcupr_wx_' . md5( '13.69,101.076' ), array( 'now' => array( 'code' => 3, 'temp' => 31.4, 'hum' => 89, 'wind' => 0.2 ), 'today' => array( 'date' => '2026-10-15', 'code' => 3, 'max' => 32.2, 'min' => 25, 'rain' => 4.7 ), 'tomorrow' => array( 'date' => '2026-10-16', 'code' => 95, 'max' => 32.4, 'min' => 24.5, 'rain' => 10.9 ), 'time' => time() ), DAY_IN_SECONDS );
 }
+// numbers block on the home page
+foreach ( array( 'teachers' => '1,250', 'faculties' => '12', 'bachelor' => '18,000', 'master' => '3,200', 'doctoral' => '650', 'asof' => 'ข้อมูล ณ ปีการศึกษา 2568' ) as $k => $v ) { set_theme_mod( 'mcupr_num_' . $k, $v ); }
 // staff hub: link people to units, decorations, education, works, privacy
 $units  = array();
 foreach ( array( 'unit-rector', 'unit-vice' ) as $us ) { $u = get_posts( array( 'post_type' => 'mcupr_unit', 'name' => $us, 'post_status' => 'publish' ) ); if ( $u ) { $units[] = $u[0]; } }

@@ -395,6 +395,10 @@ add_action(
 			$wp_customize->get_section( 'mcupr_home_sections' )->title    = __( 'Show or hide the sections', 'mcupr' );
 			$wp_customize->get_section( 'mcupr_home_sections' )->priority = 10;
 		}
+		if ( $wp_customize->get_section( 'mcupr_numbers' ) ) {
+			$wp_customize->get_section( 'mcupr_numbers' )->panel    = 'mcupr_home_panel';
+			$wp_customize->get_section( 'mcupr_numbers' )->priority = 15;
+		}
 		$icons = mcupr_blk_icon_choices();
 		$text  = static function ( $id, $label, $section, $extra = array() ) use ( $wp_customize ) {
 			$wp_customize->add_setting( $id, array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
@@ -435,7 +439,7 @@ add_action(
 		}
 
 		// ---- figures
-		$sec( 'mcupr_blk_fig', __( 'Figures strip', 'mcupr' ), __( 'Big numbers in a row. Type a number, or one of {news} {staff} {units} {events} {works} {videos} {albums} to count by itself. A figure without a number is left out. (The students / teachers / faculties block is in “Numbers”.)', 'mcupr' ), 22 );
+		$sec( 'mcupr_blk_fig', __( 'Figures strip', 'mcupr' ), __( 'Big numbers in a row. Type a number, or one of {news} {staff} {units} {events} {works} {videos} {albums} to count by itself. A figure without a number is left out. (The students / teachers / faculties block is in “Key numbers”.)', 'mcupr' ), 22 );
 		for ( $i = 1; $i <= 5; $i++ ) {
 			$text( 'mcupr_fig_' . $i . '_num', sprintf( /* translators: %d: figure number */ __( 'Figure %d: number', 'mcupr' ), $i ), 'mcupr_blk_fig' );
 			$text( 'mcupr_fig_' . $i . '_label', sprintf( /* translators: %d: figure number */ __( 'Figure %d: label', 'mcupr' ), $i ), 'mcupr_blk_fig' );
