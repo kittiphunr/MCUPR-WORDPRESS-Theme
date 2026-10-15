@@ -45,6 +45,14 @@ function mcupr_setup() {
 }
 add_action( 'after_setup_theme', 'mcupr_setup' );
 
+/** Pages can carry an introduction (the excerpt box); it is shown as a lead under the title. */
+add_action(
+	'init',
+	static function () {
+		add_post_type_support( 'page', 'excerpt' );
+	}
+);
+
 /** The WordPress default <body> classes plus current language. */
 function mcupr_body_class( $classes ) {
 	$classes[] = 'lang-' . mcupr_lang();
