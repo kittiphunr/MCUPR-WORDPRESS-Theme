@@ -31,6 +31,9 @@ SweetAlert2: MIT License.
 
 
 = 1.16.0 =
+* Forum, FAQ, photo albums with lightbox, polls and satisfaction surveys
+
+= 1.16.0 =
 * Discussion board: boards, topics, replies, moderation, spam protection, reports.
 
 = 1.15.0 =

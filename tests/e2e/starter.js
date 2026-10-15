@@ -472,6 +472,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await fp.locator('.forum-board').count()) === 3 && (await fp.locator('.forum-row').count()) >= 3, 'forum: three boards and the latest topics');
     ok(!(await fp.locator('.forum').innerText()).includes('hidden-forum@example.org'), 'forum: no visitor email is shown');
     await fp.click('.forum-bn >> text=ถามตอบเรื่องการเรียนการสอน');
+    await fp.waitForLoadState('load');
     ok((await fp.locator('.forum-row').count()) === 2 && /ปิดการตอบ/.test(await fp.locator('.forum-list').innerText()), 'board: its topics, a locked one marked');
     await fp.goto(B + '/forum/?fb=general');
     ok((await fp.locator('.forum-row.is-pinned').count()) === 1 && /ปักหมุด/.test(await fp.locator('.forum-row.is-pinned').innerText()), 'board: the pinned topic is marked');
@@ -547,6 +548,70 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await qp.screenshot({ path: shot('faq.png'), fullPage: true });
     await qc.close();
   }
+  // ---------- photo albums + lightbox
+  {
+    const ac = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    await ac.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const ap = await ac.newPage();
+    await ap.goto(B + '/albums/');
+    ok((await ap.locator('.album-card').count()) >= 1 && /4/.test(await ap.locator('.album-n').first().innerText()), 'albums: the list shows the album with its number of pictures');
+    await ap.goto(B + '/albums/fx-album/');
+    ok((await ap.locator('.album-pics a').count()) === 4 && (await ap.locator('h1').textContent()).includes('วันเปิดบ้าน'), 'album: four pictures in a grid');
+    ok((await ap.locator('.lb').count()) === 0, 'lightbox: not built until it is used');
+    await ap.locator('.album-pics a').nth(1).click();
+    await ap.waitForSelector('.lb:not([hidden])');
+    ok((await ap.locator('.lb-count').innerText()).includes('2 / 4') && (await ap.locator('.lb-cap').innerText()) === 'คำบรรยายภาพที่ 2' && (await ap.locator('.lb-img').getAttribute('src')).includes('e2e-album-1'), 'lightbox: opens on the clicked picture with its caption and counter');
+    ok(await ap.evaluate(() => document.activeElement.classList.contains('lb-close') && document.documentElement.classList.contains('lb-open')), 'lightbox: focus moves to the close button, the page behind does not scroll');
+    await ap.keyboard.press('ArrowRight');
+    ok((await ap.locator('.lb-count').innerText()).includes('3 / 4'), 'lightbox: the right arrow shows the next picture');
+    await ap.keyboard.press('ArrowLeft'); await ap.keyboard.press('ArrowLeft');
+    ok((await ap.locator('.lb-count').innerText()).includes('1 / 4'), 'lightbox: the left arrow goes back');
+    await ap.click('.lb-prev');
+    ok((await ap.locator('.lb-count').innerText()).includes('4 / 4') && (await ap.locator('.lb-cap').innerText()) === '', 'lightbox: the previous button wraps to the last picture (no caption)');
+    await ap.keyboard.press('Tab'); await ap.keyboard.press('Tab'); await ap.keyboard.press('Tab');
+    ok(await ap.evaluate(() => document.querySelector('.lb').contains(document.activeElement)), 'lightbox: Tab stays inside the lightbox');
+    await ap.addScriptTag({ content: axeSource() });
+    const la = await ap.evaluate(() => axe.run(document.querySelector('.lb'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(la.violations.length === 0, 'axe (lightbox): ' + (la.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    await ap.screenshot({ path: shot('album-lightbox.png') });
+    await ap.keyboard.press('Escape');
+    ok((await ap.locator('.lb').isHidden()) && (await ap.evaluate(() => document.activeElement.hasAttribute('data-lb') && !document.documentElement.classList.contains('lb-open'))), 'lightbox: Esc closes it and returns focus to the picture');
+    const aa = await ap.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(aa.violations.length === 0, 'axe (album page): ' + (aa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    await ap.screenshot({ path: shot('album.png'), fullPage: true });
+    await ac.close();
+    const am = await br.newContext({ viewport: { width: 360, height: 800 }, hasTouch: true });
+    await am.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const aq = await am.newPage();
+    for (const u of ['/albums/', '/albums/fx-album/']) { await aq.goto(B + u); ok(await aq.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'albums on a phone: no horizontal scroll ' + u); }
+    await aq.locator('.album-pics a').first().tap();
+    await aq.waitForSelector('.lb:not([hidden])');
+    ok(await aq.evaluate(() => { const r = document.querySelector('.lb-img').getBoundingClientRect(); return r.width <= innerWidth && r.height <= innerHeight; }), 'lightbox on a phone: the picture fits the screen');
+    await am.close();
+  }
+  // ---------- polls / satisfaction survey
+  {
+    const pc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const pq = await pc.newPage();
+    await pq.goto(B + '/fx-poll/');
+    ok((await pq.locator('.poll-o').count()) === 5 && (await pq.locator('.poll-res').count()) === 0, 'poll: five satisfaction levels, no results before voting');
+    await pq.waitForTimeout(2300);
+    await pq.click('.poll-form button');
+    ok(/pv=none/.test(pq.url()) && (await pq.locator('.mform-err').count()) === 1, 'poll: sending without a choice says so');
+    await pq.waitForTimeout(2300);
+    await pq.locator('.poll-o').nth(1).click();
+    await pq.click('.poll-form button');
+    await pq.waitForSelector('.poll-res');
+    ok((await pq.locator('.mform-ok').count()) === 1 && (await pq.locator('.poll-form').count()) === 0 && /1/.test(await pq.locator('.poll-tot').innerText()), 'poll: the vote is counted, thanks and the results appear');
+    await pq.evaluate(() => scrollTo(0, 0));
+    await pq.addScriptTag({ content: axeSource() });
+    const pa = await pq.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(pa.violations.length === 0, 'axe (poll): ' + (pa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ') + ' ' + (n.any[0] && n.any[0].message)).join(', ')).join('; ') || '0 violations'));
+    await pq.screenshot({ path: shot('poll.png'), fullPage: true });
+    await pq.goto(B + '/fx-poll/');
+    ok((await pq.locator('.poll-form').count()) === 0 && (await pq.locator('.poll-res').count()) === 1, 'poll: coming back, the same visitor sees the results, not the form');
+    await pc.close();
+  }
   // works & awards (own categories), administration chart, attachments, views
   await p.goto(B + '/works/');
   ok((await p.$$('.work-card')).length === 3, '/works/ lists the 3 sample works');
@@ -617,7 +682,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok((await p.$$('.person-card')).length === 4, 'staff: 4 people cards');
   await p.addScriptTag({ content: axeSource() });
   const pa = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
-  ok(pa.violations.length === 0, 'people axe: ' + (pa.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  ok(pa.violations.length === 0, 'people axe: ' + (pa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join(', ') || '0 violations'));
   // contact form
   await p.goto(B + '/contact/');
   ok((await p.$$('#mform-contact form')).length === 1 && (await p.$$eval('#mform-contact label', (l) => l.every((x) => x.control || x.querySelector('input,select,textarea')))) , 'contact page: the form with labelled fields');
