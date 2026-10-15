@@ -682,6 +682,8 @@ function mcupr_staff_hub_page() {
 	$list( $c['no_photo'] );
 	echo '</div>';
 
+	mcupr_import_card();
+
 	// ---- settings
 	echo '<div class="card"><h2>' . esc_html__( 'Profiles and privacy defaults', 'mcupr' ) . '</h2><form method="post" action="' . esc_url( $act ) . '"><input type="hidden" name="action" value="mcupr_staff_hub"><input type="hidden" name="hub_form" value="settings">';
 	wp_nonce_field( 'mcupr_hub', 'mcupr_hub_nonce' );
