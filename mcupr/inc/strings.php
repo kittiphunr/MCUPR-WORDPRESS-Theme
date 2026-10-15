@@ -480,4 +480,9 @@ return array(
 	'nf_try' => array( 'ลองไปที่หน้าเหล่านี้', 'Try one of these pages', '试试这些页面', 'こちらのページをお試しください' ),
 	'nf_latest' => array( 'ข่าวล่าสุด', 'Latest news', '最新新闻', '最新ニュース' ),
 	'nf_search_for' => array( 'ค้นหา “%s”', 'Search for “%s”', '搜索“%s”', '「%s」を検索' ),
+	'mt_badge' => array( 'อยู่ระหว่างปรับปรุงระบบ', 'Under maintenance', '系统维护中', 'メンテナンス中' ),
+	'mt_retry' => array( 'ลองใหม่อีกครั้ง', 'Try again', '重试', 'もう一度試す' ),
+	'mt_d' => array( 'วัน', 'days', '天', '日' ),
+	'mt_h' => array( 'ชม.', 'hours', '小时', '時間' ),
+	'mt_m' => array( 'นาที', 'min', '分钟', '分' ),
 );
