@@ -1279,6 +1279,28 @@
 		});
 	});
 
+	/* ---- videos from other sites: nothing is loaded until the cover is pressed (then the player replaces it) ---- */
+	document.addEventListener('click', function (e) {
+		var a = e.target.closest && e.target.closest('.vid[data-vid] .vid-play');
+		if (!a) { return; }
+		var box = a.closest('.vid');
+		var src = box.getAttribute('data-embed');
+		if (!src || !/^https:\/\/(www\.youtube-nocookie\.com|player\.vimeo\.com)\//.test(src)) { return; }
+		e.preventDefault();
+		var f = document.createElement('iframe');
+		f.src = src;
+		f.title = box.getAttribute('data-title') || 'Video';
+		f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+		f.allowFullscreen = true;
+		f.className = 'vid-frame';
+		f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+		a.replaceWith(f);
+		var n = $('.vid-note', box);
+		if (n) { n.remove(); }
+		box.classList.add('is-on');
+		f.focus();
+	});
+
 	/* ---- FAQ: live search (opens the matching questions) ---- */
 	$$('[data-faq]').forEach(function (box) {
 		var inp = $('[data-faq-find]', box);
