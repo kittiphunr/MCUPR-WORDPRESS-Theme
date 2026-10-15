@@ -627,9 +627,18 @@ html[data-contrast] .mcupr-todo { border: 2px solid var(--border); }
 }
 html.fs-open-lock { overflow: hidden; }
 /* the full-screen menu: one screen, no scrolling for an ordinary menu (cards share the height; the type scales with it) */
-.fs-menu { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; background: color-mix(in srgb, var(--primary) 7%, var(--surface)); opacity: 0; transition: opacity .2s ease; --fs-s: clamp(.82rem, 1.55vh, 1rem); font-size: var(--fs-s); }
+.fs-menu { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; background: color-mix(in srgb, var(--primary) 7%, var(--surface)); opacity: 0; clip-path: circle(0 at var(--fs-x, 50%) var(--fs-y, 2rem)); transition: clip-path .5s cubic-bezier(.4, 0, .2, 1), opacity .3s ease .1s; --fs-s: clamp(.82rem, 1.55vh, 1rem); font-size: var(--fs-s); }
 .fs-menu[hidden] { display: none; }
-.fs-menu.is-in { opacity: 1; }
+.fs-menu.is-in { opacity: 1; clip-path: circle(150% at var(--fs-x, 50%) var(--fs-y, 2rem)); transition: clip-path .65s cubic-bezier(.16, .84, .2, 1), opacity .25s ease; }
+/* the parts arrive after the circle has started to open: header from above, cards rising in turn, quick links last */
+.fs-head, .fs-quick { opacity: 0; transform: translateY(-.6rem); transition: opacity .15s ease, transform .15s ease; }
+.fs-quick { transform: translateY(.6rem); }
+.fs-list > li { opacity: 0; transform: translateY(1rem) scale(.985); transition: opacity .15s ease, transform .15s ease; }
+.fs-menu.is-in .fs-head { opacity: 1; transform: none; transition: opacity .4s ease .12s, transform .45s cubic-bezier(.16, .84, .2, 1) .12s; }
+.fs-menu.is-in .fs-list > li { opacity: 1; transform: none; transition: opacity .4s ease calc(.2s + var(--i, 0) * 38ms), transform .5s cubic-bezier(.16, .84, .2, 1) calc(.2s + var(--i, 0) * 38ms); }
+.fs-menu.is-in .fs-quick { opacity: 1; transform: none; transition: opacity .4s ease .55s, transform .45s cubic-bezier(.16, .84, .2, 1) .55s; }
+.fs-open svg { transition: transform .35s cubic-bezier(.16, .84, .2, 1); }
+.fs-open[aria-expanded="true"] svg { transform: rotate(90deg) scale(1.1); }
 .fs-head { flex: none; display: flex; align-items: center; gap: 1rem; padding: .75rem clamp(1rem, 4vw, 3rem); background: var(--bg); border-bottom: 1px solid var(--edge); }
 .fs-title { display: flex; align-items: center; gap: .6rem; font-size: 1.35em; font-weight: 800; color: var(--text); white-space: nowrap; }
 .fs-title svg { color: var(--primary); }
@@ -1788,3 +1797,34 @@ html[data-contrast] button[role="switch"] > span { background: var(--text); box-
 html[data-contrast] button[role="switch"][aria-checked="true"] { background: var(--text); border-color: var(--text); }
 html[data-contrast] button[role="switch"][aria-checked="true"] > span { background: var(--bg); }
 html[data-contrast] button[role="switch"]:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+
+/* ===== Side bar: opening and closing is one smooth movement ===== */
+/* The card, the page beside it and the toggle button all use the same curve and time; labels are kept (not switched on and off), so they slide out and fade in instead of popping; the links keep one shape, only their padding changes. */
+@media (min-width: 1100px) {
+	html:is([data-menu="side"],[data-menu="hybrid"]) { --sb-ease: cubic-bezier(.4, 0, .15, 1); --sb-t: .5s; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) body { transition: padding-left var(--sb-t) var(--sb-ease); }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav { transition: width var(--sb-t) var(--sb-ease), padding var(--sb-t) var(--sb-ease), border-radius var(--sb-t) var(--sb-ease), box-shadow .2s ease; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-foot { height: 3.7rem; transition: width var(--sb-t) var(--sb-ease), height var(--sb-t) var(--sb-ease), padding var(--sb-t) var(--sb-ease), border-radius var(--sb-t) var(--sb-ease); }
+	/* corners as plain lengths (never 9999px) so they change steadily instead of staying huge and snapping at the end */
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-foot { border-radius: 1.85rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-foot { border-radius: calc((var(--sbw) - 1.5rem) / 2); }
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav { border-radius: calc((var(--sbw) - 1.5rem) / 2); }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav li > a, html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-btn, html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav li > a, html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-btn { border-radius: 1.45rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav li > a,
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-btn,
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-brand { transition: padding var(--sb-t) var(--sb-ease), gap var(--sb-t) var(--sb-ease), width var(--sb-t) var(--sb-ease), border-radius var(--sb-t) var(--sb-ease), background .15s ease, color .15s ease, box-shadow .15s ease; }
+	/* the menu links keep their shape in the narrow rail: the label shrinks away and the padding centres the icon */
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .menu li > a { flex: 1; width: auto; height: auto; min-height: 2.9rem; padding: .5rem .7rem; gap: 0; justify-content: flex-start; }
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav { padding: .75rem .675rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-brand { gap: 0; justify-content: flex-start; padding-inline: .1rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .t { max-width: 18rem; overflow: hidden; opacity: 1; transition: max-width var(--sb-t) var(--sb-ease), opacity .28s ease .14s; }
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .t { display: block; width: auto; max-width: 0; opacity: 0; white-space: nowrap; transition: max-width var(--sb-t) var(--sb-ease), opacity .12s ease; }
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-brand .t { display: block; }
+	html.sb-anim:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .t { white-space: nowrap; } /* no re-wrapping of the labels while the card is moving */
+	html.sb-anim:is([data-menu="side"],[data-menu="hybrid"]):not(.sb-min) .site-nav .submenu-toggle { animation: sb-pop .45s var(--sb-ease) .12s backwards; }
+}
+@keyframes sb-pop { from { opacity: 0; transform: scale(.6); } }
+/* the drawer on phones and tablets: a longer, softer slide */
+@media (max-width: 1099px) {
+	.site-nav { transition: transform .42s cubic-bezier(.22, .8, .2, 1), visibility .42s; }
+}
