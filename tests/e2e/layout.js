@@ -487,10 +487,13 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
         const form = r('.sr-form'), inp = r('.sr-input'), go = r('.sr-go'), title = r('.sr-title');
         const chips = [...document.querySelectorAll('.sr-chips a')].map((a) => a.getBoundingClientRect());
         const goText = getComputedStyle(document.querySelector('.sr-go-t')).display !== 'none';
-        return { hscroll: document.documentElement.scrollWidth > vw + 1, formIn: form.left >= 0 && form.right <= vw && form.top >= 0 && form.bottom <= vh, inputW: Math.round(inp.width), goW: Math.round(go.width), goH: Math.round(go.height), goText, titleIn: title.right <= vw + 1, chipsIn: chips.length >= 3 && chips.every((x) => x.left >= 0 && x.right <= vw + 1 && x.height >= 44), ph: document.querySelector('#overlay-search').placeholder, focus: document.activeElement.id };
+        const cl = r('.swal-close'); const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        const closeOk = !!cl && cl.width >= 44 && cl.height >= 44 && cl.top >= 8 && vw - cl.right >= 8 && cl.right <= vw && !hit(cl, form) && !hit(cl, title) && !hit(cl, r('.sr-kicker')) && !hit(cl, r('.sr-sub'));
+        return { closeOk, closeBox: cl ? [Math.round(cl.left), Math.round(cl.top), Math.round(cl.width)].join(',') : 'none',  hscroll: document.documentElement.scrollWidth > vw + 1, formIn: form.left >= 0 && form.right <= vw && form.top >= 0 && form.bottom <= vh, inputW: Math.round(inp.width), goW: Math.round(go.width), goH: Math.round(go.height), goText, titleIn: title.right <= vw + 1, chipsIn: chips.length >= 3 && chips.every((x) => x.left >= 0 && x.right <= vw + 1 && x.height >= 44), ph: document.querySelector('#overlay-search').placeholder, focus: document.activeElement.id };
       });
       ok(!m.hscroll && m.formIn && m.titleIn && m.chipsIn, 'search overlay ' + w + 'x' + h + ': everything fits (form, title, ' + 3 + '+ example chips, no sideways scroll)');
       ok(m.inputW >= 120 && m.goW >= 44 && m.goH >= 44 && m.focus === 'overlay-search', 'search overlay ' + w + 'x' + h + ': input ' + m.inputW + 'px wide, button ' + m.goW + 'x' + m.goH + (m.goText ? ' with its word' : ' icon only') + ', input focused');
+      ok(m.closeOk, 'search overlay ' + w + 'x' + h + ': the close button is a full circle inside the corner, clear of the text (' + m.closeBox + ')');
       ok(/ตัวอย่าง/.test(m.ph) || w > 0 && m.ph.length > 5, 'search overlay ' + w + 'x' + h + ': the placeholder gives an example ("' + m.ph + '")');
       if (w === 1366 || w === 360) {
         await p.addScriptTag({ content: axeSource() });
