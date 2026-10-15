@@ -334,6 +334,9 @@ function mcupr_welcome_wanted() {
 	if ( isset( $_GET['mcupr_welcome'] ) && 'preview' === $_GET['mcupr_welcome'] && mcupr_status_is_editor() ) {
 		return true;
 	}
+	if ( isset( $_GET['mcupr_welcome'] ) && 'sample' === $_GET['mcupr_welcome'] && isset( $_GET['occasion'], mcupr_welcome_presets()[ sanitize_key( wp_unslash( $_GET['occasion'] ) ) ] ) ) {
+		return true; // a sample of an occasion (fixed text, nothing from the settings), open to everyone
+	}
 	// phpcs:enable
 	if ( empty( $w['on'] ) || ! mcupr_status_in_dates( $w['from'], $w['to'] ) || mcupr_status_is_bot() || mcupr_status_is_editor() ) {
 		return false;
@@ -368,6 +371,10 @@ add_action(
 			nocache_headers();
 			header( 'X-Robots-Tag: noindex' );
 			$GLOBALS['mcupr_status_kind'] = 'welcome';
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( isset( $_GET['mcupr_welcome'], $_GET['occasion'] ) && 'sample' === $_GET['mcupr_welcome'] ) {
+				$GLOBALS['mcupr_status_sample'] = sanitize_key( wp_unslash( $_GET['occasion'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			}
 			include get_template_directory() . '/template-parts/status-page.php';
 			exit;
 		}
@@ -411,5 +418,20 @@ add_filter(
 	static function ( $out ) {
 		$n = mcupr_status()['mourning'];
 		return ( ! empty( $n['on'] ) && mcupr_status_in_dates( $n['from'], $n['to'] ) ) ? $out . ' data-mourning="1"' : $out;
+	}
+);
+
+/** [mcupr_welcome_samples]: a link to a sample welcome page for every occasion (used by the starter file's demo page). */
+add_shortcode(
+	'mcupr_welcome_samples',
+	static function () {
+		$o = '<ul class="welcome-samples">';
+		foreach ( mcupr_welcome_presets() as $k => $p ) {
+			if ( 'custom' === $k ) {
+				continue;
+			}
+			$o .= '<li><a href="' . esc_url( add_query_arg( array( 'mcupr_welcome' => 'sample', 'occasion' => $k ), home_url( '/' ) ) ) . '" target="_blank" rel="noopener"><span class="welcome-dot" style="background:linear-gradient(135deg,' . esc_attr( $p[1] ) . ',' . esc_attr( $p[2] ) . ')" aria-hidden="true"></span>' . esc_html( $p[0] ) . '<span class="sr-only"> (' . esc_html( mcupr_t( 'new_tab' ) ) . ')</span></a></li>';
+		}
+		return $o . '</ul>';
 	}
 );

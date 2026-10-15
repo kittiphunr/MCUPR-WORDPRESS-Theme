@@ -25,6 +25,17 @@ if ( 'welcome' === $mcupr_kind ) {
 	$mcupr_c2  = $mcupr_pr[2];
 	$mcupr_img = (int) $mcupr_w['image'] ? wp_get_attachment_image_url( (int) $mcupr_w['image'], 'full' ) : '';
 	$mcupr_go  = add_query_arg( 'mcupr_enter', '1', home_url( '/' ) );
+	if ( ! empty( $GLOBALS['mcupr_status_sample'] ) && isset( $mcupr_pre[ $GLOBALS['mcupr_status_sample'] ] ) ) { // a sample: the preset's own text, no picture, the button just goes home
+		$mcupr_pr  = $mcupr_pre[ $GLOBALS['mcupr_status_sample'] ];
+		$mcupr_h1  = $mcupr_pth ? $mcupr_pr[3] : $mcupr_pr[5];
+		$mcupr_msg = $mcupr_pth ? $mcupr_pr[4] : $mcupr_pr[6];
+		$mcupr_btn = mcupr_t( 'ws_enter' );
+		$mcupr_c1  = $mcupr_pr[1];
+		$mcupr_c2  = $mcupr_pr[2];
+		$mcupr_img = '';
+		$mcupr_go  = home_url( '/' );
+		$mcupr_w['auto'] = 0;
+	}
 } else {
 	$mcupr_m   = $mcupr_s['maint'];
 	$mcupr_h1  = mcupr_status_text( $mcupr_m['title'], mcupr_t( 'mt_title' ) );
