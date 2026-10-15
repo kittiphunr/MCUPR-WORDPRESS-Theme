@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.13.0 =
+* Staff hub: profiles linked to the administration chart, privacy controls, works, education, royal decorations catalogue with editable medals, control centre, roll of honour.
+
 = 1.12.2 =
 * Reading speed is a row of buttons instead of a drop-down.
 

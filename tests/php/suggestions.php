@@ -63,7 +63,7 @@ $g1 = wp_insert_term( 'กลุ่มทดสอบ', 'mcupr_person_group' );
 $mk = function ( $name, $order, $grp ) use ( $g1 ) { $id = wp_insert_post( array( 'post_type' => 'mcupr_person', 'post_title' => $name, 'post_status' => 'publish', 'menu_order' => $order ) ); if ( $grp ) { wp_set_object_terms( $id, array( (int) $g1['term_id'] ), 'mcupr_person_group' ); } return $id; };
 $a = $mk( 'ผศ.ดร.ทดสอบ หนึ่ง', 2, true ); $b = $mk( 'นายทดสอบ สอง', 1, true ); $c = $mk( 'Outsider', 1, false );
 $_POST = array( 'mcupr_person_nonce' => wp_create_nonce( 'mcupr_person_save' ), 'mcupr_person' => array( 'role' => 'หัวหน้า <b>ฝ่าย</b>', 'dept' => 'ฝ่ายทดสอบ', 'email' => 'a@example.org', 'tel' => '02 111 2222', 'url' => 'javascript:x', 'role_en' => 'Head of Unit' ) );
-mcupr_person_save( $a ); $_POST = array();
+mcupr_person_save( $a ); $_POST = array(); update_post_meta( $a, "_mcupr_person_hide", array() ); // the hub hides the telephone by default; this person shows everything
 t( false === strpos( get_post_meta( $a, '_mcupr_person_role', true ), '<' ) && '' === get_post_meta( $a, '_mcupr_person_url', true ) && 'Head of Unit' === get_post_meta( $a, '_mcupr_en_role', true ), 'people: details saved, sanitised, role translation stored' );
 wp_set_current_user( 0 );
 $h = do_shortcode( '[mcupr_people group="' . get_term( $g1['term_id'] )->slug . '" columns="3"]' );
