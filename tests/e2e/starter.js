@@ -789,6 +789,30 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     }
     await hc.close();
   }
+  // ---------- top menu: the "More" button stays a pill with its word and the drop-down arrows stay round, at several widths
+  {
+    let seen = 0;
+    for (const w of [1100, 1180, 1280, 1366, 1600, 1920]) {
+      const mc = await br.newContext({ viewport: { width: w, height: 800 }, reducedMotion: 'reduce' });
+      await mc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+      const mp = await mc.newPage();
+      await mp.goto(B + '/');
+      await mp.evaluate(() => document.documentElement.setAttribute('data-menu', 'top'));
+      await mp.waitForTimeout(600);
+      const r = await mp.evaluate(() => {
+        const more = document.querySelector('#site-nav .more-btn');
+        const arrows = [...document.querySelectorAll('#site-nav .submenu-toggle:not(.more-btn)')].filter((b) => b.getBoundingClientRect().width > 0).map((b) => { const q = b.getBoundingClientRect(); return Math.abs(q.width - q.height) <= 1 && parseFloat(getComputedStyle(b).borderTopLeftRadius) >= q.width / 2 - 0.5; });
+        let m = null;
+        if (more && more.getBoundingClientRect().width) { const q = more.getBoundingClientRect(); m = [Math.round(q.width), Math.round(q.height), more.scrollWidth <= more.clientWidth + 1]; }
+        return { m, arrows };
+      });
+      ok(r.arrows.every(Boolean), 'top menu ' + w + 'px: the ' + r.arrows.length + ' drop-down arrows are round');
+      if (r.m) { seen++; ok(r.m[0] >= r.m[1] * 1.5 && r.m[2], 'top menu ' + w + 'px: the More button is a pill (' + r.m[0] + 'x' + r.m[1] + ') that holds its word'); }
+      if (w === 1280) { await mp.screenshot({ path: shot('menu-top-1280.png'), clip: { x: 0, y: 0, width: 1280, height: 120 } }); }
+      await mc.close();
+    }
+    ok(seen >= 1, 'top menu: the "More" button was present at ' + seen + ' of the widths tested');
+  }
   // ---------- polls / satisfaction survey
   {
     const pc = await br.newContext({ viewport: { width: 1366, height: 900 } });
