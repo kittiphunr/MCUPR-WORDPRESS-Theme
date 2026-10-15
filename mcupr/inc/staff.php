@@ -529,7 +529,7 @@ add_action(
 /* ================================================================== admin: the control centre */
 
 function mcupr_staff_hub_menu() {
-	add_submenu_page( 'edit.php?post_type=mcupr_person', __( 'Staff hub', 'mcupr' ), __( 'Staff hub', 'mcupr' ), 'edit_pages', 'mcupr-staff-hub', 'mcupr_staff_hub_page', 0 );
+	add_submenu_page( 'mcupr', __( 'Staff hub', 'mcupr' ), __( 'Staff hub', 'mcupr' ), 'edit_pages', 'mcupr-staff-hub', 'mcupr_staff_hub_page', 0 );
 }
 add_action( 'admin_menu', 'mcupr_staff_hub_menu' );
 
