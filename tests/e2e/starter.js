@@ -1253,6 +1253,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await vp.locator('.news-card a[href]').first().click();
       await vp.waitForSelector('.office-chrome');
       ok((await vp.locator('.office-chrome[data-variant=slim]').count()) === 1 && (await vp.locator('.of-tabs a').count()) >= 7 && (await vp.locator('main h1').count()) === 1, 'office article: the slim office header with the tabs, and still exactly one h1');
+      const ov = await vp.evaluate(() => { const c = document.querySelector('.office-chrome').getBoundingClientRect(); const h = document.querySelector('#content > article > .mcu-wheel'); return h ? { gap: h.getBoundingClientRect().top - c.bottom } : null; });
+      ok(!ov || ov.gap >= -1, 'office article: the page band starts below the office header (not pulled up under it) (gap ' + (ov && ov.gap) + ')');
       await vp.addScriptTag({ content: axeSource() });
       const ax2 = await vp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
       ok(ax2.violations.length === 0, 'axe (office article): ' + (ax2.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
