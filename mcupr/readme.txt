@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.28.10 =
+* Maintenance bar fixed to the top, full width; header and side bar start below it
+
 = 1.28.9 =
 * Full-screen menu: pressing the button while it is closing opens it again
 
