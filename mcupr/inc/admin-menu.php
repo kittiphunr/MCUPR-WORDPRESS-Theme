@@ -28,6 +28,8 @@ function mcupr_admin_sections() {
 			'items' => array(
 				array( 'type' => 'mcupr_topic', 'tax' => array( 'mcupr_board' ), 'page' => 'mcupr-forum', 'icon' => 'dashicons-format-chat', 'desc' => __( 'Discussion board', 'mcupr' ) ),
 				array( 'type' => 'mcupr_poll', 'icon' => 'dashicons-chart-bar', 'desc' => __( 'Polls and satisfaction surveys', 'mcupr' ) ),
+				array( 'type' => 'mcupr_fb', 'icon' => 'dashicons-feedback', 'desc' => __( 'Make your own forms – questionnaires, requests, registrations', 'mcupr' ) ),
+				array( 'type' => 'mcupr_fe', 'icon' => 'dashicons-database', 'desc' => __( 'Answers to your forms, with CSV download', 'mcupr' ) ),
 				array( 'type' => 'mcupr_msg', 'icon' => 'dashicons-email-alt', 'desc' => __( 'Messages sent through the website forms', 'mcupr' ) ),
 			),
 		),
@@ -115,6 +117,7 @@ add_action(
 				}
 			}
 		}
+		$take( 'mcupr-insights' );
 		$take( 'mcupr-status' );
 		$out[] = array( __( 'Theme options', 'mcupr' ), 'edit_theme_options', 'customize.php?return=' . rawurlencode( admin_url( 'admin.php?page=mcupr' ) ) );
 		foreach ( $by as $left ) { // anything else a module put here
