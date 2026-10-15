@@ -1,6 +1,6 @@
 <?php
 /**
- * Home blocks as widgets (and shortcodes) – no plugin needed:
+ * Home blocks – set in the Customizer (MCUPR: Home page sections), also available as shortcodes. No plugin needed:
  *
  *  - Audience cards   (3 big cards: "for applicants / current students / education"; the first one can stand out)
  *  - Figures strip    (big numbers with dividers; {news} {staff} {units} {events} {works} {videos} {albums} count themselves)
@@ -8,9 +8,9 @@
  *  - About block      (title, text, button + four cards)
  *  - Weather bar      (Open-Meteo, fetched by the server and cached – visitors' addresses never reach Open-Meteo)
  *
- * Items are typed one per line, fields separated by |  (in a shortcode, items are separated by ; ).
- * Two widget areas on the front page hold them: "Home – under the hero" and "Home – services".
- * MCUPR → Home blocks adds ready-made samples to the empty areas (never touches an area that has widgets).
+ * Customizer → MCUPR: Home page sections has one section per block, with a box for every field (no syntax to learn).
+ * A block with nothing filled in is not shown. In a shortcode, items are typed as  icon|title|address ; icon|title|address
+ * MCUPR → Home blocks puts ready-made samples into the blocks that are still empty (it never overwrites what is there).
  *
  * @package MCUPR
  */
@@ -299,270 +299,285 @@ add_shortcode(
 	}
 );
 
-/* ------------------------------------------------------------------ widgets */
+/* ------------------------------------------------------------------ the Customizer: what is typed, and how many of each */
 
-/** One class for all the block widgets; a subclass names its fields and how to draw them. */
-abstract class MCUPR_Block_Widget extends WP_Widget {
-	/** @return array field key => array( label, type text|textarea|url|select|checkbox, help, default, choices ) */
-	abstract protected function fields();
+/** The blocks: key => array( toggle key, item count, fields ). Field = key => array( label, kind text|icon|url ). */
+function mcupr_blk_defs() {
+	return array(
+		'aud' => array( 3, array( 'icon' => 'icon', 'eyebrow' => 'text', 'title' => 'text', 'desc' => 'text', 'url' => 'url' ) ),
+		'fig' => array( 5, array( 'num' => 'text', 'label' => 'text' ) ),
+		'svc' => array( 8, array( 'icon' => 'icon', 'title' => 'text', 'url' => 'url' ) ),
+		'lnk' => array( 6, array( 'icon' => 'icon', 'title' => 'text', 'url' => 'url' ) ),
+		'abt' => array( 4, array( 'icon' => 'icon', 'title' => 'text', 'desc' => 'text', 'url' => 'url' ) ),
+	);
+}
 
-	abstract protected function draw( $v );
-
-	public function widget( $args, $instance ) {
-		$v                        = $this->values( $instance );
-		$GLOBALS['mcupr_blk_wid'] = isset( $args['widget_id'] ) ? $args['widget_id'] : '';
-		$html                     = $this->draw( $v );
-		if ( '' === $html ) {
-			return;
+/** Rows of what was typed for a block, in the order the render functions expect; items without their main field are skipped. */
+function mcupr_blk_rows( $key ) {
+	$defs = mcupr_blk_defs();
+	$rows = array();
+	$main = 'fig' === $key ? 'num' : 'title';
+	for ( $i = 1; $i <= $defs[ $key ][0]; $i++ ) {
+		$r = array();
+		foreach ( array_keys( $defs[ $key ][1] ) as $f ) {
+			$r[ $f ] = trim( (string) get_theme_mod( 'mcupr_' . $key . '_' . $i . '_' . $f, '' ) );
 		}
-		echo '<section' . ( isset( $args['widget_id'] ) ? ' id="' . esc_attr( $args['widget_id'] ) . '"' : '' ) . ' class="blk blk-' . esc_attr( $this->id_base ) . '"' . ( isset( $args['widget_id'] ) && false !== strpos( $html, 'id="' . $args['widget_id'] . '-t"' ) ? ' aria-labelledby="' . esc_attr( $args['widget_id'] ) . '-t"' : '' ) . '>' . $html . '</section>'; // phpcs:ignore WordPress.Security.EscapeOutput
-	}
-
-	protected function values( $instance ) {
-		$v = array();
-		foreach ( $this->fields() as $k => $f ) {
-			$v[ $k ] = isset( $instance[ $k ] ) ? $instance[ $k ] : ( isset( $f[3] ) ? $f[3] : '' );
+		if ( '' !== $r[ $main ] ) {
+			$rows[] = array_values( $r );
 		}
-		return $v;
 	}
+	return $rows;
+}
 
-	public function form( $instance ) {
-		$v = $this->values( $instance );
-		foreach ( $this->fields() as $k => $f ) {
-			$id   = $this->get_field_id( $k );
-			$name = $this->get_field_name( $k );
-			echo '<p><label for="' . esc_attr( $id ) . '">' . esc_html( $f[0] ) . '</label>';
-			if ( 'textarea' === $f[1] ) {
-				echo '<textarea class="widefat" rows="6" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '">' . esc_textarea( $v[ $k ] ) . '</textarea>';
-			} elseif ( 'select' === $f[1] ) {
-				echo '<select class="widefat" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '">';
-				foreach ( $f[4] as $val => $lab ) {
-					echo '<option value="' . esc_attr( $val ) . '"' . selected( (string) $v[ $k ], (string) $val, false ) . '>' . esc_html( $lab ) . '</option>';
-				}
-				echo '</select>';
-			} elseif ( 'checkbox' === $f[1] ) {
-				echo '<br><input type="checkbox" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="1"' . checked( ! empty( $v[ $k ] ), true, false ) . '>';
-			} else {
-				echo '<input class="widefat" type="text" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( $v[ $k ] ) . '">';
+/** The html of a home block by its key: weather | audience | figures | services | links | about. '' when nothing is filled in. */
+function mcupr_blk_home( $which ) {
+	switch ( $which ) {
+		case 'weather':
+			return mcupr_blk_weather( get_theme_mod( 'mcupr_wx_lat', '' ), get_theme_mod( 'mcupr_wx_lon', '' ), (string) get_theme_mod( 'mcupr_wx_place', '' ) );
+		case 'audience':
+			// icon, eyebrow, title, desc, url  →  the same order as the render function
+			return mcupr_blk_audience( mcupr_blk_rows( 'aud' ), true );
+		case 'figures':
+			$rows = array();
+			foreach ( mcupr_blk_rows( 'fig' ) as $r ) {
+				$rows[] = array( $r[0], '' !== $r[1] ? $r[1] : '' );
 			}
-			if ( ! empty( $f[2] ) ) {
-				echo '<br><span class="description">' . esc_html( $f[2] ) . '</span>';
+			return mcupr_blk_figures( $rows );
+		case 'services':
+		case 'links':
+			$k    = 'services' === $which ? 'svc' : 'lnk';
+			$cards = mcupr_blk_cards( mcupr_blk_rows( $k ), 'services' === $which ? 'service' : 'links' );
+			if ( '' === $cards ) {
+				return '';
 			}
-			echo '</p>';
+			return mcupr_blk_head( (string) get_theme_mod( 'mcupr_' . $k . '_title', '' ), 'services' === $which ? (string) get_theme_mod( 'mcupr_svc_sub', '' ) : '', (string) get_theme_mod( 'mcupr_' . $k . '_more', '' ), (string) get_theme_mod( 'mcupr_' . $k . '_more_url', '' ), 'blk-' . $k . '-t' ) . $cards;
+		case 'about':
+			return mcupr_blk_about(
+				array( 'title' => (string) get_theme_mod( 'mcupr_abt_title', '' ), 'text' => (string) get_theme_mod( 'mcupr_abt_text', '' ), 'button' => (string) get_theme_mod( 'mcupr_abt_button', '' ), 'url' => (string) get_theme_mod( 'mcupr_abt_url', '' ), 'id' => 'blk-abt-t' ),
+				mcupr_blk_rows( 'abt' )
+			);
+	}
+	return '';
+}
+
+/** A block as a section of the home page (nothing when it is switched off or empty). $mt = top margin class. */
+function mcupr_blk_section( $which, $toggle, $mt = 'mt-8' ) {
+	if ( ! mcupr_home_on( $toggle, true ) ) {
+		return '';
+	}
+	$h = mcupr_blk_home( $which );
+	if ( '' === $h ) {
+		return '';
+	}
+	$lab = preg_match( '/\bid="(blk-[a-z]+-t)"/', $h, $m ) ? ' aria-labelledby="' . esc_attr( $m[1] ) . '"' : '';
+	return '<section class="wrap ' . esc_attr( $mt ) . ' blk blk-' . esc_attr( $which ) . '"' . $lab . ' data-reveal>' . $h . '</section>';
+}
+
+/** The icons that can be chosen: name => name. */
+function mcupr_blk_icon_choices() {
+	$skip = array( 'layout-top', 'layout-side', 'rows', 'contrast', 'underline', 'type', 'spacing', 'pointer', 'blossom', 'sliders', 'chevron', 'arrow', 'panel', 'eye', 'external' );
+	$out  = array( '' => __( '— no icon —', 'mcupr' ) );
+	foreach ( array_keys( mcupr_icon_paths() ) as $n ) {
+		if ( ! in_array( $n, $skip, true ) ) {
+			$out[ $n ] = $n;
 		}
 	}
-
-	public function update( $new, $old ) {
-		$out = array();
-		foreach ( $this->fields() as $k => $f ) {
-			$val = isset( $new[ $k ] ) ? wp_unslash( $new[ $k ] ) : '';
-			if ( 'textarea' === $f[1] ) {
-				$out[ $k ] = sanitize_textarea_field( $val );
-			} elseif ( 'checkbox' === $f[1] ) {
-				$out[ $k ] = ! empty( $new[ $k ] ) ? 1 : 0;
-			} elseif ( 'select' === $f[1] ) {
-				$out[ $k ] = array_key_exists( $val, $f[4] ) ? $val : (string) $f[3];
-			} else {
-				$out[ $k ] = sanitize_text_field( $val );
-			}
-		}
-		return $out;
-	}
-
-	/** The title with its id (so the section is labelled). */
-	protected function title_html( $v, $sub = '', $more = '', $more_url = '' ) {
-		global $mcupr_blk_wid;
-		return mcupr_blk_head( $v['title'], $sub, $more, $more_url, $mcupr_blk_wid ? $mcupr_blk_wid . '-t' : '' );
-	}
-}
-
-class MCUPR_Widget_Audience extends MCUPR_Block_Widget {
-	public function __construct() {
-		parent::__construct( 'mcupr_audience', __( 'MCUPR: Audience cards', 'mcupr' ), array( 'description' => __( 'Big cards for visitor groups (applicants, current students…). The first card stands out.', 'mcupr' ) ) );
-	}
-
-	protected function fields() {
-		return array(
-			'items' => array( __( 'Cards – one per line: icon | small text | title | description | address', 'mcupr' ), 'textarea', __( 'Example: edit | For applicants | Admissions | Dates, programmes and how to apply | /admissions/ . Icons: edit, user, book, cap, bank, calendar, mail, news, file, pin, phone, award, shield, heart, star, globe…', 'mcupr' ) ),
-			'lead'  => array( __( 'First card stands out', 'mcupr' ), 'checkbox', '', 1 ),
-		);
-	}
-
-	protected function draw( $v ) {
-		return mcupr_blk_audience( mcupr_blk_parse( $v['items'], 3 ), ! empty( $v['lead'] ) );
-	}
-}
-
-class MCUPR_Widget_Figures extends MCUPR_Block_Widget {
-	public function __construct() {
-		parent::__construct( 'mcupr_figures', __( 'MCUPR: Figures strip', 'mcupr' ), array( 'description' => __( 'Big numbers in a row. Some count themselves: {news} {staff} {units} {events} {works} {videos} {albums}.', 'mcupr' ) ) );
-	}
-
-	protected function fields() {
-		return array( 'items' => array( __( 'Figures – one per line: number | label', 'mcupr' ), 'textarea', __( 'Example: 13 | Faculties and units   or   {news} | News and announcements', 'mcupr' ) ) );
-	}
-
-	protected function draw( $v ) {
-		return mcupr_blk_figures( mcupr_blk_parse( $v['items'], 2 ) );
-	}
-}
-
-class MCUPR_Widget_Cards extends MCUPR_Block_Widget {
-	public function __construct() {
-		parent::__construct( 'mcupr_cards', __( 'MCUPR: Link cards', 'mcupr' ), array( 'description' => __( 'Icon cards that lead to systems or pages, with a heading and a “see all” link. Outside links open in a new tab and say so.', 'mcupr' ) ) );
-	}
-
-	protected function fields() {
-		return array(
-			'title'    => array( __( 'Heading', 'mcupr' ), 'text' ),
-			'sub'      => array( __( 'Line under the heading', 'mcupr' ), 'text' ),
-			'more'     => array( __( '“See all” text', 'mcupr' ), 'text' ),
-			'more_url' => array( __( '“See all” address', 'mcupr' ), 'text' ),
-			'style'    => array( __( 'Look', 'mcupr' ), 'select', '', 'service', array( 'service' => __( 'Service cards (round icon on top)', 'mcupr' ), 'links' => __( 'Compact icon links', 'mcupr' ) ) ),
-			'items'    => array( __( 'Cards – one per line: icon | title | address', 'mcupr' ), 'textarea', __( 'Example: laptop | e-Learning | https://elearning.example.org', 'mcupr' ) ),
-		);
-	}
-
-	protected function draw( $v ) {
-		$h = mcupr_blk_cards( mcupr_blk_parse( $v['items'], 3 ), $v['style'] );
-		return '' === $h ? '' : $this->title_html( $v, $v['sub'], $v['more'], $v['more_url'] ) . $h;
-	}
-}
-
-class MCUPR_Widget_About extends MCUPR_Block_Widget {
-	public function __construct() {
-		parent::__construct( 'mcupr_about', __( 'MCUPR: About block', 'mcupr' ), array( 'description' => __( 'A title, a short text and a button, with up to four cards beside them.', 'mcupr' ) ) );
-	}
-
-	protected function fields() {
-		return array(
-			'title'  => array( __( 'Title', 'mcupr' ), 'text' ),
-			'text'   => array( __( 'Text', 'mcupr' ), 'textarea' ),
-			'button' => array( __( 'Button text', 'mcupr' ), 'text' ),
-			'url'    => array( __( 'Button address', 'mcupr' ), 'text' ),
-			'items'  => array( __( 'Cards – one per line: icon | title | description | address', 'mcupr' ), 'textarea' ),
-		);
-	}
-
-	protected function draw( $v ) {
-		global $mcupr_blk_wid;
-		$v['id'] = $mcupr_blk_wid ? $mcupr_blk_wid . '-t' : '';
-		return mcupr_blk_about( $v, array_slice( mcupr_blk_parse( $v['items'], 2 ), 0, 4 ) );
-	}
-}
-
-class MCUPR_Widget_Weather extends MCUPR_Block_Widget {
-	public function __construct() {
-		parent::__construct( 'mcupr_weather', __( 'MCUPR: Weather bar', 'mcupr' ), array( 'description' => __( 'Today’s weather from Open-Meteo (free, no key). The server asks Open-Meteo once every 30 minutes; visitors’ addresses are not sent to anyone.', 'mcupr' ) ) );
-	}
-
-	protected function fields() {
-		return array(
-			'lat'   => array( __( 'Latitude', 'mcupr' ), 'text', __( 'Example: 13.690 (nothing is shown until latitude and longitude are filled in)', 'mcupr' ) ),
-			'lon'   => array( __( 'Longitude', 'mcupr' ), 'text', __( 'Example: 101.076', 'mcupr' ) ),
-			'title' => array( __( 'Place name (optional)', 'mcupr' ), 'text' ),
-		);
-	}
-
-	protected function draw( $v ) {
-		return mcupr_blk_weather( $v['lat'], $v['lon'], $v['title'] );
-	}
+	return $out;
 }
 
 add_action(
-	'widgets_init',
-	static function () {
-		foreach ( array( 'MCUPR_Widget_Audience', 'MCUPR_Widget_Figures', 'MCUPR_Widget_Cards', 'MCUPR_Widget_About', 'MCUPR_Widget_Weather' ) as $c ) {
-			register_widget( $c );
+	'customize_register',
+	static function ( $wp_customize ) {
+		// the panel that holds the home page sections (the show/hide boxes are its first section)
+		$wp_customize->add_panel( 'mcupr_home_panel', array( 'title' => __( 'MCUPR: Home page sections', 'mcupr' ), 'description' => __( 'Show or hide each part of the home page and fill in the blocks. A block with nothing typed in is not shown.', 'mcupr' ), 'priority' => 33 ) );
+		if ( $wp_customize->get_section( 'mcupr_home_sections' ) ) {
+			$wp_customize->get_section( 'mcupr_home_sections' )->panel = 'mcupr_home_panel';
+			$wp_customize->get_section( 'mcupr_home_sections' )->title    = __( 'Show or hide the sections', 'mcupr' );
+			$wp_customize->get_section( 'mcupr_home_sections' )->priority = 10;
 		}
-	}
+		if ( $wp_customize->get_section( 'mcupr_numbers' ) ) {
+			$wp_customize->get_section( 'mcupr_numbers' )->panel    = 'mcupr_home_panel';
+			$wp_customize->get_section( 'mcupr_numbers' )->priority = 15;
+		}
+		$icons = mcupr_blk_icon_choices();
+		$text  = static function ( $id, $label, $section, $extra = array() ) use ( $wp_customize ) {
+			$wp_customize->add_setting( $id, array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
+			$wp_customize->add_control( $id, array_merge( array( 'section' => $section, 'label' => $label, 'type' => 'text' ), $extra ) );
+		};
+		$area  = static function ( $id, $label, $section ) use ( $wp_customize ) {
+			$wp_customize->add_setting( $id, array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
+			$wp_customize->add_control( $id, array( 'section' => $section, 'label' => $label, 'type' => 'textarea' ) );
+		};
+		$icon  = static function ( $id, $label, $section ) use ( $wp_customize, $icons ) {
+			$wp_customize->add_setting( $id, array( 'default' => '', 'sanitize_callback' => static function ( $v ) use ( $icons ) { return array_key_exists( (string) $v, $icons ) ? (string) $v : ''; } ) );
+			$wp_customize->add_control( $id, array( 'section' => $section, 'label' => $label, 'type' => 'select', 'choices' => $icons ) );
+		};
+		$url   = static function ( $id, $label, $section ) use ( $wp_customize ) {
+			$wp_customize->add_setting( $id, array( 'default' => '', 'sanitize_callback' => 'mcupr_blk_clean_url_setting' ) );
+			$wp_customize->add_control( $id, array( 'section' => $section, 'label' => $label, 'type' => 'text', 'input_attrs' => array( 'placeholder' => '/page/  or  https://…' ) ) );
+		};
+		$sec   = static function ( $id, $title, $desc, $prio ) use ( $wp_customize ) {
+			$wp_customize->add_section( $id, array( 'panel' => 'mcupr_home_panel', 'title' => $title, 'description' => $desc, 'priority' => $prio ) );
+		};
+		$field = static function ( $kind, $id, $label, $section ) use ( $text, $icon, $url ) {
+			if ( 'icon' === $kind ) { $icon( $id, $label, $section ); } elseif ( 'url' === $kind ) { $url( $id, $label, $section ); } else { $text( $id, $label, $section ); }
+		};
+
+		// ---- weather
+		$sec( 'mcupr_blk_wx', __( 'Weather bar', 'mcupr' ), __( 'Today’s weather from Open-Meteo (free, no key). The server asks Open-Meteo once every 30 minutes; visitors’ addresses are not sent to anyone. Nothing is shown until the latitude and longitude are filled in.', 'mcupr' ), 20 );
+		$text( 'mcupr_wx_lat', __( 'Latitude (example: 13.690)', 'mcupr' ), 'mcupr_blk_wx', array( 'input_attrs' => array( 'inputmode' => 'decimal' ) ) );
+		$text( 'mcupr_wx_lon', __( 'Longitude (example: 101.076)', 'mcupr' ), 'mcupr_blk_wx', array( 'input_attrs' => array( 'inputmode' => 'decimal' ) ) );
+		$text( 'mcupr_wx_place', __( 'Place name (optional)', 'mcupr' ), 'mcupr_blk_wx' );
+
+		// ---- audience cards
+		$sec( 'mcupr_blk_aud', __( 'Audience cards', 'mcupr' ), __( 'Big cards under the hero for visitor groups (applicants, current students…). The first card stands out. A card without a title is left out.', 'mcupr' ), 21 );
+		$labels = array( 'icon' => __( 'Card %d: icon', 'mcupr' ), 'eyebrow' => __( 'Card %d: small text above the title', 'mcupr' ), 'title' => __( 'Card %d: title', 'mcupr' ), 'desc' => __( 'Card %d: description', 'mcupr' ), 'url' => __( 'Card %d: address', 'mcupr' ) );
+		for ( $i = 1; $i <= 3; $i++ ) {
+			foreach ( mcupr_blk_defs()['aud'][1] as $f => $kind ) {
+				$field( $kind, 'mcupr_aud_' . $i . '_' . $f, sprintf( $labels[ $f ], $i ), 'mcupr_blk_aud' );
+			}
+		}
+
+		// ---- figures
+		$sec( 'mcupr_blk_fig', __( 'Figures strip', 'mcupr' ), __( 'Big numbers in a row. Type a number, or one of {news} {staff} {units} {events} {works} {videos} {albums} to count by itself. A figure without a number is left out. (The students / teachers / faculties block is in “Numbers”.)', 'mcupr' ), 22 );
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$text( 'mcupr_fig_' . $i . '_num', sprintf( /* translators: %d: figure number */ __( 'Figure %d: number', 'mcupr' ), $i ), 'mcupr_blk_fig' );
+			$text( 'mcupr_fig_' . $i . '_label', sprintf( /* translators: %d: figure number */ __( 'Figure %d: label', 'mcupr' ), $i ), 'mcupr_blk_fig' );
+		}
+
+		// ---- service cards and links
+		foreach ( array( 'svc' => array( 'mcupr_blk_svc', __( 'Service cards', 'mcupr' ), __( 'Round-icon cards that lead to systems or pages. Outside links open in a new tab and say so. A card without a title is left out.', 'mcupr' ), 23, 8 ), 'lnk' => array( 'mcupr_blk_lnk', __( 'Education links', 'mcupr' ), __( 'A row of compact icon links with a heading and a “see all” link. A link without a title is left out.', 'mcupr' ), 24, 6 ) ) as $k => $d ) {
+			$sec( $d[0], $d[1], $d[2], $d[3] );
+			$text( 'mcupr_' . $k . '_title', __( 'Heading', 'mcupr' ), $d[0] );
+			if ( 'svc' === $k ) {
+				$text( 'mcupr_svc_sub', __( 'Line under the heading', 'mcupr' ), $d[0] );
+			}
+			$text( 'mcupr_' . $k . '_more', __( '“See all” text', 'mcupr' ), $d[0] );
+			$url( 'mcupr_' . $k . '_more_url', __( '“See all” address', 'mcupr' ), $d[0] );
+			for ( $i = 1; $i <= $d[4]; $i++ ) {
+				$icon( 'mcupr_' . $k . '_' . $i . '_icon', sprintf( /* translators: %d: item number */ __( 'Item %d: icon', 'mcupr' ), $i ), $d[0] );
+				$text( 'mcupr_' . $k . '_' . $i . '_title', sprintf( /* translators: %d: item number */ __( 'Item %d: title', 'mcupr' ), $i ), $d[0] );
+				$url( 'mcupr_' . $k . '_' . $i . '_url', sprintf( /* translators: %d: item number */ __( 'Item %d: address', 'mcupr' ), $i ), $d[0] );
+			}
+		}
+
+		// ---- about block
+		$sec( 'mcupr_blk_abt', __( 'About block', 'mcupr' ), __( 'A title, a short text and a button, with up to four cards beside them. A card without a title is left out.', 'mcupr' ), 25 );
+		$text( 'mcupr_abt_title', __( 'Title', 'mcupr' ), 'mcupr_blk_abt' );
+		$area( 'mcupr_abt_text', __( 'Text', 'mcupr' ), 'mcupr_blk_abt' );
+		$text( 'mcupr_abt_button', __( 'Button text', 'mcupr' ), 'mcupr_blk_abt' );
+		$url( 'mcupr_abt_url', __( 'Button address', 'mcupr' ), 'mcupr_blk_abt' );
+		for ( $i = 1; $i <= 4; $i++ ) {
+			$icon( 'mcupr_abt_' . $i . '_icon', sprintf( /* translators: %d: card number */ __( 'Card %d: icon', 'mcupr' ), $i ), 'mcupr_blk_abt' );
+			$text( 'mcupr_abt_' . $i . '_title', sprintf( /* translators: %d: card number */ __( 'Card %d: title', 'mcupr' ), $i ), 'mcupr_blk_abt' );
+			$text( 'mcupr_abt_' . $i . '_desc', sprintf( /* translators: %d: card number */ __( 'Card %d: description', 'mcupr' ), $i ), 'mcupr_blk_abt' );
+			$url( 'mcupr_abt_' . $i . '_url', sprintf( /* translators: %d: card number */ __( 'Card %d: address', 'mcupr' ), $i ), 'mcupr_blk_abt' );
+		}
+	},
+	20
 );
 
-/* ------------------------------------------------------------------ samples: only into empty areas, only pages that exist */
+/** An address typed in the Customizer: a path, an http(s) / mailto / tel address, or nothing. */
+function mcupr_blk_clean_url_setting( $v ) {
+	$v = trim( (string) $v );
+	if ( '' === $v ) {
+		return '';
+	}
+	if ( 0 === strpos( $v, '//' ) ) {
+		return '';
+	}
+	if ( 0 === strpos( $v, '/' ) ) {
+		return '/' . ltrim( preg_replace( '#[^\p{L}\p{M}\p{N}\-_/.%?=&\#]#u', '', $v ), '/' );
+	}
+	return esc_url_raw( $v, array( 'http', 'https', 'mailto', 'tel' ) );
+}
+
+/* ------------------------------------------------------------------ samples: only into blocks that are still empty, only pages that exist */
 
 function mcupr_blk_page_url( $slug ) {
 	$p = get_posts( array( 'post_type' => 'page', 'name' => sanitize_title( $slug ), 'post_status' => 'publish', 'numberposts' => 1, 'no_found_rows' => true ) ); // by slug: the page may sit under a parent
 	return $p ? wp_make_link_relative( get_permalink( $p[0] ) ) : '';
 }
 
-/** Lines whose address is a page of this site that does not exist are dropped. */
-function mcupr_blk_lines( $rows, $url_at ) {
-	$out = array();
-	foreach ( $rows as $r ) {
-		$slug = $r[ $url_at ];
-		if ( 0 === strpos( $slug, 'page:' ) ) {
-			$u = mcupr_blk_page_url( substr( $slug, 5 ) );
-			if ( '' === $u ) {
-				continue;
-			}
-			$r[ $url_at ] = $u;
-		}
-		$out[] = implode( ' | ', $r );
-	}
-	return implode( "\n", $out );
-}
-
-/** What the sample button adds: widget id base => array( area, instance ). */
+/** What the sample button fills in: block => rows of fields (in the block's field order). "page:slug" addresses become the page's path; rows whose page does not exist are dropped. */
 function mcupr_blk_samples() {
 	return array(
-		'home-top' => array(
-			array( 'mcupr_audience', array( 'lead' => 1, 'items' => mcupr_blk_lines( array(
-				array( 'edit', 'ผู้สนใจสมัคร', 'รับสมัครนิสิต/นักศึกษา', 'กำหนดการ หลักสูตร และระบบรับสมัคร', 'page:admissions' ),
-				array( 'user', 'นิสิตปัจจุบัน', 'พอร์ทัลนิสิต', 'เข้าสู่ระบบ ปฏิทิน และเอกสารดาวน์โหลด', 'page:student-portal' ),
-				array( 'book', 'การศึกษา', 'หลักสูตรที่เปิดสอน', 'หลักสูตรที่เปิดสอนและแผนการเรียน', 'page:programs' ),
-			), 4 ) ) ),
-			array( 'mcupr_figures', array( 'items' => "{news} | ข่าว/ประกาศ\n{staff} | บุคลากร\n{units} | คณะ/หน่วยงาน\n{events} | กิจกรรม" ) ),
+		'aud' => array(
+			array( 'edit', 'ผู้สนใจสมัคร', 'รับสมัครนิสิต/นักศึกษา', 'กำหนดการ หลักสูตร และระบบรับสมัคร', 'page:admissions' ),
+			array( 'user', 'นิสิตปัจจุบัน', 'พอร์ทัลนิสิต', 'เข้าสู่ระบบ ปฏิทิน และเอกสารดาวน์โหลด', 'page:student-portal' ),
+			array( 'book', 'การศึกษา', 'หลักสูตรที่เปิดสอน', 'หลักสูตรที่เปิดสอนและแผนการเรียน', 'page:programs' ),
 		),
-		'home-mid' => array(
-			array( 'mcupr_cards', array( 'title' => 'บริการและระบบสารสนเทศ', 'sub' => 'แตะรายการเพื่อเข้าใช้ระบบ — ลิงก์ภายนอกจะเปิดแท็บใหม่', 'more' => 'ระบบสารสนเทศทั้งหมด', 'more_url' => mcupr_blk_page_url( 'eservice' ), 'style' => 'service', 'items' => mcupr_blk_lines( array(
-				array( 'book', 'ระบบทะเบียน', 'page:registrar' ),
-				array( 'laptop', 'e-Learning', 'page:eservice' ),
-				array( 'mail', 'อีเมล', 'page:eservice' ),
-				array( 'calendar', 'ปฏิทินการศึกษา', 'page:calendar' ),
-			), 2 ) ) ),
-			array( 'mcupr_cards', array( 'title' => 'การศึกษา', 'more' => 'ดูทั้งหมด', 'more_url' => mcupr_blk_page_url( 'academics' ), 'style' => 'links', 'items' => mcupr_blk_lines( array(
-				array( 'book', 'หลักสูตรที่เปิดสอน', 'page:programs' ),
-				array( 'rows', 'แผนการเรียน', 'page:study-plan' ),
-				array( 'calendar', 'ปฏิทินการศึกษา', 'page:calendar' ),
-				array( 'file', 'ระเบียบ/ข้อบังคับ', 'page:laws' ),
-			), 2 ) ) ),
-			array( 'mcupr_about', array( 'title' => 'เกี่ยวกับ ' . get_bloginfo( 'name' ), 'text' => 'ใส่ข้อความแนะนำหน่วยงานสั้นๆ ที่นี่', 'button' => 'ดูประวัติและวิสัยทัศน์', 'url' => mcupr_blk_page_url( 'vision' ), 'items' => mcupr_blk_lines( array(
-				array( 'flag', 'วิสัยทัศน์ / พันธกิจ', 'ทิศทางและเป้าหมายของหน่วยงาน', 'page:vision' ),
-				array( 'grid', 'โครงสร้างการบริหาร', 'หน่วยงานและคณะภายใน', 'page:structure' ),
-				array( 'heart', 'บริจาคให้หน่วยงาน', 'สนับสนุนการศึกษาและกิจกรรม', 'page:donate' ),
-				array( 'award', 'ประกันคุณภาพ', 'การประกันคุณภาพการศึกษา', 'page:quality-assurance' ),
-			), 3 ) ) ),
+		'fig' => array(
+			array( '{news}', 'ข่าว/ประกาศ' ),
+			array( '{staff}', 'บุคลากร' ),
+			array( '{units}', 'คณะ/หน่วยงาน' ),
+			array( '{events}', 'กิจกรรม' ),
+		),
+		'svc' => array(
+			array( 'book', 'ระบบทะเบียน', 'page:registrar' ),
+			array( 'laptop', 'e-Learning', 'page:eservice' ),
+			array( 'mail', 'อีเมล', 'page:eservice' ),
+			array( 'calendar', 'ปฏิทินการศึกษา', 'page:calendar' ),
+		),
+		'lnk' => array(
+			array( 'book', 'หลักสูตรที่เปิดสอน', 'page:programs' ),
+			array( 'rows', 'แผนการเรียน', 'page:study-plan' ),
+			array( 'calendar', 'ปฏิทินการศึกษา', 'page:calendar' ),
+			array( 'file', 'ระเบียบ/ข้อบังคับ', 'page:laws' ),
+		),
+		'abt' => array(
+			array( 'flag', 'วิสัยทัศน์ / พันธกิจ', 'ทิศทางและเป้าหมายของหน่วยงาน', 'page:vision' ),
+			array( 'grid', 'โครงสร้างการบริหาร', 'หน่วยงานและคณะภายใน', 'page:structure' ),
+			array( 'heart', 'สนับสนุนหน่วยงาน', 'สนับสนุนการศึกษาและกิจกรรม', 'page:donate' ),
+			array( 'award', 'ประกันคุณภาพ', 'การประกันคุณภาพการศึกษา', 'page:quality-assurance' ),
 		),
 	);
 }
 
-/** Add the samples to the areas that are still empty. Returns the number of widgets added. */
+/** Fill the blocks that are still empty with the samples. Returns the names of the blocks filled. */
 function mcupr_blk_install_samples() {
-	$sidebars = wp_get_sidebars_widgets();
-	$added    = 0;
-	foreach ( mcupr_blk_samples() as $area => $widgets ) {
-		if ( ! empty( $sidebars[ $area ] ) ) {
-			continue; // someone has already put widgets here: leave the area alone
+	$defs   = mcupr_blk_defs();
+	$filled = array();
+	foreach ( mcupr_blk_samples() as $key => $rows ) {
+		if ( mcupr_blk_rows( $key ) ) {
+			continue; // something is already typed in this block: leave it alone
 		}
-		$ids = array();
-		foreach ( $widgets as $w ) {
-			$opt  = get_option( 'widget_' . $w[0], array() );
-			$opt  = is_array( $opt ) ? $opt : array();
-			$n    = 2;
-			while ( isset( $opt[ $n ] ) ) {
-				$n++;
+		$fields = array_keys( $defs[ $key ][1] );
+		$url_at = array_search( 'url', $fields, true );
+		$n      = 0;
+		foreach ( $rows as $r ) {
+			if ( false !== $url_at && 0 === strpos( $r[ $url_at ], 'page:' ) ) {
+				$u = mcupr_blk_page_url( substr( $r[ $url_at ], 5 ) );
+				if ( '' === $u ) {
+					continue;
+				}
+				$r[ $url_at ] = $u;
 			}
-			$opt[ $n ] = $w[1];
-			update_option( 'widget_' . $w[0], $opt );
-			$ids[] = $w[0] . '-' . $n;
-			$added++;
+			$n++;
+			foreach ( $fields as $x => $f ) {
+				set_theme_mod( 'mcupr_' . $key . '_' . $n . '_' . $f, $r[ $x ] );
+			}
 		}
-		$sidebars[ $area ] = $ids;
+		if ( $n ) {
+			$filled[] = $key;
+		}
 	}
-	if ( $added ) {
-		wp_set_sidebars_widgets( $sidebars );
+	// headings and the text of the about block, the same rule: only where nothing is typed
+	$extra = array(
+		'svc' => array( 'mcupr_svc_title' => 'บริการและระบบสารสนเทศ', 'mcupr_svc_sub' => 'แตะรายการเพื่อเข้าใช้ระบบ — ลิงก์ภายนอกจะเปิดแท็บใหม่', 'mcupr_svc_more' => 'ระบบสารสนเทศทั้งหมด', 'mcupr_svc_more_url' => mcupr_blk_page_url( 'eservice' ) ),
+		'lnk' => array( 'mcupr_lnk_title' => 'การศึกษา', 'mcupr_lnk_more' => 'ดูทั้งหมด', 'mcupr_lnk_more_url' => mcupr_blk_page_url( 'academics' ) ),
+		'abt' => array( 'mcupr_abt_title' => 'เกี่ยวกับ ' . get_bloginfo( 'name' ), 'mcupr_abt_text' => 'ใส่ข้อความแนะนำหน่วยงานสั้นๆ ที่นี่', 'mcupr_abt_button' => 'ดูประวัติและวิสัยทัศน์', 'mcupr_abt_url' => mcupr_blk_page_url( 'vision' ) ),
+	);
+	foreach ( $extra as $key => $mods ) {
+		if ( in_array( $key, $filled, true ) ) {
+			foreach ( $mods as $k => $v ) {
+				if ( '' === (string) get_theme_mod( $k, '' ) ) {
+					set_theme_mod( $k, $v );
+				}
+			}
+		}
 	}
-	return $added;
+	return $filled;
 }
 
 add_action(
@@ -576,24 +591,18 @@ function mcupr_blk_page() {
 	if ( ! current_user_can( 'edit_theme_options' ) ) {
 		return;
 	}
-	$sidebars = wp_get_sidebars_widgets();
-	$msg      = isset( $_GET['added'] ) ? (int) $_GET['added'] : -1; // phpcs:ignore WordPress.Security.NonceVerification
+	$msg = isset( $_GET['filled'] ) ? (int) $_GET['filled'] : -1; // phpcs:ignore WordPress.Security.NonceVerification
 	echo '<div class="wrap"><h1>' . esc_html__( 'Home blocks', 'mcupr' ) . '</h1>';
 	if ( $msg >= 0 ) {
-		echo '<div class="notice notice-success"><p>' . esc_html( $msg ? sprintf( /* translators: %d: widgets */ __( '%d sample blocks added. Edit them at Appearance → Widgets.', 'mcupr' ), $msg ) : __( 'Nothing added: both areas already have widgets.', 'mcupr' ) ) . '</p></div>';
+		echo '<div class="notice notice-success"><p>' . esc_html( $msg ? sprintf( /* translators: %d: blocks */ __( 'Samples put into %d blocks. Edit them in the Customizer.', 'mcupr' ), $msg ) : __( 'Nothing added: every block already has content.', 'mcupr' ) ) . '</p></div>';
 	}
-	echo '<p>' . esc_html__( 'The front page has two widget areas for ready-made blocks: “Home – under the hero” (audience cards, figures, weather) and “Home – services” (link cards, about block). Add the blocks at Appearance → Widgets, or put the samples in with one click.', 'mcupr' ) . '</p><ul style="list-style:disc;margin-left:1.5em">';
-	foreach ( array( 'MCUPR: Audience cards', 'MCUPR: Figures strip', 'MCUPR: Link cards', 'MCUPR: About block', 'MCUPR: Weather bar' ) as $n ) {
-		echo '<li>' . esc_html( $n ) . '</li>';
-	}
-	echo '</ul><p>';
-	foreach ( array( 'home-top' => __( 'Home – under the hero', 'mcupr' ), 'home-mid' => __( 'Home – services', 'mcupr' ) ) as $id => $label ) {
-		echo '<strong>' . esc_html( $label ) . ':</strong> ' . esc_html( ! empty( $sidebars[ $id ] ) ? sprintf( /* translators: %d: widgets */ __( '%d widgets', 'mcupr' ), count( $sidebars[ $id ] ) ) : __( 'empty', 'mcupr' ) ) . '<br>';
-	}
-	echo '</p><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="mcupr_blk_samples">';
+	$cust = admin_url( 'customize.php?autofocus[panel]=mcupr_home_panel&url=' . rawurlencode( home_url( '/' ) ) );
+	echo '<p style="max-width:55rem">' . esc_html__( 'The home page blocks – weather bar, audience cards, figures, service cards, education links and the about block – are set in the Customizer, under “MCUPR: Home page sections”. Each block has its own section with a box for every field. A block with nothing typed in is not shown.', 'mcupr' ) . '</p>';
+	echo '<p><a class="button button-primary" href="' . esc_url( $cust ) . '">' . esc_html__( 'Open the Customizer', 'mcupr' ) . '</a></p>';
+	echo '<h2>' . esc_html__( 'Start from samples', 'mcupr' ) . '</h2><p style="max-width:55rem">' . esc_html__( 'One click fills the blocks that are still empty with Thai samples that link to the sample pages (admissions, student portal, programmes, e-services…) when they exist. A block that already has content is never changed.', 'mcupr' ) . '</p>';
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="mcupr_blk_samples">';
 	wp_nonce_field( 'mcupr_blk_samples', 'mcupr_blk_nonce' );
-	echo '<button class="button button-primary">' . esc_html__( 'Add sample blocks to the empty areas', 'mcupr' ) . '</button> <a class="button" href="' . esc_url( admin_url( 'widgets.php' ) ) . '">' . esc_html__( 'Open Widgets', 'mcupr' ) . '</a></form>';
-	echo '<p class="description">' . esc_html__( 'Areas that already have widgets are never changed. Samples link to the sample pages (admissions, student portal, programmes, e-services…) when they exist.', 'mcupr' ) . '</p></div>';
+	echo '<button class="button">' . esc_html__( 'Fill the empty blocks with samples', 'mcupr' ) . '</button></form></div>';
 }
 
 add_action(
@@ -602,7 +611,7 @@ add_action(
 		if ( ! current_user_can( 'edit_theme_options' ) || ! isset( $_POST['mcupr_blk_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_blk_nonce'] ) ), 'mcupr_blk_samples' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
-		wp_safe_redirect( add_query_arg( 'added', mcupr_blk_install_samples(), admin_url( 'admin.php?page=mcupr-blocks' ) ) );
+		wp_safe_redirect( add_query_arg( 'filled', count( mcupr_blk_install_samples() ), admin_url( 'admin.php?page=mcupr-blocks' ) ) );
 		exit;
 	}
 );
