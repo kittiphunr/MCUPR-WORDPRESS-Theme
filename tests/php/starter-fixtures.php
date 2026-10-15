@@ -62,7 +62,8 @@ foreach ( array( 'head' => array( 2480, 425, array( 200, 40, 90 ) ), 'foot' => a
 	set_theme_mod( "mcupr_print_{$k}_img", $aid );
 }
 // staff hub: link people to units, decorations, education, works, privacy
-$units  = get_posts( array( 'post_type' => 'mcupr_unit', 'post_status' => 'publish', 'posts_per_page' => 5, 'orderby' => 'menu_order title', 'order' => 'ASC' ) );
+$units  = array();
+foreach ( array( 'unit-rector', 'unit-vice' ) as $us ) { $u = get_posts( array( 'post_type' => 'mcupr_unit', 'name' => $us, 'post_status' => 'publish' ) ); if ( $u ) { $units[] = $u[0]; } }
 $people = get_posts( array( 'post_type' => 'mcupr_person', 'post_status' => 'publish', 'posts_per_page' => 10, 'orderby' => 'menu_order title', 'order' => 'ASC' ) );
 if ( $units && count( $people ) >= 4 ) {
 	$p0 = $people[0]->ID; $p1 = $people[1]->ID; $p2 = $people[2]->ID;
