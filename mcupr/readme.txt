@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.30.3 =
+* 404 page redesigned: big 404, centred search with a guess from the address, buttons, menu pages, latest news
+
 = 1.30.2 =
 * Control page (MCUPR overview) redesigned: banner, status chips, quick actions, section cards, tools, office view
 
