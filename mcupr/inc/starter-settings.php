@@ -284,7 +284,7 @@ function mcupr_ss_export() {
 /** Read an uploaded / typed file's text into the format, or null. */
 function mcupr_ss_parse( $text ) {
 	$d = json_decode( (string) $text, true, 6 );
-	return is_array( $d ) && ( ! empty( $d['mcupr_settings'] ) || ! empty( $d['mcupr_demo'] ) ) ? $d : null;
+	return is_array( $d ) && ( ! empty( $d['mcupr_settings'] ) || ! empty( $d['mcupr_demo'] ) || ! empty( $d['mcupr_demo_offices'] ) ) ? $d : null;
 }
 
 /** One line for a result. */
@@ -353,7 +353,16 @@ function mcupr_ss_page() {
 		$form( $do, $label );
 		echo '</span>';
 	}
-	echo '</p><p class="description">' . esc_html__( '“Remove the demo items” deletes the news, events, video, albums, pictures and menu that the demo made (also if you edited them). The settings stay.', 'mcupr' ) . '</p></div></div>';
+	echo '</p><p class="description">' . esc_html__( '“Remove the demo items” deletes the news, events, video, albums, pictures and menu that the demo made (also if you edited them). The settings stay.', 'mcupr' ) . '</p></div>';
+	echo '<div class="card" style="max-width:62rem"><h2>' . esc_html__( '4. Offices demo', 'mcupr' ) . '</h2><p>' . esc_html__( 'Makes three offices as mini-sites inside the website – the campus office, the academic office and the Buddhist college – each with its own colour, head, contact details, news and announcements, events, people, a photo album and pages. Nothing is overwritten; items that already exist are skipped. The offices appear on the home page, at /offices/ and in MCUPR → Offices; add /offices/ to a menu to link to them.', 'mcupr' ) . '</p>';
+	$form( 'demo_offices', __( 'Make the offices demo', 'mcupr' ), true );
+	echo '<p>';
+	foreach ( array( 'dl_demo_offices' => __( 'Download the offices demo file', 'mcupr' ), 'demo_offices_remove' => __( 'Remove the offices demo', 'mcupr' ) ) as $do => $label ) {
+		echo '<span style="display:inline-block;margin-right:.5rem">';
+		$form( $do, $label );
+		echo '</span>';
+	}
+	echo '</p><p class="description">' . esc_html__( '“Remove the offices demo” deletes the offices and everything the demo made for them (also if you edited it).', 'mcupr' ) . '</p></div></div>';
 }
 
 add_action(
@@ -378,7 +387,19 @@ add_action(
 			echo wp_json_encode( mcupr_demo_data(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ); // phpcs:ignore WordPress.Security.EscapeOutput
 			exit;
 		}
-		if ( 'demo' === $do ) {
+		if ( 'dl_demo_offices' === $do ) {
+			nocache_headers();
+			header( 'Content-Type: application/json; charset=utf-8' );
+			header( 'Content-Disposition: attachment; filename="mcupr-demo-offices.json"' );
+			echo wp_json_encode( mcupr_od_data(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ); // phpcs:ignore WordPress.Security.EscapeOutput
+			exit;
+		}
+		if ( 'demo_offices' === $do ) {
+			$d   = mcupr_od_data();
+			$msg = $d ? mcupr_od_message( mcupr_od_apply( $d ) ) : __( 'The demo file is missing from the theme.', 'mcupr' );
+		} elseif ( 'demo_offices_remove' === $do ) {
+			$msg = sprintf( /* translators: %d: items */ __( 'Removed %d demo items.', 'mcupr' ), mcupr_od_remove() );
+		} elseif ( 'demo' === $do ) {
 			$d   = mcupr_demo_data();
 			$msg = $d ? mcupr_demo_message( mcupr_demo_apply( $d ) ) : __( 'The demo file is missing from the theme.', 'mcupr' );
 		} elseif ( 'demo_remove' === $do ) {
@@ -388,7 +409,7 @@ add_action(
 		} elseif ( 'upload' === $do ) {
 			$ok = isset( $_FILES['file']['tmp_name'], $_FILES['file']['size'] ) && is_uploaded_file( $_FILES['file']['tmp_name'] ) && (int) $_FILES['file']['size'] > 0 && (int) $_FILES['file']['size'] <= 200 * 1024; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 			$d  = $ok ? mcupr_ss_parse( file_get_contents( $_FILES['file']['tmp_name'] ) ) : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput, WordPress.WP.AlternativeFunctions
-			$msg = $d ? ( ! empty( $d['mcupr_demo'] ) ? mcupr_demo_message( mcupr_demo_apply( $d ) ) : mcupr_ss_message( mcupr_ss_apply( $d ) ) ) : __( 'That is not a MCUPR settings file (or it is larger than 200 KB).', 'mcupr' );
+			$msg = $d ? ( ! empty( $d['mcupr_demo_offices'] ) ? mcupr_od_message( mcupr_od_apply( $d ) ) : ( ! empty( $d['mcupr_demo'] ) ? mcupr_demo_message( mcupr_demo_apply( $d ) ) : mcupr_ss_message( mcupr_ss_apply( $d ) ) ) ) : __( 'That is not a MCUPR settings file (or it is larger than 200 KB).', 'mcupr' );
 		}
 		set_transient( 'mcupr_ss_msg_' . get_current_user_id(), $msg, 120 );
 		wp_safe_redirect( admin_url( 'admin.php?page=mcupr-settings-io' ) );

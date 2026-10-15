@@ -1173,6 +1173,117 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       }
       await ap.setViewportSize({ width: 1366, height: 900 });
     }
+    // offices: mini-sites inside the site (made by the offices demo, removed at the end)
+    {
+      const { execSync } = require('child_process');
+      const fs2 = require('fs');
+      const wpLoad = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+      const php = (code) => { const f = require('os').tmpdir() + '/e2e-of-' + process.pid + '.php'; fs2.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wpLoad) + '; ' + code); return execSync('php ' + f + ' 2>/dev/null').toString().trim(); };
+      await ap.setViewportSize({ width: 1366, height: 900 });
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+      await ap.click('form:has(input[value=demo_offices]) button');
+      await ap.waitForSelector('.notice-success', { timeout: 120000 });
+      const om = await ap.locator('.notice-success').innerText();
+      ok(/3/.test(om) && /12/.test(om), 'offices demo: the button makes it (' + om.replace(/\s+/g, ' ').slice(0, 120) + ')');
+      const vc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+      await vc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+      const vp = await vc.newPage();
+      const errs = [];
+      vp.on('pageerror', (e) => errs.push(String(e)));
+      // the list, and the home page block
+      await vp.goto(B + '/offices/');
+      ok((await vp.locator('.office-card').count()) === 3 && (await vp.locator('main h1').count()) === 1, 'offices: /offices/ shows a card for each of the three offices under one h1');
+      await vp.goto(B + '/');
+      ok((await vp.locator('.blk-offices .office-card').count()) === 3, 'offices: the home page has the block with the three offices');
+      const homeText = await vp.locator('main').innerText();
+      ok(!/ประกาศรับสมัครบุคลากรสายสนับสนุน|ตารางสอบปลายภาค|พิธีไหว้ครูและปฐมนิเทศนิสิตใหม่ \(ตัวอย่าง\)/.test(homeText), 'offices: the university\'s home page does not list the offices\' news');
+      await vp.goto(B + '/?s=' + encodeURIComponent('ตัวอย่าง'));
+      ok(!/\(ตัวอย่าง\)/.test((await vp.locator('main').innerText()).replace(/พิธีเปิดปีการศึกษา/g, '')) || (await vp.locator('main article').allInnerTexts()).every((t) => !/ประกาศตารางสอบปลายภาค|โครงสร้างการบริหารงาน/.test(t)), 'offices: search on the main site does not return office pages');
+      // the office home, at several sizes
+      const url = B + '/office/phrae-campus-office/';
+      for (const [w, h] of [[1920, 1080], [1366, 800], [768, 1024], [390, 844], [320, 568]]) {
+        await vp.setViewportSize({ width: w, height: h });
+        await vp.goto(url);
+        const g = await vp.evaluate(() => { const band = document.querySelector('.office-chrome .of-band'); const tabs = [...document.querySelectorAll('.of-tabs a')]; const cur = document.querySelector('.of-tabs a[aria-current=page]'); return { h1: document.querySelectorAll('h1').length, name: (document.querySelector('h1') || {}).textContent, bg: getComputedStyle(band).backgroundColor, fg: getComputedStyle(band).color, tabs: tabs.length, minH: Math.min(...tabs.map((a) => a.getBoundingClientRect().height)), cur: cur ? cur.textContent : '', hs: document.documentElement.scrollWidth > innerWidth + 1, cut: tabs.some((a) => a.getBoundingClientRect().right > innerWidth + 1) }; });
+        ok(g.h1 === 1 && /สำนักงานวิทยาเขตแพร่/.test(g.name) && g.bg === 'rgb(15, 118, 110)' && g.fg === 'rgb(255, 255, 255)', 'office home at ' + w + 'px: one h1 (the office), its own colour (' + g.bg + ')');
+        ok(g.tabs >= 7 && g.minH >= 40 && g.cur === 'ภาพรวม' && !g.hs && !g.cut, 'office home at ' + w + 'px: ' + g.tabs + ' tabs wrap inside the window (no sideways scroll), each at least 40px tall, "Overview" is current');
+      }
+      await vp.setViewportSize({ width: 1366, height: 900 });
+      await vp.goto(url);
+      await vp.addScriptTag({ content: axeSource() });
+      const ax0 = await vp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+      ok(ax0.violations.length === 0, 'axe (office home): ' + (ax0.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      await vp.screenshot({ path: shot('office-home.png'), fullPage: true });
+      // the sections
+      for (const [sec, h1, need] of [['news', 'ข่าวสาร', '.news-card'], ['events', 'กิจกรรม', '.ev-row'], ['people', 'บุคลากร', '.person-card'], ['albums', 'อัลบั้มภาพ', '.album-card'], ['contact', 'ติดต่อ', '.of-dl']]) {
+        const r = await vp.goto(url + sec + '/');
+        ok(r.status() === 200 && (await vp.locator('main h1').innerText()).trim() === h1 && (await vp.locator(need).count()) >= 1 && (await vp.locator('.of-tabs a[aria-current=page]').innerText()) === h1, 'office ' + sec + ': 200, h1 "' + h1 + '", content shown, its tab is current');
+        await vp.addScriptTag({ content: axeSource() });
+        const ax = await vp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+        ok(ax.violations.length === 0, 'axe (office ' + sec + '): ' + (ax.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+        for (const w of [390, 320]) {
+          await vp.setViewportSize({ width: w, height: 800 });
+          ok(!(await vp.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)), 'office ' + sec + ' at ' + w + 'px: no sideways scroll');
+        }
+        await vp.setViewportSize({ width: 1366, height: 900 });
+      }
+      ok((await vp.goto(url + 'videos/')).status() === 200 && /ยังไม่มีเนื้อหา/.test(await vp.locator('main').innerText()), 'office videos: an empty section says so');
+      ok((await vp.goto(B + '/office/does-not-exist/')).status() === 404, 'an office that does not exist is a 404');
+      // an office article and an office page carry the slim header
+      await vp.goto(url + 'news/');
+      await vp.locator('.news-card a[href]').first().click();
+      await vp.waitForSelector('.office-chrome');
+      ok((await vp.locator('.office-chrome[data-variant=slim]').count()) === 1 && (await vp.locator('.of-tabs a').count()) >= 7 && (await vp.locator('main h1').count()) === 1, 'office article: the slim office header with the tabs, and still exactly one h1');
+      await vp.addScriptTag({ content: axeSource() });
+      const ax2 = await vp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+      ok(ax2.violations.length === 0, 'axe (office article): ' + (ax2.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      await vp.goto(url);
+      await vp.locator('.of-tabs a', { hasText: 'แบบฟอร์มและเอกสารดาวน์โหลด' }).click();
+      await vp.waitForSelector('.office-chrome');
+      ok(/สำนักงานวิทยาเขตแพร่/.test(await vp.locator('.of-name').innerText()) && (await vp.locator('.of-tabs a[aria-current=page]').innerText()).includes('แบบฟอร์ม'), 'office page: the tab opens the page with the office header and its own tab current');
+      // each office has its own colour
+      const cols = [];
+      for (const slug of ['phrae-campus-office', 'phrae-academic-office', 'phrae-sangha-college']) {
+        await vp.goto(B + '/office/' + slug + '/');
+        cols.push(await vp.evaluate(() => getComputedStyle(document.querySelector('.office-chrome .of-band')).backgroundColor));
+      }
+      ok(cols.join('|') === 'rgb(15, 118, 110)|rgb(29, 78, 216)|rgb(180, 83, 9)', 'the three offices have their own colours (' + cols.join(', ') + ')');
+      // high contrast
+      await vp.goto(url);
+      await vp.evaluate(() => document.documentElement.setAttribute('data-contrast', 'high'));
+      const hc = await vp.evaluate(() => { const cs = getComputedStyle(document.querySelector('.office-chrome .of-band')); const cur = getComputedStyle(document.querySelector('.of-tabs a[aria-current=page]')); return { bg: cs.backgroundColor, bb: cs.borderBottomWidth, curBg: cur.backgroundColor }; });
+      ok(hc.bg !== 'rgb(15, 118, 110)' && hc.bb === '2px' && hc.curBg !== hc.bg, 'office in high contrast: the header drops the office colour for the page colours with a 2px line, the current tab stands out (' + hc.bg + ')');
+      ok(errs.length === 0, 'offices: no JavaScript errors on the office pages' + (errs.length ? ': ' + errs[0] : ''));
+      await vc.close();
+      // a person who works in one office
+      const ids = JSON.parse(php('$o = mcupr_offices(); $a = $o[0]->ID; $b = $o[1]->ID; $pa = get_posts( mcupr_office_query_args( $a, "post", array( "posts_per_page" => 1, "fields" => "ids" ) ) ); $pb = get_posts( mcupr_office_query_args( $b, "post", array( "posts_per_page" => 1, "fields" => "ids" ) ) ); $u = username_exists( "e2e_office_editor" ); if ( ! $u ) { $u = wp_insert_user( array( "user_login" => "e2e_office_editor", "user_pass" => "e2e-Office-pass-1", "user_email" => "e2e-office@example.org", "role" => MCUPR_OFFICE_ROLE ) ); } update_user_meta( $u, "mcupr_offices", array( $a ) ); echo json_encode( array( "a" => $a, "b" => $b, "pa" => $pa[0], "pb" => $pb[0], "u" => $u ) );'));
+      const ec = await br.newContext({ viewport: { width: 1366, height: 900 } });
+      await ec.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+      const ep = await ec.newPage();
+      await ep.goto(B + '/wp-login.php');
+      await ep.fill('#user_login', 'e2e_office_editor'); await ep.fill('#user_pass', 'e2e-Office-pass-1'); await ep.click('#wp-submit');
+      await ep.waitForURL(/wp-admin/);
+      await ep.goto(B + '/wp-admin/edit.php');
+      const rows = await ep.$$eval('#the-list tr.iedit .row-title', (a) => a.map((x) => x.textContent));
+      ok(rows.length === 4 && rows.every((t) => /ประกาศรับสมัครบุคลากร|แจ้งปิดทำการ|กิจกรรมจิตอาสา|สรุปผลการดำเนินงาน/.test(t)), 'office editor: the post list shows only their own office\'s four news (' + rows.length + ')');
+      await ep.goto(B + '/wp-admin/post.php?post=' + ids.pb + '&action=edit');
+      ok(/not allowed|ไม่ได้รับอนุญาต|Sorry/i.test(await ep.locator('body').innerText()), 'office editor: another office\'s article cannot be opened for editing');
+      await ep.goto(B + '/wp-admin/post.php?post=' + ids.pa + '&action=edit');
+      await ep.waitForSelector('#mcupr_office_member select, .editor-styles-wrapper, #post-body', { timeout: 30000 });
+      ok(!/not allowed/i.test(await ep.locator('body').innerText()), 'office editor: their own office\'s article opens');
+      await ep.goto(B + '/wp-admin/options-general.php');
+      ok(/not allowed|ไม่ได้รับอนุญาต|Sorry/i.test(await ep.locator('body').innerText()), 'office editor: the site settings are closed to them');
+      await ec.close();
+      php('require_once ABSPATH . "wp-admin/includes/user.php"; wp_delete_user( (int) username_exists( "e2e_office_editor" ) );');
+      // remove the demo again
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+      await ap.click('form:has(input[value=demo_offices_remove]) button');
+      await ap.waitForSelector('.notice-success', { timeout: 120000 });
+      const gone = await ac.newPage();
+      ok((await gone.goto(url)).status() === 404 && (await gone.goto(B + '/offices/')).status() === 200 && (await gone.locator('.office-card').count()) === 0, 'offices demo: after removing it the office is gone and the list is empty');
+      await gone.close();
+      await ap.setViewportSize({ width: 1366, height: 900 });
+    }
     // special modes: the Info button is coloured (orange = maintenance) for editors and the panel lists the mode + settings link
     {
       const { execSync } = require('child_process');
