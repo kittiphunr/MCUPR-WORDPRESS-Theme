@@ -652,6 +652,84 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await vp.locator('.vid-note').count()) === 0, 'video: the notice goes away once it plays');
     await vc.close();
   }
+  // ---------- maintenance mode and welcome page (the status is flipped from PHP between the checks)
+  {
+    const { execFileSync } = require('child_process');
+    const siteDir = require('path').join(__dirname, '..', '.site-starter');
+    const setStatus = (json) => execFileSync('php', [require('path').join(__dirname, '..', 'php', 'set-status.php'), siteDir, json]).toString().trim().split('\n').pop();
+    const fresh = async (opts = {}) => { const c = await br.newContext({ viewport: { width: 1366, height: 800 }, userAgent: 'Mozilla/5.0 (X11; Linux x86_64) Chrome/120 Safari/537.36', ...opts }); await c.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } }); return c; };
+    const axeOn = async (pg, name) => { await pg.addScriptTag({ content: axeSource() }); const r = await pg.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] })); ok(r.violations.length === 0, 'axe (' + name + '): ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations')); };
+
+    // maintenance
+    const key = setStatus(JSON.stringify({ maint: { on: 1, title: { th: 'ปิดปรับปรุงระบบ' }, msg: { th: 'กลับมาเร็วๆ นี้' }, back: '2031-05-01T09:30' } }));
+    let c1 = await fresh(); let pg = await c1.newPage();
+    const res = await pg.goto(B + '/');
+    ok(res.status() === 503 && /noindex/.test(res.headers()['x-robots-tag'] || '') && !!res.headers()['retry-after'], 'maintenance: visitors get 503, noindex and Retry-After');
+    ok((await pg.locator('h1').innerText()) === 'ปิดปรับปรุงระบบ' && /2031|2574/.test(await pg.locator('.status-back').innerText()) && (await pg.locator('.site-header').count()) === 0, 'maintenance: the page shows the title, the expected-back time and none of the website');
+    const inner = await pg.goto(B + '/about/');
+    ok(inner.status() === 503, 'maintenance: inner pages are closed too');
+    const api = await pg.request.get(B + '/wp-json/wp/v2/posts');
+    ok(api.status() === 503, 'maintenance: the REST API is closed to the public');
+    await axeOn(await (async () => { await pg.goto(B + '/'); return pg; })(), 'maintenance page');
+    await pg.screenshot({ path: shot('maintenance.png') });
+    const back = await pg.goto(B + '/?mcupr_preview=' + key);
+    ok(back.status() === 200 && (await pg.locator('.site-header').count()) === 1, 'maintenance: the reviewer link shows the real site');
+    await pg.goto(B + '/about/');
+    ok((await pg.locator('h1').count()) === 1 && !(await pg.locator('.status-card').count()), 'maintenance: …and keeps showing it (cookie)');
+    await c1.close();
+    const c2 = await fresh(); const p2 = await c2.newPage();
+    const wrong = await p2.goto(B + '/?mcupr_preview=wrongkeywrongkey');
+    ok(wrong.status() === 503, 'maintenance: a wrong reviewer key does nothing');
+    await c2.close();
+    setStatus(JSON.stringify({ maint: { on: 0 } }));
+    const c3 = await fresh(); const p3 = await c3.newPage();
+    ok((await p3.goto(B + '/')).status() === 200, 'maintenance off: the website is back');
+    ok((await p3.locator('section .ev-list .ev-row').count()) >= 1 && (await p3.locator('section .vid-play').count()) === 1 && (await p3.locator('section[aria-labelledby=home-albums] .album-card').count()) >= 1, 'home: upcoming events, the newest video and the newest albums are shown');
+    ok(await p3.evaluate(() => { const v = document.querySelector('section .vid-wrap'); const e = document.querySelector('section .ev-list'); return !!v && !!e && Math.abs(v.getBoundingClientRect().top - e.closest('.soft-card').getBoundingClientRect().top) < 120; }), 'home: the video sits beside the events');
+    ok((await p3.locator('section[aria-label="หมวดหมู่ข่าว"]').count()) === 0, 'home: the "news by category" blocks are off by default');
+    await c3.close();
+
+    // welcome page
+    setStatus(JSON.stringify({ welcome: { on: 1, preset: 'royal', title: { th: 'ถวายพระพรชัยมงคล' }, msg: { th: 'ขอพระองค์ทรงพระเจริญ' }, days: 1, auto: 0, from: '', to: '' } }));
+    const w1 = await fresh(); const wp = await w1.newPage();
+    await wp.goto(B + '/');
+    ok((await wp.locator('h1').innerText()).includes('ถวายพระพร') && (await wp.locator('.status-btn').count()) === 1 && (await wp.locator('.site-header').count()) === 0, 'welcome: the first visit to the home page shows the welcome page');
+    ok(await wp.evaluate(() => getComputedStyle(document.body).backgroundImage.includes('gradient')), 'welcome: the occasion colours are applied');
+    ok(await wp.evaluate(() => getComputedStyle(document.body, '::after').display === 'none' && getComputedStyle(document.body, '::before').display === 'none'), 'welcome: the website background pattern is off so the white text stays readable');
+    await axeOn(wp, 'welcome page');
+    await wp.screenshot({ path: shot('welcome.png') });
+    ok((await (await wp.goto(B + '/about/')).status()) === 200 && (await wp.locator('.site-header').count()) === 1, 'welcome: only the home page shows it');
+    await wp.goto(B + '/');
+    await wp.click('.status-btn');
+    await wp.waitForSelector('.site-header');
+    ok((await w1.cookies()).some((k) => k.name === 'mcupr_welcome') && !(await wp.locator('.status-card').count()), 'welcome: the button enters the website and remembers it');
+    await wp.goto(B + '/');
+    ok((await wp.locator('.site-header').count()) === 1, 'welcome: it is not shown again to the same visitor');
+    await w1.close();
+    const bot = await fresh({ userAgent: 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' }); const bp = await bot.newPage();
+    await bp.goto(B + '/');
+    ok((await bp.locator('.site-header').count()) === 1, 'welcome: search robots see the real home page');
+    await bot.close();
+    setStatus(JSON.stringify({ welcome: { on: 1, auto: 2, days: 0 } }));
+    const w2 = await fresh(); const ap = await w2.newPage();
+    await ap.goto(B + '/');
+    ok(/2/.test(await ap.locator('[data-cd]').innerText()) && (await ap.locator('[data-stop]').count()) === 1, 'welcome: a visible countdown with a stop button');
+    await ap.click('[data-stop]');
+    await ap.waitForTimeout(2600);
+    ok((await ap.locator('.status-card').count()) === 1, 'welcome: the stop button keeps the page open');
+    await w2.close();
+    const w3 = await fresh(); const ap3 = await w3.newPage();
+    await ap3.goto(B + '/');
+    await ap3.waitForSelector('.site-header', { timeout: 6000 });
+    ok(true, 'welcome: the countdown goes into the website by itself');
+    await w3.close();
+    setStatus(JSON.stringify({ welcome: { on: 0 }, mourning: { on: 1, from: '', to: '' } }));
+    const m1 = await fresh(); const mp = await m1.newPage();
+    await mp.goto(B + '/');
+    ok((await mp.evaluate(() => getComputedStyle(document.documentElement).filter)).includes('grayscale') && (await mp.locator('.site-header').count()) === 1, 'mourning: the whole website is greyscale');
+    await m1.close();
+    execFileSync('php', [require('path').join(__dirname, '..', 'php', 'set-status.php'), siteDir, 'reset']);
+  }
   // ---------- polls / satisfaction survey
   {
     const pc = await br.newContext({ viewport: { width: 1366, height: 900 } });
