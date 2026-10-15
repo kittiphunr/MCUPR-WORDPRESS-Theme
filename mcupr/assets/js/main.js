@@ -476,7 +476,9 @@
 					if (min) { a.setAttribute('title', (t.textContent || '').trim()); } else { a.removeAttribute('title'); }
 				});
 			};
+			var sbTimer = 0;
 			sbBtn.addEventListener('click', function () {
+				if (motionOn()) { root.classList.add('sb-anim'); clearTimeout(sbTimer); sbTimer = setTimeout(function () { root.classList.remove('sb-anim'); }, 700); }
 				root.classList.toggle('sb-min');
 				try { localStorage.setItem('mcupr_sbmin', root.classList.contains('sb-min') ? '1' : '0'); } catch (err) { /* ignore */ }
 				syncSb();
@@ -737,18 +739,28 @@
 			fsBox = fsBox || buildFs();
 			if (!fsBox) { return; }
 			fsLast = document.activeElement;
+			// the menu grows out of the "All menu" button and its cards rise one after another
+			var r = fsBtn.getBoundingClientRect();
+			fsBox.style.setProperty('--fs-x', Math.round(r.left + r.width / 2) + 'px');
+			fsBox.style.setProperty('--fs-y', Math.round(r.top + r.height / 2) + 'px');
+			$$('.fs-list > li', fsBox).forEach(function (li, i) { li.style.setProperty('--i', Math.min(i, 11)); });
 			fsBox.hidden = false;
 			root.classList.add('fs-open-lock');
 			fsBtn.setAttribute('aria-expanded', 'true');
-			requestAnimationFrame(function () { fsBox.classList.add('is-in'); var c = $('[data-fs-close]', fsBox); if (c) { c.focus(); } });
+			requestAnimationFrame(function () { requestAnimationFrame(function () { fsBox.classList.add('is-in'); var c = $('[data-fs-close]', fsBox); if (c) { c.focus({ preventScroll: true }); } }); });
 		};
 		var closeFs = function (restore) {
 			if (!fsBox || fsBox.hidden) { return; }
-			fsBox.classList.remove('is-in');
-			fsBox.hidden = true;
 			root.classList.remove('fs-open-lock');
 			fsBtn.setAttribute('aria-expanded', 'false');
-			if (restore !== false && fsLast && fsLast.focus) { fsLast.focus(); }
+			var hideIt = function () { if (!fsBox.classList.contains('is-in')) { fsBox.hidden = true; } };
+			fsBox.classList.remove('is-in');
+			if (!motionOn()) { fsBox.hidden = true; } else { // let it shrink back into the button, then take it out
+				var done = function (e) { if (e && e.target !== fsBox) { return; } fsBox.removeEventListener('transitionend', done); hideIt(); };
+				fsBox.addEventListener('transitionend', done);
+				setTimeout(hideIt, 650);
+			}
+			if (restore !== false && fsLast && fsLast.focus) { fsLast.focus({ preventScroll: true }); }
 		};
 		fsBtn.addEventListener('click', function () { if (fsBox && !fsBox.hidden) { closeFs(); } else { openFs(); } });
 		document.addEventListener('keydown', function (e) {

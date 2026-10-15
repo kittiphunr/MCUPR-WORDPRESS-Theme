@@ -27,6 +27,47 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await mp.locator('[data-wx-pause]').getAttribute('aria-pressed')) === 'true' && (await mp.locator('.wx-track').evaluate((e) => getComputedStyle(e).animationPlayState)) === 'paused', 'home blocks: the pause button stops the scrolling weather text');
     await mp.click('[data-wx-pause]');
     ok((await mp.locator('[data-wx-pause]').getAttribute('aria-pressed')) === 'false', 'home blocks: and starts it again');
+    // the full-screen menu: grows out of its button, its parts arrive in turn, and it shrinks back before it is taken out
+    await mp.click('[data-fs-open]');
+    await mp.waitForSelector('#fs-menu:not([hidden])');
+    await mp.waitForTimeout(80);
+    const fs0 = await mp.evaluate(() => { const b = document.getElementById('fs-menu'); const cs = getComputedStyle(b); const r = document.querySelector('[data-fs-open]').getBoundingClientRect(); return { clip: cs.clipPath, x: cs.getPropertyValue('--fs-x').trim(), inX: Math.abs(parseFloat(cs.getPropertyValue('--fs-x')) - (r.left + r.width / 2)) < 2, firstCard: parseFloat(getComputedStyle(b.querySelector('.fs-list > li')).opacity) }; });
+    ok(/^circle\(/.test(fs0.clip) && !/circle\(150%/.test(fs0.clip) && fs0.inX && fs0.firstCard < 1, 'full menu opening: it is still growing out of the "All menu" button a moment after the click (' + fs0.clip.slice(0, 32) + ')');
+    await mp.waitForTimeout(1300);
+    const fs1 = await mp.evaluate(() => { const b = document.getElementById('fs-menu'); const lis = [...b.querySelectorAll('.fs-list > li')]; return { clip: getComputedStyle(b).clipPath, op: lis.every((l) => getComputedStyle(l).opacity === '1'), delays: new Set(lis.slice(0, 5).map((l) => getComputedStyle(l).transitionDelay)).size }; });
+    ok(/circle\(150%/.test(fs1.clip) && fs1.op && fs1.delays >= 3, 'full menu opened: fully open, every card visible, the cards were staggered (' + fs1.delays + ' different delays)');
+    await mp.click('[data-fs-close]');
+    await mp.waitForTimeout(120);
+    const fs2 = await mp.evaluate(() => ({ hidden: document.getElementById('fs-menu').hidden, clip: getComputedStyle(document.getElementById('fs-menu')).clipPath }));
+    ok(!fs2.hidden && !/circle\(150%/.test(fs2.clip), 'full menu closing: it shrinks back first instead of vanishing (' + fs2.clip.slice(0, 30) + ')');
+    await mp.waitForTimeout(900);
+    ok((await mp.evaluate(() => document.getElementById('fs-menu').hidden)) && (await mp.evaluate(() => document.activeElement && document.activeElement.hasAttribute('data-fs-open'))), 'full menu closed: taken out after the animation, and the focus is back on its button');
+    await mp.evaluate(() => document.querySelector('[data-fs-open]').click());
+    await mp.waitForTimeout(100);
+    await mp.evaluate(() => document.querySelector('[data-fs-close]').click());
+    await mp.evaluate(() => document.querySelector('[data-fs-open]').click());
+    await mp.waitForTimeout(1300);
+    ok(await mp.evaluate(() => !document.getElementById('fs-menu').hidden && document.getElementById('fs-menu').classList.contains('is-in')), 'full menu: opening it again while it is still closing keeps it open');
+    // the side bar: opening it is one steady movement (width, page padding, labels, corners), not a jump
+    await mp.evaluate(() => { document.getElementById('fs-menu').hidden = true; document.documentElement.classList.remove('fs-open-lock'); document.documentElement.dataset.menu = 'side'; document.documentElement.classList.add('sb-min'); });
+    await mp.waitForTimeout(900);
+    const sb0 = await mp.evaluate(() => ({ w: document.querySelector('.site-nav').getBoundingClientRect().width, pad: parseFloat(getComputedStyle(document.body).paddingLeft), op: parseFloat(getComputedStyle(document.querySelector('.site-nav .menu .t')).opacity), r: getComputedStyle(document.querySelector('.site-nav')).borderTopLeftRadius }));
+    await mp.click('[data-sb-toggle]');
+    const samples = [];
+    for (let i = 0; i < 6; i++) { await mp.waitForTimeout(45); samples.push(await mp.evaluate(() => ({ w: document.querySelector('.site-nav').getBoundingClientRect().width, pad: parseFloat(getComputedStyle(document.body).paddingLeft), op: parseFloat(getComputedStyle(document.querySelector('.site-nav .menu .t')).opacity), r: parseFloat(getComputedStyle(document.querySelector('.site-nav')).borderTopLeftRadius), anim: document.documentElement.classList.contains('sb-anim') }))); }
+    await mp.waitForTimeout(900);
+    const sb1 = await mp.evaluate(() => ({ w: document.querySelector('.site-nav').getBoundingClientRect().width, pad: parseFloat(getComputedStyle(document.body).paddingLeft), op: parseFloat(getComputedStyle(document.querySelector('.site-nav .menu .t')).opacity), anim: document.documentElement.classList.contains('sb-anim') }));
+    const mids = samples.filter((x) => x.w > sb0.w + 4 && x.w < sb1.w - 4);
+    ok(mids.length >= 2 && samples.every((x, i) => i === 0 || x.w >= samples[i - 1].w - 0.5), 'side bar opening: the card grows steadily through in-between widths (' + samples.map((x) => Math.round(x.w)).join(' → ') + ')');
+    ok(samples.some((x) => x.pad > sb0.pad + 2 && x.pad < sb1.pad - 2), 'side bar opening: the page beside it moves over with it (padding ' + sb0.pad + ' → ' + sb1.pad + ')');
+    ok(sb0.op === 0 && sb1.op === 1 && samples.some((x) => x.op > 0 && x.op < 1) && samples.every((x) => x.r < 200), 'side bar opening: labels fade in (not switched on) and the corners are ordinary lengths, never a huge radius');
+    ok(samples[0].anim && !sb1.anim, 'side bar opening: labels are kept on one line while it moves, and released after');
+    await mp.click('[data-sb-toggle]');
+    await mp.waitForTimeout(150);
+    const mid2 = await mp.evaluate(() => document.querySelector('.site-nav').getBoundingClientRect().width);
+    await mp.waitForTimeout(800);
+    const end2 = await mp.evaluate(() => document.querySelector('.site-nav').getBoundingClientRect().width);
+    ok(mid2 > end2 + 4 && mid2 < sb1.w - 4 && Math.abs(end2 - sb0.w) < 2, 'side bar closing: shrinks back steadily to the narrow rail (' + Math.round(sb1.w) + ' → ' + Math.round(mid2) + ' → ' + Math.round(end2) + ')');
     await mc.close();
   }
   ok((await p.locator('.vcard .vcard-t a').count()) === 1 && (await p.locator('.vcard .vcard-t').innerText()).trim().length > 0 && (await p.locator('.home-ev .ev-badge').count()) >= 1, 'home: the video has a title bar under it; the events sit in one card with calendar-sheet dates');
