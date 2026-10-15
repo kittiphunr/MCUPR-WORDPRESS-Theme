@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.26.1 =
+* Header capsules fully round (100%)
+
 = 1.26.0 =
 * Import / export settings: starter settings file, fill-only, redirects, export
 

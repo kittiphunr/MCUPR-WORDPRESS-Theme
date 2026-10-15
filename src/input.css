@@ -539,7 +539,7 @@ html[data-images="off"] body::before, html[data-images="off"] body::after { disp
 /* ===== Hybrid layout + floating pill header (Certify Hub) =====
    Top / hybrid: the header floats as a rounded pill. Hybrid = the pill bar (brand + tools)
    on top AND the icon rail (menu) on the left, always collapsed, expanding on hover/focus. */
-html:not([data-menu="side"]) .site-header { top: .75rem; width: min(100% - 1.5rem, 96rem); margin: .75rem auto 0; border: 0; border-radius: 2rem; box-shadow: 0 6px 24px #0f172a1f; }
+html:not([data-menu="side"]) .site-header { top: .75rem; width: min(100% - 1.5rem, 96rem); margin: .75rem auto 0; border: 0; border-radius: 9999px; box-shadow: 0 6px 24px #0f172a1f; }
 html:not([data-menu="side"]) .site-header::before { border-radius: inherit; background: var(--bg); }
 html[data-contrast]:not([data-menu="side"]) .site-header { border: 2px solid var(--border); }
 html:not([data-menu="side"]) .site-header > .wrap { padding-left: 1.25rem; padding-right: 1.25rem; width: 100%; }
@@ -804,7 +804,7 @@ html[data-contrast] .cal, html[data-contrast] .cal td, html[data-contrast] .ev-r
 	html[data-menu="top"] #masthead > .wrap { padding: 0; gap: .75rem; align-items: stretch; }
 	html[data-menu="top"] #masthead .brand,
 	html[data-menu="top"] .site-nav,
-	html[data-menu="top"] #masthead > .wrap > div { background: var(--bg); border-radius: 2rem; box-shadow: 0 6px 24px #0f172a1f; }
+	html[data-menu="top"] #masthead > .wrap > div { background: var(--bg); border-radius: 9999px; box-shadow: 0 6px 24px #0f172a1f; }
 	html[data-contrast][data-menu="top"] #masthead .brand, html[data-contrast][data-menu="top"] .site-nav, html[data-contrast][data-menu="top"] #masthead > .wrap > div { box-shadow: none; border: 2px solid var(--border); }
 	html[data-menu="top"] #masthead .brand { padding: .4rem 1.4rem .4rem .8rem; min-height: 4rem; }
 	html[data-menu="top"] .site-nav { min-height: 4rem; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; }
@@ -816,7 +816,7 @@ html[data-contrast] .cal, html[data-contrast] .cal td, html[data-contrast] .ev-r
 	.hdr-util { display: block; }
 	.nav-util { display: none; }
 	html:is([data-menu="side"],[data-menu="hybrid"]) #masthead .brand { display: none; }
-	html:is([data-menu="side"],[data-menu="hybrid"]) .site-header { top: .75rem; width: fit-content; max-width: calc(100% - 1.5rem); margin: .75rem .75rem 0 auto; border: 0; border-radius: 2rem; box-shadow: 0 6px 24px #0f172a1f; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-header { top: .75rem; width: fit-content; max-width: calc(100% - 1.5rem); margin: .75rem .75rem 0 auto; border: 0; border-radius: 9999px; box-shadow: 0 6px 24px #0f172a1f; }
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-header::before { border-radius: inherit; background: var(--bg); }
 	html[data-contrast]:is([data-menu="side"],[data-menu="hybrid"]) .site-header { box-shadow: none; border: 2px solid var(--border); }
 	html:is([data-menu="side"],[data-menu="hybrid"]) #masthead > .wrap { display: flex; width: auto; padding: .4rem .6rem .4rem 1rem; }
