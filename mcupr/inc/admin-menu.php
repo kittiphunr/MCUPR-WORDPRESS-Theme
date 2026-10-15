@@ -158,10 +158,81 @@ add_filter(
 	}
 );
 
-/** The overview: every theme section as a card, with what is waiting for you. */
+/** The overview CSS (the page is a dashboard: banner, status, quick actions, sections, tools). */
+function mcupr_admin_overview_css() {
+	return '.mcupr-ov{max-width:76rem;--ov-a:#9d174d}.mcupr-ov *{box-sizing:border-box}
+.mcupr-ov .ov-hero{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin:16px 0 20px;padding:24px 28px;border-radius:16px;background:linear-gradient(120deg,#7a1239 0%,#9d174d 55%,#be185d 100%);color:#fff}
+.mcupr-ov .ov-hero h1{margin:0 0 6px;padding:0;color:#fff;font-size:1.7rem;line-height:1.25}
+.mcupr-ov .ov-hero p{margin:0;max-width:44rem;color:#fff;font-size:14px}
+.mcupr-ov .ov-ver{display:inline-block;margin-left:8px;padding:2px 10px;border:1px solid #ffffff99;border-radius:999px;font-size:.8rem;font-weight:600;vertical-align:middle}
+.mcupr-ov .ov-hero .button{min-height:40px;padding:4px 18px;border-radius:999px;border:0;background:#fff;color:#7a1239;font-weight:600}
+.mcupr-ov .ov-hero .button:hover,.mcupr-ov .ov-hero .button:focus{background:#fdf2f8;color:#7a1239}
+.mcupr-ov h2{margin:28px 0 12px;padding:0 0 0 12px;border-left:5px solid var(--ov-a);font-size:1.15rem;line-height:1.3}
+.mcupr-ov .ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));gap:14px}
+.mcupr-ov .ov-chips{display:flex;flex-wrap:wrap;gap:10px}
+.mcupr-ov .ov-chip{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 16px;border:2px solid #dcdcde;border-radius:999px;background:#fff;color:#1d2327;font-weight:600;text-decoration:none}
+.mcupr-ov .ov-chip i{width:12px;height:12px;border-radius:50%;background:#a7aaad;flex:none}
+.mcupr-ov .ov-chip em{font-style:normal;font-weight:400;color:#50575e}
+.mcupr-ov .ov-chip.is-on{color:#fff;border-color:transparent}
+.mcupr-ov .ov-chip.is-on em{color:#fff}
+.mcupr-ov .ov-chip.is-on i{background:#fff}
+.mcupr-ov .ov-chip[data-mode="maint"].is-on{background:#b45309}
+.mcupr-ov .ov-chip[data-mode="welcome"].is-on{background:#1d4ed8}
+.mcupr-ov .ov-chip[data-mode="mourning"].is-on{background:#262626}
+.mcupr-ov .ov-chip[data-mode="forum"].is-on{background:#a21caf}
+.mcupr-ov .ov-acts{display:flex;flex-wrap:wrap;gap:10px}
+.mcupr-ov .ov-act{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 18px;border:1px solid #c3c4c7;border-radius:12px;background:#fff;color:#1d2327;font-weight:600;text-decoration:none;box-shadow:0 1px 2px #0000000d}
+.mcupr-ov .ov-act .dashicons{color:var(--ov-a)}
+.mcupr-ov .ov-act:hover,.mcupr-ov .ov-act:focus{border-color:var(--ov-a);color:var(--ov-a)}
+.mcupr-ov .ov-cell{height:100%}.mcupr-ov .ov-card{position:relative;display:flex;height:100%;gap:14px;min-width:0;padding:16px;border:1px solid #dcdcde;border-top:4px solid var(--c,#2271b1);border-radius:14px;background:#fff;color:#1d2327;text-decoration:none;box-shadow:0 1px 2px #0000000d;transition:transform .15s,box-shadow .15s}
+.mcupr-ov .ov-card:hover,.mcupr-ov .ov-card:focus{transform:translateY(-2px);box-shadow:0 10px 24px -14px #00000066;color:#1d2327}
+.mcupr-ov .ov-ic{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:color-mix(in srgb,var(--c,#2271b1) 14%,#fff);color:var(--c,#2271b1)}
+.mcupr-ov .ov-ic .dashicons{width:24px;height:24px;font-size:24px}
+.mcupr-ov .ov-t{display:block;font-size:15px;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
+.mcupr-ov .ov-d{display:block;margin-top:2px;color:#50575e;font-size:13px;line-height:1.5}
+.mcupr-ov .ov-n{display:inline-block;margin-top:6px;padding:1px 10px;border-radius:999px;background:color-mix(in srgb,var(--c,#2271b1) 12%,#fff);color:#1d2327;font-size:12px;font-weight:700}
+.mcupr-ov .ov-add{position:absolute;top:10px;right:10px;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;color:var(--c,#2271b1);text-decoration:none}
+.mcupr-ov .ov-add:hover,.mcupr-ov .ov-add:focus{background:color-mix(in srgb,var(--c,#2271b1) 14%,#fff)}
+.mcupr-ov .ov-card .ov-body{min-width:0;padding-right:20px}
+.mcupr-ov .ov-warn{margin:0 0 4px;padding:12px 16px;border:1px solid #f0b849;border-left:6px solid #dba617;border-radius:10px;background:#fcf9e8}
+.mcupr-ov .ov-warn ul{margin:6px 0 0 1.2em;list-style:disc}
+.mcupr-ov .ov-mine{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border:1px solid #dcdcde;border-left:8px solid var(--c,#0f766e);border-radius:14px;background:#fff}
+@media (max-width:600px){.mcupr-ov .ov-hero{padding:18px}.mcupr-ov .ov-hero h1{font-size:1.35rem}.mcupr-ov .ov-grid{grid-template-columns:1fr}}';
+}
+
+/** One card of the overview. */
+function mcupr_admin_card( $url, $icon, $title, $desc, $count = null, $color = '#2271b1', $add = '' ) {
+	$o  = '<div class="ov-cell" style="position:relative;--c:' . esc_attr( $color ) . '"><a class="ov-card" href="' . esc_url( $url ) . '"><span class="ov-ic" aria-hidden="true"><span class="dashicons ' . esc_attr( $icon ) . '"></span></span><span class="ov-body"><span class="ov-t">' . esc_html( $title ) . '</span><span class="ov-d">' . esc_html( $desc ) . '</span>';
+	if ( null !== $count ) {
+		$o .= '<span class="ov-n">' . esc_html( sprintf( /* translators: %d: how many */ __( '%d items', 'mcupr' ), $count ) ) . '</span>';
+	}
+	$o .= '</span></a>';
+	if ( '' !== $add ) {
+		$o .= '<a class="ov-add" style="--c:' . esc_attr( $color ) . '" href="' . esc_url( $add ) . '" title="' . esc_attr__( 'Add new', 'mcupr' ) . '"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><span class="screen-reader-text">' . esc_html( sprintf( /* translators: %s: section */ __( 'Add new: %s', 'mcupr' ), $title ) ) . '</span></a>';
+	}
+	return $o . '</div>';
+}
+
+/** The overview ("control page"): a banner, what is on right now, quick actions, every theme section and the tools. */
 function mcupr_admin_overview() {
 	if ( ! current_user_can( 'edit_pages' ) ) {
 		return;
+	}
+	$mine   = function_exists( 'mcupr_user_offices' ) ? mcupr_user_offices() : null; // null = not limited to offices
+	$admin  = current_user_can( 'manage_options' );
+	$colors = array( 'content' => '#2563eb', 'community' => '#a21caf', 'people' => '#0f766e' );
+	echo '<style>' . mcupr_admin_overview_css() . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo '<div class="wrap mcupr-ov"><div class="ov-hero"><div><h1>' . esc_html( wp_get_theme()->get( 'Name' ) ? wp_get_theme()->get( 'Name' ) : 'MCUPR' ) . '<span class="ov-ver">v' . esc_html( MCUPR_VERSION ) . '</span></h1><p>' . esc_html__( 'Everything the theme adds to the website is under this menu. Posts, pages, media, comments and users are WordPress’ own and stay in their usual place.', 'mcupr' ) . '</p></div><a class="button" href="' . esc_url( home_url( '/' ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Open the website', 'mcupr' ) . ' <span class="screen-reader-text">(' . esc_html__( 'opens in a new tab', 'mcupr' ) . ')</span></a></div>';
+
+	// ---- what is on right now (the colours match the Info button of the website)
+	$st    = function_exists( 'mcupr_status' ) ? mcupr_status() : array();
+	$chips = array();
+	if ( $admin ) {
+		$url     = admin_url( 'admin.php?page=mcupr-status' );
+		$modes   = function_exists( 'mcupr_active_modes' ) ? mcupr_active_modes() : array();
+		$chips[] = array( 'maint', __( 'Maintenance mode', 'mcupr' ), ! empty( $st['maint']['on'] ), $url );
+		$chips[] = array( 'welcome', __( 'Welcome page', 'mcupr' ), ! empty( $st['welcome']['on'] ), $url );
+		$chips[] = array( 'mourning', __( 'Mourning', 'mcupr' ), in_array( 'mourning', $modes, true ), $url );
 	}
 	$waiting = array();
 	if ( post_type_exists( 'mcupr_topic' ) ) {
@@ -169,39 +240,93 @@ function mcupr_admin_overview() {
 		$c = (int) get_comments( array( 'status' => 'hold', 'post_type' => 'mcupr_topic', 'count' => true ) );
 		if ( $n + $c ) {
 			$waiting[] = array( sprintf( /* translators: 1: topics, 2: replies */ __( 'Forum: %1$d topics and %2$d replies to approve', 'mcupr' ), $n, $c ), admin_url( 'admin.php?page=mcupr-forum' ) );
+			$chips[]   = array( 'forum', __( 'Forum waiting', 'mcupr' ), true, admin_url( 'admin.php?page=mcupr-forum' ), $n + $c );
 		}
 	}
-	$st = function_exists( 'mcupr_status' ) ? mcupr_status() : array();
-	if ( ! empty( $st['maint']['on'] ) ) {
-		$waiting[] = array( __( 'Maintenance mode is ON', 'mcupr' ), admin_url( 'admin.php?page=mcupr-status' ) );
+	if ( $chips ) {
+		echo '<h2>' . esc_html__( 'Right now', 'mcupr' ) . '</h2><div class="ov-chips">';
+		foreach ( $chips as $c ) {
+			echo '<a class="ov-chip' . ( $c[2] ? ' is-on' : '' ) . '" data-mode="' . esc_attr( $c[0] ) . '" href="' . esc_url( $c[3] ) . '"><i aria-hidden="true"></i>' . esc_html( $c[1] ) . ' <em>' . ( isset( $c[4] ) ? (int) $c[4] : esc_html( $c[2] ? __( 'On', 'mcupr' ) : __( 'Off', 'mcupr' ) ) ) . '</em></a>';
+		}
+		echo '</div>';
 	}
-	if ( ! empty( $st['welcome']['on'] ) ) {
-		$waiting[] = array( __( 'The welcome page is switched on', 'mcupr' ), admin_url( 'admin.php?page=mcupr-status' ) );
-	}
-	echo '<div class="wrap"><h1>' . esc_html__( 'MCUPR theme', 'mcupr' ) . ' <small style="font-weight:400;opacity:.7">v' . esc_html( MCUPR_VERSION ) . '</small></h1>';
-	echo '<p class="description">' . esc_html__( 'Everything the theme adds to the website is under this menu. Posts, pages, media, comments and users are WordPress’ own and stay in their usual place.', 'mcupr' ) . '</p>';
 	if ( $waiting ) {
-		echo '<div class="notice notice-info inline"><p><strong>' . esc_html__( 'Needs your attention', 'mcupr' ) . '</strong></p><ul style="margin:0 0 .8em 1.2em;list-style:disc">';
+		echo '<h2>' . esc_html__( 'Needs your attention', 'mcupr' ) . '</h2><div class="ov-warn"><ul style="margin-top:0">';
 		foreach ( $waiting as $w ) {
 			echo '<li><a href="' . esc_url( $w[1] ) . '">' . esc_html( $w[0] ) . '</a></li>';
 		}
 		echo '</ul></div>';
 	}
-	foreach ( mcupr_admin_sections() as $sec ) {
-		echo '<h2>' . esc_html( $sec['label'] ) . '</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:12px;max-width:72rem">';
-		foreach ( $sec['items'] as $i ) {
-			$o = get_post_type_object( $i['type'] );
-			if ( ! $o ) {
+
+	// ---- the office of a person who works in offices
+	if ( $mine ) {
+		echo '<h2>' . esc_html__( 'Your office', 'mcupr' ) . '</h2>';
+		foreach ( $mine as $oid ) {
+			if ( 'mcupr_office' !== get_post_type( $oid ) ) {
 				continue;
 			}
-			$cnt = wp_count_posts( $i['type'] );
-			$all = (int) $cnt->publish + (int) $cnt->draft + (int) $cnt->pending + (int) $cnt->private + (int) $cnt->future;
-			echo '<a class="card" style="display:block;margin:0;padding:14px 16px;text-decoration:none;max-width:none" href="' . esc_url( admin_url( 'edit.php?post_type=' . $i['type'] ) ) . '"><span class="dashicons ' . esc_attr( $i['icon'] ) . '" style="float:right;opacity:.55"></span><strong style="font-size:15px">' . esc_html( $o->labels->menu_name ? $o->labels->menu_name : $o->label ) . '</strong><br><span style="color:#50575e">' . esc_html( $i['desc'] ) . '</span><br><span style="color:#2271b1">' . esc_html( sprintf( /* translators: %d: how many */ __( '%d items', 'mcupr' ), $all ) ) . '</span></a>';
+			$d = mcupr_office_data( $oid );
+			echo '<div class="ov-mine" style="--c:' . esc_attr( $d['color'] ) . ';margin-bottom:10px"><strong style="font-size:1.1rem">' . esc_html( get_the_title( $oid ) ) . '</strong><span><a class="button" href="' . esc_url( get_permalink( $oid ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Open the website', 'mcupr' ) . '</a> <a class="button" href="' . esc_url( admin_url( 'post.php?post=' . (int) $oid . '&action=edit' ) ) . '">' . esc_html__( 'Edit office', 'mcupr' ) . '</a></span></div>';
 		}
-		echo '</div>';
 	}
-	echo '<h2>' . esc_html__( 'Site', 'mcupr' ) . '</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:12px;max-width:72rem">';
-	echo '<a class="card" style="display:block;margin:0;padding:14px 16px;text-decoration:none;max-width:none" href="' . esc_url( admin_url( 'admin.php?page=mcupr-status' ) ) . '"><span class="dashicons dashicons-lock" style="float:right;opacity:.55"></span><strong style="font-size:15px">' . esc_html__( 'Welcome & maintenance', 'mcupr' ) . '</strong><br><span style="color:#50575e">' . esc_html__( 'Welcome page for special occasions, maintenance mode, mourning', 'mcupr' ) . '</span></a>';
-	echo '<a class="card" style="display:block;margin:0;padding:14px 16px;text-decoration:none;max-width:none" href="' . esc_url( admin_url( 'customize.php' ) ) . '"><span class="dashicons dashicons-admin-customizer" style="float:right;opacity:.55"></span><strong style="font-size:15px">' . esc_html__( 'Theme options', 'mcupr' ) . '</strong><br><span style="color:#50575e">' . esc_html__( 'Colours, logos, home page sections, menus, footer', 'mcupr' ) . '</span></a>';
-	echo '</div></div>';
+
+	// ---- quick actions
+	$acts = array(
+		array( 'dashicons-edit', __( 'Write news', 'mcupr' ), admin_url( 'post-new.php' ), 'edit_posts' ),
+		array( 'dashicons-calendar-alt', __( 'Add an event', 'mcupr' ), admin_url( 'post-new.php?post_type=mcupr_event' ), 'edit_posts', 'mcupr_event' ),
+		array( 'dashicons-format-gallery', __( 'Add a photo album', 'mcupr' ), admin_url( 'post-new.php?post_type=mcupr_album' ), 'edit_posts', 'mcupr_album' ),
+		array( 'dashicons-admin-page', __( 'Add a page', 'mcupr' ), admin_url( 'post-new.php?post_type=page' ), 'edit_pages' ),
+		array( 'dashicons-admin-media', __( 'Upload pictures', 'mcupr' ), admin_url( 'media-new.php' ), 'upload_files' ),
+		array( 'dashicons-admin-customizer', __( 'Edit the home page', 'mcupr' ), admin_url( 'customize.php?autofocus[section]=mcupr_home&return=' . rawurlencode( admin_url( 'admin.php?page=mcupr' ) ) ), 'edit_theme_options' ),
+	);
+	echo '<h2>' . esc_html__( 'Quick actions', 'mcupr' ) . '</h2><div class="ov-acts">';
+	foreach ( $acts as $a ) {
+		if ( current_user_can( $a[3] ) && ( empty( $a[4] ) || post_type_exists( $a[4] ) ) ) {
+			echo '<a class="ov-act" href="' . esc_url( $a[2] ) . '"><span class="dashicons ' . esc_attr( $a[0] ) . '" aria-hidden="true"></span>' . esc_html( $a[1] ) . '</a>';
+		}
+	}
+	echo '</div>';
+
+	// ---- every section
+	foreach ( mcupr_admin_sections() as $key => $sec ) {
+		$color = isset( $colors[ $key ] ) ? $colors[ $key ] : '#2563eb';
+		$cards = '';
+		foreach ( $sec['items'] as $i ) {
+			$o = get_post_type_object( $i['type'] );
+			if ( ! $o || ! current_user_can( $o->cap->edit_posts ) ) {
+				continue;
+			}
+			$all = null;
+			if ( null === $mine ) {
+				$cnt = wp_count_posts( $i['type'] );
+				$all = (int) $cnt->publish + (int) $cnt->draft + (int) $cnt->pending + (int) $cnt->private + (int) $cnt->future;
+			}
+			$add    = current_user_can( $o->cap->create_posts ) ? admin_url( 'post-new.php?post_type=' . $i['type'] ) : '';
+			$cards .= mcupr_admin_card( admin_url( 'edit.php?post_type=' . $i['type'] ), $i['icon'], $o->labels->menu_name ? $o->labels->menu_name : $o->label, $i['desc'], $all, $color, $add );
+		}
+		if ( '' !== $cards ) {
+			echo '<h2>' . esc_html( $sec['label'] ) . '</h2><div class="ov-grid">' . $cards . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		}
+	}
+
+	// ---- the tools and settings (administrators)
+	$tools = array(
+		array( 'edit_theme_options', admin_url( 'customize.php?return=' . rawurlencode( admin_url( 'admin.php?page=mcupr' ) ) ), 'dashicons-admin-customizer', __( 'Theme options', 'mcupr' ), __( 'Colours, logos, home page sections, menus, footer', 'mcupr' ) ),
+		array( 'edit_theme_options', admin_url( 'admin.php?page=mcupr-blocks' ), 'dashicons-screenoptions', __( 'Home blocks', 'mcupr' ), __( 'Audience cards, figures, service cards, links, about block, weather', 'mcupr' ) ),
+		array( 'manage_options', admin_url( 'admin.php?page=mcupr-status' ), 'dashicons-lock', __( 'Welcome & maintenance', 'mcupr' ), __( 'Welcome page for special occasions, maintenance mode, mourning', 'mcupr' ) ),
+		array( 'manage_options', admin_url( 'admin.php?page=mcupr-settings-io' ), 'dashicons-database-import', __( 'Import / export settings', 'mcupr' ), __( 'Content files, settings files and the demos (home page, offices)', 'mcupr' ) ),
+		array( 'manage_options', admin_url( 'admin.php?page=mcupr-speed' ), 'dashicons-performance', __( 'Speed check', 'mcupr' ), __( 'How fast the pages are and what slows them down', 'mcupr' ) ),
+		array( 'manage_options', admin_url( 'admin.php?page=mcupr-images' ), 'dashicons-format-image', __( 'Pictures (WebP)', 'mcupr' ), __( 'Smaller pictures on upload for faster pages', 'mcupr' ) ),
+		array( 'manage_options', admin_url( 'admin.php?page=mcupr-insights' ), 'dashicons-chart-line', __( 'Redirects & insights', 'mcupr' ), __( 'Redirects, pages that were not found, what visitors search for', 'mcupr' ) ),
+	);
+	$tc = '';
+	foreach ( $tools as $t ) {
+		if ( current_user_can( $t[0] ) ) {
+			$tc .= mcupr_admin_card( $t[1], $t[2], $t[3], $t[4], null, '#475569' );
+		}
+	}
+	if ( '' !== $tc ) {
+		echo '<h2>' . esc_html__( 'Tools and settings', 'mcupr' ) . '</h2><div class="ov-grid">' . $tc . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+	echo '</div>';
 }

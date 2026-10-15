@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.30.2 =
+* Control page (MCUPR overview) redesigned: banner, status chips, quick actions, section cards, tools, office view
+
 = 1.30.1 =
 * Offices: prettier pages (cover header, contact chips, floating tabs, figure tiles, icons, card covers)
 
