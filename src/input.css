@@ -870,21 +870,6 @@ html .hero.hero-screen { min-height: 70vh; }
 html[data-contrast] .hero-btn-1 { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
 
 /* ===== Footer: the site creator's card ===== */
-.fcredit-wrap { padding-bottom: 1.75rem; }
-.fcredit { padding: 1.1rem 1.4rem; border: 1px solid var(--edge, var(--border)); border-radius: 1.5rem; background: var(--surface); }
-.fcredit-h { margin: 0 0 .75rem; font-size: .85rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
-.fcredit-b { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.fcredit-ph { flex: none; width: 4.5rem; height: 4.5rem; border-radius: 9999px; object-fit: cover; border: 3px solid var(--primary); }
-.fcredit-in { display: grid; place-items: center; background: var(--tint); color: var(--link); font-size: 1.8rem; font-weight: 800; }
-.fcredit-t { min-width: 0; display: grid; gap: .1rem; }
-.fcredit-t p { margin: 0; }
-.fcredit-n { font-size: 1.15rem; font-weight: 800; color: var(--text); }
-.fcredit-n a { display: inline-block; padding: .3rem 0; color: inherit; }
-.fcredit-e { color: var(--muted); font-size: .85rem; }
-.fcredit-r { color: var(--text-2); font-size: .95rem; }
-.fcredit-g { display: inline-block; justify-self: start; margin-top: .3rem !important; padding: .1rem .75rem; border-radius: 9999px; background: var(--tint); color: var(--text); font-size: .8rem; font-weight: 700; }
-.fcredit-c { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; margin-top: .35rem !important; }
-.fcredit-c a { display: inline-flex; align-items: center; gap: .4rem; min-height: 2rem; color: var(--link); font-size: .95rem; }
 
 /* ===== Attached files + view counter ===== */
 .files { margin: 2rem 0 0; padding: 1.25rem 1.4rem; border: 1px solid var(--edge, var(--border)); border-radius: 1.5rem; background: var(--surface); }
