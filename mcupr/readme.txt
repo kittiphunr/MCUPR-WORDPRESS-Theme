@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.18.1 =
+* Starter file: welcome page samples page
+
 = 1.18.0 =
 * Home page re-arranged (sections can be switched off, events/video/albums), welcome page, maintenance mode, mourning
 
