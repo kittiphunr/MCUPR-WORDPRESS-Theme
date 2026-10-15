@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.18.8 =
+* Top menu: the More button is a pill again
+
 = 1.18.7 =
 * Menu drop-down buttons are true circles
 
