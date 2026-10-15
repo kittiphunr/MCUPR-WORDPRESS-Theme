@@ -97,6 +97,8 @@ t( strpos( do_shortcode( '[mcupr_people group="executives"]' ), 'person-card' ) 
 foreach ( array( 'contact', 'complaints' ) as $slug ) { $pg = get_posts( array( 'name' => $slug, 'post_type' => 'page' ) ); t( $pg && strpos( $pg[0]->post_content, '[mcupr_form' ) !== false, "page $slug carries the form" ); }
 $dc = get_posts( array( 'name' => 'documents', 'post_type' => 'page' ) ); t( $dc && strpos( $dc[0]->post_content, '[mcupr_documents' ) !== false, 'the document centre page exists' );
 
+$urls = array_map( function ( $i ) { return $i->url; }, wp_get_nav_menu_items( $loc['primary_th'] ) );
+t( count( array_filter( $urls, function ( $u ) { return substr( rtrim( $u, '/' ), -7 ) === '/albums'; } ) ) === 1 && count( array_filter( $urls, function ( $u ) { return substr( rtrim( $u, '/' ), -7 ) === '/videos'; } ) ) === 1, 'the menu has one Photo albums and one Videos item (under News)' );
 // a second import must not duplicate pages
 $n1 = count( $pages );
 $imp2 = new WP_Import(); $imp2->fetch_attachments = false;

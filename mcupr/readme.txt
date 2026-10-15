@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.17.2 =
+* Starter file: Photo albums and Videos in the News menu
+
 = 1.17.1 =
 * Back-to-top button is a circle
 
