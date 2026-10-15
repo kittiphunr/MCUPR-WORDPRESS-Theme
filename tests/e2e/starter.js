@@ -1469,7 +1469,27 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
   ok((await p.$$('.files .file-row')).length === 2 && /เกียรติบัตรชนะเลิศ/.test(await p.textContent('.files')), 'work page: the attached files are listed');
   ok(/PDF/.test(await p.textContent('.files')) && /350 KB/.test(await p.textContent('.files')) && /ดาวน์โหลดแล้ว 7 ครั้ง/.test(await p.textContent('.files')), 'work page: type, size text and download count');
   ok(/เข้าชม\s+12\d ครั้ง/.test(await p.textContent('article > header')), 'work page: the number of views is shown');
-  ok(await p.$('.share-bar a.share-fb') !== null && /ทีม/.test(await p.textContent('.ev-info')), 'work page: share bar and details box');
+  ok(await p.$('.share-bar a.share-fb') !== null && /ทีม/.test(await p.textContent('.wk-facts')), 'work page: share bar and details cards');
+  {
+    const wc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+    await wc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const wp = await wc.newPage();
+    for (const [w, h] of [[1920, 1080], [1366, 900], [768, 1024], [390, 844], [360, 740], [320, 568]]) {
+      await wp.setViewportSize({ width: w, height: h });
+      await wp.goto(B + '/works/work-1/');
+      const g = await wp.evaluate(() => { const f = [...document.querySelectorAll('.wk-f')]; const cols = new Set(f.filter((x) => !x.classList.contains('wk-f-wide')).map((x) => Math.round(x.getBoundingClientRect().left))).size; const pills = [...document.querySelectorAll('.wk-pill')]; return { cards: f.length, hero: !!document.querySelector('.wk-f-hero dd'), team: document.querySelectorAll('.wk-team li').length, cols, pills: pills.length, pillMin: Math.min(...pills.map((x) => x.getBoundingClientRect().height)), hs: document.documentElement.scrollWidth > innerWidth + 1, cut: f.some((x) => x.getBoundingClientRect().right > innerWidth + 1) || pills.some((x) => x.getBoundingClientRect().right > innerWidth + 1), h1: document.querySelectorAll('h1').length }; });
+      ok(g.cards >= 4 && g.hero && g.team >= 2 && g.h1 === 1 && !g.hs && !g.cut, 'work page at ' + w + 'px: ' + g.cards + ' fact cards (contest, award, year, organiser, team as chips), nothing cut off or scrolling sideways');
+      ok(g.pills >= 2 && g.pillMin >= 40 && (w >= 360 ? g.cols === 2 : g.cols === 1), 'work page at ' + w + 'px: badges at least 40px tall, award and year side by side (' + g.cols + ' column' + (g.cols === 1 ? '' : 's') + ')');
+    }
+    await wp.setViewportSize({ width: 1366, height: 900 });
+    await wp.addScriptTag({ content: axeSource() });
+    const axw = await wp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(axw.violations.length === 0, 'axe (work page): ' + (axw.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    await wp.evaluate(() => document.documentElement.setAttribute('data-contrast', 'high'));
+    const hcw = await wp.evaluate(() => { const f = getComputedStyle(document.querySelector('.wk-f')); return f.borderTopWidth; });
+    ok(hcw === '2px', 'work page in high contrast: the cards have a 2px border (' + hcw + ')');
+    await wc.close();
+  }
   await p.addScriptTag({ content: axeSource() });
   const wb = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
   ok(wb.violations.length === 0, 'work page axe: ' + (wb.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));

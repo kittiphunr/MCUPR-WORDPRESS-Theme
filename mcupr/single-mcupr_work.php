@@ -18,10 +18,11 @@ while ( have_posts() ) :
 		<div class="mx-auto w-[min(100%-1.5rem,46rem)] min-[400px]:w-[min(100%-2rem,46rem)]">
 			<?php mcupr_breadcrumb( false ); ?>
 			<h1 class="mt-4 mb-3 text-3xl font-bold leading-tight min-[900px]:text-4xl"><?php the_title(); ?></h1>
-			<div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[.95rem] text-muted">
-				<?php if ( '' !== $i['award'] ) : ?><span class="rounded-full bg-primary px-3 py-0.5 text-sm font-bold text-on-primary"><?php echo mcupr_icon( 'trophy', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo esc_html( $i['award'] ); ?></span><?php endif; ?>
-				<?php if ( $cats && ! is_wp_error( $cats ) ) : ?><a class="font-semibold text-link" href="<?php echo esc_url( get_term_link( $cats[0] ) ); ?>"><?php echo esc_html( $cats[0]->name ); ?></a><?php endif; ?>
-				<?php echo mcupr_views_html(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+			<div class="wk-badges">
+				<?php if ( '' !== $i['award'] ) : ?><span class="wk-pill wk-pill-award"><?php echo mcupr_icon( 'trophy', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo esc_html( $i['award'] ); ?></span><?php endif; ?>
+				<?php if ( $cats && ! is_wp_error( $cats ) ) : ?><a class="wk-pill wk-pill-cat" href="<?php echo esc_url( get_term_link( $cats[0] ) ); ?>"><?php echo mcupr_icon( 'folder', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo esc_html( $cats[0]->name ); ?></a><?php endif; ?>
+				<?php $wk_views = mcupr_views_html(); ?>
+				<?php if ( '' !== $wk_views ) : ?><span class="wk-pill wk-pill-views"><?php echo $wk_views; // phpcs:ignore WordPress.Security.EscapeOutput ?></span><?php endif; ?>
 			</div>
 		</div>
 	</header>
@@ -31,12 +32,22 @@ while ( have_posts() ) :
 		<?php if ( has_post_thumbnail() ) : ?>
 			<figure class="noimg:hidden m-0 mb-8"><?php the_post_thumbnail( 'mcupr-hero', array( 'class' => 'w-full rounded-2xl', 'sizes' => '(min-width: 800px) 704px, calc(100vw - 4rem)', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></figure>
 		<?php endif; ?>
-		<dl class="ev-info">
-			<?php if ( '' !== $i['event'] ) : ?><div><dt><?php echo mcupr_icon( 'trophy', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'work_event' ); ?></span></dt><dd><?php echo esc_html( $i['event'] ); ?></dd></div><?php endif; ?>
-			<?php if ( '' !== $i['award'] ) : ?><div><dt><?php echo mcupr_icon( 'cap', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'work_award' ); ?></span></dt><dd><?php echo esc_html( $i['award'] ); ?></dd></div><?php endif; ?>
-			<?php if ( $i['year'] ) : ?><div><dt><?php echo mcupr_icon( 'calendar', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'work_year' ); ?></span></dt><dd><?php echo esc_html( mcupr_work_year_text( $i['year'] ) ); ?></dd></div><?php endif; ?>
-			<?php if ( '' !== $i['org'] ) : ?><div><dt><?php echo mcupr_icon( 'bank', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'work_org' ); ?></span></dt><dd><?php echo esc_html( $i['org'] ); ?></dd></div><?php endif; ?>
-			<?php if ( '' !== trim( $i['team'] ) ) : ?><div><dt><?php echo mcupr_icon( 'users', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'work_team' ); ?></span></dt><dd class="whitespace-pre-line"><?php echo esc_html( $i['team'] ); ?></dd></div><?php endif; ?>
+		<?php
+		$wk_row = static function ( $class, $icon, $label_key, $html ) {
+			return '<div class="wk-f' . $class . '"><dt><span class="wk-ic" aria-hidden="true">' . mcupr_icon( $icon, 20 ) . '</span>' . esc_html( mcupr_t( $label_key ) ) . '</dt><dd>' . $html . '</dd></div>';
+		};
+		$wk_team = array_values( array_filter( array_map( 'trim', preg_split( '/\R/u', (string) $i['team'] ) ), 'strlen' ) );
+		?>
+		<dl class="wk-facts">
+			<?php
+		echo '' !== $i['event'] ? $wk_row( ' wk-f-wide wk-f-hero', 'trophy', 'work_event', esc_html( $i['event'] ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+		echo '' !== $i['award'] ? $wk_row( '', 'cap', 'work_award', esc_html( $i['award'] ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+		echo $i['year'] ? $wk_row( '', 'calendar', 'work_year', esc_html( mcupr_work_year_text( $i['year'] ) ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+		echo '' !== $i['org'] ? $wk_row( ' wk-f-wide', 'bank', 'work_org', esc_html( $i['org'] ) ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput
+		if ( $wk_team ) {
+			echo $wk_row( ' wk-f-wide', 'users', 'work_team', '<ul class="wk-team">' . implode( '', array_map( static function ( $n ) { return '<li>' . esc_html( $n ) . '</li>'; }, $wk_team ) ) . '</ul>' ); // phpcs:ignore WordPress.Security.EscapeOutput
+		}
+			?>
 		</dl>
 		<?php if ( '' !== $i['url'] ) : ?><p class="ev-actions"><a class="btn" href="<?php echo esc_url( $i['url'] ); ?>" rel="noopener"><?php mcupr_e( 'work_link' ); ?></a></p><?php endif; ?>
 		<div id="article-body" class="reader"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
