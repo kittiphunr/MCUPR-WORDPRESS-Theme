@@ -471,6 +471,37 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await cw.close();
   }
 
+
+  // ================= Search overlay: looks right and works at every screen size
+  {
+    for (const [w, h] of [[1920, 1080], [1366, 768], [1024, 768], [768, 1024], [430, 900], [360, 640], [320, 568]]) {
+      const c = await newCtx({ viewport: { width: w, height: h } });
+      const p = await c.newPage();
+      await p.goto(B + '/');
+      await p.click('#search-toggle');
+      await p.waitForSelector('.sr-box');
+      await p.waitForTimeout(400);
+      const m = await p.evaluate(() => {
+        const vw = innerWidth, vh = innerHeight;
+        const r = (q) => { const e = document.querySelector(q); return e ? e.getBoundingClientRect() : null; };
+        const form = r('.sr-form'), inp = r('.sr-input'), go = r('.sr-go'), title = r('.sr-title');
+        const chips = [...document.querySelectorAll('.sr-chips a')].map((a) => a.getBoundingClientRect());
+        const goText = getComputedStyle(document.querySelector('.sr-go-t')).display !== 'none';
+        return { hscroll: document.documentElement.scrollWidth > vw + 1, formIn: form.left >= 0 && form.right <= vw && form.top >= 0 && form.bottom <= vh, inputW: Math.round(inp.width), goW: Math.round(go.width), goH: Math.round(go.height), goText, titleIn: title.right <= vw + 1, chipsIn: chips.length >= 3 && chips.every((x) => x.left >= 0 && x.right <= vw + 1 && x.height >= 44), ph: document.querySelector('#overlay-search').placeholder, focus: document.activeElement.id };
+      });
+      ok(!m.hscroll && m.formIn && m.titleIn && m.chipsIn, 'search overlay ' + w + 'x' + h + ': everything fits (form, title, ' + 3 + '+ example chips, no sideways scroll)');
+      ok(m.inputW >= 120 && m.goW >= 44 && m.goH >= 44 && m.focus === 'overlay-search', 'search overlay ' + w + 'x' + h + ': input ' + m.inputW + 'px wide, button ' + m.goW + 'x' + m.goH + (m.goText ? ' with its word' : ' icon only') + ', input focused');
+      ok(/ตัวอย่าง/.test(m.ph) || w > 0 && m.ph.length > 5, 'search overlay ' + w + 'x' + h + ': the placeholder gives an example ("' + m.ph + '")');
+      if (w === 1366 || w === 360) {
+        await p.addScriptTag({ content: axeSource() });
+        const r = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+        ok(r.violations.length === 0, 'axe (search overlay ' + w + '): ' + (r.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      }
+      await p.screenshot({ path: shot('search-' + w + '.png') });
+      await c.close();
+    }
+  }
+
   // ================= About dialog in the Precision QC layout
   {
     const mods = { mcupr_credit_name: 'ผู้พัฒนาทดสอบ', mcupr_credit_role: 'นักวิชาการ', mcupr_credit_tag: 'Full-Stack', mcupr_credit_email: 'dev@example.org', mcupr_credit_tel: '089-000-0000', mcupr_credit_url: 'https://example.org/', mcupr_org_email: 'info@example.org', mcupr_org_tel: '054-000-000' };
