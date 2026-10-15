@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.25.0 =
+* Home blocks moved from widgets to the Customizer (MCUPR: Home page sections)
+
 = 1.24.1 =
 * Weather source link underlined (axe link-in-text-block)
 
