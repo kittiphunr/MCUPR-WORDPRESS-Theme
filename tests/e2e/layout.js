@@ -282,7 +282,7 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     const c = await newCtx({}, null, { mcupr_credit_name: 'ทีมงานเว็บไซต์', mcupr_credit_url: 'https://example.org/', mcupr_about_th: 'เว็บไซต์ทดสอบสำหรับธีม MCUPR' });
     const p = await c.newPage();
     await p.goto(B + '/');
-    ok((await text(p, '#colophon')).includes('ทีมงานเว็บไซต์') && (await p.locator('#colophon .fcredit-n a[href="https://example.org/"]').count()) === 1 && (await p.locator('#colophon a[href="https://example.org/"]').count()) === 1, 'footer credit card with link (once)');
+    ok((await p.locator('#colophon .fcredit').count()) === 0 && !(await text(p, '#colophon')).includes('ทีมงานเว็บไซต์'), 'the footer has no creator card (the creator is in the About dialog)');
     await p.click('#about-toggle');
     await p.waitForSelector('.swal2-popup');
     const t = await text(p, '.swal2-html-container');
@@ -486,14 +486,13 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     await p2.waitForSelector('.swal2-popup');
     const dv = await p2.evaluate(() => { const i = document.querySelector('.swal2-html-container .dev-photo'); return { sec: !!document.querySelector('.swal2-html-container #ab-dev'), name: (document.querySelector('.swal2-html-container .dev-name') || {}).textContent, en: (document.querySelector('.swal2-html-container .dev-en') || {}).textContent, src: i && i.getAttribute('src'), w: i && i.naturalWidth, alt: i && i.alt, gh: !!document.querySelector('.swal2-html-container a[href="https://github.com/kittiphunr"]'), mail: !!document.querySelector('.swal2-html-container a[href="mailto:kittiphun.rut@mcu.ac.th"]') }; });
     ok(dv.sec && dv.name === 'นายกิตติพันธ์ รัตนคร' && dv.en === 'Kittiphun Ruttanakorn' && /developer\.jpg$/.test(dv.src) && dv.w > 0 && dv.alt === dv.name && dv.gh && dv.mail, 'About: the creator (name, English name, photo, contacts) is built in, like the BDA-MCU-PHRAE project ' + JSON.stringify(dv));
-    ok((await p2.locator('#colophon .fcredit-ph').getAttribute('src')).endsWith('developer.jpg') && (await p2.locator('#colophon .fcredit-n').textContent()).includes('กิตติพันธ์'), 'footer credit card shows the built-in creator with the photo');
     await c2.close();
     const c3 = await newCtx({}, null, { mcupr_credit_hide: true });
     const p3 = await c3.newPage();
     await p3.goto(B + '/');
     await p3.click('#about-toggle');
     await p3.waitForSelector('.swal2-popup');
-    ok((await p3.locator('.swal2-html-container #ab-dev').count()) === 0 && (await p3.locator('#colophon .fcredit').count()) === 0, 'the credit can be hidden in the Customizer (section and footer card)');
+    ok((await p3.locator('.swal2-html-container #ab-dev').count()) === 0, 'the credit can be hidden in the Customizer (About dialog section)');
     await c3.close();
   }
 

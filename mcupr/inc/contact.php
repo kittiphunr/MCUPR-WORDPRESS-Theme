@@ -161,39 +161,5 @@ function mcupr_credit_photo_html( $c, $class ) {
 	if ( 'bundled' === $c['img'] ) {
 		return '<img class="' . esc_attr( $class ) . '" src="' . esc_url( get_theme_file_uri( 'assets/img/developer.jpg' ) ) . '" alt="' . esc_attr( $c['name'] ) . '" width="88" height="88" loading="lazy" decoding="async">';
 	}
-	return '<span class="' . esc_attr( $class ) . ' ' . esc_attr( $class ) . '-initial fcredit-in" aria-hidden="true">' . esc_html( mb_substr( $c['name'], 0, 1 ) ) . '</span>';
-}
-
-/** Footer card with the creator's photo and contacts. */
-function mcupr_credit_card() {
-	$c = mcupr_credit();
-	if ( ! $c ) {
-		return;
-	}
-	echo '<section class="fcredit" aria-labelledby="fcredit-t"><h2 class="fcredit-h" id="fcredit-t">' . esc_html( mcupr_t( 'about_dev' ) ) . '</h2><div class="fcredit-b">';
-	echo mcupr_credit_photo_html( $c, 'fcredit-ph' ); // phpcs:ignore WordPress.Security.EscapeOutput
-	echo '<div class="fcredit-t"><p class="fcredit-n">' . ( $c['url'] ? '<a href="' . esc_url( $c['url'] ) . '" rel="noopener">' . esc_html( $c['name'] ) . '</a>' : esc_html( $c['name'] ) ) . '</p>';
-	if ( '' !== $c['en'] ) {
-		echo '<p class="fcredit-e">' . esc_html( $c['en'] ) . '</p>';
-	}
-	if ( '' !== $c['role'] ) {
-		echo '<p class="fcredit-r">' . esc_html( $c['role'] ) . ' · ' . esc_html( mcupr_org_name() ) . '</p>';
-	}
-	if ( '' !== $c['tag'] ) {
-		echo '<p class="fcredit-g">' . esc_html( $c['tag'] ) . '</p>';
-	}
-	if ( $c['email'] || $c['tel'] || $c['github'] ) {
-		echo '<p class="fcredit-c">';
-		if ( $c['email'] ) {
-			echo '<a href="mailto:' . esc_attr( $c['email'] ) . '">' . mcupr_icon( 'mail', 16 ) . esc_html( $c['email'] ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
-		}
-		if ( $c['tel'] ) {
-			echo '<a href="tel:' . esc_attr( preg_replace( '/[^0-9+]/', '', $c['tel'] ) ) . '">' . mcupr_icon( 'phone', 16 ) . esc_html( $c['tel'] ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
-		}
-		if ( $c['github'] ) {
-			echo '<a href="' . esc_url( $c['github'] ) . '" target="_blank" rel="noopener noreferrer">' . mcupr_icon( 'link', 16 ) . esc_html( preg_replace( '#^https?://#', '', untrailingslashit( $c['github'] ) ) ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
-		}
-		echo '</p>';
-	}
-	echo '</div></div></section>';
+	return '<span class="' . esc_attr( $class ) . ' ' . esc_attr( $class ) . '-initial credit-in" aria-hidden="true">' . esc_html( mb_substr( $c['name'], 0, 1 ) ) . '</span>';
 }
