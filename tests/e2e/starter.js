@@ -1173,29 +1173,72 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       }
       await ap.setViewportSize({ width: 1366, height: 900 });
     }
-    // maintenance bar: the top-most strip, the full width, fixed; the header and the side bar sit below it
+    // special modes: the Info button is coloured (orange = maintenance) for editors and the panel lists the mode + settings link
     {
       const { execSync } = require('child_process');
-      const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\"; require \"" + require('path').resolve(__dirname, '../.site-starter/wp-load.php') + "\"; $s=mcupr_status(); $s[\"maint\"][\"on\"]=" + (on ? 1 : 0) + "; update_option(\"mcupr_status\",$s);' 2>/dev/null");
+const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\"; require \"" + require('path').resolve(__dirname, '../.site-starter/wp-load.php') + "\"; $s=mcupr_status(); $s[\"maint\"][\"on\"]=" + (on ? 1 : 0) + "; update_option(\"mcupr_status\",$s);' 2>/dev/null");
       flip(true);
-      for (const [w, h, menu] of [[1366, 800, 'side'], [1920, 900, 'top'], [390, 800, 'top']]) {
+      for (const [w, h, menu] of [[1366, 800, 'side'], [1920, 900, 'top'], [768, 800, 'top'], [390, 800, 'top'], [320, 700, 'top']]) {
         await ap.setViewportSize({ width: w, height: h });
         await ap.goto(B + '/');
         await ap.evaluate((m) => { document.documentElement.setAttribute('data-menu', m); }, menu);
-        await ap.waitForSelector('.maint-bar');
+        await ap.waitForSelector('#about-toggle');
         await ap.waitForTimeout(300);
-        const geo = async () => ap.evaluate(() => { const b = document.querySelector('.maint-bar').getBoundingClientRect(); const hd = document.querySelector('.site-header').getBoundingClientRect(); const nv = document.querySelector('.site-nav'); const nr = nv.getBoundingClientRect(); const wide = innerWidth >= 1100; return { barTop: Math.round(b.top), barLeft: Math.round(b.left), barW: Math.round(b.width), vw: innerWidth - (document.documentElement.scrollWidth > innerWidth ? 0 : 0), barH: Math.round(b.height), hdrTop: Math.round(hd.top), navTop: wide && getComputedStyle(nv).position === 'fixed' ? Math.round(nr.top) : -1, bodyPad: parseFloat(getComputedStyle(document.body).paddingTop), hs: document.documentElement.scrollWidth > innerWidth, cls: document.body.classList.contains('has-maint'), wide }; });
-        const g0 = await geo();
-        await ap.evaluate(() => window.scrollTo(0, 900));
-        await ap.waitForTimeout(250);
-        const g1 = await geo();
         const tag = w + 'px ' + menu;
-        ok(g0.cls && g0.barTop === 0 && g0.barLeft === 0 && Math.abs(g0.barW - g0.vw) <= 1 && !g0.hs, 'maintenance bar at ' + tag + ': at the very top, the full width of the window, no sideways scroll (' + g0.barW + '/' + g0.vw + ')');
-        ok(g1.barTop === 0 && g1.barH === g0.barH, 'maintenance bar at ' + tag + ': stays at the top when the page is scrolled');
-        ok(g0.bodyPad >= g0.barH - 1 && g1.hdrTop >= g0.barH && (g0.navTop === -1 || g0.navTop >= g0.barH), 'maintenance bar at ' + tag + ': the header (' + g1.hdrTop + ') and the side bar (' + g0.navTop + ') start below the bar (' + g0.barH + ')');
+        const g = await ap.evaluate(() => { const b = document.querySelector('#about-toggle'); const r = b.getBoundingClientRect(); const cs = getComputedStyle(b); return { mode: b.dataset.mode, bg: cs.backgroundColor, fg: cs.color, label: b.getAttribute('aria-label'), w: r.width, h: r.height, right: r.right, vw: innerWidth, hs: document.documentElement.scrollWidth > innerWidth + 1, strip: !!document.querySelector('.maint-bar') }; });
+        ok(g.mode === 'maint' && g.bg === 'rgb(180, 83, 9)' && g.fg === 'rgb(255, 255, 255)', 'Info button at ' + tag + ': orange with white icon while maintenance is on (' + g.bg + ')');
+        ok(/ปิดปรับปรุง|Maintenance/.test(g.label), 'Info button at ' + tag + ': the name also says the mode (' + g.label + ')');
+        ok(!g.strip && !g.hs && g.w >= 24 && g.h >= 24 && g.right <= g.vw + 1, 'Info button at ' + tag + ': no orange strip, no sideways scroll, button visible and large enough');
       }
+      await ap.setViewportSize({ width: 390, height: 800 });
+      await ap.goto(B + '/');
+      await ap.evaluate(() => document.querySelector('#about-toggle').click());
+      await ap.waitForSelector('.about-modes', { timeout: 5000 }).catch(() => {});
+      const pm = await ap.evaluate(() => { const s = document.querySelector('.about-modes'); const c = s && s.querySelector('.mode-chip'); const a = s && s.querySelector('a.mode-set'); return { has: !!s, chip: c ? getComputedStyle(c).backgroundColor : '', href: a ? a.getAttribute('href') : '', ow: s ? s.scrollWidth <= s.clientWidth + 1 : false }; });
+      ok(pm.has && pm.chip === 'rgb(180, 83, 9)' && /page=mcupr-status/.test(pm.href) && pm.ow, 'Info panel: shows the orange maintenance chip and the settings link, fits at 390px');
+      await ap.keyboard.press('Escape');
+      await ap.evaluate(() => { document.documentElement.setAttribute('data-contrast', 'high'); });
+      const hc = await ap.evaluate(() => { const b = document.querySelector('#about-toggle'); const cs = getComputedStyle(b); return { bw: cs.borderTopWidth, bg: cs.backgroundColor }; });
+      ok(hc.bw === '2px' && hc.bg === 'rgb(180, 83, 9)', 'Info button in high contrast: keeps the orange and gets a 2px border (' + hc.bw + ')');
+      await ap.evaluate(() => { document.documentElement.removeAttribute('data-contrast'); });
+      // a visitor (no login) sees an ordinary button
+      const vc = await br.newContext({ viewport: { width: 1366, height: 800 } });
+      await vc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+      const vp = await vc.newPage();
+      await vp.goto(B + '/?mcupr_maint=preview');
+      const vm = await vp.evaluate(() => { const b = document.querySelector('#about-toggle'); return b ? { mode: b.dataset.mode || '', label: b.getAttribute('aria-label') } : null; });
+      ok(vm === null || (vm.mode === '' && !/ปิดปรับปรุง|Maintenance/.test(vm.label)), 'a visitor never sees the mode on the Info button');
+      await vc.close();
       flip(false);
       await ap.setViewportSize({ width: 1366, height: 900 });
+    }
+    // menu layout "one bar": the top menu drawn as a single capsule
+    {
+      const bc = await br.newContext({ viewport: { width: 1366, height: 800 }, reducedMotion: 'reduce' });
+      await bc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+      const bp = await bc.newPage();
+      await bp.goto(B + '/');
+      await bp.click('#a11y-toggle');
+      await bp.waitForSelector('input[data-pref=menu]');
+      const opts = await bp.$$eval('input[data-pref=menu]', (a) => a.map((x) => x.value));
+      ok(opts.join(',') === 'top,bar,side', 'one bar: the display settings offer three menu layouts (' + opts.join(', ') + ')');
+      await bp.evaluate(() => document.querySelector('input[data-pref=menu][value=bar]').click());
+      await bp.waitForTimeout(300);
+      await bp.keyboard.press('Escape');
+      await bp.waitForTimeout(300);
+      const m = await bp.evaluate(() => { const hd = document.querySelector('.site-header'); const hr = hd.getBoundingClientRect(); const st = getComputedStyle(hd); const kids = ['#masthead .brand', '.site-nav', '#masthead > .wrap > div'].map((q) => { const e = document.querySelector(q); const r = e.getBoundingClientRect(); const c = getComputedStyle(e); return { inside: r.left >= hr.left - 1 && r.right <= hr.right + 1 && r.top >= hr.top - 1 && r.bottom <= hr.bottom + 1, bare: c.backgroundColor === 'rgba(0, 0, 0, 0)' && c.boxShadow === 'none' && parseFloat(c.borderTopWidth) === 0 }; }); return { menu: document.documentElement.dataset.menu, bar: document.documentElement.dataset.menubar, bg: st.backgroundColor !== 'rgba(0, 0, 0, 0)', round: parseFloat(st.borderTopLeftRadius) >= hr.height / 2 - 0.5, shadow: st.boxShadow !== 'none', kids, saved: JSON.parse(localStorage.getItem('mcupr_prefs') || '{}').menu, hs: document.documentElement.scrollWidth > innerWidth }; });
+      ok(m.menu === 'top' && m.bar === '1' && m.saved === 'bar', 'one bar: choosing it sets the top menu in one-capsule form and remembers the choice');
+      ok(m.bg && m.round && m.shadow && m.kids.every((k) => k.inside && k.bare) && !m.hs, 'one bar: logo, menu and tools sit inside ONE rounded capsule; none of them has its own box');
+      await bp.reload();
+      ok((await bp.evaluate(() => document.documentElement.dataset.menubar)) === '1', 'one bar: still on after the page is reloaded (no flash of the other layout)');
+      await bp.click('.site-nav .menu > li.mcupr-mega > .submenu-toggle, .site-nav .menu > li.menu-item-has-children > .submenu-toggle');
+      await bp.waitForTimeout(300);
+      const mega = await bp.evaluate(() => { const d = document.querySelector('.site-nav .menu > li.is-open > .sub-menu'); if (!d) { return null; } const r = d.getBoundingClientRect(); const h = document.querySelector('.site-header').getBoundingClientRect(); return { top: r.top >= h.bottom - 1, within: r.left >= h.left - 1 && r.right <= h.right + 1, visible: r.height > 40 }; });
+      ok(!!mega && mega.top && mega.within && mega.visible, 'one bar: a drop-down opens below the capsule and stays within its width ' + JSON.stringify(mega));
+      await bp.evaluate(() => document.querySelector('[data-pref=menu][value=top], .site-nav') && localStorage.setItem('mcupr_prefs', JSON.stringify({})));
+      await bp.reload();
+      ok((await bp.evaluate(() => document.documentElement.dataset.menubar)) === undefined, 'one bar: without the choice the usual three capsules come back');
+      await bc.close();
     }
     // speed check
     await ap.goto(B + '/wp-admin/admin.php?page=mcupr-speed');
