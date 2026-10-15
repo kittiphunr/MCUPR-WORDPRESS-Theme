@@ -1014,6 +1014,44 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     const czFirst = (await ap.locator('#sub-accordion-panel-mcupr_home_panel > li.control-section').first().innerText()).replace(/\s+/g, ' ');
     ok(czSecs >= 8 && /เปิด\/ปิด|Show or hide/.test(czFirst), 'customizer: one panel “Home page sections” holds the show/hide section first, then numbers and the blocks (' + czSecs + ' sections)');
     ok((await ap.locator('#customize-control-mcupr_svc_8_title, #customize-control-mcupr_aud_3_url, #customize-control-mcupr_wx_lat').count()) === 3, 'customizer: the fields of the service cards, audience cards and weather bar exist');
+    // import / export settings
+    {
+      const fs = require('fs');
+      const os = require('os');
+      const tmp = os.tmpdir() + '/e2e-settings.json';
+      await ap.setViewportSize({ width: 1366, height: 900 });
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+      const addons = await ap.locator('a[href$="mcupr-starter-addons.xml"]').count();
+      ok(addons === 1 && (await ap.locator('a[href*="import.php"]').count()) >= 1, 'settings import: the page links the add-ons content file and Tools → Import');
+      fs.writeFileSync(tmp, JSON.stringify({ mcupr_settings: 1, theme_mods: { blogname: 'hacked' }, redirects: [{ from: '/e2e-old-x/', to: '/internal-form/', code: 301 }] }));
+      await ap.setInputFiles('#mcupr-ss-file', tmp);
+      await ap.click('#mcupr-ss-file ~ button');
+      await ap.waitForSelector('.notice-success');
+      const m1 = await ap.locator('.notice-success').innerText();
+      ok(/1 added|เพิ่ม 1/.test(m1) && /ignored|ข้าม|ละเว้น/.test(m1), 'settings import: a file adds its new redirect and ignores what is not a theme setting (' + m1.replace(/\s+/g, ' ').slice(0, 120) + ')');
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+      await ap.setInputFiles('#mcupr-ss-file', tmp);
+      await ap.click('#mcupr-ss-file ~ button');
+      await ap.waitForSelector('.notice-success');
+      const m2 = await ap.locator('.notice-success').innerText();
+      ok(/0 added|เพิ่ม 0/.test(m2), 'settings import: the same file again adds nothing (' + m2.replace(/\s+/g, ' ').slice(0, 100) + ')');
+      const vp = await ac.newPage();
+      await vp.goto(B + '/e2e-old-x/');
+      ok(/\/internal-form\/$/.test(vp.url()), 'settings import: the imported redirect works');
+      await vp.close();
+      const [dl] = await Promise.all([ap.waitForEvent('download'), ap.click('form:has(input[value=dl_mine]) button')]);
+      const mine = JSON.parse(fs.readFileSync(await dl.path(), 'utf8'));
+      ok(mine.mcupr_settings === 1 && Array.isArray(mine.redirects) && mine.redirects.some((r) => r.from === '/e2e-old-x') && !('blogname' in mine.theme_mods), 'settings export: "my settings" downloads as a marked JSON file with the redirect and no other settings');
+      const [dl2] = await Promise.all([ap.waitForEvent('download'), ap.click('form:has(input[value=dl_starter]) button')]);
+      const starter = JSON.parse(fs.readFileSync(await dl2.path(), 'utf8'));
+      ok(starter.mcupr_settings === 1 && Object.keys(starter.theme_mods).length > 50, 'settings export: the starter settings file downloads too');
+      for (const [w, h] of [[1920, 1080], [768, 1024], [390, 844], [320, 568]]) {
+        await ap.setViewportSize({ width: w, height: h });
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+        ok(!(await ap.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)), 'settings import page at ' + w + 'px: no sideways scroll of the page');
+      }
+      await ap.setViewportSize({ width: 1366, height: 900 });
+    }
     // speed check
     await ap.goto(B + '/wp-admin/admin.php?page=mcupr-speed');
     await ap.click('button:has-text("ตรวจเลย"), button:has-text("Check now")');
