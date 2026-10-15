@@ -164,7 +164,7 @@ const speechStub = (speakMs) => `(() => {
     ok(await p.locator('#masthead .brand img.logo-light').isVisible() && !(await p.locator('#masthead .brand img.logo-dark').isVisible()), 'light mode shows the default logo');
     const h = await p.evaluate(() => document.querySelector('#masthead .brand img.logo-light').getBoundingClientRect().height);
     ok(Math.round(h) === 80, 'logo height from Customizer (80px): ' + Math.round(h));
-    ok((await p.locator('#colophon img:not(.fcredit-ph)').count()) === 1, 'footer logo shown');
+    ok((await p.locator('#colophon img').count()) === 1, 'footer logo shown');
     await p.evaluate(() => localStorage.setItem('mcupr_prefs', '{"theme":"dark"}'));
     await p.reload();
     ok(!(await p.locator('#masthead .brand img.logo-light').isVisible()) && (await p.locator('#masthead .brand img.logo-dark').isVisible()), 'dark mode swaps to the dark logo');
