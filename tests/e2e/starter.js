@@ -345,6 +345,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await op.goto(B + '/');
     await op.click('#a11y-toggle'); await op.waitForSelector('.swal2-popup');
     await op.click('.swal2-popup summary');
+    await op.waitForTimeout(300);
     const tiles = await op.$$eval('.opt-grid .opt', (a) => a.map((l) => ({ svg: !!l.querySelector('.opt-b svg'), name: l.getAttribute('data-tip'), sr: (l.querySelector('.sr-only:not(input)') || {}).textContent, w: l.querySelector('.opt-b').getBoundingClientRect().width, h: l.querySelector('.opt-b').getBoundingClientRect().height })));
     ok(tiles.length === 8 && tiles.every((t) => t.svg && t.name && t.sr === t.name && t.w >= 44 && Math.abs(t.w - t.h) <= 1), 'options: 8 square icon tiles (>= 44px) with an icon, a tooltip and a screen-reader name');
     ok((await op.locator('.opt-grid label:has-text("โหมดสีเทา")').count()) === 1 && (await op.locator('.opt-grid .opt-b').first().innerText()).trim() !== undefined, 'options: no visible text labels, only icons');
@@ -354,7 +355,10 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(on[2] === '1' && on[0] !== 'rgb(255, 255, 255)' && on[0] !== 'rgba(0, 0, 0, 0)', 'options: a switched-on tile is filled and the option applies (' + on[0] + ')');
     await op.hover('.opt:nth-child(3) .opt-b');
     await op.waitForTimeout(250);
-    ok((await op.evaluate(() => getComputedStyle(document.querySelector('.opt:nth-child(3)'), '::after').opacity)) === '1', 'options: hovering a tile shows its name');
+    ok((await op.evaluate(() => getComputedStyle(document.querySelector('.opt:nth-child(3) .opt-tip')).opacity)) === '1', 'options: hovering a tile shows its name');
+    // the tooltip of a tile at the edge stays inside the dialog (it used to be cut off)
+    const edge = await op.evaluate(async () => { const d = document.querySelector('.swal2-popup').getBoundingClientRect(); const out = []; for (const o of document.querySelectorAll('.opt-grid .opt')) { o.querySelector('.opt-b').dispatchEvent(new Event('pointerover', { bubbles: true })); const r = o.querySelector('.opt-tip').getBoundingClientRect(); out.push(r.left >= d.left - 1 && r.right <= d.right + 1); } return out; });
+    ok(edge.length === 8 && edge.every(Boolean), 'options: every tooltip stays inside the dialog');
     await op.focus('input[data-pref=tv]'); await op.keyboard.press('Space');
     ok((await op.evaluate(() => document.documentElement.dataset.tv)) === '1', 'options: tiles work from the keyboard');
     await oc.close();
@@ -461,6 +465,183 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await node.locator('.org-person a[href*="/profile/"]').count()) === 1 && (await node.innerText()).includes(fx.name0), 'chart: the unit box shows its linked head, with a link to the profile');
     await hc.close();
   }
+  // ---------- discussion board
+  {
+    const ff = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', '.site-starter', 'forum-fixture.json'), 'utf8'));
+    const fc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    await fc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const fp = await fc.newPage();
+    await fp.goto(B + '/forum/');
+    ok((await fp.locator('.forum-board').count()) === 3 && (await fp.locator('.forum-row').count()) >= 3, 'forum: three boards and the latest topics');
+    ok(!(await fp.locator('.forum').innerText()).includes('hidden-forum@example.org'), 'forum: no visitor email is shown');
+    await fp.click('.forum-bn >> text=ถามตอบเรื่องการเรียนการสอน');
+    await fp.waitForLoadState('load');
+    ok((await fp.locator('.forum-row').count()) === 2 && /ปิดการตอบ/.test(await fp.locator('.forum-list').innerText()), 'board: its topics, a locked one marked');
+    await fp.goto(B + '/forum/?fb=general');
+    ok((await fp.locator('.forum-row.is-pinned').count()) === 1 && /ปักหมุด/.test(await fp.locator('.forum-row.is-pinned').innerText()), 'board: the pinned topic is marked');
+    await fp.goto(B + '/forum/?fq=' + encodeURIComponent('ลงทะเบียน'));
+    ok((await fp.locator('.forum-row').count()) === 1, 'search: finds the topic by a word');
+    await fp.goto(B + '/forum/topic/' + ff.t2 + '/');
+    ok((await fp.locator('.forum-reply').count()) === 2 && (await fp.locator('h1').textContent()).includes('ลงทะเบียน'), 'topic: the first post and its two replies');
+    ok((await fp.locator('.forum-op').innerText()).includes('ลงทะเบียนเรียนล่าช้า') && (await fp.locator('.forum-op br').count()) >= 1, 'topic: visitor text keeps its line breaks');
+    ok(!(await fp.locator('.forum').innerText()).includes('hidden-forum@example.org') && !(await fp.content()).includes('hidden-forum@example.org'), 'topic: the author\'s email is not in the page at all');
+    await fp.addScriptTag({ content: axeSource() });
+    const fa = await fp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(fa.violations.length === 0, 'axe (forum topic): ' + (fa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    await fp.screenshot({ path: shot('forum-topic.png'), fullPage: true });
+    // reply as a visitor: held for a moderator
+    await fp.waitForTimeout(3200);
+    await fp.fill('#fm-reply-name', 'ผู้ใช้ทดสอบ'); await fp.fill('#fm-reply-email', 'visitor@example.org'); await fp.fill('#fm-reply-msg', 'ขอบคุณสำหรับคำตอบครับ จะลองทำตามดู');
+    await fp.check('#fm-reply input[name=consent]');
+    await fp.click('#fm-reply button[type=submit]');
+    await fp.waitForSelector('.mform-ok');
+    ok(/ผู้ดูแลจะตรวจสอบ/.test(await fp.locator('.mform-ok').innerText()) && (await fp.locator('.forum-reply').count()) === 2, 'reply: a visitor\'s reply is held for a moderator and not shown yet');
+    // an empty form shows the problems
+    await fp.click('#fm-reply button[type=submit]');
+    await fp.waitForSelector('.mform-err');
+    ok((await fp.locator('.mform-err li').count()) >= 3, 'reply: an empty form lists what is missing');
+    // report
+    await fp.goto(B + '/forum/topic/' + ff.t2 + '/');
+    await fp.locator('.forum-reply').first().locator('.forum-report button').click();
+    await fp.waitForSelector('.mform-ok');
+    ok(/ได้รับรายงานแล้ว/.test(await fp.locator('.mform-ok').innerText()), 'report: the visitor is thanked');
+    // locked topic
+    await fp.goto(B + '/forum/topic/' + ff.t3 + '/');
+    ok((await fp.locator('#fm-reply').count()) === 0 && (await fp.locator('.forum-locked').count()) === 1, 'locked: no reply form, a note instead');
+    // a new topic
+    await fp.goto(B + '/forum/');
+    await fp.waitForTimeout(3200);
+    await fp.fill('#fm-topic-name', 'ผู้ใช้ใหม่'); await fp.fill('#fm-topic-email', 'new@example.org'); await fp.fill('#fm-title', 'ทดสอบตั้งหัวข้อใหม่จากเบราว์เซอร์'); await fp.fill('#fm-topic-msg', 'ข้อความทดสอบการตั้งหัวข้อใหม่ ความยาวเพียงพอ');
+    await fp.check('#fm-topic input[name=consent]');
+    await fp.click('#fm-topic button[type=submit]');
+    await fp.waitForSelector('.mform-ok');
+    ok(/ผู้ดูแลจะตรวจสอบ/.test(await fp.locator('.mform-ok').innerText()) && !(await fp.locator('.forum').innerText()).includes('ทดสอบตั้งหัวข้อใหม่จากเบราว์เซอร์'), 'new topic: held for approval, not on the board');
+    await fp.screenshot({ path: shot('forum-index.png'), fullPage: true });
+    await fc.close();
+    const fm = await br.newContext({ viewport: { width: 360, height: 800 } });
+    await fm.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const fq = await fm.newPage();
+    for (const u of ['/forum/', '/forum/?fb=academic', '/forum/topic/' + ff.t2 + '/']) {
+      await fq.goto(B + u);
+      ok(await fq.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'forum on a phone: no horizontal scroll ' + u);
+    }
+    await fm.close();
+  }
+  // ---------- FAQ accordion
+  {
+    const qc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    await qc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const qp = await qc.newPage();
+    await qp.goto(B + '/faq/');
+    ok((await qp.locator('.faq-item').count()) === 8 && (await qp.locator('.faq-h').count()) === 3 && (await qp.locator('.faq-item[open]').count()) === 0, 'faq: 8 questions in 3 groups, all closed');
+    await qp.locator('.faq-item > summary').first().click();
+    ok((await qp.locator('.faq-item[open]').count()) === 1 && (await qp.locator('.faq-item[open] .faq-a').first().isVisible()), 'faq: clicking a question opens its answer');
+    await qp.keyboard.press('Tab'); await qp.focus('.faq-item:nth-of-type(2) > summary'); await qp.keyboard.press('Enter');
+    ok((await qp.locator('.faq-item[open]').count()) === 2, 'faq: opens from the keyboard');
+    await qp.fill('[data-faq-find]', 'ทุน');
+    const shown = await qp.locator('.faq-item:not([hidden])').count();
+    ok(shown >= 1 && shown < 8 && (await qp.locator('.faq-item:not([hidden])[open]').count()) === shown, 'faq: the search keeps matching questions and opens them (' + shown + ')');
+    await qp.fill('[data-faq-find]', 'zzzzzzz');
+    ok((await qp.locator('.faq-none').isVisible()) && (await qp.locator('.faq-item:not([hidden])').count()) === 0, 'faq: a search with no match says so');
+    await qp.fill('[data-faq-find]', '');
+    ok((await qp.locator('.faq-item:not([hidden])').count()) === 8 && !(await qp.locator('.faq-none').isVisible()), 'faq: clearing the search shows everything');
+    await qp.addScriptTag({ content: axeSource() });
+    const qa = await qp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(qa.violations.length === 0, 'axe (FAQ): ' + (qa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    await qp.screenshot({ path: shot('faq.png'), fullPage: true });
+    await qc.close();
+  }
+  // ---------- photo albums + lightbox
+  {
+    const ac = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    await ac.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const ap = await ac.newPage();
+    await ap.goto(B + '/albums/');
+    ok((await ap.locator('.album-card').count()) >= 1 && /4/.test(await ap.locator('.album-n').first().innerText()), 'albums: the list shows the album with its number of pictures');
+    await ap.goto(B + '/albums/fx-album/');
+    ok((await ap.locator('.album-pics a').count()) === 4 && (await ap.locator('h1').textContent()).includes('วันเปิดบ้าน'), 'album: four pictures in a grid');
+    ok((await ap.locator('.lb').count()) === 0, 'lightbox: not built until it is used');
+    await ap.locator('.album-pics a').nth(1).click();
+    await ap.waitForSelector('.lb:not([hidden])');
+    ok((await ap.locator('.lb-count').innerText()).includes('2 / 4') && (await ap.locator('.lb-cap').innerText()) === 'คำบรรยายภาพที่ 2' && (await ap.locator('.lb-img').getAttribute('src')).includes('e2e-album-1'), 'lightbox: opens on the clicked picture with its caption and counter');
+    ok(await ap.evaluate(() => document.activeElement.classList.contains('lb-close') && document.documentElement.classList.contains('lb-open')), 'lightbox: focus moves to the close button, the page behind does not scroll');
+    await ap.keyboard.press('ArrowRight');
+    ok((await ap.locator('.lb-count').innerText()).includes('3 / 4'), 'lightbox: the right arrow shows the next picture');
+    await ap.keyboard.press('ArrowLeft'); await ap.keyboard.press('ArrowLeft');
+    ok((await ap.locator('.lb-count').innerText()).includes('1 / 4'), 'lightbox: the left arrow goes back');
+    await ap.click('.lb-prev');
+    ok((await ap.locator('.lb-count').innerText()).includes('4 / 4') && (await ap.locator('.lb-cap').innerText()) === '', 'lightbox: the previous button wraps to the last picture (no caption)');
+    await ap.keyboard.press('Tab'); await ap.keyboard.press('Tab'); await ap.keyboard.press('Tab');
+    ok(await ap.evaluate(() => document.querySelector('.lb').contains(document.activeElement)), 'lightbox: Tab stays inside the lightbox');
+    await ap.addScriptTag({ content: axeSource() });
+    const la = await ap.evaluate(() => axe.run(document.querySelector('.lb'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(la.violations.length === 0, 'axe (lightbox): ' + (la.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    await ap.screenshot({ path: shot('album-lightbox.png') });
+    await ap.keyboard.press('Escape');
+    ok((await ap.locator('.lb').isHidden()) && (await ap.evaluate(() => document.activeElement.hasAttribute('data-lb') && !document.documentElement.classList.contains('lb-open'))), 'lightbox: Esc closes it and returns focus to the picture');
+    const aa = await ap.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(aa.violations.length === 0, 'axe (album page): ' + (aa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    await ap.screenshot({ path: shot('album.png'), fullPage: true });
+    await ac.close();
+    const am = await br.newContext({ viewport: { width: 360, height: 800 }, hasTouch: true });
+    await am.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const aq = await am.newPage();
+    for (const u of ['/albums/', '/albums/fx-album/']) { await aq.goto(B + u); ok(await aq.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'albums on a phone: no horizontal scroll ' + u); }
+    await aq.locator('.album-pics a').first().tap();
+    await aq.waitForSelector('.lb:not([hidden])');
+    ok(await aq.evaluate(() => { const r = document.querySelector('.lb-img').getBoundingClientRect(); return r.width <= innerWidth && r.height <= innerHeight; }), 'lightbox on a phone: the picture fits the screen');
+    await am.close();
+  }
+  // ---------- page lead, quick links on the back-to-top button
+  {
+    const lc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+    await lc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const lp = await lc.newPage();
+    await lp.goto(B + '/fx-lead/');
+    ok((await lp.locator('header .band-lead').innerText()).includes('คำเกริ่นนำ'), 'page: the excerpt is shown as a lead in the title band');
+    await lp.evaluate(() => document.documentElement.setAttribute('data-menu', 'side'));
+    await lp.waitForTimeout(300);
+    ok(await lp.evaluate(() => { const b = document.querySelector('#content .mcu-wheel nav').getBoundingClientRect(); const h = document.querySelector('#content .mcu-wheel').getBoundingClientRect(); return b.top - h.top < 70; }), 'page (sidebar mode): the breadcrumb sits at the top of the band');
+    await lp.evaluate(() => document.documentElement.removeAttribute('data-menu'));
+    await lp.evaluate(() => scrollTo(0, 1200));
+    await lp.waitForSelector('#back-to-top:not(.hidden)');
+    const box = await lp.locator('#back-to-top').boundingBox();
+    await lp.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await lp.mouse.down();
+    await lp.waitForTimeout(800);
+    await lp.mouse.up();
+    ok((await lp.locator('.top-quick a').count()) >= 1, 'back to top: pressing and holding opens the quick links');
+    ok((await lp.evaluate(() => scrollY)) > 1000, 'back to top: the hold does not scroll up');
+    await lp.keyboard.press('Escape');
+    ok((await lp.locator('.top-quick').count()) === 0, 'back to top: Esc closes the quick links');
+    await lp.locator('#back-to-top').click();
+    await lp.waitForTimeout(1500);
+    ok((await lp.evaluate(() => scrollY)) < 50, 'back to top: a plain click still scrolls to the top');
+    await lc.close();
+  }
+  // ---------- polls / satisfaction survey
+  {
+    const pc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const pq = await pc.newPage();
+    await pq.goto(B + '/fx-poll/');
+    ok((await pq.locator('.poll-o').count()) === 5 && (await pq.locator('.poll-res').count()) === 0, 'poll: five satisfaction levels, no results before voting');
+    await pq.waitForTimeout(2300);
+    await pq.click('.poll-form button');
+    ok(/pv=none/.test(pq.url()) && (await pq.locator('.mform-err').count()) === 1, 'poll: sending without a choice says so');
+    await pq.waitForTimeout(2300);
+    await pq.locator('.poll-o').nth(1).click();
+    await pq.click('.poll-form button');
+    await pq.waitForSelector('.poll-res');
+    ok((await pq.locator('.mform-ok').count()) === 1 && (await pq.locator('.poll-form').count()) === 0 && /1/.test(await pq.locator('.poll-tot').innerText()), 'poll: the vote is counted, thanks and the results appear');
+    await pq.evaluate(() => scrollTo(0, 0));
+    await pq.addScriptTag({ content: axeSource() });
+    const pa = await pq.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(pa.violations.length === 0, 'axe (poll): ' + (pa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ') + ' ' + (n.any[0] && n.any[0].message)).join(', ')).join('; ') || '0 violations'));
+    await pq.screenshot({ path: shot('poll.png'), fullPage: true });
+    await pq.goto(B + '/fx-poll/');
+    ok((await pq.locator('.poll-form').count()) === 0 && (await pq.locator('.poll-res').count()) === 1, 'poll: coming back, the same visitor sees the results, not the form');
+    await pc.close();
+  }
   // works & awards (own categories), administration chart, attachments, views
   await p.goto(B + '/works/');
   ok((await p.$$('.work-card')).length === 3, '/works/ lists the 3 sample works');
@@ -531,7 +712,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok((await p.$$('.person-card')).length === 4, 'staff: 4 people cards');
   await p.addScriptTag({ content: axeSource() });
   const pa = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
-  ok(pa.violations.length === 0, 'people axe: ' + (pa.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+  ok(pa.violations.length === 0, 'people axe: ' + (pa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join(', ') || '0 violations'));
   // contact form
   await p.goto(B + '/contact/');
   ok((await p.$$('#mform-contact form')).length === 1 && (await p.$$eval('#mform-contact label', (l) => l.every((x) => x.control || x.querySelector('input,select,textarea')))) , 'contact page: the form with labelled fields');
