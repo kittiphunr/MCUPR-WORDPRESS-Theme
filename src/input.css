@@ -203,6 +203,12 @@
 	.stat { @apply flex items-center gap-4 rounded-[1.4rem] bg-bg px-5 py-4; border: 1px solid var(--edge); box-shadow: var(--shadow-soft); }
 	.stat-ic { @apply grid size-12 flex-none place-items-center rounded-full bg-tint text-link; }
 	.stat small { @apply block text-sm text-muted; }
+	/* Numbers block: tiles, a quiet sub-heading for the levels, the percentage next to the figure */
+	.nm-sub { @apply mt-6 mb-3 text-lg font-bold text-fg; }
+	.nm-tile b { @apply tabular-nums; }
+	.nm-pct { @apply text-sm font-semibold text-muted; }
+	.nm-asof { @apply mt-4 mb-0 text-sm text-muted; }
+	.nm-compact .nm-sub { @apply mt-4 mb-2 text-base; }
 	.stat b { @apply block text-3xl leading-tight font-bold; }
 	/* Pill tab group: white capsule, active tab in the brand colour */
 	.pill-tabs { @apply inline-flex max-w-full flex-wrap gap-1 rounded-[1.6rem] bg-bg p-1; border: 1px solid var(--edge); box-shadow: var(--shadow-soft); }
@@ -1816,7 +1822,11 @@ html[data-contrast] button[role="switch"]:focus-visible { outline: 3px solid var
 	/* the menu links keep their shape in the narrow rail: the label shrinks away and the padding centres the icon */
 	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .menu li > a { flex: 1; width: auto; height: auto; min-height: 2.9rem; padding: .5rem .7rem; gap: 0; justify-content: flex-start; }
 	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav { padding: .75rem .675rem; }
-	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-brand { gap: 0; justify-content: flex-start; padding-inline: .1rem; }
+	/* the logo sits in a box as wide as the rail's inside, so it is centred there and nothing has to jump when the card opens */
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-brand > img { flex: none; width: 2.9rem; height: 3rem; max-height: none; object-fit: contain; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .sb-brand > .badge-logo { flex: none; }
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-brand { gap: 0; justify-content: flex-start; padding-inline: 0; }
+	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-brand > .badge-logo { margin-inline: auto; }
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .t { max-width: 18rem; overflow: hidden; opacity: 1; transition: max-width var(--sb-t) var(--sb-ease), opacity .28s ease .14s; }
 	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .t { display: block; width: auto; max-width: 0; opacity: 0; white-space: nowrap; transition: max-width var(--sb-t) var(--sb-ease), opacity .12s ease; }
 	html:is([data-menu="side"],[data-menu="hybrid"]).sb-min .site-nav .sb-brand .t { display: block; }
