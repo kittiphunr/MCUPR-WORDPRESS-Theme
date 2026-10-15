@@ -422,6 +422,46 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(fill !== 'rgba(0, 0, 0, 0)', 'speed: the chosen button is filled (' + fill + ')');
     await sc.close();
   }
+  // ---------- staff hub: profile pages, privacy, decorations, chart link, directory search
+  {
+    const fx = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', '.site-starter', 'staff-fixture.json'), 'utf8'));
+    const hc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    await hc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const hp = await hc.newPage();
+    await hp.goto(B + '/profile/' + fx.p0 + '/');
+    ok((await hp.locator('h1').textContent()).includes(fx.name0) && (await hp.locator('.profile-facts').textContent()).includes('ผู้ช่วยศาสตราจารย์ ดร.'), 'profile: name, position and academic rank');
+    const txt = await hp.locator('.profile').innerText();
+    ok(txt.includes('head@example.org') && !txt.includes('054-000-111'), 'profile: the visible email is shown, the hidden telephone is not anywhere');
+    ok(/อาคาร 1 ห้อง 101/.test(txt) && (await hp.locator('.profile-head').count()) === 1, 'profile: office and the "head of unit" tag');
+    ok((await hp.locator('.profile-edu li').count()) === 2 && (await hp.locator('.profile-chips li').count()) === 3, 'profile: education rows and expertise chips');
+    ok((await hp.locator('.profile-honors li').count()) === 2 && (await hp.locator('.profile-honors li svg.medal').count()) === 2 && /ทวีติยาภรณ์ช้างเผือก/.test(await hp.locator('.profile-honors li').first().innerText()) && /2562/.test(await hp.locator('.profile-honors').innerText()), 'profile: royal decorations in rank order with the medal, year (พ.ศ.) and gazette');
+    const ys = await hp.$$eval('.profile-works .pw-y', (a) => a.map((x) => x.textContent.trim()));
+    ok(ys.join(',') === '2565,2563,2566', 'profile: works grouped by type, newest first (' + ys.join(',') + ')');
+    ok(await hp.evaluate(() => { const j = [...document.querySelectorAll('script[type="application/ld+json"]')].map((x) => x.textContent).find((t) => t.includes('"Person"')); return !!j && j.includes('head@example.org') && !j.includes('054-000-111'); }), 'profile: structured data lists only what is public');
+    await hp.addScriptTag({ content: axeSource() });
+    const ax = await hp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(ax.violations.length === 0, 'axe (profile): ' + (ax.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    await hp.screenshot({ path: shot('staff-profile.png'), fullPage: true });
+    const hidden = await hp.goto(B + '/profile/' + fx.p2 + '/');
+    const t2 = await hp.locator('.profile').innerText();
+    ok(hidden.status() === 200 && !t2.includes('hidden@example.org') && !t2.includes('ปริญญาลับ') && !t2.includes('บันทึกส่วนตัวห้ามแสดง') && (await hp.locator('#pf-works').count()) === 0 && (await hp.locator('#pf-edu').count()) === 0, 'privacy: hidden email, education, works and the private note are nowhere on the page');
+    const off = await hp.goto(B + '/profile/' + fx.p1 + '/');
+    ok(off.status() === 404, 'privacy: a profile switched off is a 404');
+    await hp.goto(B + '/executives/');
+    const links = await hp.$$eval('.person-card .person-n a', (a) => a.map((x) => x.getAttribute('href')));
+    ok(links.length >= 1 && links.every((h) => h.includes('/profile/')) && (await hp.locator('.person-card .person-hb svg').count()) >= 1, 'directory: names link to the profiles, medal badges on the cards');
+    await hp.goto(B + '/staff/');
+    const cards = await hp.locator('.person-card').count();
+    await hp.fill('[data-people-find]', 'บุคลากร 2');
+    const shown = await hp.locator('.person-card:visible').count();
+    ok(cards === 4 && shown === 1, 'directory: the search box narrows the cards (' + cards + ' -> ' + shown + ')');
+    await hp.fill('[data-people-find]', '');
+    ok((await hp.locator('.person-card:visible').count()) === 4, 'directory: clearing the search shows everyone');
+    await hp.goto(B + '/structure/');
+    const node = await hp.locator('.org-node', { hasText: fx.unit0 }).first();
+    ok((await node.locator('.org-person a[href*="/profile/"]').count()) === 1 && (await node.innerText()).includes(fx.name0), 'chart: the unit box shows its linked head, with a link to the profile');
+    await hc.close();
+  }
   // works & awards (own categories), administration chart, attachments, views
   await p.goto(B + '/works/');
   ok((await p.$$('.work-card')).length === 3, '/works/ lists the 3 sample works');
