@@ -1396,3 +1396,22 @@ html[data-contrast] .org .org-node.org-c { border: 2px solid var(--border); }
 .forum a { text-decoration: none; }
 .forum .forum-tx a, .forum .forum-crumb a { text-decoration: underline; text-underline-offset: .18em; }
 .forum .mform-consent a { text-decoration: underline; }
+
+/* ===== FAQ accordion (inc/faq.php) ===== */
+.faq { margin: 1.5rem 0; }
+.faq-find { display: flex; align-items: center; gap: .6rem; max-width: 26rem; margin: 0 0 1.25rem; padding: 0 1.1rem; min-height: 2.9rem; border: 1px solid var(--edge, var(--border)); border-radius: 9999px; background: var(--bg); color: var(--muted); }
+.faq-find input { flex: 1; min-width: 0; border: 0; background: none; color: var(--text); font: inherit; outline-offset: 6px; }
+.faq-h { margin: 1.5rem 0 .6rem; font-size: 1.2rem; }
+.faq-item { margin: 0 0 .6rem; border: 1px solid var(--edge, var(--border)); border-radius: 1.2rem; background: var(--bg); overflow: clip; }
+.faq-item[hidden], .faq-group[hidden] { display: none; }
+.faq-item > summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 3.25rem; padding: .6rem 1.2rem; font-weight: 700; color: var(--text); cursor: pointer; list-style: none; }
+.faq-item > summary::-webkit-details-marker { display: none; }
+.faq-item > summary::after { content: ""; flex: none; width: .65rem; height: .65rem; border: solid var(--primary); border-width: 0 3px 3px 0; transform: rotate(45deg); transition: transform .2s; }
+.faq-item[open] > summary::after { transform: rotate(-135deg); }
+.faq-item > summary:hover { background: var(--hover-bg, var(--tint)); }
+.faq-item[open] > summary { border-bottom: 1px solid var(--edge, var(--border)); background: color-mix(in srgb, var(--primary) 6%, var(--bg)); }
+.faq-a { padding: .9rem 1.2rem 1.1rem; line-height: 1.7; }
+.faq-a > :first-child { margin-top: 0; }
+.faq-a > :last-child { margin-bottom: 0; }
+html[data-motion="1"] .faq-item > summary::after { transition: none; }
+@media print { .faq-item { break-inside: avoid; } .faq-item:not([open]) .faq-a { display: block; } .faq-find { display: none; } }
