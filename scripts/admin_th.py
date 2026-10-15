@@ -523,4 +523,5 @@ TH = {
 "Votes": "คะแนนโหวต",
 "Votes: %d": "คะแนนโหวต: %d",
 "closed": "ปิดแล้ว",
+"Wide logo (logo with the name inside): show only the logo, not the name beside it": "โลโก้แบบกว้าง (มีชื่อหน่วยงานอยู่ในโลโก้แล้ว): แสดงเฉพาะโลโก้ ไม่แสดงชื่อข้างโลโก้",
 }
