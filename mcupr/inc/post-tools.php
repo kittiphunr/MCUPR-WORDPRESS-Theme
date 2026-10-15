@@ -221,6 +221,9 @@ function mcupr_download_handler() {
 	if ( ! $post || ! in_array( $post->post_type, mcupr_tool_types(), true ) || ( 'publish' !== $post->post_status && ! current_user_can( 'edit_post', $post_id ) ) || post_password_required( $post ) ) {
 		wp_die( esc_html( mcupr_t( 'file_missing' ) ), '', array( 'response' => 404 ) );
 	}
+	if ( function_exists( 'mcupr_aud_can_view' ) && ! mcupr_aud_can_view( $post_id ) ) { // content for students only keeps its files for students only
+		wp_die( esc_html( mcupr_t( 'stu_denied_t' ) ), '', array( 'response' => 403 ) );
+	}
 	$raw   = get_post_meta( $post_id, '_mcupr_files', true );
 	$files = mcupr_files( $post_id );
 	if ( ! is_array( $raw ) || ! isset( $files[ $index ] ) ) {

@@ -1333,6 +1333,157 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       ok(hc4.bg === 'none' && hc4.fill !== 'rgba(0, 0, 0, 0)', '404 in high contrast: the big 404 is a plain solid colour, not a gradient (' + hc4.fill + ')');
       await nc.close();
     }
+    // students: bulk import, accounts, the portal, student-only content, registrar
+    {
+      const { execSync } = require('child_process');
+      const fs3 = require('fs');
+      const wpLoad3 = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+      const php3 = (code) => { const f = require('os').tmpdir() + '/e2e-st-' + process.pid + '.php'; fs3.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wpLoad3) + '; ' + code); return execSync('php ' + f + ' 2>/dev/null').toString().trim(); };
+      await ap.setViewportSize({ width: 1366, height: 900 });
+      // -- the sample file through the whole pipeline
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
+      ok((await ap.locator('main, #wpbody-content').first().innerText()).includes('CSV') && (await ap.locator('input[type=file]').count()) === 1, 'students: the import page offers a CSV upload');
+      await ap.click('form:has(input[name=sample]) button');
+      await ap.waitForURL(/step=preview/, { timeout: 30000 });
+      const pv = await ap.locator('.mcupr-si').innerText();
+      ok(/60/.test(pv) && /0\s*(with a mistake|มีข้อผิดพลาด)/.test(pv.replace(/\n/g, ' ')), 'students: the preview of the sample file shows 60 new students and no mistakes');
+      await ap.screenshot({ path: shot('students-preview.png'), fullPage: true });
+      await ap.click('.mcupr-si form button.button-primary');
+      await ap.waitForURL(/step=done/, { timeout: 120000 });
+      const rp = (await ap.locator('.mcupr-si').innerText()).replace(/\n/g, ' ');
+      ok(/60\s*(added|เพิ่ม)/.test(rp), 'students: the import finishes with a report: 60 added (' + rp.slice(0, 80) + ')');
+      await ap.goto(B + '/wp-admin/edit.php?post_type=mcupr_student');
+      ok(/60/.test(await ap.locator('.displaying-num').first().innerText()) && (await ap.locator('#the-list tr.iedit').count()) >= 20, 'students: the list shows the 60 students with their columns');
+      ok((await ap.locator('#the-list tr.iedit td.column-mcs_sid code').first().innerText()).startsWith('99'), 'students: the student ID column is filled');
+      await ap.screenshot({ path: shot('students-list.png') });
+      // -- a file with mistakes, made here
+      const csv = '﻿รหัสนิสิต,ชื่อ-สกุล,ระดับ,ชั้นปี,สถานะ,อีเมล\nE2E0001,นิสิตทดสอบ อี2อี,ตรี,2,กำลังศึกษา,e2e0001@example.org\nE2E0001,ซ้ำ,ตรี,1,กำลังศึกษา,\n,ไม่มีรหัส,ตรี,1,กำลังศึกษา,\nE2E0002,,ตรี,1,กำลังศึกษา,\n';
+      const csvPath = require('os').tmpdir() + '/e2e-students.csv';
+      fs3.writeFileSync(csvPath, csv);
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
+      await ap.setInputFiles('#si-file', csvPath);
+      await ap.check('input[name=accounts]');
+      await ap.click('form:has(#si-file) button.button-primary');
+      await ap.waitForURL(/step=preview/, { timeout: 30000 });
+      const pv2 = (await ap.locator('.mcupr-si').innerText()).replace(/\n/g, ' ');
+      ok(/1\s*(new students|นิสิตใหม่)/.test(pv2) && /3\s*(with a mistake|มีข้อผิดพลาด)/.test(pv2), 'students: a file with mistakes: 1 new student, 3 rows with a mistake, each named by its row');
+      await ap.click('.mcupr-si form button.button-primary');
+      await ap.waitForURL(/step=done/, { timeout: 60000 });
+      const rp2 = (await ap.locator('.mcupr-si').innerText()).replace(/\n/g, ' ');
+      ok(/1\s*(added|เพิ่ม)/.test(rp2) && /3\s*(not imported|ไม่ได้นำเข้า)/.test(rp2), 'students: the report says 1 added and 3 not imported');
+      const errHref = await ap.locator('a[href*="mcupr_si_errors"]').first().getAttribute('href');
+      const errBody = await (await ap.request.get(errHref)).text();
+      ok(/E2E0001/.test(errBody) && errBody.split('\n').length >= 4, 'students: the rows that were not imported can be downloaded as a CSV');
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
+      const tplHref = await ap.locator('a[href*="mcupr_si_template"]').first().getAttribute('href');
+      const tpl = await (await ap.request.get(tplHref)).text();
+      ok(/รหัสนิสิต/.test(tpl) && /ชื่อ-สกุล/.test(tpl) && /6600000001/.test(tpl), 'students: the template CSV (with two example rows) downloads');
+      // -- a student account, activated (what the e-mail link does), and student-only content
+      const ids = JSON.parse(php3('$sid = mcupr_student_find( "E2E0001" ); $uid = (int) get_post_meta( $sid, "_mcupr_s_user", true ); wp_set_password( "E2e-Student-pass-1", $uid ); update_user_meta( $uid, "mcupr_activated", time() ); $only = wp_insert_post( array( "post_type" => "post", "post_status" => "publish", "post_title" => "ข่าวสำหรับนิสิตเท่านั้น (e2e)", "post_content" => "เนื้อหาลับของนิสิต" ) ); update_post_meta( $only, MCUPR_AUD, "students" ); $open = wp_insert_post( array( "post_type" => "post", "post_status" => "publish", "post_title" => "ข่าวทั่วไป (e2e students)", "post_content" => "เปิดให้ทุกคน" ) ); mcupr_aud_reset(); if ( ! username_exists( "e2e_sub" ) ) { wp_insert_user( array( "user_login" => "e2e_sub", "user_pass" => "e2e-Sub-pass-1", "user_email" => "e2e-sub@example.org", "role" => "subscriber" ) ); } if ( ! username_exists( "e2e_reg" ) ) { wp_insert_user( array( "user_login" => "e2e_reg", "user_pass" => "e2e-Reg-pass-1", "user_email" => "e2e-reg@example.org", "role" => MCUPR_REGISTRAR_ROLE ) ); } echo json_encode( array( "sid" => $sid, "uid" => $uid, "only" => $only, "open" => $open, "onlyUrl" => get_permalink( $only ), "openUrl" => get_permalink( $open ) ) );'));
+      ok(ids.uid > 0, 'students: the account was made at import (the option was ticked)');
+      const sc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+      await sc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+      const sp = await sc.newPage();
+      await sp.goto(B + '/');
+      ok(!/ข่าวสำหรับนิสิตเท่านั้น \(e2e\)/.test(await sp.locator('main').innerText()), 'student-only: the home page does not show it to a visitor');
+      await sp.goto(B + '/?s=' + encodeURIComponent('ข่าวสำหรับนิสิตเท่านั้น'));
+      ok(!/ข่าวสำหรับนิสิตเท่านั้น \(e2e\)/.test(await sp.locator('main').innerText()), 'student-only: search does not find it');
+      ok((await (await sp.request.get(B + '/wp-json/wp/v2/posts?per_page=100&search=e2e')).text()).indexOf('เนื้อหาลับของนิสิต') === -1, 'student-only: the REST API does not give its text');
+      await sp.goto(ids.onlyUrl);
+      ok(/\/student\//.test(sp.url()) && (await sp.locator('.stu-note-err').count()) === 1 && (await sp.locator('#stu-log').count()) === 1, 'student-only: a visitor who opens it is sent to the student login with a message');
+      // sizes + axe of the login view
+      for (const [w, h] of [[1366, 900], [768, 1024], [390, 844], [320, 568]]) {
+        await sp.setViewportSize({ width: w, height: h });
+        await sp.goto(B + '/student/');
+        const g = await sp.evaluate(() => ({ hs: document.documentElement.scrollWidth > innerWidth + 1, h1: document.querySelectorAll('h1').length, cut: [...document.querySelectorAll('.stu-card, .stu-card input, .stu-card button')].some((e) => e.getBoundingClientRect().right > innerWidth + 1), minH: Math.min(...[...document.querySelectorAll('.stu-card input[type=text], .stu-card input[type=password], .stu-card button')].map((e) => e.getBoundingClientRect().height)) }));
+        ok(!g.hs && !g.cut && g.minH >= 40, 'student portal login at ' + w + 'px: both forms fit, fields and buttons at least 40px, no sideways scroll');
+      }
+      await sp.setViewportSize({ width: 1366, height: 900 });
+      await sp.goto(B + '/student/');
+      await sp.addScriptTag({ content: axeSource() });
+      const axs = await sp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+      ok(axs.violations.length === 0, 'axe (student portal, login view): ' + (axs.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      await sp.screenshot({ path: shot('student-portal-login.png'), fullPage: true });
+      // wrong password, then the right one (through the page that sent us)
+      await sp.fill('#stu-log', 'E2E0001'); await sp.fill('#stu-pwd', 'wrong-password'); await sp.click('.stu-card button[type=submit]');
+      await sp.waitForURL(/e=login/);
+      ok((await sp.locator('.stu-note-err').count()) === 1, 'student portal: a wrong password gets one clear message');
+      await sp.goto(ids.onlyUrl);
+      await sp.fill('#stu-log', 'e2e0001'); await sp.fill('#stu-pwd', 'E2e-Student-pass-1'); await sp.click('.stu-card button[type=submit]');
+      await sp.waitForURL((u) => decodeURIComponent(u.toString()).startsWith(decodeURIComponent(ids.onlyUrl).replace(/\/$/, '')), { timeout: 20000 });
+      ok(/เนื้อหาลับของนิสิต/.test(await sp.locator('main').innerText()), 'student-only: after logging in the student lands on the page they wanted and can read it');
+      ok((await sp.locator('#wpadminbar').count()) === 0, 'a student has no admin bar');
+      await sp.goto(B + '/student/');
+      const me = await sp.locator('main').innerText();
+      ok(/E2E0001/.test(me) && /นิสิตทดสอบ/.test(me) && /ข่าวสำหรับนิสิตเท่านั้น \(e2e\)/.test(me) && !/ข่าวทั่วไป \(e2e students\)/.test(me), 'student portal: the student\'s own details and the student-only content (not the open news)');
+      for (const [w, h] of [[1366, 900], [390, 844], [320, 568]]) {
+        await sp.setViewportSize({ width: w, height: h });
+        const g = await sp.evaluate(() => ({ hs: document.documentElement.scrollWidth > innerWidth + 1, cut: [...document.querySelectorAll('.stu-card, .stu-list a, .stu-dl')].some((e) => e.getBoundingClientRect().right > innerWidth + 1) }));
+        ok(!g.hs && !g.cut, 'student portal (logged in) at ' + w + 'px: nothing cut off, no sideways scroll');
+      }
+      await sp.setViewportSize({ width: 1366, height: 900 });
+      await sp.addScriptTag({ content: axeSource() });
+      const axs2 = await sp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+      ok(axs2.violations.length === 0, 'axe (student portal, logged in): ' + (axs2.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      await sp.screenshot({ path: shot('student-portal.png'), fullPage: true });
+      await sp.goto(B + '/wp-admin/');
+      ok(/\/student\//.test(sp.url()), 'a student who opens wp-admin is sent back to the portal');
+      // change the password
+      await sp.goto(B + '/student/');
+      await sp.fill('#stu-cur', 'not-my-password'); await sp.fill('#stu-new', 'Another-pass-22'); await sp.fill('#stu-new2', 'Another-pass-22'); await sp.click('#stu-pw .btn');
+      await sp.waitForURL(/e=pwcur/);
+      ok((await sp.locator('.stu-note-err').count()) === 1, 'change password: a wrong current password is refused');
+      await sp.fill('#stu-cur', 'E2e-Student-pass-1'); await sp.fill('#stu-new', 'Another-pass-22'); await sp.fill('#stu-new2', 'Another-pass-22'); await sp.click('#stu-pw .btn');
+      await sp.waitForURL(/pw=ok/);
+      ok((await sp.locator('.stu-note-ok').count()) === 1 && /E2E0001/.test(await sp.locator('main').innerText()), 'change password: the new password is saved and the student stays logged in');
+      await sp.click('.stu-out');
+      await sp.waitForSelector('#stu-log');
+      ok(true, 'log out returns to the login form');
+      await sp.goto(ids.onlyUrl);
+      ok(/\/student\//.test(sp.url()), 'after logging out the student-only page is closed again');
+      // "first time / forgot": the answer is the same whatever is typed
+      await sp.goto(B + '/student/');
+      await sp.fill('#stu-sid', 'NOSUCHID'); await sp.click('#stu-first-t ~ form button');
+      await sp.waitForURL(/sent=1/);
+      const sentA = await sp.locator('.stu-note-ok').innerText();
+      await sp.fill('#stu-sid', 'E2E0001'); await sp.click('#stu-first-t ~ form button');
+      await sp.waitForURL(/sent=1/);
+      ok(sentA === (await sp.locator('.stu-note-ok').innerText()), 'first time / forgot: the same answer for an unknown ID and a real one (nobody can find out who is a student)');
+      await sc.close();
+      // a logged-in person who is not a student
+      const nc3 = await br.newContext({ viewport: { width: 1366, height: 900 } });
+      await nc3.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+      const np3 = await nc3.newPage();
+      await np3.goto(B + '/wp-login.php');
+      await np3.fill('#user_login', 'e2e_sub'); await np3.fill('#user_pass', 'e2e-Sub-pass-1'); await np3.click('#wp-submit');
+      await np3.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+      const dn = await np3.goto(ids.onlyUrl);
+      ok(dn.status() === 403 && /นิสิตเท่านั้น/.test(await np3.locator('main').innerText()), 'student-only: someone logged in who is not a student gets a polite "students only" page (403)');
+      await np3.addScriptTag({ content: axeSource() });
+      const axd = await np3.evaluate(() => axe.run({ exclude: [['#wpadminbar']] }, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+      ok(axd.violations.length === 0, 'axe (students-only page): ' + (axd.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+      await nc3.close();
+      // a registrar
+      const rc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+      const rpg = await rc.newPage();
+      await rpg.goto(B + '/wp-login.php');
+      await rpg.fill('#user_login', 'e2e_reg'); await rpg.fill('#user_pass', 'e2e-Reg-pass-1'); await rpg.click('#wp-submit');
+      await rpg.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+      await rpg.goto(B + '/wp-admin/admin.php?page=mcupr', { waitUntil: 'domcontentloaded' });
+      const rm = await rpg.evaluate(() => ({ menu: !!document.querySelector('#adminmenu .toplevel_page_mcupr'), cards: [...document.querySelectorAll('.mcupr-ov .ov-card .ov-t')].map((e) => e.textContent), denied: !!document.querySelector('.wp-die-message') }));
+      ok(rm.menu && !rm.denied && rm.cards.length === 1, 'registrar: sees the MCUPR menu and one card, Students (' + rm.cards.join(', ') + ')');
+      const rl = await rpg.goto(B + '/wp-admin/edit.php?post_type=mcupr_student');
+      ok(rl.status() === 200 && (await rpg.locator('#the-list tr.iedit').count()) >= 20, 'registrar: opens the list of students');
+      const rimp = await rpg.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
+      ok(rimp.status() === 200 && (await rpg.locator('input[type=file]').count()) === 1, 'registrar: opens the import');
+      await rpg.goto(B + '/wp-admin/edit.php');
+      ok(/not allowed|ไม่ได้รับอนุญาต|Sorry/i.test(await rpg.locator('body').innerText()), 'registrar: cannot open the news list, nor settings');
+      await rc.close();
+      // clean up
+      php3('foreach ( get_posts( array( "post_type" => "mcupr_student", "post_status" => "any", "posts_per_page" => -1, "fields" => "ids" ) ) as $i ) { wp_delete_post( $i, true ); } require_once ABSPATH . "wp-admin/includes/user.php"; foreach ( array( "e2e_sub", "e2e_reg" ) as $l ) { if ( $u = username_exists( $l ) ) { wp_delete_user( $u ); } } foreach ( array( ' + ids.only + ', ' + ids.open + ' ) as $i ) { wp_delete_post( $i, true ); } mcupr_aud_reset();');
+      await ap.goto(B + '/wp-admin/edit.php?post_type=mcupr_student');
+      ok((await ap.locator('#the-list tr.no-items').count()) === 1, 'students: cleaned up, the list is empty again');
+    }
     // special modes: the Info button is coloured (orange = maintenance) for editors and the panel lists the mode + settings link
     {
       const { execSync } = require('child_process');

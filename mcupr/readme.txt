@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.31.0 =
+* Students: private student database, CSV bulk import, login accounts and portal, student-only content, registrar role; control page reaches every function; fewer database queries
+
 = 1.30.5 =
 * Maintenance and welcome pages redesigned (glass card, badge, countdown, contact chips)
 
