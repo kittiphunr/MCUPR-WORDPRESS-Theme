@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.31.2 =
+* Office pages: header no longer covered by the page band; empty person profile
+
 = 1.31.1 =
 * Student portal and office links work with plain permalinks
 
