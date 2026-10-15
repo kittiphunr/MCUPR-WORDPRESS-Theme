@@ -52,6 +52,7 @@ require_once MCUPR_DIR . '/inc/site-status.php';
 require_once MCUPR_DIR . '/inc/events-ics.php';
 require_once MCUPR_DIR . '/inc/formbuilder.php';
 require_once MCUPR_DIR . '/inc/insights.php';
+require_once MCUPR_DIR . '/inc/numbers.php';
 require_once MCUPR_DIR . '/inc/blocks.php';
 require_once MCUPR_DIR . '/inc/speed.php';
 require_once MCUPR_DIR . '/inc/starter-settings.php';
