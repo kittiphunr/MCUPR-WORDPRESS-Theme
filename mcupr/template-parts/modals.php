@@ -150,6 +150,19 @@ $checks = array(
 			</div>
 		</header>
 
+		<?php $modes = function_exists( 'mcupr_active_modes' ) ? mcupr_active_modes() : array(); ?>
+		<?php if ( $modes ) : ?>
+		<section class="about-sec about-modes" aria-labelledby="ab-modes">
+			<h3 id="ab-modes"><?php mcupr_e( 'md_title' ); ?></h3>
+			<ul class="mode-list">
+				<?php foreach ( $modes as $m ) : ?>
+					<li class="mode-chip" data-mode="<?php echo esc_attr( $m ); ?>"><span class="mode-dot" aria-hidden="true"></span><?php echo esc_html( mcupr_t( 'md_' . $m ) ); ?></li>
+				<?php endforeach; ?>
+			</ul>
+			<p class="m-0 text-sm text-muted"><?php mcupr_e( 'md_note' ); ?> <a class="mode-set" href="<?php echo esc_url( admin_url( 'admin.php?page=mcupr-status' ) ); ?>"><?php mcupr_e( 'mt_bar_link' ); ?></a></p>
+		</section>
+		<?php endif; ?>
+
 		<?php if ( $cr ) : ?>
 		<section class="about-sec" aria-labelledby="ab-dev">
 			<h3 id="ab-dev"><?php mcupr_e( 'about_dev' ); ?></h3>
