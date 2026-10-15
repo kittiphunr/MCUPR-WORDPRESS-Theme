@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.29.1 =
+* Info button shows the special mode that is on (editors only); orange maintenance strip removed
+
 = 1.29.0 =
 * New menu layout: one bar (logo, menu and tools in a single capsule)
 

@@ -393,31 +393,28 @@ add_filter(
 	}
 );
 
-/** Is the editors' maintenance reminder bar shown on this page? */
-function mcupr_maint_bar_shown() {
-	return function_exists( 'mcupr_status_is_editor' ) && mcupr_status_is_editor() && ! empty( mcupr_status()['maint']['on'] );
+/**
+ * The modes that are switched on right now, for editors only (nobody else sees them): array of keys, most important first.
+ * Used to colour the Info button and to list them in the Info panel.
+ */
+function mcupr_active_modes() {
+	if ( ! function_exists( 'mcupr_status_is_editor' ) || ! mcupr_status_is_editor() ) {
+		return array();
+	}
+	$s   = mcupr_status();
+	$out = array();
+	if ( ! empty( $s['maint']['on'] ) ) {
+		$out[] = 'maint';
+	}
+	if ( ! empty( $s['welcome']['on'] ) && mcupr_status_in_dates( $s['welcome']['from'], $s['welcome']['to'] ) ) {
+		$out[] = 'welcome';
+	}
+	if ( ! empty( $s['mourning']['on'] ) && mcupr_status_in_dates( $s['mourning']['from'], $s['mourning']['to'] ) ) {
+		$out[] = 'mourning';
+	}
+	return $out;
 }
 
-// the bar is fixed to the top of the window: the page below it makes room (body class has-maint)
-add_filter(
-	'body_class',
-	static function ( $classes ) {
-		if ( mcupr_maint_bar_shown() ) {
-			$classes[] = 'has-maint';
-		}
-		return $classes;
-	}
-);
-
-// Editors: a reminder bar while maintenance mode is on.
-add_action(
-	'wp_body_open',
-	static function () {
-		if ( mcupr_maint_bar_shown() ) {
-			echo '<div class="maint-bar" role="status">' . esc_html( mcupr_t( 'mt_bar' ) ) . ' <a href="' . esc_url( admin_url( 'admin.php?page=mcupr-status' ) ) . '">' . esc_html( mcupr_t( 'mt_bar_link' ) ) . '</a></div>';
-		}
-	}
-);
 add_action(
 	'admin_bar_menu',
 	static function ( $bar ) {
