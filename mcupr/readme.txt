@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.31.1 =
+* Student portal and office links work with plain permalinks
+
 = 1.31.0 =
 * Students: private student database, CSV bulk import, login accounts and portal, student-only content, registrar role; control page reaches every function; fewer database queries
 
