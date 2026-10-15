@@ -30,6 +30,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await mp.locator('[data-wx-pause]').getAttribute('aria-pressed')) === 'false', 'home blocks: and starts it again');
     await mc.close();
   }
+  ok((await p.locator('.vcard .vcard-t a').count()) === 1 && (await p.locator('.vcard .vcard-t').innerText()).trim().length > 0 && (await p.locator('.home-ev .ev-badge').count()) >= 1, 'home: the video has a title bar under it; the events sit in one card with calendar-sheet dates');
   const bar = await p.$$eval('.sb-cap .menu > li:not(.menu-more), .sb-cap .menu-more > .sub-menu > li', (l) => l.map((x) => x.textContent.trim().replace(/\s+/g, ' ')));
   ok(bar.length >= 6, 'home: main menu shows ' + bar.length + ' items');
   ok(bar.some((t) => /เกี่ยวกับ/.test(t)) && bar.some((t) => /ธรรมาภิบาล/.test(t)), 'home: Thai labels in the main menu');
