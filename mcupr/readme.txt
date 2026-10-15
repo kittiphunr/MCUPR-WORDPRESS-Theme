@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.30.0 =
+* Offices: mini-sites inside the website (own news, events, people, pages, colour and staff accounts) with a demo
+
 = 1.29.3 =
 * More dropdown: back to the ordinary dropdown; long text wraps, no scroll bar
 
