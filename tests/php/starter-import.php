@@ -75,11 +75,15 @@ t( 3 === (int) get_post_meta( reset( $mega )->ID, '_mcupr_menu_cols', true ), 'm
 
 // administration chart + works
 $units = get_posts( array( 'post_type' => 'mcupr_unit', 'numberposts' => -1, 'post_status' => 'publish' ) );
-t( count( $units ) === 13, '13 sample units of the administration chart (' . count( $units ) . ')' );
-$pres = get_posts( array( 'post_type' => 'mcupr_unit', 'name' => 'unit-pres' ) );
-$vpa  = get_posts( array( 'post_type' => 'mcupr_unit', 'name' => 'unit-vp-acad' ) );
-t( $pres && $vpa && (int) $vpa[0]->post_parent === $pres[0]->ID, 'chart: parents are remapped (academic affairs under the president)' );
-t( strpos( do_shortcode( '[mcupr_orgchart]' ), 'org-d4' ) !== false, 'chart: four levels render' );
+t( count( $units ) === 31, '31 units of the sample administration chart – the Phrae campus structure (' . count( $units ) . ')' );
+$vice = get_posts( array( 'post_type' => 'mcupr_unit', 'name' => 'unit-vice' ) );
+$aac  = get_posts( array( 'post_type' => 'mcupr_unit', 'name' => 'unit-a-acad' ) );
+t( $vice && $aac && (int) $aac[0]->post_parent === $vice[0]->ID, 'chart: parents are remapped (the assistant for academic affairs under the vice rector)' );
+$sb = get_posts( array( 'post_type' => 'mcupr_unit', 'name' => 'unit-s-board' ) );
+$sc = get_posts( array( 'post_type' => 'mcupr_unit', 'name' => 'unit-sec-admin' ) );
+t( $sb && 'side' === mcupr_unit_kind( $sb[0]->ID ) && 'peach' === get_post_meta( $sb[0]->ID, '_mcupr_unit_color', true ) && $sc && 'list' === mcupr_unit_kind( $sc[0]->ID ), 'chart: kinds (beside / list) and colours are imported' );
+$chart = do_shortcode( '[mcupr_orgchart]' );
+t( strpos( $chart, 'org-d4' ) !== false && substr_count( $chart, 'org-sidebox' ) === 4 && substr_count( $chart, 'class="org-grp"' ) + substr_count( $chart, 'class="org-grp" style' ) >= 4 && strpos( $chart, 'org-panel' ) !== false, 'chart: four levels, four committees beside, list panels render' );
 $works = get_posts( array( 'post_type' => 'mcupr_work', 'numberposts' => -1, 'post_status' => 'publish' ) );
 t( count( $works ) === 3 && count( get_terms( array( 'taxonomy' => 'mcupr_work_cat', 'hide_empty' => false ) ) ) === 3, '3 sample works and 3 work categories' );
 t( '' !== mcupr_work_info( $works[0]->ID )['award'] && wp_get_object_terms( $works[0]->ID, 'mcupr_work_cat' ), 'work details and category imported' );
