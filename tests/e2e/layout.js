@@ -505,6 +505,32 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
     }
   }
 
+
+  // ================= Menu drop-down buttons are true circles (so is their hover) in every layout and screen size
+  {
+    const combos = [['top', 1920, 1080], ['top', 1366, 768], ['top', 1100, 800], ['side', 1920, 1080], ['side', 1366, 768], ['top', 1024, 768], ['top', 768, 1024], ['top', 430, 900], ['top', 360, 640], ['top', 320, 568]];
+    for (const [menu, w, h] of combos) {
+      const c = await newCtx({ viewport: { width: w, height: h } });
+      const p = await c.newPage();
+      await p.goto(B + '/');
+      await p.evaluate((m) => document.documentElement.setAttribute('data-menu', m), menu);
+      await p.waitForTimeout(300);
+      if (w < 1100) { await p.click('.nav-toggle'); await p.waitForTimeout(400); }
+      const info = await p.evaluate(() => [...document.querySelectorAll('#site-nav .submenu-toggle')].filter((b) => b.getBoundingClientRect().width > 0).map((b) => { const r = b.getBoundingClientRect(); return [Math.round(r.width * 10) / 10, Math.round(r.height * 10) / 10, parseFloat(getComputedStyle(b).borderTopLeftRadius)]; }));
+      const bad = info.filter(([iw, ih, rad]) => Math.abs(iw - ih) > 1 || rad < Math.min(iw, ih) / 2 - 0.5 || Math.min(iw, ih) < 36);
+      ok(info.length >= 1 && bad.length === 0, 'drop-down buttons ' + menu + ' ' + w + 'px: ' + info.length + ' buttons, all round and at least 36px (' + (info[0] ? info[0].slice(0, 2).join('x') : '-') + (bad.length ? '; bad: ' + JSON.stringify(bad[0]) : '') + ')');
+      if (w === 1366 || w === 390 || w === 430) {
+        const t = p.locator('#site-nav .submenu-toggle:visible').first();
+        await t.hover();
+        await p.waitForTimeout(250);
+        const hv = await t.evaluate((b) => { const r = b.getBoundingClientRect(); const cs = getComputedStyle(b); return [Math.round(r.width), Math.round(r.height), cs.backgroundColor, cs.borderTopLeftRadius]; });
+        ok(hv[0] === hv[1] && hv[2] !== 'rgba(0, 0, 0, 0)' || w < 1100, 'drop-down button hover ' + menu + ' ' + w + 'px: a ' + hv[0] + 'x' + hv[1] + ' circle (' + hv[2] + ')');
+        await p.screenshot({ path: shot('toggle-' + menu + '-' + w + '.png'), clip: { x: 0, y: 0, width: Math.min(w, 520), height: Math.min(h, 520) } });
+      }
+      await c.close();
+    }
+  }
+
   // ================= About dialog in the Precision QC layout
   {
     const mods = { mcupr_credit_name: 'ผู้พัฒนาทดสอบ', mcupr_credit_role: 'นักวิชาการ', mcupr_credit_tag: 'Full-Stack', mcupr_credit_email: 'dev@example.org', mcupr_credit_tel: '089-000-0000', mcupr_credit_url: 'https://example.org/', mcupr_org_email: 'info@example.org', mcupr_org_tel: '054-000-000' };

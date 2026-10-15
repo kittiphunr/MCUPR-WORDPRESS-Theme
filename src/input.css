@@ -1602,3 +1602,8 @@ html[data-contrast] .swal-fullscreen:has(.sr-box) { background: var(--bg) !impor
 .swal-fullscreen .swal-close { position: absolute !important; top: max(1rem, env(safe-area-inset-top)) !important; right: max(1rem, env(safe-area-inset-right)) !important; inset-inline-end: auto; margin: 0 !important; width: 3rem !important; height: 3rem !important; display: grid; place-items: center; border: 1px solid var(--border) !important; background: var(--bg) !important; box-shadow: 0 4px 14px color-mix(in srgb, var(--text) 14%, transparent) !important; font-size: 1.75rem !important; z-index: 5; }
 .swal-fullscreen .swal-close:hover, .swal-fullscreen .swal-close:focus-visible { background: var(--tint) !important; border-color: var(--primary) !important; color: var(--text) !important; }
 .swal-fullscreen .swal-close:focus-visible { outline: 3px solid var(--primary) !important; outline-offset: 2px; }
+
+/* ===== Menu drop-down buttons: always a true circle (also under the mouse) in every menu layout and screen size ===== */
+.site-nav .submenu-toggle { width: 2.75rem; height: 2.75rem; min-width: 2.75rem; min-height: 2.75rem; border-radius: 9999px; flex: none; }
+html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav .submenu-toggle { width: 2.75rem; height: 2.75rem; min-width: 2.75rem; margin: 0 .1rem 0 0; }
+html[data-menu="top"] .site-nav .menu > li > .submenu-toggle { width: 2.5rem; height: 2.5rem; min-width: 2.5rem; min-height: 2.5rem; margin-left: -.25rem; margin-right: .2rem; }
