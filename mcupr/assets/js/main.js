@@ -126,8 +126,11 @@
 				root.removeAttribute('data-' + k);
 			}
 		});
-		var menuMode = prefs.menu === 'top' ? 'top' : (prefs.menu === 'side' || prefs.menu === 'hybrid' ? 'side' : (i18n.menuDefault || 'top'));
+		var menuPick = prefs.menu === 'top' || prefs.menu === 'bar' || prefs.menu === 'side' || prefs.menu === 'hybrid' ? prefs.menu : (i18n.menuDefault || 'top');
+		if (menuPick === 'hybrid') { menuPick = 'side'; }
+		var menuMode = menuPick === 'side' ? 'side' : 'top'; /* "bar" is the top menu drawn as one capsule */
 		root.setAttribute('data-menu', menuMode);
+		if (menuPick === 'bar') { root.setAttribute('data-menubar', '1'); } else { root.removeAttribute('data-menubar'); }
 		var sbMin = false;
 		try { sbMin = localStorage.getItem('mcupr_sbmin') === '1'; } catch (err) { /* ignore */ }
 		root.classList.toggle('sb-min', menuMode !== 'top' && sbMin);
