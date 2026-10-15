@@ -103,4 +103,20 @@ if ( $bg && $ba ) {
 	update_post_meta( $t3, '_mcupr_topic_locked', 1 );
 	file_put_contents( ABSPATH . 'forum-fixture.json', wp_json_encode( array( 't1' => get_post_field( 'post_name', $t1 ), 't2' => get_post_field( 'post_name', $t2 ), 't3' => get_post_field( 'post_name', $t3 ), 't2id' => $t2 ) ) );
 }
+// photo album with four pictures (captions on three)
+$pics = array();
+foreach ( array( array( 200, 40, 90 ), array( 30, 100, 160 ), array( 40, 140, 80 ), array( 210, 150, 30 ) ) as $i => $rgb ) {
+	$im = imagecreatetruecolor( 1600, 1000 ); imagefill( $im, 0, 0, imagecolorallocate( $im, $rgb[0], $rgb[1], $rgb[2] ) );
+	$u  = wp_upload_bits( "e2e-album-$i.jpg", null, '' ); imagejpeg( $im, $u['file'], 70 );
+	$aid = wp_insert_attachment( array( 'post_mime_type' => 'image/jpeg', 'post_title' => "album $i", 'post_status' => 'inherit', 'post_excerpt' => $i < 3 ? 'คำบรรยายภาพที่ ' . ( $i + 1 ) : '' ), $u['file'] );
+	wp_update_attachment_metadata( $aid, wp_generate_attachment_metadata( $aid, $u['file'] ) );
+	update_post_meta( $aid, '_wp_attachment_image_alt', 'ภาพตัวอย่าง ' . ( $i + 1 ) );
+	$pics[] = $aid;
+}
+$alb = wp_insert_post( array( 'post_type' => 'mcupr_album', 'post_status' => 'publish', 'post_title' => 'กิจกรรมวันเปิดบ้านตัวอย่าง', 'post_name' => 'fx-album', 'post_content' => 'ภาพบรรยากาศงานเปิดบ้าน' ) );
+update_post_meta( $alb, '_mcupr_album_images', $pics );
+// a satisfaction survey on its own page
+$pl = wp_insert_post( array( 'post_type' => 'mcupr_poll', 'post_status' => 'publish', 'post_title' => 'คุณพึงพอใจกับเว็บไซต์นี้เพียงใด' ) );
+update_post_meta( $pl, '_mcupr_poll_type', 'satisfaction' );
+wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'แบบสำรวจตัวอย่าง', 'post_name' => 'fx-poll', 'post_content' => '[mcupr_poll id="' . $pl . '"]' ) );
 echo "ok $id\n";
