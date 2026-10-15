@@ -1886,7 +1886,7 @@ html[data-contrast] button[role="switch"]:focus-visible { outline: 3px solid var
 /* ===== Offices: mini-sites inside the site (inc/offices*.php). --of = the office colour, --of-on = the text colour on it ===== */
 .office-chrome { --of: #0f766e; --of-on: #ffffff; }
 .office-chrome .of-band { background: var(--of); color: var(--of-on); }
-.office-chrome[data-variant="full"] .of-band { padding: 1.5rem 0 1.4rem; }
+.office-chrome[data-variant="full"] .of-band { padding: 1.75rem 0 3.4rem; }
 .office-chrome[data-variant="slim"] .of-band { padding: .55rem 0; }
 .of-up { margin: 0 0 .5rem; font-size: .9rem; }
 .of-up a, .of-name a { color: inherit; }
@@ -1904,6 +1904,8 @@ html[data-contrast] button[role="switch"]:focus-visible { outline: 3px solid var
 .office-chrome[data-variant="slim"] .of-name { font-size: 1.05rem; }
 .of-tabs { background: var(--surface); border-bottom: 1px solid var(--edge); }
 .of-tabs ul { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0; padding: .45rem 0; list-style: none; }
+.office-chrome[data-variant="full"] .of-tabs { position: relative; margin-top: -1.9rem; background: transparent; border: 0; }
+.office-chrome[data-variant="full"] .of-tabs ul { padding: .4rem; border: 1px solid var(--edge); border-radius: 1.5rem; background: var(--surface); box-shadow: 0 10px 28px -12px rgb(15 23 42 / .35); }
 .of-tabs a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: .35rem 1rem; border-radius: 9999px; color: var(--text-2); font-weight: 600; text-decoration: none; }
 .of-tabs a:hover { background: var(--tint); color: var(--link); }
 .of-tabs a[aria-current="page"] { background: var(--of); color: var(--of-on); }
@@ -1911,6 +1913,8 @@ html[data-contrast] .office-chrome .of-band { background: var(--bg); color: var(
 html[data-contrast] .of-badge { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
 html[data-contrast] .of-tabs a[aria-current="page"] { background: var(--text); color: var(--bg); }
 html[data-contrast] .of-tabs { border-bottom: 2px solid var(--border); }
+html[data-contrast] .office-chrome[data-variant="full"] .of-tabs { border-bottom: 0; }
+html[data-contrast] .office-chrome[data-variant="full"] .of-tabs ul { border: 2px solid var(--border); box-shadow: none; }
 .of-h1 { margin: 0 0 1.5rem; font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 800; line-height: 1.25; }
 .of-home { display: grid; gap: 1.5rem; }
 @media (min-width: 900px) { .of-home:not(.of-home-solo) { grid-template-columns: minmax(0, 1fr) 21rem; align-items: start; } }
@@ -1950,3 +1954,31 @@ html[data-contrast] .of-soc { border-color: var(--border); }
 html[data-contrast] .office-card .oc-top { background: var(--bg); border-bottom: 2px solid var(--border); }
 html[data-contrast] .office-card .of-badge { border: 2px solid var(--border); }
 @media print { .of-tabs, .of-up { display: none; } }
+
+/* Offices, a prettier look: the cover picture behind the header (under the office colour so the text stays readable), contact chips,
+   floating tabs, figure tiles, icons in the contact card, covers on the cards */
+.office-chrome.has-cover .of-band { background-image: linear-gradient(90deg, var(--of) 0%, var(--of) 42%, color-mix(in srgb, var(--of) 80%, transparent) 72%, color-mix(in srgb, var(--of) 45%, transparent) 100%), var(--of-cover); background-size: cover; background-position: center; }
+.of-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+.of-chips a { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.25rem; padding: .2rem .9rem; border: 1px solid color-mix(in srgb, var(--of-on) 45%, transparent); border-radius: 9999px; background: color-mix(in srgb, var(--of-on) 14%, transparent); color: var(--of-on); font-size: .95rem; font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.of-chips a:hover, .of-chips a:focus-visible { background: var(--of-on); color: var(--of); }
+.of-badge { box-shadow: 0 0 0 4px color-mix(in srgb, var(--of-on) 30%, transparent); }
+.office-chrome[data-variant="full"] .of-badge { width: 4.5rem; height: 4.5rem; font-size: 2rem; }
+.office-chrome[data-variant="full"] .of-name { font-size: clamp(1.5rem, 3.8vw, 2.3rem); }
+.of-body .of-home { margin-top: 0; }
+.of-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .75rem; margin: 0 0 1.5rem; padding: 0; list-style: none; }
+.of-stats a { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: .1rem; height: 100%; padding: 1.1rem 1.1rem .9rem; border: 1px solid var(--edge); border-radius: 1rem; background: var(--surface); color: var(--text); text-decoration: none; transition: transform .15s, box-shadow .15s; }
+.of-stats a:hover, .of-stats a:focus-visible { transform: translateY(-2px); box-shadow: 0 10px 24px -14px rgb(15 23 42 / .4); }
+.of-stats a::before, .of-about::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--of); }
+.of-stats b { font-size: 1.9rem; font-weight: 800; line-height: 1.1; color: var(--text); }
+.of-stats span { color: var(--text-2); font-size: .95rem; font-weight: 600; }
+html[data-contrast] .of-stats a { border: 2px solid var(--border); }
+.of-about { position: relative; overflow: hidden; padding-top: 1.75rem; }
+html[data-contrast] .of-stats a::before, html[data-contrast] .of-about::before { background: var(--text); }
+.of-dl dt { display: flex; align-items: center; gap: .55rem; }
+.of-dl dd { margin: .2rem 0 0; padding-left: 2.35rem; }
+.of-ic { flex: none; display: inline-grid; place-items: center; width: 1.85rem; height: 1.85rem; border-radius: 50%; background: color-mix(in srgb, var(--of) 14%, var(--surface)); color: var(--of); }
+html[data-contrast] .of-ic { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
+.office-card .oc-top { position: relative; display: flex; align-items: flex-end; min-height: 8.5rem; padding: 1rem 1.25rem; }
+.office-card .oc-top.has-cover { background-image: linear-gradient(0deg, color-mix(in srgb, var(--of) 92%, transparent) 0%, color-mix(in srgb, var(--of) 35%, transparent) 70%, transparent 100%), var(--of-cover); background-color: var(--of); background-size: cover; background-position: center; }
+.office-card .of-badge { width: 3.25rem; height: 3.25rem; }
+html[data-contrast] .office-card .oc-top.has-cover { background-image: none; }
