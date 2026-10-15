@@ -972,5 +972,6 @@ TH = {
 "video": "วิดีโอ",
 "“Remove the demo items” deletes the news, events, video, albums, pictures and menu that the demo made (also if you edited them). The settings stay.": "“ลบรายการเดโม่” จะลบข่าว กิจกรรม วิดีโอ อัลบั้ม ภาพ และเมนูที่เดโม่สร้าง (รวมถึงที่คุณแก้ไขแล้ว) ส่วนการตั้งค่าจะคงไว้",
 "Key numbers": "ตัวเลขสำคัญ",
-"Students, teachers, faculties and students at each level – figures for the home page block, the “MCUPR: Numbers” widget and the [mcupr_numbers] shortcode. Leave a box empty to leave that figure out. If “Students (total)” is empty it is the sum of the three levels.": "นิสิต อาจารย์ คณะ และนิสิตแต่ละระดับ – ตัวเลขสำหรับบล็อกหน้าแรก วิดเจ็ต “MCUPR: ตัวเลขสำคัญ” และชอร์ตโค้ด [mcupr_numbers] ช่องไหนเว้นว่างจะไม่แสดงตัวเลขนั้น ถ้า “นิสิตทั้งหมด” ว่าง ระบบจะใช้ผลรวมของสามระดับ"
+"Students, teachers, faculties and students at each level – figures for the home page block, the “MCUPR: Numbers” widget and the [mcupr_numbers] shortcode. Leave a box empty to leave that figure out. If “Students (total)” is empty it is the sum of the three levels.": "นิสิต อาจารย์ คณะ และนิสิตแต่ละระดับ – ตัวเลขสำหรับบล็อกหน้าแรก วิดเจ็ต “MCUPR: ตัวเลขสำคัญ” และชอร์ตโค้ด [mcupr_numbers] ช่องไหนเว้นว่างจะไม่แสดงตัวเลขนั้น ถ้า “นิสิตทั้งหมด” ว่าง ระบบจะใช้ผลรวมของสามระดับ",
+"One bar (logo, menu and tools in a single capsule)": "แถบเดียว (โลโก้ เมนู และเครื่องมืออยู่ในแคปซูลเดียว)"
 }

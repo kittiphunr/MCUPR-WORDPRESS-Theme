@@ -34,7 +34,7 @@ $checks = array(
 		<fieldset class="<?php echo esc_attr( $row ); ?> m-0 border-x-0 border-t-0 px-0">
 			<legend class="float-left mr-3 p-0 text-lg font-semibold"><?php mcupr_e( 'menu_layout' ); ?></legend>
 			<div class="mode-grid" role="radiogroup" aria-label="<?php echo esc_attr( mcupr_t( 'menu_layout' ) ); ?>">
-				<?php foreach ( array( 'top' => array( 'menu_top', 'layout-top' ), 'side' => array( 'menu_side', 'layout-side' ) ) as $v => $d ) : ?>
+				<?php foreach ( array( 'top' => array( 'menu_top', 'layout-top' ), 'bar' => array( 'menu_bar', 'layout-bar' ), 'side' => array( 'menu_side', 'layout-side' ) ) as $v => $d ) : ?>
 					<label class="opt" data-tip="<?php echo esc_attr( mcupr_t( $d[0] ) ); ?>"><input class="peer sr-only" type="radio" name="mcupr-menu" data-pref="menu" value="<?php echo esc_attr( $v ); ?>"><span class="opt-b"><?php echo mcupr_icon( $d[1], 28 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span class="sr-only"><?php mcupr_e( $d[0] ); ?></span></span></label>
 				<?php endforeach; ?>
 			</div>
