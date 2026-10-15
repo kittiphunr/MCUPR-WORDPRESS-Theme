@@ -378,21 +378,41 @@ EVENTS = [  # (days from today, start time, end time, title (th, en, zh, ja), pl
  (30, '', '', ('วันเปิดบ้าน Open House (ตัวอย่าง)', 'Open House (sample)', '开放日（示例）', 'オープンハウス（サンプル）'), '[มหาวิทยาลัย]'),
 ]
 
-# administration chart (sample units: level, name, person, role) – replaced by the real ones after importing
-UNITS = [  # key, parent key, order, (th, en, zh, ja), person, role
- ('council', None, 1, ('สภามหาวิทยาลัย', 'University Council', '大学校务委员会', '大学評議会'), '[ชื่อนายกสภามหาวิทยาลัย]', 'นายกสภามหาวิทยาลัย'),
- ('pres', 'council', 1, ('สำนักอธิการบดี', 'Office of the President', '校长办公室', '学長室'), '[ชื่ออธิการบดี]', 'อธิการบดี'),
- ('vp-acad', 'pres', 1, ('ฝ่ายวิชาการ', 'Academic Affairs', '学术事务', '学務'), '[ชื่อรองอธิการบดี]', 'รองอธิการบดี'),
- ('vp-admin', 'pres', 2, ('ฝ่ายบริหาร', 'Administration', '行政事务', '総務'), '[ชื่อรองอธิการบดี]', 'รองอธิการบดี'),
- ('vp-student', 'pres', 3, ('ฝ่ายกิจการนักศึกษา', 'Student Affairs', '学生事务', '学生支援'), '[ชื่อรองอธิการบดี]', 'รองอธิการบดี'),
- ('vp-research', 'pres', 4, ('ฝ่ายวิจัยและบริการวิชาการ', 'Research and Academic Service', '科研与学术服务', '研究・社会貢献'), '[ชื่อรองอธิการบดี]', 'รองอธิการบดี'),
- ('registrar', 'vp-acad', 1, ('กองบริการการศึกษา', 'Registrar Division', '教务处', '教務課'), '', ''),
- ('library', 'vp-acad', 2, ('สำนักหอสมุด', 'Library', '图书馆', '図書館'), '', ''),
- ('finance', 'vp-admin', 1, ('กองคลังและพัสดุ', 'Finance and Procurement', '财务与采购处', '財務・調達課'), '', ''),
- ('hr', 'vp-admin', 2, ('กองบริหารงานบุคคล', 'Human Resources', '人事处', '人事課'), '', ''),
- ('it', 'vp-admin', 3, ('ศูนย์เทคโนโลยีสารสนเทศ', 'Information Technology Centre', '信息技术中心', '情報技術センター'), '', ''),
- ('student', 'vp-student', 1, ('กองกิจการนักศึกษา', 'Student Affairs Division', '学生事务处', '学生課'), '', ''),
- ('research', 'vp-research', 1, ('สถาบันวิจัย', 'Research Institute', '研究院', '研究所'), '', ''),
+# administration chart: the structure of Phrae Campus (units: key, parent, order, names th/en/zh/ja, person, role, how it is drawn, colour)
+# – boxes in the line of command, committees beside, sections as list panels; replaced by your own after importing
+UNITS = [
+ ('rector', None, 1, ('อธิการบดี', 'Rector', '校长', '学長'), '[ชื่ออธิการบดี]', 'อธิการบดี', 'line', 'olive'),
+ ('council', 'rector', 1, ('สภาวิทยาเขตแพร่', 'Phrae Campus Council', '帕府校区理事会', 'プレー・キャンパス評議会'), '', '', 'line', 'sand'),
+ ('vice', 'council', 1, ('รองอธิการบดีวิทยาเขตแพร่', 'Vice Rector, Phrae Campus', '校区副校长', '副学長（プレー・キャンパス）'), '[ชื่อรองอธิการบดี]', 'รองอธิการบดีวิทยาเขตแพร่', 'line', 'sky'),
+ ('s-board', 'vice', 1, ('คณะกรรมการประจำวิทยาเขตแพร่', 'Campus Board', '校区委员会', 'キャンパス委員会'), '', '', 'side', 'peach'),
+ ('s-adviser', 'vice', 2, ('ที่ปรึกษารองอธิการบดี', 'Advisers to the Vice Rector', '副校长顾问', '副学長顧問'), '', '', 'side', 'peach'),
+ ('s-finance', 'vice', 3, ('คณะอนุกรรมการการเงินและทรัพย์สิน', 'Finance and Assets Sub-committee', '财务与资产小组委员会', '財務・資産小委員会'), '', '', 'side', 'peach'),
+ ('s-hr', 'vice', 4, ('คณะอนุกรรมการบริหารงานบุคคล', 'Personnel Sub-committee', '人事小组委员会', '人事小委員会'), '', '', 'side', 'peach'),
+ ('a-admin', 'vice', 5, ('ผู้ช่วยอธิการบดีฝ่ายบริหาร', 'Assistant Rector for Administration', '行政助理校长', '学長補佐（管理）'), '[ชื่อผู้ช่วยอธิการบดี]', 'ผู้ช่วยอธิการบดีฝ่ายบริหาร', 'line', 'lime'),
+ ('a-acad', 'vice', 6, ('ผู้ช่วยอธิการบดีฝ่ายวิชาการ', 'Assistant Rector for Academic Affairs', '学术助理校长', '学長補佐（学務）'), '[ชื่อผู้ช่วยอธิการบดี]', 'ผู้ช่วยอธิการบดีฝ่ายวิชาการ', 'line', 'lime'),
+ ('a-gen', 'vice', 7, ('ผู้ช่วยอธิการบดีฝ่ายกิจการทั่วไป', 'Assistant Rector for General Affairs', '综合事务助理校长', '学長補佐（総務）'), '[ชื่อผู้ช่วยอธิการบดี]', 'ผู้ช่วยอธิการบดีฝ่ายกิจการทั่วไป', 'line', 'lime'),
+ ('office', 'a-acad', 1, ('สำนักงานวิทยาเขตแพร่', 'Campus Office', '校区办公室', 'キャンパス事務局'), '[ชื่อผู้ดำรงตำแหน่ง]', 'ผู้อำนวยการสำนักงานวิทยาเขตแพร่', 'line', 'aqua'),
+ ('academic', 'a-acad', 2, ('สำนักวิชาการวิทยาเขตแพร่', 'Campus Academic Office', '校区教务处', 'キャンパス学務部'), '[ชื่อผู้ดำรงตำแหน่ง]', 'ผู้อำนวยการสำนักวิชาการวิทยาเขตแพร่', 'line', 'aqua'),
+ ('college', 'a-acad', 3, ('วิทยาลัยสงฆ์แพร่', 'Phrae Buddhist College', '帕府佛学院', 'プレー仏教学院'), '[ชื่อผู้ดำรงตำแหน่ง]', 'ผู้อำนวยการวิทยาลัยสงฆ์แพร่', 'line', 'aqua'),
+ ('college-lp', 'a-gen', 1, ('วิทยาลัยสงฆ์นครลำปาง', 'Nakhon Lampang Buddhist College', '南邦佛学院', 'ナコーンランパーン仏教学院'), '[ชื่อผู้ดำรงตำแหน่ง]', 'ผู้อำนวยการวิทยาลัยสงฆ์นครลำปาง', 'line', 'aqua'),
+ ('office-dep', 'office', 1, ('รองผู้อำนวยการสำนักงานวิทยาเขตแพร่', 'Deputy Director, Campus Office', '校区办公室副主任', 'キャンパス事務局次長'), '[ชื่อผู้ดำรงตำแหน่ง]', 'รองผู้อำนวยการ', 'line', 'peach'),
+ ('sec-admin', 'office', 2, ('ผู้อำนวยการส่วนงานบริหาร', 'Administration Section', '行政科', '管理課'), '', '', 'list', 'leaf'),
+ ('g-admin', 'sec-admin', 1, ('กลุ่มงานบริหาร', 'Administration Group', '行政组', '管理グループ'), '', '', 'line', ''),
+ ('g-plan', 'sec-admin', 2, ('กลุ่มงานวางแผนและงบประมาณ', 'Planning and Budget Group', '规划与预算组', '企画予算グループ'), '', '', 'line', ''),
+ ('sec-fin', 'office', 3, ('ผู้อำนวยการส่วนคลังและทรัพย์สิน', 'Finance and Assets Section', '财务与资产科', '財務・資産課'), '', '', 'list', 'leaf'),
+ ('g-fin', 'sec-fin', 1, ('กลุ่มงานการเงิน', 'Finance Group', '财务组', '財務グループ'), '', '', 'line', ''),
+ ('g-acc', 'sec-fin', 2, ('กลุ่มงานบัญชี', 'Accounting Group', '会计组', '会計グループ'), '', '', 'line', ''),
+ ('g-store', 'sec-fin', 3, ('กลุ่มงานคลังและพัสดุ', 'Treasury and Procurement Group', '库房与采购组', '倉庫・調達グループ'), '', '', 'line', ''),
+ ('sec-acad', 'academic', 1, ('ผู้อำนวยการส่วนสนับสนุนวิชาการ', 'Academic Support Section', '教学支持科', '学務支援課'), '', '', 'list', 'leaf'),
+ ('g-reg', 'sec-acad', 1, ('กลุ่มงานทะเบียนและวัดผล', 'Registration and Assessment Group', '注册与评估组', '登録・評価グループ'), '', '', 'line', ''),
+ ('g-lib', 'sec-acad', 2, ('กลุ่มงานห้องสมุดและสารสนเทศ', 'Library and Information Group', '图书馆与信息组', '図書館・情報グループ'), '', '', 'line', ''),
+ ('g-res', 'sec-acad', 3, ('กลุ่มงานวิจัยและคุณภาพการศึกษา', 'Research and Quality Group', '科研与教育质量组', '研究・教育品質グループ'), '', '', 'line', ''),
+ ('g-soc', 'sec-acad', 4, ('กลุ่มงานส่งเสริมพระพุทธศาสนาและบริการสังคม', 'Buddhism Promotion and Social Service Group', '佛教推广与社会服务组', '仏教振興・社会奉仕グループ'), '', '', 'line', ''),
+ ('sec-col', 'college', 1, ('ผู้อำนวยการสำนักงานวิทยาลัย', 'College Office', '学院办公室', '学院事務局'), '', '', 'list', 'leaf'),
+ ('c-admin', 'sec-col', 1, ('กลุ่มงานบริหาร', 'Administration Group', '行政组', '管理グループ'), '', '', 'line', ''),
+ ('c-acad', 'sec-col', 2, ('กลุ่มงานวิชาการและวางแผน', 'Academic and Planning Group', '教务与规划组', '学務・企画グループ'), '', '', 'line', ''),
+ ('c-serv', 'sec-col', 3, ('กลุ่มงานบริการการศึกษา', 'Education Services Group', '教育服务组', '教育サービスグループ'), '', '', 'line', ''),
+ ('c-grad', 'sec-col', 4, ('กลุ่มงานบัณฑิตศึกษา', 'Graduate Studies Group', '研究生教育组', '大学院グループ'), '', '', 'line', ''),
 ]
 
 # sample works: (title, event, award, year, org, category key, team)
