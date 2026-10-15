@@ -29,7 +29,7 @@ t( strpos( $log, 'All done' ) !== false, 'importer finished' );
 // ---- pages
 $pages = get_posts( array( 'post_type' => 'page', 'numberposts' => -1, 'post_status' => 'any' ) );
 $pages = array_values( array_filter( $pages, function ( $p ) { return '' !== get_post_meta( $p->ID, '_mcupr_en_title', true ); } ) ); // not WordPress' own sample pages
-t( count( $pages ) === 56, '56 pages imported (' . count( $pages ) . ')' );
+t( count( $pages ) === 57, '57 pages imported (' . count( $pages ) . ')' );
 $bad = array_filter( $pages, function ( $p ) { return 'publish' !== $p->post_status || '' === trim( $p->post_content ); } );
 t( ! $bad, 'every page is published and has content' );
 foreach ( array( 'privacy-policy', 'cookie-policy', 'accessibility-statement', 'sitemap', 'contact', 'ita', 'oic' ) as $slug ) {
