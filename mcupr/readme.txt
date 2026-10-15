@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.24.1 =
+* Weather source link underlined (axe link-in-text-block)
+
 = 1.24.0 =
 * Speed check page in the admin
 
