@@ -129,11 +129,12 @@ add_action(
 /* ------------------------------------------------------------------ front end */
 
 /** A card of the album list: cover, title, number of pictures. */
-function mcupr_album_card( $p ) {
+function mcupr_album_card( $p, $h = 'h3' ) {
+	$h = 'h2' === $h ? 'h2' : 'h3';
 	$cover = mcupr_album_cover_id( $p->ID );
 	$n     = count( mcupr_album_images( $p->ID ) );
 	$o     = '<article class="album-card"><a class="album-cover" href="' . esc_url( get_permalink( $p ) ) . '" tabindex="-1" aria-hidden="true">' . ( $cover ? wp_get_attachment_image( $cover, 'medium_large', false, array( 'alt' => '', 'loading' => 'lazy', 'decoding' => 'async' ) ) : '<span class="album-none">' . mcupr_icon( 'image', 40 ) . '</span>' ) . '<span class="album-n">' . mcupr_icon( 'camera', 14 ) . (int) $n . '</span></a>';
-	$o    .= '<h3 class="album-t"><a href="' . esc_url( get_permalink( $p ) ) . '">' . esc_html( get_the_title( $p ) ) . '</a></h3><p class="album-d">' . esc_html( get_the_date( 'j M Y', $p ) ) . '</p></article>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	$o    .= '<' . $h . ' class="album-t"><a href="' . esc_url( get_permalink( $p ) ) . '">' . esc_html( get_the_title( $p ) ) . '</a></' . $h . '><p class="album-d">' . esc_html( get_the_date( 'j M Y', $p ) ) . '</p></article>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	return $o;
 }
 
