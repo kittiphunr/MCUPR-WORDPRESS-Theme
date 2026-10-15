@@ -852,14 +852,92 @@
 	}
 	window.addEventListener('scroll', onScroll, { passive: true });
 	onScroll();
+	/* Press and hold (or right-click / arrow up) on the button: the quick links pop up above it. */
+	var quickPop = null;
+	function closeQuick() { if (quickPop) { quickPop.remove(); quickPop = null; } }
+	function openQuick() {
+		closeQuick();
+		var top = $('#site-nav ul');
+		var src = $$('.util-panel a').concat(top ? $$('li > a', top).filter(function (a) { return a.closest('ul') === top; }) : []);
+		var seen = {};
+		var links = src.filter(function (a) { var k = a.getAttribute('href'); if (!k || seen[k]) { return false; } seen[k] = 1; return true; }).slice(0, 8);
+		if (!links.length) { return false; }
+		quickPop = document.createElement('div');
+		quickPop.className = 'top-quick';
+		quickPop.setAttribute('role', 'group');
+		quickPop.setAttribute('aria-label', i18n.quickLinks || 'Quick links');
+		var ul = document.createElement('ul');
+		links.forEach(function (a) {
+			var li = document.createElement('li');
+			var c = document.createElement('a');
+			c.href = a.getAttribute('href');
+			c.textContent = (a.textContent || '').trim();
+			li.appendChild(c);
+			ul.appendChild(li);
+		});
+		quickPop.appendChild(ul);
+		document.body.appendChild(quickPop);
+		var f = $('a', quickPop);
+		if (f) { f.focus(); }
+		return true;
+	}
 	if (topBtn) {
-		topBtn.addEventListener('click', function () {
+		var holdTimer = 0;
+		var held = false;
+		var startHold = function () { held = false; clearTimeout(holdTimer); holdTimer = setTimeout(function () { held = openQuick(); }, 550); };
+		var endHold = function () { clearTimeout(holdTimer); };
+		topBtn.addEventListener('pointerdown', function (e) { if (e.button === 0) { startHold(); } });
+		['pointerup', 'pointerleave', 'pointercancel'].forEach(function (n) { topBtn.addEventListener(n, endHold); });
+		topBtn.addEventListener('contextmenu', function (e) { e.preventDefault(); held = openQuick(); });
+		topBtn.addEventListener('keydown', function (e) { if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'F10')) { e.preventDefault(); held = openQuick(); } });
+		document.addEventListener('click', function (e) { if (quickPop && !quickPop.contains(e.target) && !topBtn.contains(e.target)) { closeQuick(); } });
+		document.addEventListener('keydown', function (e) {
+			if (!quickPop) { return; }
+			if (e.key === 'Escape') { e.preventDefault(); closeQuick(); topBtn.focus(); }
+			if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+				e.preventDefault();
+				var items = $$('a', quickPop);
+				var i = items.indexOf(document.activeElement);
+				items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus();
+			}
+		});
+		window.addEventListener('scroll', closeQuick, { passive: true });
+		topBtn.addEventListener('click', function (e) {
+			if (held) { held = false; e.preventDefault(); return; }
+			closeQuick();
 			smoothScrollTo(0);
 			var h = $('#masthead') || document.body;
 			var first = $('a, button', h);
 			if (first) { first.focus({ preventScroll: true }); }
 		});
 	}
+
+	/* ---------------------------------------------------------------- option tiles: tooltip stays inside the dialog */
+	// (the dialog is built on demand, so this listens on the document and creates the tip the first time)
+	function placeTip(o) {
+		var tip = o.querySelector('.opt-tip');
+		if (!tip) {
+			tip = document.createElement('span');
+			tip.className = 'opt-tip';
+			tip.setAttribute('aria-hidden', 'true');
+			tip.textContent = o.getAttribute('data-tip');
+			o.appendChild(tip);
+		}
+		tip.style.setProperty('--tx', '0px');
+		var box = o.closest('[role="dialog"], dialog') || document.documentElement;
+		var b = box.getBoundingClientRect();
+		var r = tip.getBoundingClientRect();
+		var lo = Math.max(b.left, 0) + 8, hi = Math.min(b.right, window.innerWidth) - 8;
+		var dx = 0;
+		if (r.left < lo) { dx = lo - r.left; } else if (r.right > hi) { dx = hi - r.right; }
+		tip.style.setProperty('--tx', Math.round(dx) + 'px');
+	}
+	['pointerover', 'focusin'].forEach(function (n) {
+		document.addEventListener(n, function (e) {
+			var o = e.target.closest && e.target.closest('.opt[data-tip]');
+			if (o) { placeTip(o); }
+		});
+	});
 
 	/* ---------------------------------------------------------------- scroll reveal */
 	var revealer = 'IntersectionObserver' in window
@@ -956,7 +1034,7 @@
 				ring.classList.remove('is-link', 'is-view', 'is-media');
 				dot.classList.remove('is-hidden');
 				if (clickable && isImage) {
-					label.textContent = i18n.cursorView || 'View';
+					label.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 					ring.classList.add('is-view');
 					dot.classList.add('is-hidden');
 				} else if (clickable) {

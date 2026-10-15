@@ -43,6 +43,8 @@ function mcupr_assets() {
 			'langTitle'   => mcupr_t( 'language' ),
 			'searchTitle' => mcupr_t( 'search' ),
 			'cursorView'  => mcupr_t( 'cursor_view' ),
+			'quickLinks'  => mcupr_t( 'quick_links' ),
+			'topHold'     => mcupr_t( 'back_top_hold' ),
 			'on'          => mcupr_t( 'on' ),
 			'off'         => mcupr_t( 'off' ),
 			'langBadge'   => mcupr_lang_badge(),

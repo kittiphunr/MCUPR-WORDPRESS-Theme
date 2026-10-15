@@ -14,7 +14,7 @@ $chips = ! isset( $args['chips'] ) || $args['chips'];
 		<?php mcupr_breadcrumb( false ); ?>
 		<h1 class="mcu-title mt-4 text-3xl font-bold leading-tight min-[900px]:text-4xl"><?php echo isset( $args['title'] ) ? $args['title'] : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?></h1>
 		<?php if ( ! empty( $args['description'] ) ) : ?>
-			<div class="mt-3 max-w-3xl text-muted"><?php echo wp_kses_post( $args['description'] ); ?></div>
+			<div class="band-lead"><?php echo wp_kses_post( $args['description'] ); ?></div>
 		<?php endif; ?>
 		<?php if ( $chips ) : ?>
 			<?php
