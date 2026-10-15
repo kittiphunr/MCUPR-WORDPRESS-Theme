@@ -393,11 +393,27 @@ add_filter(
 	}
 );
 
+/** Is the editors' maintenance reminder bar shown on this page? */
+function mcupr_maint_bar_shown() {
+	return function_exists( 'mcupr_status_is_editor' ) && mcupr_status_is_editor() && ! empty( mcupr_status()['maint']['on'] );
+}
+
+// the bar is fixed to the top of the window: the page below it makes room (body class has-maint)
+add_filter(
+	'body_class',
+	static function ( $classes ) {
+		if ( mcupr_maint_bar_shown() ) {
+			$classes[] = 'has-maint';
+		}
+		return $classes;
+	}
+);
+
 // Editors: a reminder bar while maintenance mode is on.
 add_action(
 	'wp_body_open',
 	static function () {
-		if ( mcupr_status_is_editor() && ! empty( mcupr_status()['maint']['on'] ) ) {
+		if ( mcupr_maint_bar_shown() ) {
 			echo '<div class="maint-bar" role="status">' . esc_html( mcupr_t( 'mt_bar' ) ) . ' <a href="' . esc_url( admin_url( 'admin.php?page=mcupr-status' ) ) . '">' . esc_html( mcupr_t( 'mt_bar_link' ) ) . '</a></div>';
 		}
 	}
