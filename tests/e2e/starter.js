@@ -1173,6 +1173,30 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       }
       await ap.setViewportSize({ width: 1366, height: 900 });
     }
+    // maintenance bar: the top-most strip, the full width, fixed; the header and the side bar sit below it
+    {
+      const { execSync } = require('child_process');
+      const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\"; require \"" + require('path').resolve(__dirname, '../.site-starter/wp-load.php') + "\"; $s=mcupr_status(); $s[\"maint\"][\"on\"]=" + (on ? 1 : 0) + "; update_option(\"mcupr_status\",$s);' 2>/dev/null");
+      flip(true);
+      for (const [w, h, menu] of [[1366, 800, 'side'], [1920, 900, 'top'], [390, 800, 'top']]) {
+        await ap.setViewportSize({ width: w, height: h });
+        await ap.goto(B + '/');
+        await ap.evaluate((m) => { document.documentElement.setAttribute('data-menu', m); }, menu);
+        await ap.waitForSelector('.maint-bar');
+        await ap.waitForTimeout(300);
+        const geo = async () => ap.evaluate(() => { const b = document.querySelector('.maint-bar').getBoundingClientRect(); const hd = document.querySelector('.site-header').getBoundingClientRect(); const nv = document.querySelector('.site-nav'); const nr = nv.getBoundingClientRect(); const wide = innerWidth >= 1100; return { barTop: Math.round(b.top), barLeft: Math.round(b.left), barW: Math.round(b.width), vw: innerWidth - (document.documentElement.scrollWidth > innerWidth ? 0 : 0), barH: Math.round(b.height), hdrTop: Math.round(hd.top), navTop: wide && getComputedStyle(nv).position === 'fixed' ? Math.round(nr.top) : -1, bodyPad: parseFloat(getComputedStyle(document.body).paddingTop), hs: document.documentElement.scrollWidth > innerWidth, cls: document.body.classList.contains('has-maint'), wide }; });
+        const g0 = await geo();
+        await ap.evaluate(() => window.scrollTo(0, 900));
+        await ap.waitForTimeout(250);
+        const g1 = await geo();
+        const tag = w + 'px ' + menu;
+        ok(g0.cls && g0.barTop === 0 && g0.barLeft === 0 && Math.abs(g0.barW - g0.vw) <= 1 && !g0.hs, 'maintenance bar at ' + tag + ': at the very top, the full width of the window, no sideways scroll (' + g0.barW + '/' + g0.vw + ')');
+        ok(g1.barTop === 0 && g1.barH === g0.barH, 'maintenance bar at ' + tag + ': stays at the top when the page is scrolled');
+        ok(g0.bodyPad >= g0.barH - 1 && g1.hdrTop >= g0.barH && (g0.navTop === -1 || g0.navTop >= g0.barH), 'maintenance bar at ' + tag + ': the header (' + g1.hdrTop + ') and the side bar (' + g0.navTop + ') start below the bar (' + g0.barH + ')');
+      }
+      flip(false);
+      await ap.setViewportSize({ width: 1366, height: 900 });
+    }
     // speed check
     await ap.goto(B + '/wp-admin/admin.php?page=mcupr-speed');
     await ap.click('button:has-text("ตรวจเลย"), button:has-text("Check now")');
