@@ -516,11 +516,14 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
       await p.evaluate((m) => document.documentElement.setAttribute('data-menu', m), menu);
       await p.waitForTimeout(300);
       if (w < 1100) { await p.click('.nav-toggle'); await p.waitForTimeout(400); }
-      const info = await p.evaluate(() => [...document.querySelectorAll('#site-nav .submenu-toggle')].filter((b) => b.getBoundingClientRect().width > 0).map((b) => { const r = b.getBoundingClientRect(); return [Math.round(r.width * 10) / 10, Math.round(r.height * 10) / 10, parseFloat(getComputedStyle(b).borderTopLeftRadius)]; }));
+      const info = await p.evaluate(() => [...document.querySelectorAll('#site-nav .submenu-toggle:not(.more-btn)')].filter((b) => b.getBoundingClientRect().width > 0).map((b) => { const r = b.getBoundingClientRect(); return [Math.round(r.width * 10) / 10, Math.round(r.height * 10) / 10, parseFloat(getComputedStyle(b).borderTopLeftRadius)]; }));
       const bad = info.filter(([iw, ih, rad]) => Math.abs(iw - ih) > 1 || rad < Math.min(iw, ih) / 2 - 0.5 || Math.min(iw, ih) < 36);
       ok(info.length >= 1 && bad.length === 0, 'drop-down buttons ' + menu + ' ' + w + 'px: ' + info.length + ' buttons, all round and at least 36px (' + (info[0] ? info[0].slice(0, 2).join('x') : '-') + (bad.length ? '; bad: ' + JSON.stringify(bad[0]) : '') + ')');
+      // the "More" button of the top menu is a pill with its word, never a circle that cuts the word
+      const more = await p.evaluate(() => { const b = document.querySelector('#site-nav .more-btn'); if (!b || !b.getBoundingClientRect().width) { return null; } const r = b.getBoundingClientRect(); const t = b.querySelector('span, .t') || b; return [Math.round(r.width), Math.round(r.height), b.scrollWidth <= b.clientWidth + 1, parseFloat(getComputedStyle(b).borderTopLeftRadius)]; });
+      if (more) { ok(more[0] >= more[1] * 1.5 && more[2], 'More button ' + menu + ' ' + w + 'px: a pill ' + more[0] + 'x' + more[1] + ' that holds its word'); }
       if (w === 1366 || w === 390 || w === 430) {
-        const t = p.locator('#site-nav .submenu-toggle:visible').first();
+        const t = p.locator('#site-nav .submenu-toggle:not(.more-btn):visible').first();
         await t.hover();
         await p.waitForTimeout(250);
         const hv = await t.evaluate((b) => { const r = b.getBoundingClientRect(); const cs = getComputedStyle(b); return [Math.round(r.width), Math.round(r.height), cs.backgroundColor, cs.borderTopLeftRadius]; });
