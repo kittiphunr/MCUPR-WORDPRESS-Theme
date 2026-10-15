@@ -477,4 +477,7 @@ return array(
 	'of_none' => array( 'ยังไม่มีเนื้อหาในส่วนนี้', 'Nothing here yet.', '此处暂无内容。', 'まだ内容がありません。' ),
 	'of_enter' => array( 'เข้าสู่หน่วยงาน', 'Enter this office', '进入办公室', '事務所へ' ),
 	'of_no_offices' => array( 'ยังไม่มีหน่วยงาน', 'No offices yet.', '暂无办公室。', 'まだ事務所はありません。' ),
+	'nf_try' => array( 'ลองไปที่หน้าเหล่านี้', 'Try one of these pages', '试试这些页面', 'こちらのページをお試しください' ),
+	'nf_latest' => array( 'ข่าวล่าสุด', 'Latest news', '最新新闻', '最新ニュース' ),
+	'nf_search_for' => array( 'ค้นหา “%s”', 'Search for “%s”', '搜索“%s”', '「%s」を検索' ),
 );
