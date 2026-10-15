@@ -44,6 +44,7 @@ require_once MCUPR_DIR . '/inc/staff-import.php';
 require_once MCUPR_DIR . '/inc/people.php';
 require_once MCUPR_DIR . '/inc/forum.php';
 require_once MCUPR_DIR . '/inc/forum-front.php';
+require_once MCUPR_DIR . '/inc/faq.php';
 require_once MCUPR_DIR . '/inc/documents.php';
 require_once MCUPR_DIR . '/inc/forms.php';
 require_once MCUPR_DIR . '/inc/stats.php';
