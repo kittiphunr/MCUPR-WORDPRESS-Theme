@@ -62,11 +62,10 @@ t( 'me@example.org' === mcupr_credit()['email'] && 'นายกิตติพ�
 mods( array( 'mcupr_credit_email' => null, 'mcupr_credit_name' => 'ทีมงาน' ) );
 $c = mcupr_credit();
 t( 'ทีมงาน' === $c['name'] && '' === $c['email'] && '' === $c['en'] && '' === $c['img'], 'credit: another name drops the built-in contacts and photo (no one else gets them)' );
-ob_start(); mcupr_credit_card(); $h = ob_get_clean();
-t( strpos( $h, 'developer.jpg' ) === false && strpos( $h, 'fcredit-in' ) !== false, 'credit: the initial replaces the photo for another creator' );
+$h = mcupr_credit_photo_html( mcupr_credit(), 'x' );
+t( strpos( $h, 'developer.jpg' ) === false && strpos( $h, 'credit-in' ) !== false, 'credit: the initial replaces the photo for another creator' );
 mods( array( 'mcupr_credit_name' => null, 'mcupr_credit_hide' => true ) );
-ob_start(); mcupr_credit_card(); $h = ob_get_clean();
-t( null === mcupr_credit() && '' === $h, 'credit: can be hidden' );
+t( null === mcupr_credit(), 'credit: can be hidden' );
 mods( array( 'mcupr_credit_hide' => null ) );
 
 echo $fails ? "\n$fails FAILED\n" : "\nall passed\n";

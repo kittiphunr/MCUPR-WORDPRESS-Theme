@@ -79,15 +79,12 @@ foreach ( $policy as $row ) {
 		</nav>
 		<?php endif; ?>
 	</div>
-	<?php if ( mcupr_credit() ) : ?>
-	<div class="fcredit-wrap px-6"><?php mcupr_credit_card(); ?></div>
-	<?php endif; ?>
 	<div class="border-t border-line py-4 text-[.9375rem] text-muted">
 		<div class="px-6">
 			<p class="m-0">© <?php echo esc_html( wp_date( 'Y' ) ); ?> <?php echo esc_html( mcupr_org_name() ); ?>. <?php mcupr_e( 'rights' ); ?></p>
 			<p class="m-0 mt-1">
 				<?php
-				// the site creator has their own card above (mcupr_credit_card)
+				// the site creator is credited in the About dialog
 				echo esc_html( mcupr_t( 'theme_credit' ) . ' ' . MCUPR_VERSION ) . ' · ';
 				?>
 				<button type="button" class="min-h-8 cursor-pointer border-0 bg-transparent p-0 text-link underline" data-open-about><?php mcupr_e( 'about' ); ?></button>
