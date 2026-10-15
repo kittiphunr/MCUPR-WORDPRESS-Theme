@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.17.0 =
+* Videos from other sites (YouTube/Vimeo) with click-to-play player, redesigned news cards
+
 = 1.16.4 =
 * Logo capsule same height as the menu; wide-logo option
 
