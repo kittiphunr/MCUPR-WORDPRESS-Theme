@@ -367,3 +367,17 @@ function mcupr_share_buttons( $url, $title = '' ) {
 function mcupr_home_on( $key, $default = true ) {
 	return (bool) get_theme_mod( 'mcupr_home_' . $key . '_on', $default );
 }
+
+/** Load the cover pictures of a list of posts with one query (instead of one query per card). */
+function mcupr_prime_thumbs( $posts ) {
+	$ids = array();
+	foreach ( (array) $posts as $p ) {
+		$t = get_post_thumbnail_id( $p );
+		if ( $t ) {
+			$ids[] = (int) $t;
+		}
+	}
+	if ( count( $ids ) > 1 ) {
+		_prime_post_caches( array_values( array_unique( $ids ) ), false, true );
+	}
+}
