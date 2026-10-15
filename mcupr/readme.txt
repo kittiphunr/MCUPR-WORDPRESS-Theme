@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.30.5 =
+* Maintenance and welcome pages redesigned (glass card, badge, countdown, contact chips)
+
 = 1.30.4 =
 * Work / award page: badges and facts redesigned as cards
 

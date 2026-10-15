@@ -64,6 +64,9 @@ $mcupr_style = '--s1:' . $mcupr_c1 . ';--s2:' . $mcupr_c2 . ( $mcupr_img ? ';--s
 <main id="content" class="status-card">
 	<div class="status-logo"><?php echo mcupr_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 	<p class="status-org"><?php echo esc_html( $mcupr_name ); ?></p>
+	<?php if ( 'maint' === $mcupr_kind ) : ?>
+		<p class="status-badge"><span class="status-gear" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M14.7 6.3a4 4 0 0 0 5 5L21 17.5a2.1 2.1 0 0 1-3 3l-6.2-6.2a4 4 0 0 1-5-5l2.9 2.9 2.4-.6.6-2.4z"/></svg></span><?php mcupr_e( 'mt_badge' ); ?></p>
+	<?php endif; ?>
 	<h1 class="status-h"><?php echo esc_html( $mcupr_h1 ); ?></h1>
 	<?php if ( '' !== $mcupr_msg ) : ?>
 		<p class="status-msg"><?php echo nl2br( esc_html( $mcupr_msg ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?></p>
@@ -74,15 +77,24 @@ $mcupr_style = '--s1:' . $mcupr_c1 . ';--s2:' . $mcupr_c2 . ( $mcupr_img ? ';--s
 			<p class="status-auto" data-auto="<?php echo (int) $mcupr_w['auto']; ?>" data-go="<?php echo esc_url( $mcupr_go ); ?>" data-text="<?php echo esc_attr( mcupr_t( 'ws_auto' ) ); ?>"><span data-cd></span> <button type="button" class="status-stop" data-stop><?php mcupr_e( 'ws_stop' ); ?></button></p>
 		<?php endif; ?>
 	<?php else : ?>
+		<div class="status-bar" aria-hidden="true"><i></i></div>
 		<?php if ( $mcupr_ts ) : ?>
 			<p class="status-back"><?php mcupr_e( 'mt_back' ); ?>: <b><?php echo esc_html( wp_date( 'j F Y H:i', $mcupr_ts ) ); ?></b></p>
+			<?php if ( $mcupr_ts > time() ) : ?>
+				<ul class="status-cd" aria-hidden="true" data-ts="<?php echo (int) $mcupr_ts; ?>">
+					<li><b data-u="d">0</b><span><?php mcupr_e( 'mt_d' ); ?></span></li>
+					<li><b data-u="h">0</b><span><?php mcupr_e( 'mt_h' ); ?></span></li>
+					<li><b data-u="m">0</b><span><?php mcupr_e( 'mt_m' ); ?></span></li>
+				</ul>
+			<?php endif; ?>
 		<?php endif; ?>
 		<?php if ( $mcupr_tel || $mcupr_mail ) : ?>
-			<p class="status-contact"><?php mcupr_e( 'mt_contact' ); ?>:
-				<?php if ( $mcupr_tel ) : ?><a href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $mcupr_tel ) ); ?>"><?php echo esc_html( $mcupr_tel ); ?></a><?php endif; ?>
-				<?php if ( $mcupr_mail ) : ?><a href="mailto:<?php echo esc_attr( $mcupr_mail ); ?>"><?php echo esc_html( $mcupr_mail ); ?></a><?php endif; ?>
-			</p>
+			<div class="status-contact"><span class="status-cl"><?php mcupr_e( 'mt_contact' ); ?></span>
+				<?php if ( $mcupr_tel ) : ?><a class="status-chip" href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $mcupr_tel ) ); ?>"><?php echo mcupr_icon( 'phone', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo esc_html( $mcupr_tel ); ?></a><?php endif; ?>
+				<?php if ( $mcupr_mail ) : ?><a class="status-chip" href="mailto:<?php echo esc_attr( $mcupr_mail ); ?>"><?php echo mcupr_icon( 'mail', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo esc_html( $mcupr_mail ); ?></a><?php endif; ?>
+			</div>
 		<?php endif; ?>
+		<p class="status-retry"><a class="status-btn2" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php mcupr_e( 'mt_retry' ); ?></a></p>
 	<?php endif; ?>
 </main>
 <?php if ( 'welcome' === $mcupr_kind && (int) $mcupr_w['auto'] > 0 ) : ?>
@@ -94,6 +106,21 @@ $mcupr_style = '--s1:' . $mcupr_c1 . ';--s2:' . $mcupr_c2 . ( $mcupr_img ? ';--s
 	paint();
 	var t = setInterval(function () { if (stopped) { return; } n--; if (n <= 0) { clearInterval(t); location.href = box.getAttribute('data-go'); return; } paint(); }, 1000);
 	box.querySelector('[data-stop]').addEventListener('click', function () { stopped = true; clearInterval(t); box.hidden = true; });
+}());
+</script>
+<?php endif; ?>
+<?php if ( 'maint' === $mcupr_kind && ! empty( $mcupr_ts ) && $mcupr_ts > time() ) : ?>
+<script>
+(function () {
+	var box = document.querySelector('[data-ts]'); if (!box) { return; }
+	var end = parseInt(box.getAttribute('data-ts'), 10) * 1000;
+	var set = function (u, v) { var e = box.querySelector('[data-u=' + u + ']'); if (e) { e.textContent = v; } };
+	var tick = function () {
+		var left = Math.max(0, Math.floor((end - Date.now()) / 60000));
+		set('d', Math.floor(left / 1440)); set('h', Math.floor((left % 1440) / 60)); set('m', left % 60);
+		if (left <= 0) { box.hidden = true; }
+	};
+	tick(); setInterval(tick, 30000);
 }());
 </script>
 <?php endif; ?>

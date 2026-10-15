@@ -752,6 +752,18 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     const res = await pg.goto(B + '/');
     ok(res.status() === 503 && /noindex/.test(res.headers()['x-robots-tag'] || '') && !!res.headers()['retry-after'], 'maintenance: visitors get 503, noindex and Retry-After');
     ok((await pg.locator('h1').innerText()) === 'ปิดปรับปรุงระบบ' && /2031|2574/.test(await pg.locator('.status-back').innerText()) && (await pg.locator('.site-header').count()) === 0, 'maintenance: the page shows the title, the expected-back time and none of the website');
+    await pg.goto(B + '/');
+    {
+      const mp = await pg.evaluate(() => ({ badge: !!document.querySelector('.status-badge'), badgeBg: getComputedStyle(document.querySelector('.status-badge')).backgroundColor, bar: document.querySelector('.status-bar') && document.querySelector('.status-bar').getAttribute('aria-hidden'), cd: document.querySelectorAll('.status-cd li').length, cdHidden: document.querySelector('.status-cd') && document.querySelector('.status-cd').getAttribute('aria-hidden'), cdDays: parseInt((document.querySelector('.status-cd [data-u=d]') || {}).textContent, 10), retry: (document.querySelector('.status-btn2') || {}).getAttribute && document.querySelector('.status-btn2').getAttribute('href'), logo: (() => { const r = document.querySelector('.status-logo').getBoundingClientRect(); return Math.round(r.width) === Math.round(r.height); })(), glass: getComputedStyle(document.querySelector('.status-card')).borderRadius }));
+      ok(mp.badge && mp.badgeBg === 'rgb(180, 83, 9)' && mp.bar === 'true' && mp.retry && mp.logo, 'maintenance: the orange "under maintenance" badge, the decorative progress bar, the round logo and the "try again" button');
+      ok(mp.cd === 3 && mp.cdHidden === 'true' && mp.cdDays > 365, 'maintenance: a countdown (days, hours, minutes) for the expected time, hidden from screen readers because the date is in the text (' + mp.cdDays + ' days)');
+      for (const [w, h] of [[1920, 1080], [768, 1024], [390, 844], [320, 568]]) {
+        await pg.setViewportSize({ width: w, height: h });
+        const g = await pg.evaluate(() => { const c = document.querySelector('.status-card').getBoundingClientRect(); return { hs: document.documentElement.scrollWidth > innerWidth + 1, inside: [...document.querySelectorAll('.status-card *')].every((e) => e.getBoundingClientRect().right <= innerWidth + 1), minT: Math.min(...[...document.querySelectorAll('.status-btn2, .status-chip')].map((e) => e.getBoundingClientRect().height)), cx: Math.round(c.left + c.width / 2 - innerWidth / 2) }; });
+        ok(!g.hs && g.inside && g.minT >= 40 && Math.abs(g.cx) <= 2, 'maintenance at ' + w + 'px: the card is centred, nothing runs past the edge, buttons are at least 40px');
+      }
+      await pg.setViewportSize({ width: 1366, height: 900 });
+    }
     const inner = await pg.goto(B + '/about/');
     ok(inner.status() === 503, 'maintenance: inner pages are closed too');
     const api = await pg.request.get(B + '/wp-json/wp/v2/posts');
