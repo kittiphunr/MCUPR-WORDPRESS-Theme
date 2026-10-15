@@ -316,6 +316,7 @@
 	.entry-content figcaption { @apply text-sm text-muted; }
 
 	/* Pagination (the_posts_pagination) */
+	.navigation.pagination { @apply mt-8 md:mt-10; }
 	.nav-links { @apply flex flex-wrap justify-center gap-2; }
 	.nav-links .page-numbers { @apply inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border-2 border-line px-3.5 text-fg no-underline hover:bg-surface; }
 	.nav-links .page-numbers.current { @apply border-primary bg-primary font-bold text-on-primary contrast:border-line; }
@@ -1077,7 +1078,19 @@ html[data-theme="dark"] .mform-err { background: #450a0a; color: #fecaca; }
 .fb-z svg { color: var(--primary); }
 .fb-zone > summary::before { content: ""; flex: none; width: .45rem; height: .45rem; border: solid var(--muted); border-width: 0 2px 2px 0; transform: rotate(-45deg); transition: transform .15s; }
 .fb-zone[open] > summary::before { transform: rotate(45deg); }
-.fb-zone > .fb-list { margin: .1rem 0 .4rem 1.1rem; padding-left: .5rem; border-left: 2px solid var(--tint); }
+/* a clear tree: a parent row, then its children hanging off a line with a tick each (like the site menu) */
+.fb-zone { border-radius: 1rem; }
+.fb-zone[open] { background: color-mix(in srgb, var(--tint) 45%, transparent); padding-bottom: .35rem; }
+.fb-zone > summary { min-height: 2.9rem; }
+.fb-zone > summary .fb-n { background: var(--bg); box-shadow: inset 0 0 0 1px var(--edge, var(--border)); color: var(--text-2); }
+.fb-zone > .fb-list { position: relative; margin: .1rem .5rem .35rem 1.55rem; padding: 0 0 0 .2rem; border-left: 2px solid color-mix(in srgb, var(--primary) 30%, var(--tint)); }
+.fb-zone > .fb-list > li { position: relative; padding-left: .9rem; }
+.fb-zone > .fb-list > li::before { content: ""; position: absolute; left: 0; top: 1.25rem; width: .75rem; border-top: 2px solid color-mix(in srgb, var(--primary) 30%, var(--tint)); }
+.fb-zone > .fb-list a { min-height: 2.4rem; padding-block: .3rem; font-size: .95rem; font-weight: 500; line-height: 1.35; }
+.fb-zone > .fb-list a svg { display: none; }
+.fb-zone > .fb-list a[aria-current] { font-weight: 700; }
+.fb-zone > .fb-list .fb-n { background: var(--bg); box-shadow: inset 0 0 0 1px var(--edge, var(--border)); }
+.fb-zone > .fb-list a[aria-current] .fb-n { box-shadow: none; }
 .fb-tags a svg { color: var(--accent, var(--primary)); }
 .fb-empty { margin: .8rem .7rem 0; color: var(--muted); }
 [data-fb-item][hidden] { display: none; }
