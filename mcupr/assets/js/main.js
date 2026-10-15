@@ -1186,6 +1186,16 @@
 		box.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { e.stopPropagation(); setUtil(false); btn.focus(); } });
 	});
 
+	/* ---- staff directory: live search over the cards ---- */
+	$$('[data-people-find]').forEach(function (inp) {
+		var grid = inp.closest('.people-find').nextElementSibling;
+		if (!grid) { return; }
+		inp.addEventListener('input', function () {
+			var q = inp.value.trim().toLowerCase();
+			$$('.person-card', grid).forEach(function (c) { c.hidden = !!q && (c.textContent || '').toLowerCase().indexOf(q) === -1; });
+		});
+	});
+
 	apply();
 	reveal();
 })();
