@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.29.3 =
+* More dropdown: back to the ordinary dropdown; long text wraps, no scroll bar
+
 = 1.29.2 =
 * Top menu: the More dropdown is a card grid with every group open and no scroll bars
 
