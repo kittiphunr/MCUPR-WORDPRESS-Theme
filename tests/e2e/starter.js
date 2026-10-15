@@ -878,6 +878,111 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await ac.close();
     }
   }
+  // ---------- the form builder: a visitor answers a sample form, the admin builds one and reads the answers
+  {
+    const fc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+    await fc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const fp = await fc.newPage();
+    await fp.goto(B + '/internal-form/');
+    ok((await fp.locator('.fbform fieldset').count()) === 3 && (await fp.locator('.fbform select').count()) === 1 && (await fp.locator('.fbform .fbf-h').count()) === 2 && (await fp.locator('.fbform .fb-rating .fb-o').count()) === 5, 'form builder page: headings, a drop-down, choices, a 1-5 rating');
+    await fp.waitForTimeout(3300);
+    await fp.click('.fbform button[type=submit]');
+    await fp.waitForURL(/fb=err/);
+    const links = await fp.locator('.fbform .mform-err a').count();
+    ok(links >= 4 && (await fp.locator('.fbform [aria-invalid=true]').count()) >= 1, 'form builder: sending empty shows an error list with links (' + links + ') and marks the fields');
+    await fp.click('.fbform .mform-err a >> nth=0');
+    await fp.addScriptTag({ content: axeSource() });
+    const fa = await fp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(fa.violations.length === 0, 'axe (form with errors): ' + (fa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    await fp.goto(B + '/internal-form/');
+    await fp.fill('.fbform input[name="f[name]"]', 'ทดสอบ ฟอร์ม');
+    await fp.selectOption('.fbform select', { index: 1 });
+    await fp.check('.fbform input[name="f[topics][]"] >> nth=0', { force: true });
+    await fp.check('.fbform input[name="f[rate]"][value="4"]', { force: true });
+    await fp.fill('.fbform textarea', 'ข้อเสนอแนะจากการทดสอบ');
+    await fp.check('.fbform input[name="f[ok]"]', { force: true });
+    await fp.waitForTimeout(3300);
+    await fp.click('.fbform button[type=submit]');
+    await fp.waitForURL(/fb=ok/);
+    ok((await fp.locator('.fbform .mform-ok').innerText()).includes('ขอบคุณ') && (await fp.locator('.fbform form').count()) === 0, 'form builder: a good answer is sent and thanked');
+    await fp.screenshot({ path: shot('form-ok.png') });
+    await fc.close();
+    for (const [w, h] of [[1920, 1080], [768, 1024], [390, 844], [320, 568]]) {
+      const sc = await br.newContext({ viewport: { width: w, height: h }, reducedMotion: 'reduce' });
+      await sc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+      const sp = await sc.newPage();
+      await sp.goto(B + '/internal-form/');
+      const g = await sp.evaluate(() => ({ hs: document.documentElement.scrollWidth > innerWidth + 1, small: [...document.querySelectorAll('.fbform input:not([type=hidden]):not(.mform-trap input), .fbform select, .fbform textarea, .fbform .fb-o')].filter((e) => e.getBoundingClientRect().width > 0 && (e.type === 'radio' || e.type === 'checkbox' ? false : e.getBoundingClientRect().height < 40)).length, out: [...document.querySelectorAll('.fbform *')].filter((e) => e.getBoundingClientRect().right > innerWidth + 1 && getComputedStyle(e).position !== 'absolute').length }));
+      ok(!g.hs && g.out === 0 && g.small === 0, 'form builder page at ' + w + 'px: no sideways scroll, nothing outside the screen, boxes at least 40px tall');
+      if (w === 390) { await sp.screenshot({ path: shot('form-390.png'), fullPage: true }); }
+      await sc.close();
+    }
+    // admin: read the answer, download the CSV, build a new form
+    const ac = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const ap = await ac.newPage();
+    await ap.goto(B + '/wp-login.php');
+    await ap.fill('#user_login', 'e2eadmin'); await ap.fill('#user_pass', 'e2e-Admin-pass-1'); await ap.click('#wp-submit');
+    await ap.waitForURL(/wp-admin/);
+    await ap.goto(B + '/wp-admin/edit.php?post_type=mcupr_fb');
+    const href = await ap.locator('a.row-title:has-text("ความต้องการพัฒนาบุคลากร")').first().getAttribute('href');
+    ok(!!href, 'form builder admin: the sample form is in the list');
+    await ap.goto(href);
+    await ap.waitForSelector('.mcupr-fb-card');
+    ok((await ap.locator('.mcupr-fb-card').count()) === 10 && (await ap.locator('#mcupr_fb_side code').innerText()).includes('[mcupr_form id='), 'form builder admin: the ten fields of the sample are shown, with the shortcode to copy');
+    await ap.goto(B + '/wp-admin/edit.php?post_type=mcupr_fe');
+    ok((await ap.locator('td.column-mcupr_fe_sum').first().innerText()).includes('ทดสอบ ฟอร์ม'), 'form builder admin: the answer is listed with a summary');
+    const csvUrl = await ap.locator('a:has-text("CSV")').first().count() ? await ap.locator('a:has-text("CSV")').first().getAttribute('href') : '';
+    await ap.goto(B + '/wp-admin/edit.php?post_type=mcupr_fe&mcupr_form=' + new URL(href, B).searchParams.get('post'));
+    const csvHref = await ap.locator('a:has-text("CSV")').first().getAttribute('href');
+    const csvRes = await ap.request.get(csvHref.startsWith('http') ? csvHref : B + '/wp-admin/' + csvHref.replace(/^\//, ''));
+    const csvText = await csvRes.text();
+    ok(csvRes.status() === 200 && /text\/csv/.test(csvRes.headers()['content-type'] || '') && csvText.includes('ทดสอบ ฟอร์ม') && csvText.includes('ชื่อ-สกุล'), 'form builder admin: the CSV downloads with the Thai answers');
+    // a new form through the builder
+    await ap.goto(B + '/wp-admin/post-new.php?post_type=mcupr_fb');
+    await ap.fill('#title', 'แบบฟอร์มสร้างจากหน้าจอ');
+    await ap.click('#mcupr-fb-builder button:has-text("Short text"), #mcupr-fb-builder button:has-text("ข้อความสั้น")');
+    await ap.fill('.mcupr-fb-card:nth-of-type(1) input[id$="-l"]', 'ชื่อผู้ติดต่อ');
+    await ap.check('.mcupr-fb-card:nth-of-type(1) input[id$="-r"]');
+    await ap.click('#mcupr-fb-builder button:has-text("Drop-down"), #mcupr-fb-builder button:has-text("รายการ")');
+    await ap.fill('.mcupr-fb-card:nth-of-type(2) input[id$="-l"]', 'เรื่องที่ติดต่อ');
+    await ap.fill('.mcupr-fb-card:nth-of-type(2) textarea', 'สอบถามทั่วไป\nแจ้งปัญหา');
+    await ap.click('.mcupr-fb-card:nth-of-type(2) button[aria-label*="(2)"] >> nth=0'); // move up
+    ok((await ap.locator('.mcupr-fb-card').count()) === 2, 'form builder admin: two fields added in the builder, one moved up');
+    await ap.click('#publish');
+    await ap.waitForURL(/post=\d+/, { waitUntil: 'domcontentloaded' });
+    await ap.waitForSelector('.mcupr-fb-card');
+    const labels = await ap.locator('.mcupr-fb-card input[id$="-l"]').evaluateAll((a) => a.map((x) => x.value));
+    ok(labels.join('|') === 'เรื่องที่ติดต่อ|ชื่อผู้ติดต่อ', 'form builder admin: published; the fields and their order were saved (' + labels.join(' | ') + ')');
+    await ap.screenshot({ path: shot('form-builder-admin.png'), fullPage: true });
+    // redirects, missing pages, searches
+    const vc = await br.newContext({ viewport: { width: 1366, height: 900 }, userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36' }); // a headless browser counts as a bot and is not logged
+    const vp = await vc.newPage();
+    await vp.goto(B + '/old-news-page-xyz/');
+    await vp.goto(B + '/?s=' + encodeURIComponent('ทุนการศึกษาทดสอบ'));
+    await ap.goto(B + '/wp-admin/admin.php?page=mcupr-insights');
+    const body0 = await ap.locator('#wpbody-content').innerText();
+    ok(body0.includes('/old-news-page-xyz') && body0.includes('ทุนการศึกษาทดสอบ'), 'insights: the missing page and the search were noted');
+    await ap.fill('input[name=from]', '/old-news-page-xyz/');
+    await ap.fill('input[name=to]', '/internal-form/');
+    await ap.click('button:has-text("เพิ่มการเปลี่ยนเส้นทาง"), button:has-text("Add redirect")');
+    await ap.waitForURL(/mcupr-insights/, { waitUntil: 'domcontentloaded' });
+    await vp.goto(B + '/old-news-page-xyz/');
+    ok(/\/internal-form\/$/.test(vp.url()), 'insights: the old address now leads to the new page');
+    await vp.goto(B + '/OLD-news-page-xyz?utm_source=x');
+    ok(/\/internal-form\/$/.test(vp.url()), 'insights: upper case and a query string do not matter');
+    await vp.goto(B + '/?s=' + encodeURIComponent('someone@example.org'));
+    await ap.goto(B + '/wp-admin/admin.php?page=mcupr-insights');
+    const body1 = await ap.locator('#wpbody-content').innerText();
+    ok(!body1.includes('someone@example.org') && /ใช้แล้ว|Used/.test(body1), 'insights: an e-mail address typed in the search is not kept; the redirect count is shown');
+    await vc.close();
+    for (const [w, h] of [[1920, 1080], [768, 1024], [390, 844], [320, 568]]) {
+      await ap.setViewportSize({ width: w, height: h });
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-insights');
+      ok(!(await ap.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)), 'insights admin at ' + w + 'px: no sideways scroll of the page');
+    }
+    await ap.setViewportSize({ width: 1366, height: 900 });
+    await ac.close();
+  }
   // ---------- polls / satisfaction survey
   {
     const pc = await br.newContext({ viewport: { width: 1366, height: 900 } });

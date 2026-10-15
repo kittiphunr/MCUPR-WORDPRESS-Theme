@@ -12,6 +12,8 @@ MCUPR_NO_FIXTURES=1 PORT="$PORT" SITE_DIR="$SITE_DIR" bash bootstrap.sh >/dev/nu
 git clone -q --depth 1 https://github.com/WordPress/wordpress-importer.git "$SITE_DIR/wp-content/plugins/wordpress-importer" || exit 1
 status=0
 php php/starter-import.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
+php php/starter-addons.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || status=1
+php php/formbuilder.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || true
 php php/events.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
 php php/content-tools.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
 php php/suggestions.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
@@ -28,8 +30,10 @@ php php/videos.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || tr
 php php/site-status.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || true
 php php/admin-menu.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || true
 php php/events-ics.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
+php php/insights.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php -S "localhost:${PORT}" -t "$SITE_DIR" >.server.log 2>&1 &
 pid=$!; trap 'kill $pid 2>/dev/null' EXIT
 for _ in $(seq 1 30); do curl -fs "$BASE_URL/" >/dev/null && break; sleep 0.5; done
 node e2e/starter.js || status=1
+node e2e/audit.js || status=1
 exit $status
