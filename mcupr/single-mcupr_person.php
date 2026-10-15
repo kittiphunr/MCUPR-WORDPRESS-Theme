@@ -33,6 +33,12 @@ while ( have_posts() ) :
 		$by_type[ isset( mcupr_person_work_types()[ $w['type'] ] ) ? $w['type'] : 'other' ][] = $w;
 	}
 	$contact = $mail || $tel || $off || $sch || $web;
+	$empty   = '' === $bio && ! $edu && ! $exp && ! $hons && ! $by_type;
+	$oid     = function_exists( 'mcupr_current_office' ) ? mcupr_current_office() : 0;
+	$mates   = array();
+	if ( $oid && function_exists( 'mcupr_office_query_args' ) ) {
+		$mates = get_posts( mcupr_office_query_args( $oid, 'mcupr_person', array( 'posts_per_page' => 4, 'post__not_in' => array( $id ), 'orderby' => 'menu_order title', 'order' => 'ASC' ) ) );
+	}
 	?>
 <article id="post-<?php the_ID(); ?>" <?php post_class( 'pb-4' ); ?>>
 	<header class="mcu-wheel bg-tint py-10"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
@@ -112,8 +118,22 @@ while ( have_posts() ) :
 						<?php endforeach; ?>
 					</section>
 				<?php endif; ?>
-				<?php $mcupr_back = get_page_by_path( 'executives' ); ?>
-				<p class="mt-8"><a class="ev-link" href="<?php echo esc_url( $mcupr_back ? get_permalink( $mcupr_back ) : home_url( '/' ) ); ?>">‹ <?php mcupr_e( 'st_back' ); ?></a></p>
+				<?php if ( $empty ) : ?>
+					<section class="profile-sec profile-none" aria-label="<?php echo esc_attr( mcupr_t( 'st_empty_t' ) ); ?>">
+						<h2><?php mcupr_e( 'st_empty_t' ); ?></h2>
+						<p><?php mcupr_e( 'st_empty' ); ?></p>
+					</section>
+				<?php endif; ?>
+				<?php if ( $mates ) : ?>
+					<section class="profile-sec" aria-labelledby="pf-mates"><h2 id="pf-mates"><?php echo esc_html( sprintf( mcupr_t( 'st_mates' ), get_the_title( $oid ) ) ); ?></h2>
+						<div class="profile-mates"><?php foreach ( $mates as $m ) { mcupr_person_card( $m ); } ?></div>
+					</section>
+				<?php endif; ?>
+				<?php
+				$mcupr_back = get_page_by_path( 'executives' );
+				$mcupr_href = $oid && function_exists( 'mcupr_office_url' ) ? mcupr_office_url( $oid, 'people' ) : ( $mcupr_back ? get_permalink( $mcupr_back ) : home_url( '/' ) );
+				?>
+				<p class="mt-8"><a class="ev-link" href="<?php echo esc_url( $mcupr_href ); ?>">‹ <?php mcupr_e( 'st_back' ); ?></a></p>
 			</div>
 		</div>
 	</div>
