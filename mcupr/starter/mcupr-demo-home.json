@@ -1,0 +1,352 @@
+{
+ "mcupr_demo": 1,
+ "note": "เดโม่หน้าหลัก: นำเข้าที่ MCUPR → นำเข้า/ส่งออกตั้งค่า → เดโม่หน้าหลัก (สร้างข่าว กิจกรรม วิดีโอ อัลบั้ม ภาพตัวอย่าง เมนูลิงก์ด่วน และตั้งค่าทุกส่วนของหน้าแรก โดยไม่ทับของเดิม)",
+ "categories": {
+  "press-releases": "ข่าวประชาสัมพันธ์",
+  "activities": "กิจกรรม",
+  "announcements": "ประกาศ"
+ },
+ "posts": [
+  {
+   "key": "news-1",
+   "cat": "press-releases",
+   "title": "พิธีเปิดปีการศึกษาใหม่ ต้อนรับนิสิตใหม่ทุกคณะ",
+   "excerpt": "ผู้บริหาร คณาจารย์ และนิสิตร่วมพิธีเปิดปีการศึกษา พร้อมกิจกรรมต้อนรับนิสิตใหม่",
+   "content": "ข้อความตัวอย่างสำหรับข่าวประชาสัมพันธ์ แก้ไขหรือลบได้ที่ เขียนข่าว → ข่าว\n\nข่าวนี้สร้างโดยไฟล์เดโม่หน้าหลัก เพื่อให้ส่วนข่าวเด่น (สไลด์) ข่าวล่าสุด และภาพหลักของหน้าแรกแสดงผลได้ครบ",
+   "tags": [
+    "ข่าวเด่น",
+    "นิสิตใหม่"
+   ],
+   "days_ago": 0
+  },
+  {
+   "key": "news-2",
+   "cat": "activities",
+   "title": "กิจกรรมจิตอาสาพัฒนาชุมชน ประจำภาคเรียนที่ 1",
+   "excerpt": "นิสิตและบุคลากรร่วมกันพัฒนาชุมชนรอบมหาวิทยาลัย",
+   "content": "ข้อความตัวอย่างสำหรับข่าวกิจกรรม ใส่รายละเอียดกิจกรรม วันเวลา สถานที่ และภาพประกอบ",
+   "tags": [
+    "กิจกรรม",
+    "จิตอาสา"
+   ],
+   "days_ago": 1
+  },
+  {
+   "key": "news-3",
+   "cat": "announcements",
+   "title": "ประกาศรับสมัครนักศึกษาใหม่ ประจำปีการศึกษาถัดไป",
+   "excerpt": "เปิดรับสมัครทุกระดับการศึกษา ตรวจสอบกำหนดการและเอกสารที่ต้องใช้",
+   "content": "ข้อความตัวอย่างสำหรับประกาศ ระบุกำหนดการ คุณสมบัติ และช่องทางการสมัคร",
+   "tags": [
+    "ประกาศ",
+    "รับสมัคร"
+   ],
+   "days_ago": 2
+  },
+  {
+   "key": "news-4",
+   "cat": "press-releases",
+   "title": "ลงนามความร่วมมือทางวิชาการกับหน่วยงานพันธมิตร",
+   "excerpt": "การลงนามบันทึกข้อตกลงเพื่อพัฒนาหลักสูตรและงานวิจัยร่วมกัน",
+   "content": "ข้อความตัวอย่างสำหรับข่าวความร่วมมือ",
+   "tags": [
+    "ความร่วมมือ"
+   ],
+   "days_ago": 4
+  },
+  {
+   "key": "news-5",
+   "cat": "activities",
+   "title": "สัมมนาวิชาการประจำปี หัวข้อ AI กับการเรียนการสอน",
+   "excerpt": "การสัมมนาเพื่อแลกเปลี่ยนแนวปฏิบัติการใช้ปัญญาประดิษฐ์ในการเรียนการสอน",
+   "content": "ข้อความตัวอย่างสำหรับข่าวสัมมนา",
+   "tags": [
+    "สัมมนา",
+    "AI"
+   ],
+   "days_ago": 6
+  },
+  {
+   "key": "news-6",
+   "cat": "announcements",
+   "title": "ประกาศปฏิทินการศึกษาและกำหนดการสอบ",
+   "excerpt": "ตรวจสอบวันเปิด-ปิดภาคเรียน วันสอบ และวันหยุดสำคัญ",
+   "content": "ข้อความตัวอย่างสำหรับประกาศปฏิทินการศึกษา",
+   "tags": [
+    "ประกาศ"
+   ],
+   "days_ago": 8
+  },
+  {
+   "key": "news-7",
+   "cat": "press-releases",
+   "title": "ผลงานวิจัยของคณาจารย์ได้รับรางวัลระดับชาติ",
+   "excerpt": "ขอแสดงความยินดีกับคณาจารย์ที่ได้รับรางวัลผลงานวิจัยดีเด่น",
+   "content": "ข้อความตัวอย่างสำหรับข่าวรางวัล",
+   "tags": [
+    "รางวัล",
+    "วิจัย"
+   ],
+   "days_ago": 10
+  },
+  {
+   "key": "news-8",
+   "cat": "activities",
+   "title": "โครงการอบรมเชิงปฏิบัติการพัฒนาทักษะบุคลากร",
+   "excerpt": "การอบรมเพื่อเพิ่มทักษะดิจิทัลและการสื่อสารสำหรับบุคลากร",
+   "content": "ข้อความตัวอย่างสำหรับข่าวอบรม",
+   "tags": [
+    "อบรม"
+   ],
+   "days_ago": 12
+  },
+  {
+   "key": "news-9",
+   "cat": "announcements",
+   "title": "ประกาศวันหยุดและการให้บริการช่วงเทศกาล",
+   "excerpt": "แจ้งการปิดทำการและช่องทางติดต่อฉุกเฉิน",
+   "content": "ข้อความตัวอย่างสำหรับประกาศวันหยุด",
+   "tags": [
+    "ประกาศ"
+   ],
+   "days_ago": 14
+  },
+  {
+   "key": "news-10",
+   "cat": "press-releases",
+   "title": "เปิดให้บริการห้องสมุดดิจิทัลและฐานข้อมูลออนไลน์",
+   "excerpt": "นิสิตและบุคลากรเข้าใช้ฐานข้อมูลวิชาการได้ตลอด 24 ชั่วโมง",
+   "content": "ข้อความตัวอย่างสำหรับข่าวบริการ",
+   "tags": [
+    "ห้องสมุด"
+   ],
+   "days_ago": 16
+  }
+ ],
+ "events": [
+  {
+   "key": "event-1",
+   "title": "พิธีไหว้ครูและปฐมนิเทศนิสิตใหม่ (ตัวอย่าง)",
+   "in_days": 3,
+   "from": "09:00",
+   "to": "12:00",
+   "allday": 0,
+   "place": "หอประชุมใหญ่",
+   "content": "กิจกรรมตัวอย่างสำหรับส่วนกิจกรรมที่กำลังจะมาถึงของหน้าแรก"
+  },
+  {
+   "key": "event-2",
+   "title": "งานเสวนาวิชาการ: อนาคตของการเรียนรู้ (ตัวอย่าง)",
+   "in_days": 9,
+   "from": "13:30",
+   "to": "16:00",
+   "allday": 0,
+   "place": "ห้องประชุม 1",
+   "content": "กิจกรรมตัวอย่าง แก้ไขวันเวลาและสถานที่ได้"
+  },
+  {
+   "key": "event-3",
+   "title": "วันเปิดบ้าน Open House (ตัวอย่าง)",
+   "in_days": 20,
+   "from": "",
+   "to": "",
+   "allday": 1,
+   "place": "อาคารเรียนรวม",
+   "content": "กิจกรรมตัวอย่างแบบตลอดวัน"
+  }
+ ],
+ "video": {
+  "key": "video-1",
+  "title": "วิดีโอแนะนำมหาวิทยาลัย (ตัวอย่าง)",
+  "url": "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+  "content": "วิดีโอตัวอย่างสำหรับส่วนวิดีโอของหน้าแรก เปลี่ยนเป็นลิงก์วิดีโอของหน่วยงานที่ MCUPR → วิดีโอ"
+ },
+ "albums": [
+  {
+   "key": "album-1",
+   "title": "กิจกรรมต้อนรับนิสิตใหม่ (ตัวอย่าง)",
+   "count": 4
+  },
+  {
+   "key": "album-2",
+   "title": "งานสัมมนาวิชาการ (ตัวอย่าง)",
+   "count": 4
+  },
+  {
+   "key": "album-3",
+   "title": "จิตอาสาพัฒนาชุมชน (ตัวอย่าง)",
+   "count": 3
+  },
+  {
+   "key": "album-4",
+   "title": "บรรยากาศภายในมหาวิทยาลัย (ตัวอย่าง)",
+   "count": 4
+  }
+ ],
+ "menu": {
+  "name": "ลิงก์ด่วน (เดโม่)",
+  "items": [
+   [
+    "admissions",
+    "รับสมัคร",
+    "edit"
+   ],
+   [
+    "programs",
+    "หลักสูตร",
+    "book"
+   ],
+   [
+    "scholarships",
+    "ทุนการศึกษา",
+    "money"
+   ],
+   [
+    "calendar",
+    "ปฏิทินการศึกษา",
+    "calendar"
+   ],
+   [
+    "library",
+    "ห้องสมุด",
+    "folder"
+   ],
+   [
+    "student-services",
+    "บริการนักศึกษา",
+    "users"
+   ],
+   [
+    "contact",
+    "ติดต่อเรา",
+    "mail"
+   ]
+  ]
+ },
+ "home_cats": [
+  "press-releases",
+  "activities",
+  "announcements"
+ ],
+ "theme_mods": {
+  "mcupr_hero_eyebrow_th": "ยินดีต้อนรับ",
+  "mcupr_hero_eyebrow_en": "Welcome",
+  "mcupr_hero_l1_th": "เว็บไซต์ตัวอย่างหน้าแรก",
+  "mcupr_hero_l1_en": "Home page demo",
+  "mcupr_hero_l2_th": "แก้ไขข้อความนี้ได้ที่ ปรับแต่ง → MCUPR: หน้าแรก",
+  "mcupr_hero_l2_en": "Edit this text in Customize → MCUPR: Home",
+  "mcupr_hero_sub_th": "ทุกส่วนของหน้านี้เป็นข้อมูลตัวอย่าง นำไปแก้ไขเป็นข้อมูลจริงได้ทันที",
+  "mcupr_hero_sub_en": "Every part of this page is sample data: edit it into your own",
+  "mcupr_hero_btn1_th": "รับสมัครนักศึกษา",
+  "mcupr_hero_btn1_en": "Admissions",
+  "mcupr_hero_btn1_url": "page:admissions",
+  "mcupr_hero_btn2_th": "หลักสูตรที่เปิดสอน",
+  "mcupr_hero_btn2_en": "Programmes",
+  "mcupr_hero_btn2_url": "page:programs",
+  "mcupr_about_th": "ข้อความแนะนำหน่วยงานสั้นๆ 2–3 ประโยค: สถานะ ปีที่ก่อตั้ง และจุดเด่น ตัวอย่างนี้แก้ไขได้ที่ ปรับแต่ง → องค์กรและภาษา",
+  "mcupr_about_en": "A short introduction of the organisation in two or three sentences: status, year founded and strengths.",
+  "mcupr_address_th": "123 ถนนตัวอย่าง ตำบลตัวอย่าง อำเภอเมือง จังหวัดตัวอย่าง 10000",
+  "mcupr_address_en": "123 Example Road, Example District, Example Province 10000",
+  "mcupr_org_tel": "02-000-0000",
+  "mcupr_org_email": "info@example.org",
+  "mcupr_cta_title_th": "สนใจเรียนต่อกับเรา? สมัครได้วันนี้",
+  "mcupr_cta_title_en": "Interested in studying with us? Apply today",
+  "mcupr_cta_url": "page:admissions",
+  "mcupr_home_slider_on": 1,
+  "mcupr_home_about_on": 1,
+  "mcupr_home_events_on": 1,
+  "mcupr_home_media_on": 1,
+  "mcupr_home_cats_on": 1,
+  "mcupr_home_visit_on": 1,
+  "mcupr_home_numbers_on": 1,
+  "mcupr_home_weather_on": 1,
+  "mcupr_home_audience_on": 1,
+  "mcupr_home_figures_on": 1,
+  "mcupr_home_services_on": 1,
+  "mcupr_home_links_on": 1,
+  "mcupr_home_aboutblock_on": 1,
+  "mcupr_wx_lat": "13.75",
+  "mcupr_wx_lon": "100.50",
+  "mcupr_wx_place": "ตัวอย่าง: กรุงเทพฯ",
+  "mcupr_aud_1_icon": "edit",
+  "mcupr_aud_1_eyebrow": "ผู้สนใจสมัคร",
+  "mcupr_aud_1_title": "รับสมัครนิสิต/นักศึกษา",
+  "mcupr_aud_1_desc": "กำหนดการ หลักสูตร และระบบรับสมัคร",
+  "mcupr_aud_1_url": "page:admissions",
+  "mcupr_aud_2_icon": "user",
+  "mcupr_aud_2_eyebrow": "นิสิตปัจจุบัน",
+  "mcupr_aud_2_title": "พอร์ทัลนิสิต",
+  "mcupr_aud_2_desc": "เข้าสู่ระบบ ปฏิทิน และเอกสารดาวน์โหลด",
+  "mcupr_aud_2_url": "page:student-portal",
+  "mcupr_aud_3_icon": "book",
+  "mcupr_aud_3_eyebrow": "การศึกษา",
+  "mcupr_aud_3_title": "หลักสูตรที่เปิดสอน",
+  "mcupr_aud_3_desc": "หลักสูตรที่เปิดสอนและแผนการเรียน",
+  "mcupr_aud_3_url": "page:programs",
+  "mcupr_fig_1_num": "{news}",
+  "mcupr_fig_1_label": "ข่าว/ประกาศ",
+  "mcupr_fig_2_num": "{staff}",
+  "mcupr_fig_2_label": "บุคลากร",
+  "mcupr_fig_3_num": "{units}",
+  "mcupr_fig_3_label": "คณะ/หน่วยงาน",
+  "mcupr_fig_4_num": "{events}",
+  "mcupr_fig_4_label": "กิจกรรม",
+  "mcupr_svc_1_icon": "book",
+  "mcupr_svc_1_title": "ระบบทะเบียน",
+  "mcupr_svc_1_url": "page:registrar",
+  "mcupr_svc_2_icon": "laptop",
+  "mcupr_svc_2_title": "e-Learning",
+  "mcupr_svc_2_url": "page:eservice",
+  "mcupr_svc_3_icon": "mail",
+  "mcupr_svc_3_title": "อีเมล",
+  "mcupr_svc_3_url": "page:eservice",
+  "mcupr_svc_4_icon": "calendar",
+  "mcupr_svc_4_title": "ปฏิทินการศึกษา",
+  "mcupr_svc_4_url": "page:calendar",
+  "mcupr_lnk_1_icon": "book",
+  "mcupr_lnk_1_title": "หลักสูตรที่เปิดสอน",
+  "mcupr_lnk_1_url": "page:programs",
+  "mcupr_lnk_2_icon": "rows",
+  "mcupr_lnk_2_title": "แผนการเรียน",
+  "mcupr_lnk_2_url": "page:study-plan",
+  "mcupr_lnk_3_icon": "calendar",
+  "mcupr_lnk_3_title": "ปฏิทินการศึกษา",
+  "mcupr_lnk_3_url": "page:calendar",
+  "mcupr_lnk_4_icon": "file",
+  "mcupr_lnk_4_title": "ระเบียบ/ข้อบังคับ",
+  "mcupr_lnk_4_url": "page:laws",
+  "mcupr_abt_1_icon": "flag",
+  "mcupr_abt_1_title": "วิสัยทัศน์ / พันธกิจ",
+  "mcupr_abt_1_desc": "ทิศทางและเป้าหมายของหน่วยงาน",
+  "mcupr_abt_1_url": "page:vision",
+  "mcupr_abt_2_icon": "grid",
+  "mcupr_abt_2_title": "โครงสร้างการบริหาร",
+  "mcupr_abt_2_desc": "หน่วยงานและคณะภายใน",
+  "mcupr_abt_2_url": "page:structure",
+  "mcupr_abt_3_icon": "heart",
+  "mcupr_abt_3_title": "สนับสนุนหน่วยงาน",
+  "mcupr_abt_3_desc": "สนับสนุนการศึกษาและกิจกรรม",
+  "mcupr_abt_3_url": "page:donate",
+  "mcupr_abt_4_icon": "award",
+  "mcupr_abt_4_title": "ประกันคุณภาพ",
+  "mcupr_abt_4_desc": "การประกันคุณภาพการศึกษา",
+  "mcupr_abt_4_url": "page:quality-assurance",
+  "mcupr_svc_title": "บริการและระบบสารสนเทศ",
+  "mcupr_svc_sub": "แตะรายการเพื่อเข้าใช้ระบบ — ลิงก์ภายนอกจะเปิดแท็บใหม่",
+  "mcupr_svc_more": "ระบบสารสนเทศทั้งหมด",
+  "mcupr_svc_more_url": "page:eservice",
+  "mcupr_lnk_title": "การศึกษา",
+  "mcupr_lnk_more": "ดูทั้งหมด",
+  "mcupr_lnk_more_url": "page:academics",
+  "mcupr_abt_title": "เกี่ยวกับหน่วยงาน",
+  "mcupr_abt_text": "ใส่ข้อความแนะนำหน่วยงานสั้นๆ ที่นี่",
+  "mcupr_abt_button": "ดูประวัติและวิสัยทัศน์",
+  "mcupr_abt_url": "page:vision",
+  "mcupr_num_teachers": "1,250",
+  "mcupr_num_faculties": "12",
+  "mcupr_num_bachelor": "18,000",
+  "mcupr_num_master": "3,200",
+  "mcupr_num_doctoral": "650",
+  "mcupr_num_asof": "ตัวอย่าง — แก้ไขตัวเลขก่อนเผยแพร่"
+ }
+}
