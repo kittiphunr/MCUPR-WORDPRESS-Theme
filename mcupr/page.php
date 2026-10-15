@@ -18,6 +18,9 @@ get_header();
 		<div class="wrap">
 			<?php mcupr_breadcrumb( false ); ?>
 			<h1 class="mcu-title mt-4 text-3xl font-bold leading-tight min-[900px]:text-4xl"><?php the_title(); ?></h1>
+			<?php if ( has_excerpt() ) : ?>
+				<div class="band-lead"><?php echo wp_kses_post( wpautop( get_the_excerpt() ) ); ?></div>
+			<?php endif; ?>
 		</div>
 	</header>
 

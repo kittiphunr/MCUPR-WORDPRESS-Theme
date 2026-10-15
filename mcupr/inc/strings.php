@@ -176,6 +176,7 @@ return array(
 	'reset_q_txt'   => array( 'ขนาดอักษร โหมดมืด/สว่าง และตัวเลือกการเข้าถึงจะกลับเป็นค่าเริ่มต้น', 'Text size, dark/light mode and accessibility options will return to their defaults.', '字体大小、深色/浅色模式和无障碍选项将恢复默认值。', '文字サイズ、ダーク/ライトモード、アクセシビリティ設定が初期値に戻ります。' ),
 	'search_empty'  => array( 'กรุณาพิมพ์คำที่ต้องการค้นหา', 'Please enter a search term.', '请输入搜索关键词。', '検索キーワードを入力してください。' ),
 	'back_top'      => array( 'กลับขึ้นด้านบน', 'Back to top', '返回顶部', 'ページの先頭へ' ),
+	'back_top_hold' => array( 'กดค้างเพื่อเปิดลิงก์ด่วน', 'Press and hold for quick links', '长按打开快速链接', '長押しでクイックリンク' ),
 	'a11y_helper'   => array( 'ตัวช่วยการเข้าถึง', 'Accessibility helper', '无障碍助手', 'アクセシビリティ補助' ),
 	'high_contrast' => array( 'โหมดสีตัดกันสูง', 'High-contrast mode', '高对比度模式', 'ハイコントラストモード' ),
 	'on'            => array( 'เปิด', 'On', '开', 'オン' ),
