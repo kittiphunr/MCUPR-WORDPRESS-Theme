@@ -924,13 +924,18 @@
 			o.appendChild(tip);
 		}
 		tip.style.setProperty('--tx', '0px');
-		var box = o.closest('[role="dialog"], dialog') || document.documentElement;
+		// the nearest ancestor that clips (the dialog's scrolling body), not the dialog itself
+		var box = o.parentElement;
+		while (box && box !== document.body && !/(auto|hidden|scroll|clip)/.test(getComputedStyle(box).overflowX)) { box = box.parentElement; }
+		if (!box || box === document.body) { box = document.documentElement; }
 		var b = box.getBoundingClientRect();
+		tip.classList.remove('is-below');
 		var r = tip.getBoundingClientRect();
 		var lo = Math.max(b.left, 0) + 8, hi = Math.min(b.right, window.innerWidth) - 8;
 		var dx = 0;
 		if (r.left < lo) { dx = lo - r.left; } else if (r.right > hi) { dx = hi - r.right; }
 		tip.style.setProperty('--tx', Math.round(dx) + 'px');
+		if (r.top < b.top + 2) { tip.classList.add('is-below'); }
 	}
 	['pointerover', 'focusin'].forEach(function (n) {
 		document.addEventListener(n, function (e) {

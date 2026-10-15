@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.16.2 =
+* Fix: eye icon in the view cursor, tooltips clipped by the dialog body
+
 = 1.16.1 =
 * UI polish: tooltips, page lead, back-to-top quick links, eye cursor
 
