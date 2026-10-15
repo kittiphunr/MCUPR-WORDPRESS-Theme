@@ -490,7 +490,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(fa.violations.length === 0, 'axe (forum topic): ' + (fa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
     await fp.screenshot({ path: shot('forum-topic.png'), fullPage: true });
     // reply as a visitor: held for a moderator
-    await fp.waitForTimeout(3200);
+    await fp.waitForTimeout(4500);
     await fp.fill('#fm-reply-name', 'ผู้ใช้ทดสอบ'); await fp.fill('#fm-reply-email', 'visitor@example.org'); await fp.fill('#fm-reply-msg', 'ขอบคุณสำหรับคำตอบครับ จะลองทำตามดู');
     await fp.check('#fm-reply input[name=consent]');
     await fp.click('#fm-reply button[type=submit]');
@@ -510,7 +510,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await fp.locator('#fm-reply').count()) === 0 && (await fp.locator('.forum-locked').count()) === 1, 'locked: no reply form, a note instead');
     // a new topic
     await fp.goto(B + '/forum/');
-    await fp.waitForTimeout(3200);
+    await fp.waitForTimeout(4500);
     await fp.fill('#fm-topic-name', 'ผู้ใช้ใหม่'); await fp.fill('#fm-topic-email', 'new@example.org'); await fp.fill('#fm-title', 'ทดสอบตั้งหัวข้อใหม่จากเบราว์เซอร์'); await fp.fill('#fm-topic-msg', 'ข้อความทดสอบการตั้งหัวข้อใหม่ ความยาวเพียงพอ');
     await fp.check('#fm-topic input[name=consent]');
     await fp.click('#fm-topic button[type=submit]');
@@ -744,16 +744,33 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await m1.close();
     execFileSync('php', [require('path').join(__dirname, '..', 'php', 'set-status.php'), siteDir, 'reset']);
   }
+  // ---------- sidebar menu: no name is cut off at the edge, however deep
+  {
+    const sc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+    await sc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const sp = await sc.newPage();
+    await sp.goto(B + '/');
+    await sp.evaluate(() => document.documentElement.setAttribute('data-menu', 'side'));
+    await sp.waitForTimeout(300);
+    for (let round = 0; round < 3; round++) {
+      await sp.evaluate(() => document.querySelectorAll('#site-nav .submenu-toggle[aria-expanded="false"]').forEach((b) => b.click()));
+      await sp.waitForTimeout(150);
+    }
+    const cut = await sp.evaluate(() => { const nav = document.querySelector('#site-nav').getBoundingClientRect(); const bad = []; document.querySelectorAll('#site-nav .menu a').forEach((a) => { const r = a.getBoundingClientRect(); if (r.width > 0 && (r.right > nav.right + 1 || a.scrollWidth > a.clientWidth + 1)) { bad.push(a.textContent.trim().slice(0, 30)); } }); return [document.querySelectorAll('#site-nav .menu a').length, bad]; });
+    ok(cut[0] > 20 && cut[1].length === 0, 'sidebar: every menu name (' + cut[0] + ' links, all sub-menus open) fits inside the sidebar' + (cut[1].length ? ' – cut: ' + cut[1].join(' | ') : ''));
+    await sp.screenshot({ path: shot('sidebar-open.png'), clip: { x: 0, y: 0, width: 420, height: 900 } });
+    await sc.close();
+  }
   // ---------- polls / satisfaction survey
   {
     const pc = await br.newContext({ viewport: { width: 1366, height: 900 } });
     const pq = await pc.newPage();
     await pq.goto(B + '/fx-poll/');
     ok((await pq.locator('.poll-o').count()) === 5 && (await pq.locator('.poll-res').count()) === 0, 'poll: five satisfaction levels, no results before voting');
-    await pq.waitForTimeout(3200);
+    await pq.waitForTimeout(4500);
     await pq.click('.poll-form button');
     ok(/pv=none/.test(pq.url()) && (await pq.locator('.mform-err').count()) === 1, 'poll: sending without a choice says so');
-    await pq.waitForTimeout(3200);
+    await pq.waitForTimeout(4500);
     await pq.locator('.poll-o').nth(1).click();
     await pq.click('.poll-form button');
     await pq.waitForSelector('.poll-res');
