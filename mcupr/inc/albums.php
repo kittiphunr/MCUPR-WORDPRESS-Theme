@@ -49,8 +49,11 @@ add_filter(
 /** The picture ids of an album, in order (only ones that still exist as images). */
 function mcupr_album_images( $id ) {
 	$ids = get_post_meta( $id, '_mcupr_album_images', true );
-	$ids = is_array( $ids ) ? $ids : array();
-	return array_values( array_filter( array_map( 'absint', $ids ), static function ( $a ) { return $a && wp_attachment_is_image( $a ); } ) );
+	$ids = is_array( $ids ) ? array_map( 'absint', $ids ) : array();
+	if ( count( $ids ) > 1 ) {
+		_prime_post_caches( $ids, false, false ); // one query for all the pictures, not one each
+	}
+	return array_values( array_filter( $ids, static function ( $a ) { return $a && wp_attachment_is_image( $a ); } ) );
 }
 
 /** The cover: the featured image, else the first picture. */
