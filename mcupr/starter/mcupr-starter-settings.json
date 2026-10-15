@@ -75,7 +75,13 @@
   "mcupr_abt_title": "เกี่ยวกับหน่วยงาน",
   "mcupr_abt_text": "ใส่ข้อความแนะนำหน่วยงานสั้นๆ ที่นี่",
   "mcupr_abt_button": "ดูประวัติและวิสัยทัศน์",
-  "mcupr_abt_url": "page:vision"
+  "mcupr_abt_url": "page:vision",
+  "mcupr_num_teachers": "1,250",
+  "mcupr_num_faculties": "12",
+  "mcupr_num_bachelor": "18,000",
+  "mcupr_num_master": "3,200",
+  "mcupr_num_doctoral": "650",
+  "mcupr_num_asof": "ตัวอย่าง — แก้ไขตัวเลขก่อนเผยแพร่"
  },
  "redirects": []
 }
