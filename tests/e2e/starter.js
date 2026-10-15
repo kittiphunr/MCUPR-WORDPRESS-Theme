@@ -345,6 +345,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await op.goto(B + '/');
     await op.click('#a11y-toggle'); await op.waitForSelector('.swal2-popup');
     await op.click('.swal2-popup summary');
+    await op.waitForTimeout(300);
     const tiles = await op.$$eval('.opt-grid .opt', (a) => a.map((l) => ({ svg: !!l.querySelector('.opt-b svg'), name: l.getAttribute('data-tip'), sr: (l.querySelector('.sr-only:not(input)') || {}).textContent, w: l.querySelector('.opt-b').getBoundingClientRect().width, h: l.querySelector('.opt-b').getBoundingClientRect().height })));
     ok(tiles.length === 8 && tiles.every((t) => t.svg && t.name && t.sr === t.name && t.w >= 44 && Math.abs(t.w - t.h) <= 1), 'options: 8 square icon tiles (>= 44px) with an icon, a tooltip and a screen-reader name');
     ok((await op.locator('.opt-grid label:has-text("โหมดสีเทา")').count()) === 1 && (await op.locator('.opt-grid .opt-b').first().innerText()).trim() !== undefined, 'options: no visible text labels, only icons');
@@ -521,6 +522,30 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       ok(await fq.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'forum on a phone: no horizontal scroll ' + u);
     }
     await fm.close();
+  }
+  // ---------- FAQ accordion
+  {
+    const qc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    await qc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const qp = await qc.newPage();
+    await qp.goto(B + '/faq/');
+    ok((await qp.locator('.faq-item').count()) === 8 && (await qp.locator('.faq-h').count()) === 3 && (await qp.locator('.faq-item[open]').count()) === 0, 'faq: 8 questions in 3 groups, all closed');
+    await qp.locator('.faq-item > summary').first().click();
+    ok((await qp.locator('.faq-item[open]').count()) === 1 && (await qp.locator('.faq-item[open] .faq-a').first().isVisible()), 'faq: clicking a question opens its answer');
+    await qp.keyboard.press('Tab'); await qp.focus('.faq-item:nth-of-type(2) > summary'); await qp.keyboard.press('Enter');
+    ok((await qp.locator('.faq-item[open]').count()) === 2, 'faq: opens from the keyboard');
+    await qp.fill('[data-faq-find]', 'ทุน');
+    const shown = await qp.locator('.faq-item:not([hidden])').count();
+    ok(shown >= 1 && shown < 8 && (await qp.locator('.faq-item:not([hidden])[open]').count()) === shown, 'faq: the search keeps matching questions and opens them (' + shown + ')');
+    await qp.fill('[data-faq-find]', 'zzzzzzz');
+    ok((await qp.locator('.faq-none').isVisible()) && (await qp.locator('.faq-item:not([hidden])').count()) === 0, 'faq: a search with no match says so');
+    await qp.fill('[data-faq-find]', '');
+    ok((await qp.locator('.faq-item:not([hidden])').count()) === 8 && !(await qp.locator('.faq-none').isVisible()), 'faq: clearing the search shows everything');
+    await qp.addScriptTag({ content: axeSource() });
+    const qa = await qp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(qa.violations.length === 0, 'axe (FAQ): ' + (qa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    await qp.screenshot({ path: shot('faq.png'), fullPage: true });
+    await qc.close();
   }
   // works & awards (own categories), administration chart, attachments, views
   await p.goto(B + '/works/');
