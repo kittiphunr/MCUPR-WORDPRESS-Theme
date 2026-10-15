@@ -36,6 +36,21 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok(caps.length === 0, 'header: the capsules (logo, menu, tools) are fully round at both ends ' + caps.join(' | '));
   const tools = await p.evaluate(() => { const b = document.querySelector('#masthead #search-toggle'); if (!b || innerWidth < 1100) { return 'skipped'; } const st = getComputedStyle(b); const g = b.parentElement; return parseFloat(st.width) <= 42 && parseFloat(st.borderTopWidth) === 0 && parseFloat(st.borderTopLeftRadius) >= 19 && parseFloat(getComputedStyle(g).borderLeftWidth) >= 1 ? 'ok' : 'search button ' + st.width + ' border ' + st.borderTopWidth; });
   ok(tools === 'ok' || tools === 'skipped', 'header: the tools capsule is compact: round 40 px buttons without boxes, a thin divider ' + tools);
+  {
+    const tp = await ctx.newPage();
+    await tp.goto(B + '/');
+    await tp.click('#a11y-toggle');
+    await tp.waitForSelector('[data-contrast-switch]');
+    const sw = [];
+    for (const mode of ['wb', 'yb', 'by']) {
+      for (const on of ['false', 'true']) {
+        sw.push(await tp.evaluate(([m, o]) => { document.documentElement.setAttribute('data-contrast', m); const b = document.querySelector('[data-contrast-switch]'); b.setAttribute('aria-checked', o); const k = b.firstElementChild; const sb = getComputedStyle(b); const sk = getComputedStyle(k); const page = getComputedStyle(document.querySelector('.swal2-popup') || document.body).backgroundColor; const lum = (c) => { const v = c.match(/\d+/g).slice(0, 3).map((x) => { x = x / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; }; const ratio = (a, c) => { const l1 = lum(a), l2 = lum(c); return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05); }; return { m, o, track: ratio(sb.borderTopColor, page) >= 4.5, knob: ratio(sk.backgroundColor, sb.backgroundColor) >= 4.5 }; }, [mode, on]));
+      }
+    }
+    const badsw = sw.filter((x) => !x.track || !x.knob).map((x) => x.m + '/' + x.o + (x.track ? '' : ' track') + (x.knob ? '' : ' knob'));
+    ok(badsw.length === 0, 'high contrast: the on/off switch shows its outline and its knob at 4.5:1 in all three modes, on and off ' + badsw.join(', '));
+    await tp.close();
+  }
   const bar = await p.$$eval('.sb-cap .menu > li:not(.menu-more), .sb-cap .menu-more > .sub-menu > li', (l) => l.map((x) => x.textContent.trim().replace(/\s+/g, ' ')));
   ok(bar.length >= 6, 'home: main menu shows ' + bar.length + ' items');
   ok(bar.some((t) => /เกี่ยวกับ/.test(t)) && bar.some((t) => /ธรรมาภิบาล/.test(t)), 'home: Thai labels in the main menu');
