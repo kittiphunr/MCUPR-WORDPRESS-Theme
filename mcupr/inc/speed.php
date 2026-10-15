@@ -220,7 +220,7 @@ function mcupr_speed_page() {
 	$cls   = $score >= 90 ? '#1a7f37' : ( $score >= 60 ? '#9a6700' : '#b32d2e' );
 	echo '<div class="card" style="max-width:none;margin-top:1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap"><div style="font-size:2.6rem;font-weight:800;line-height:1;color:' . esc_attr( $cls ) . '">' . (int) $score . '<small style="font-size:1rem;color:#50575e">/100</small></div><div><strong>' . esc_html__( 'Inside check score', 'mcupr' ) . '</strong><br><span class="description">' . esc_html( sprintf( /* translators: %s: date */ __( 'Checked %s. This is not the Google score; it counts the items below.', 'mcupr' ), wp_date( 'j M Y H:i', $res['time'] ) ) ) . '</span></div></div>';
 	$labels = array( 'ok' => array( '✓', __( 'Good', 'mcupr' ), '#1a7f37' ), 'warn' => array( '!', __( 'Could be better', 'mcupr' ), '#9a6700' ), 'bad' => array( '✕', __( 'Fix this', 'mcupr' ), '#b32d2e' ), 'info' => array( 'i', __( 'For your information', 'mcupr' ), '#50575e' ) );
-	echo '<table class="widefat striped" style="margin-top:1rem"><thead><tr><th>' . esc_html__( 'Check', 'mcupr' ) . '</th><th>' . esc_html__( 'Result', 'mcupr' ) . '</th><th>' . esc_html__( 'What to do', 'mcupr' ) . '</th></tr></thead><tbody>';
+	echo '<div style="overflow-x:auto;margin-top:1rem"><table class="widefat striped" style="word-break:break-word"><thead><tr><th>' . esc_html__( 'Check', 'mcupr' ) . '</th><th>' . esc_html__( 'Result', 'mcupr' ) . '</th><th>' . esc_html__( 'What to do', 'mcupr' ) . '</th></tr></thead><tbody>';
 	$order = array( 'bad' => 0, 'warn' => 1, 'info' => 2, 'ok' => 3 );
 	$rows  = $res['items'];
 	usort( $rows, static function ( $a, $b ) use ( $order ) { return $order[ $a['status'] ] <=> $order[ $b['status'] ]; } );
@@ -228,13 +228,13 @@ function mcupr_speed_page() {
 		$l = $labels[ $r['status'] ];
 		echo '<tr><td style="width:24%"><strong>' . esc_html( $r['title'] ) . '</strong></td><td style="width:26%"><span style="display:inline-block;min-width:1.4em;text-align:center;font-weight:700;color:' . esc_attr( $l[2] ) . '" aria-hidden="true">' . esc_html( $l[0] ) . '</span> <strong style="color:' . esc_attr( $l[2] ) . '">' . esc_html( $l[1] ) . '</strong><br>' . esc_html( $r['detail'] ) . '</td><td>' . ( 'ok' === $r['status'] ? '' : esc_html( $r['fix'] ) ) . '</td></tr>';
 	}
-	echo '</tbody></table>';
+	echo '</tbody></table></div>';
 	if ( ! empty( $res['images']['top'] ) ) {
-		echo '<h2>' . esc_html__( 'The biggest pictures', 'mcupr' ) . '</h2><table class="widefat striped" style="max-width:50rem"><thead><tr><th>' . esc_html__( 'File', 'mcupr' ) . '</th><th>' . esc_html__( 'Size', 'mcupr' ) . '</th><th>' . esc_html__( 'Pixels', 'mcupr' ) . '</th><th></th></tr></thead><tbody>';
+		echo '<h2>' . esc_html__( 'The biggest pictures', 'mcupr' ) . '</h2><div style="overflow-x:auto"><table class="widefat striped" style="max-width:50rem;word-break:break-word"><thead><tr><th>' . esc_html__( 'File', 'mcupr' ) . '</th><th>' . esc_html__( 'Size', 'mcupr' ) . '</th><th>' . esc_html__( 'Pixels', 'mcupr' ) . '</th><th></th></tr></thead><tbody>';
 		foreach ( $res['images']['top'] as $i ) {
 			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $i['id'] ) ) . '">' . esc_html( $i['name'] ) . '</a></td><td>' . (int) $i['kb'] . ' KB</td><td>' . (int) $i['w'] . '×' . (int) $i['h'] . '</td><td>' . ( 'bad' === $i['flag'] ? '<strong style="color:#b32d2e">' . esc_html__( 'Too big', 'mcupr' ) . '</strong>' : ( 'warn' === $i['flag'] ? '<span style="color:#9a6700">' . esc_html__( 'Could be smaller', 'mcupr' ) . '</span>' : '' ) ) . '</td></tr>';
 		}
-		echo '</tbody></table>';
+		echo '</tbody></table></div>';
 	}
 	if ( ! empty( $res['plugins'] ) ) {
 		echo '<h2>' . esc_html__( 'Active plugins', 'mcupr' ) . '</h2><p>' . esc_html( implode( ' · ', array_map( static function ( $p ) { return dirname( $p ) !== '.' ? dirname( $p ) : basename( $p, '.php' ); }, $res['plugins'] ) ) ) . '</p>';
