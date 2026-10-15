@@ -18,13 +18,14 @@ $name = mcupr_org_name();
 ?>
 <header id="masthead" class="site-header sticky top-0 z-30 border-b border-line print:hidden">
 	<div class="wrap grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 py-2.5 max-[359px]:grid-cols-1 min-[1100px]:grid-cols-[auto_1fr_auto] min-[1100px]:gap-x-6">
-		<a class="brand flex min-w-0 items-center gap-3 text-fg no-underline" href="<?php echo esc_url( mcupr_home_url() ); ?>" rel="home" data-name="<?php echo esc_attr( $name ); ?>">
+		<?php $wide = (bool) get_theme_mod( 'mcupr_logo_wide', false ) && $logo; ?>
+		<a class="brand<?php echo $wide ? ' brand-wide' : ''; ?> flex min-w-0 items-center gap-3 text-fg no-underline" href="<?php echo esc_url( mcupr_home_url() ); ?>" rel="home" data-name="<?php echo esc_attr( $name ); ?>">
 			<?php if ( $logo ) : ?>
 				<?php echo $logo; // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			<?php else : ?>
 				<span class="badge-logo" aria-hidden="true"><?php echo mcupr_icon( 'cap', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 			<?php endif; ?>
-			<span class="flex min-w-0 flex-col leading-tight">
+			<span class="<?php echo $wide ? 'sr-only' : 'flex min-w-0 flex-col leading-tight'; ?>">
 				<b class="line-clamp-2 text-base leading-snug font-bold"><?php echo esc_html( $name ); ?></b>
 				<?php if ( $alt ) : ?>
 					<small class="truncate text-xs text-muted" lang="<?php echo esc_attr( 'th' === mcupr_ui_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></small>
