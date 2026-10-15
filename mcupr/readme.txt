@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.28.7 =
+* Narrow side rail: logo centred
+
 = 1.28.6 =
 * Side bar: smooth open/close of the card, labels, corners and page; softer phone drawer
 
