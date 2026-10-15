@@ -416,6 +416,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(await sp.locator('input[data-listen-rate][value="1.25"]').isChecked(), 'speed: the choice is restored on the next page');
     await sp.focus('input[data-listen-rate][value="1.25"]'); await sp.keyboard.press('ArrowRight');
     ok(await sp.locator('input[data-listen-rate][value="1.5"]').isChecked(), 'speed: arrow keys move between the buttons');
+    await sp.waitForTimeout(400); // colour transition
     const fill = await sp.$eval('input[data-listen-rate]:checked + .speed-b', (e) => getComputedStyle(e).backgroundColor);
     ok(fill !== 'rgba(0, 0, 0, 0)', 'speed: the chosen button is filled (' + fill + ')');
     await sc.close();
@@ -578,15 +579,27 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok((await p.$$('#colophon .soc a')).length === 2 && /Facebook/.test(await p.getAttribute('#colophon .soc a', 'aria-label')), 'footer: social icons for the two networks that have an address');
   // administration chart
   await p.goto(B + '/structure/');
-  ok((await p.$$('.org-node')).length === 13, 'structure page: the administration chart with 13 boxes');
-  ok((await p.$$('.org-d1')).length === 1 && (await p.$$('.org-d2')).length === 1 && (await p.$$('.org-d3')).length === 4 && (await p.$$('.org-d4')).length >= 5, 'chart levels: 1 / 1 / 4 / 5+ boxes');
-  const o = await p.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const kids = [...document.querySelectorAll('.org-d3')].map((e) => e.getBoundingClientRect()); return { rowY: kids.map((k) => Math.round(k.top)), parent: r('.org-d2 > .org-node') }; });
-  ok(o.rowY.length === 4 && new Set(o.rowY).size === 1 && o.rowY[0] > o.parent.bottom, 'chart (desktop): the executives are in one row below the president');
+  ok((await p.$$('.org-node')).length === 15, 'structure page: the administration chart with 15 boxes (line of command + committees)');
+  ok((await p.$$('.org-d1')).length === 1 && (await p.$$('.org-d2')).length === 1 && (await p.$$('.org-d3')).length === 1, 'chart levels: rector / council / vice rector');
+  ok((await p.$$('.org-sidebox')).length === 4 && (await p.$$('.org-grp')).length === 4, 'chart: 4 committee boxes beside the vice rector and 4 list panels (sections with their groups)');
+  const o = await p.evaluate(() => {
+    const box = (t) => [...document.querySelectorAll('.org-node')].find((e) => e.textContent.includes(t));
+    const top = (e) => Math.round(e.getBoundingClientRect().top);
+    const assist = ['ฝ่ายบริหาร', 'ฝ่ายวิชาการ', 'ฝ่ายกิจการทั่วไป'].map((x) => top(box('ผู้ช่วยอธิการบดี' + x)));
+    const dirs = ['สำนักงานวิทยาเขตแพร่', 'สำนักวิชาการวิทยาเขตแพร่', 'วิทยาลัยสงฆ์แพร่'].map((x) => top([...document.querySelectorAll('.org-node')].find((e) => e.querySelector('.org-name').textContent.trim() === x)));
+    const vice = box('รองอธิการบดีวิทยาเขตแพร่').getBoundingClientRect();
+    const side = [...document.querySelectorAll('.org-sidebox')].map((e) => e.getBoundingClientRect());
+    const rector = box('อธิการบดี'); const cs = getComputedStyle(rector);
+    return { assist, dirs, viceBottom: vice.bottom, sideTop: Math.min(...side.map((r) => r.top)), sideBottom: Math.max(...side.map((r) => r.bottom)), bg: cs.backgroundColor, fg: cs.color, lampang: top(box('วิทยาลัยสงฆ์นครลำปาง')), gen: top(box('ผู้ช่วยอธิการบดีฝ่ายกิจการทั่วไป')) };
+  });
+  ok(new Set(o.assist).size === 1 && new Set(o.dirs).size === 1 && o.dirs[0] > o.assist[0], 'chart (desktop): the assistants are in one row and the three directors in one row below them ' + JSON.stringify([o.assist, o.dirs]));
+  ok(o.sideTop >= o.viceBottom && o.lampang > o.gen, 'chart (desktop): committees sit under the vice rector, the Lampang college hangs under the general-affairs assistant');
+  ok(o.bg === 'rgb(107, 106, 54)' && o.fg === 'rgb(255, 255, 255)', 'chart: a unit\'s box colour is the chosen one (' + o.bg + ')');
   await p.addScriptTag({ content: axeSource() });
   const oa = await p.evaluate(() => axe.run(document.querySelector('.org-wrap'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
   ok(oa.violations.length === 0, 'chart axe: ' + (oa.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
   await p.goto(B + '/structure/?lang=en');
-  ok(/Office of the President/.test(await p.textContent('.org')), 'chart: unit names in English');
+  ok(/Phrae Campus Council/.test(await p.textContent('.org')) && /Administration Group/.test(await p.textContent('.org')), 'chart: unit names in English');
   await p.goto(B + '/?lang=th');
 
   // every link in header + footer menus resolves (200) and is not "#"

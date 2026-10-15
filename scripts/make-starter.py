@@ -119,15 +119,19 @@ for n, (days, t0, t1, title, place) in enumerate(S.EVENTS):
 
 # ---- administration chart units + sample works (own post types and categories)
 UNIT_ID = {}
-for key, parent, order_, title, person, role in S.UNITS:
+for key, parent, order_, title, person, role, kind, color in S.UNITS:
     UNIT_ID[key] = next_id()
-for key, parent, order_, title, person, role in S.UNITS:
+for key, parent, order_, title, person, role, kind, color in S.UNITS:
     out.append(item_head(UNIT_ID[key], title[0], 'unit-' + key, 'mcupr_unit', UNIT_ID[parent] if parent else 0, order_, '', 'publish'))
     out.append(meta('_mcupr_en_title', title[1]) + meta('_mcupr_zh_title', title[2]) + meta('_mcupr_ja_title', title[3]))
     if person:
         out.append(meta('_mcupr_unit_person', person))
     if role:
         out.append(meta('_mcupr_unit_role', role))
+    if kind != 'line':
+        out.append(meta('_mcupr_unit_kind', kind))
+    if color:
+        out.append(meta('_mcupr_unit_color', color))
     out.append('</item>\n')
 
 for slug, (nm, _en) in S.WORK_CATS:
