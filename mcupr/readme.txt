@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.21.1 =
+* Category browser: clear tree for sub-categories; space above the pager
+
 = 1.21.0 =
 * Form builder, add-ons starter file, page-by-page audit, small fixes
 
