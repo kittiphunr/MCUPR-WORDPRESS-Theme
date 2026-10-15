@@ -771,6 +771,24 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await sp.screenshot({ path: shot('sidebar-open.png'), clip: { x: 0, y: 0, width: 420, height: 900 } });
     await sc.close();
   }
+  // ---------- sidebar: the active item keeps a visible icon under the mouse (collapsed and open)
+  {
+    const hc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+    await hc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const hp = await hc.newPage();
+    await hp.goto(B + '/');
+    await hp.evaluate(() => document.documentElement.setAttribute('data-menu', 'side'));
+    for (const min of [false, true]) {
+      await hp.evaluate((m) => document.documentElement.classList.toggle('sb-min', m), min);
+      await hp.waitForTimeout(350);
+      const a = hp.locator('#site-nav .menu > .current-menu-item > a, #site-nav .menu > .current_page_item > a').first();
+      await a.hover();
+      await hp.waitForTimeout(250);
+      const c = await a.evaluate((el) => { const ic = el.querySelector('.ic'); return [getComputedStyle(ic).color, getComputedStyle(el).backgroundColor]; });
+      ok(c[0] !== c[1] && c[0] !== 'rgba(0, 0, 0, 0)', 'sidebar ' + (min ? 'collapsed' : 'open') + ': the active item keeps a visible icon on hover (' + c[0] + ' on ' + c[1] + ')');
+    }
+    await hc.close();
+  }
   // ---------- polls / satisfaction survey
   {
     const pc = await br.newContext({ viewport: { width: 1366, height: 900 } });
