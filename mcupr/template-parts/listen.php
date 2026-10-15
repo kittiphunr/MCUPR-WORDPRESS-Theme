@@ -27,15 +27,14 @@ $btn    = 'inline-flex min-h-11 cursor-pointer items-center justify-center gap-2
 			<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="5" width="14" height="14" rx="1.5" fill="currentColor"/></svg>
 			<span><?php mcupr_e( 'stop' ); ?></span>
 		</button>
-		<label class="ml-auto flex items-center gap-2 text-sm">
-			<span><?php mcupr_e( 'speed' ); ?></span>
-			<select class="min-h-11 rounded-lg border-2 border-line bg-bg px-2 text-fg" data-listen-rate>
-				<option value="0.75">0.75×</option>
-				<option value="1" selected>1×</option>
-				<option value="1.25">1.25×</option>
-				<option value="1.5">1.5×</option>
-			</select>
-		</label>
+		<div class="speed ml-auto" role="radiogroup" aria-labelledby="speed-label" data-listen-rates>
+			<span id="speed-label" class="speed-t"><?php mcupr_e( 'speed' ); ?></span>
+			<span class="speed-g">
+				<?php foreach ( array( '0.75', '1', '1.25', '1.5' ) as $r ) : ?>
+					<label><input class="peer sr-only" type="radio" name="listen-rate" value="<?php echo esc_attr( $r ); ?>" data-listen-rate<?php echo '1' === $r ? ' checked' : ''; ?>><span class="speed-b"><?php echo esc_html( $r ); ?>×</span></label>
+				<?php endforeach; ?>
+			</span>
+		</div>
 	</div>
 	<p class="m-0 mt-2 text-sm text-muted empty:hidden" role="status" data-listen-status></p>
 </section>
