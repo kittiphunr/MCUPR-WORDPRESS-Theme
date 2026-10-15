@@ -13,6 +13,7 @@ $mcupr_media  = mcupr_home_on( 'media', true );
 $mcupr_video  = $mcupr_media && function_exists( 'mcupr_video_card' ) ? get_posts( array( 'post_type' => 'mcupr_video', 'post_status' => 'publish', 'posts_per_page' => 1, 'no_found_rows' => true, 'meta_key' => '_mcupr_video_url', 'meta_compare' => 'EXISTS' ) ) : array(); // phpcs:ignore WordPress.DB.SlowDBQuery
 $mcupr_albums = $mcupr_media && function_exists( 'mcupr_album_card' ) ? get_posts( array( 'post_type' => 'mcupr_album', 'post_status' => 'publish', 'posts_per_page' => 4, 'no_found_rows' => true ) ) : array();
 $mcupr_vid    = $mcupr_video ? $mcupr_video[0] : null;
+mcupr_prime_thumbs( array_merge( (array) $mcupr_albums, (array) $mcupr_video ) );
 ?>
 <?php if ( $mcupr_events || $mcupr_vid ) : ?>
 <section class="wrap mt-14" aria-label="<?php echo esc_attr( mcupr_t( 'upcoming' ) . ' / ' . mcupr_t( 'vd_title' ) ); ?>" data-reveal>
