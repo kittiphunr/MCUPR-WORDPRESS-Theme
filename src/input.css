@@ -627,9 +627,18 @@ html[data-contrast] .mcupr-todo { border: 2px solid var(--border); }
 }
 html.fs-open-lock { overflow: hidden; }
 /* the full-screen menu: one screen, no scrolling for an ordinary menu (cards share the height; the type scales with it) */
-.fs-menu { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; background: color-mix(in srgb, var(--primary) 7%, var(--surface)); opacity: 0; transition: opacity .2s ease; --fs-s: clamp(.82rem, 1.55vh, 1rem); font-size: var(--fs-s); }
+.fs-menu { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; background: color-mix(in srgb, var(--primary) 7%, var(--surface)); opacity: 0; clip-path: circle(0 at var(--fs-x, 50%) var(--fs-y, 2rem)); transition: clip-path .5s cubic-bezier(.4, 0, .2, 1), opacity .3s ease .1s; --fs-s: clamp(.82rem, 1.55vh, 1rem); font-size: var(--fs-s); }
 .fs-menu[hidden] { display: none; }
-.fs-menu.is-in { opacity: 1; }
+.fs-menu.is-in { opacity: 1; clip-path: circle(150% at var(--fs-x, 50%) var(--fs-y, 2rem)); transition: clip-path .65s cubic-bezier(.16, .84, .2, 1), opacity .25s ease; }
+/* the parts arrive after the circle has started to open: header from above, cards rising in turn, quick links last */
+.fs-head, .fs-quick { opacity: 0; transform: translateY(-.6rem); transition: opacity .15s ease, transform .15s ease; }
+.fs-quick { transform: translateY(.6rem); }
+.fs-list > li { opacity: 0; transform: translateY(1rem) scale(.985); transition: opacity .15s ease, transform .15s ease; }
+.fs-menu.is-in .fs-head { opacity: 1; transform: none; transition: opacity .4s ease .12s, transform .45s cubic-bezier(.16, .84, .2, 1) .12s; }
+.fs-menu.is-in .fs-list > li { opacity: 1; transform: none; transition: opacity .4s ease calc(.2s + var(--i, 0) * 38ms), transform .5s cubic-bezier(.16, .84, .2, 1) calc(.2s + var(--i, 0) * 38ms); }
+.fs-menu.is-in .fs-quick { opacity: 1; transform: none; transition: opacity .4s ease .55s, transform .45s cubic-bezier(.16, .84, .2, 1) .55s; }
+.fs-open svg { transition: transform .35s cubic-bezier(.16, .84, .2, 1); }
+.fs-open[aria-expanded="true"] svg { transform: rotate(90deg) scale(1.1); }
 .fs-head { flex: none; display: flex; align-items: center; gap: 1rem; padding: .75rem clamp(1rem, 4vw, 3rem); background: var(--bg); border-bottom: 1px solid var(--edge); }
 .fs-title { display: flex; align-items: center; gap: .6rem; font-size: 1.35em; font-weight: 800; color: var(--text); white-space: nowrap; }
 .fs-title svg { color: var(--primary); }
