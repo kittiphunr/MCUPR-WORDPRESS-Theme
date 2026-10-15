@@ -119,6 +119,7 @@ add_action(
 		}
 		$take( 'mcupr-blocks' );
 		$take( 'mcupr-speed' );
+		$take( 'mcupr-images' );
 		$take( 'mcupr-settings-io' );
 		$take( 'mcupr-insights' );
 		$take( 'mcupr-status' );
