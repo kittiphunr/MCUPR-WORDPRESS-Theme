@@ -461,6 +461,67 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await node.locator('.org-person a[href*="/profile/"]').count()) === 1 && (await node.innerText()).includes(fx.name0), 'chart: the unit box shows its linked head, with a link to the profile');
     await hc.close();
   }
+  // ---------- discussion board
+  {
+    const ff = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', '.site-starter', 'forum-fixture.json'), 'utf8'));
+    const fc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    await fc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const fp = await fc.newPage();
+    await fp.goto(B + '/forum/');
+    ok((await fp.locator('.forum-board').count()) === 3 && (await fp.locator('.forum-row').count()) >= 3, 'forum: three boards and the latest topics');
+    ok(!(await fp.locator('.forum').innerText()).includes('hidden-forum@example.org'), 'forum: no visitor email is shown');
+    await fp.click('.forum-bn >> text=ถามตอบเรื่องการเรียนการสอน');
+    ok((await fp.locator('.forum-row').count()) === 2 && /ปิดการตอบ/.test(await fp.locator('.forum-list').innerText()), 'board: its topics, a locked one marked');
+    await fp.goto(B + '/forum/?fb=general');
+    ok((await fp.locator('.forum-row.is-pinned').count()) === 1 && /ปักหมุด/.test(await fp.locator('.forum-row.is-pinned').innerText()), 'board: the pinned topic is marked');
+    await fp.goto(B + '/forum/?fq=' + encodeURIComponent('ลงทะเบียน'));
+    ok((await fp.locator('.forum-row').count()) === 1, 'search: finds the topic by a word');
+    await fp.goto(B + '/forum/topic/' + ff.t2 + '/');
+    ok((await fp.locator('.forum-reply').count()) === 2 && (await fp.locator('h1').textContent()).includes('ลงทะเบียน'), 'topic: the first post and its two replies');
+    ok((await fp.locator('.forum-op').innerText()).includes('ลงทะเบียนเรียนล่าช้า') && (await fp.locator('.forum-op br').count()) >= 1, 'topic: visitor text keeps its line breaks');
+    ok(!(await fp.locator('.forum').innerText()).includes('hidden-forum@example.org') && !(await fp.content()).includes('hidden-forum@example.org'), 'topic: the author\'s email is not in the page at all');
+    await fp.addScriptTag({ content: axeSource() });
+    const fa = await fp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(fa.violations.length === 0, 'axe (forum topic): ' + (fa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    await fp.screenshot({ path: shot('forum-topic.png'), fullPage: true });
+    // reply as a visitor: held for a moderator
+    await fp.waitForTimeout(3200);
+    await fp.fill('#fm-reply-name', 'ผู้ใช้ทดสอบ'); await fp.fill('#fm-reply-email', 'visitor@example.org'); await fp.fill('#fm-reply-msg', 'ขอบคุณสำหรับคำตอบครับ จะลองทำตามดู');
+    await fp.check('#fm-reply input[name=consent]');
+    await fp.click('#fm-reply button[type=submit]');
+    await fp.waitForSelector('.mform-ok');
+    ok(/ผู้ดูแลจะตรวจสอบ/.test(await fp.locator('.mform-ok').innerText()) && (await fp.locator('.forum-reply').count()) === 2, 'reply: a visitor\'s reply is held for a moderator and not shown yet');
+    // an empty form shows the problems
+    await fp.click('#fm-reply button[type=submit]');
+    await fp.waitForSelector('.mform-err');
+    ok((await fp.locator('.mform-err li').count()) >= 3, 'reply: an empty form lists what is missing');
+    // report
+    await fp.goto(B + '/forum/topic/' + ff.t2 + '/');
+    await fp.locator('.forum-reply').first().locator('.forum-report button').click();
+    await fp.waitForSelector('.mform-ok');
+    ok(/ได้รับรายงานแล้ว/.test(await fp.locator('.mform-ok').innerText()), 'report: the visitor is thanked');
+    // locked topic
+    await fp.goto(B + '/forum/topic/' + ff.t3 + '/');
+    ok((await fp.locator('#fm-reply').count()) === 0 && (await fp.locator('.forum-locked').count()) === 1, 'locked: no reply form, a note instead');
+    // a new topic
+    await fp.goto(B + '/forum/');
+    await fp.waitForTimeout(3200);
+    await fp.fill('#fm-topic-name', 'ผู้ใช้ใหม่'); await fp.fill('#fm-topic-email', 'new@example.org'); await fp.fill('#fm-title', 'ทดสอบตั้งหัวข้อใหม่จากเบราว์เซอร์'); await fp.fill('#fm-topic-msg', 'ข้อความทดสอบการตั้งหัวข้อใหม่ ความยาวเพียงพอ');
+    await fp.check('#fm-topic input[name=consent]');
+    await fp.click('#fm-topic button[type=submit]');
+    await fp.waitForSelector('.mform-ok');
+    ok(/ผู้ดูแลจะตรวจสอบ/.test(await fp.locator('.mform-ok').innerText()) && !(await fp.locator('.forum').innerText()).includes('ทดสอบตั้งหัวข้อใหม่จากเบราว์เซอร์'), 'new topic: held for approval, not on the board');
+    await fp.screenshot({ path: shot('forum-index.png'), fullPage: true });
+    await fc.close();
+    const fm = await br.newContext({ viewport: { width: 360, height: 800 } });
+    await fm.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const fq = await fm.newPage();
+    for (const u of ['/forum/', '/forum/?fb=academic', '/forum/topic/' + ff.t2 + '/']) {
+      await fq.goto(B + u);
+      ok(await fq.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'forum on a phone: no horizontal scroll ' + u);
+    }
+    await fm.close();
+  }
   // works & awards (own categories), administration chart, attachments, views
   await p.goto(B + '/works/');
   ok((await p.$$('.work-card')).length === 3, '/works/ lists the 3 sample works');
