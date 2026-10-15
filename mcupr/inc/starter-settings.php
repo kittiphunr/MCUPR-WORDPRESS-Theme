@@ -34,6 +34,9 @@ function mcupr_ss_key( $key ) {
 	if ( preg_match( '/^mcupr_num_(students|teachers|faculties|bachelor|master|doctoral|asof)$/', $key, $m ) ) {
 		return array( 'num', 'num', 0, $m[1] );
 	}
+	if ( preg_match( '/^mcupr_((hero_(eyebrow|l1|l2|sub|btn1|btn2)|about|address|cta_title)_(th|en|zh|ja)|hero_btn[12]_url|cta_url|org_tel|org_email)$/', $key ) ) {
+		return array( 'home', 'home', 0, $key );
+	}
 	if ( preg_match( '/^mcupr_home_(numbers|weather|audience|figures|services|links|aboutblock|about|slider|events|media|cats|visit)_on$/', $key ) ) {
 		return array( 'toggle', 'toggle', 0, $key );
 	}
@@ -46,6 +49,15 @@ function mcupr_ss_clean( $key, $field, $v ) {
 		return ! empty( $v ) && 'false' !== $v && '0' !== $v ? 1 : 0;
 	}
 	$v = is_scalar( $v ) ? (string) $v : '';
+	if ( 'home' === mcupr_ss_key( $key )[0] ) { // hero / about / address / banner texts and addresses of the home page
+		if ( preg_match( '/_url$/', $key ) ) {
+			return 0 === strpos( $v, 'page:' ) ? 'page:' . sanitize_title( substr( $v, 5 ) ) : esc_url_raw( $v, array( 'http', 'https' ) );
+		}
+		if ( 'mcupr_org_email' === $key ) {
+			return sanitize_email( $v );
+		}
+		return mb_substr( 0 === strpos( $key, 'mcupr_about_' ) ? sanitize_textarea_field( $v ) : sanitize_text_field( $v ), 0, 600 );
+	}
 	if ( 'icon' === $field ) {
 		return array_key_exists( $v, mcupr_blk_icon_choices() ) ? $v : '';
 	}
@@ -120,6 +132,8 @@ function mcupr_ss_apply( $data, $only = null ) {
 			$plain['toggle'][ $k ] = $val;
 		} elseif ( $n ) {
 			$items[ $g ][ $n ][ $f ] = $val;
+		} elseif ( 'home' === $g ) {
+			$plain['home'][ $k ] = $val;
 		} else {
 			$plain[ $g ][ 'mcupr_' . ( 'wx' === $g || 'num' === $g ? $g : $blk ) . '_' . $f ] = $val;
 		}
@@ -141,6 +155,26 @@ function mcupr_ss_apply( $data, $only = null ) {
 			}
 			if ( $n ) {
 				$rep['added'][] = 'toggle';
+			}
+			continue;
+		}
+		if ( 'home' === $g ) { // one key at a time: what the site already has stays, the empty ones are filled
+			$n = 0;
+			foreach ( $plain['home'] as $k => $val ) {
+				if ( '' !== trim( (string) get_theme_mod( $k, '' ) ) ) {
+					continue;
+				}
+				if ( preg_match( '/_url$/', $k ) ) {
+					$val = mcupr_ss_resolve( $val );
+					$val = 0 === strpos( $val, '/' ) ? home_url( $val ) : $val;
+				}
+				if ( '' !== $val ) {
+					set_theme_mod( $k, $val );
+					$n++;
+				}
+			}
+			if ( $n ) {
+				$rep['added'][] = 'home';
 			}
 			continue;
 		}
@@ -250,12 +284,12 @@ function mcupr_ss_export() {
 /** Read an uploaded / typed file's text into the format, or null. */
 function mcupr_ss_parse( $text ) {
 	$d = json_decode( (string) $text, true, 6 );
-	return is_array( $d ) && ! empty( $d['mcupr_settings'] ) ? $d : null;
+	return is_array( $d ) && ( ! empty( $d['mcupr_settings'] ) || ! empty( $d['mcupr_demo'] ) ) ? $d : null;
 }
 
 /** One line for a result. */
 function mcupr_ss_message( $rep ) {
-	$names = array( 'aud' => __( 'Audience cards', 'mcupr' ), 'fig' => __( 'Figures strip', 'mcupr' ), 'svc' => __( 'Service cards', 'mcupr' ), 'lnk' => __( 'Education links', 'mcupr' ), 'abt' => __( 'About block', 'mcupr' ), 'wx' => __( 'Weather bar', 'mcupr' ), 'num' => __( 'Numbers', 'mcupr' ), 'toggle' => __( 'Show/hide switches', 'mcupr' ) );
+	$names = array( 'aud' => __( 'Audience cards', 'mcupr' ), 'fig' => __( 'Figures strip', 'mcupr' ), 'svc' => __( 'Service cards', 'mcupr' ), 'lnk' => __( 'Education links', 'mcupr' ), 'abt' => __( 'About block', 'mcupr' ), 'wx' => __( 'Weather bar', 'mcupr' ), 'num' => __( 'Numbers', 'mcupr' ), 'home' => __( 'Home page texts', 'mcupr' ), 'toggle' => __( 'Show/hide switches', 'mcupr' ) );
 	$map   = static function ( $a ) use ( $names ) { return implode( ', ', array_map( static function ( $g ) use ( $names ) { return isset( $names[ $g ] ) ? $names[ $g ] : $g; }, $a ) ); };
 	$out   = array();
 	$out[] = $rep['added'] ? sprintf( /* translators: %s: list */ __( 'Added: %s.', 'mcupr' ), $map( $rep['added'] ) ) : __( 'Nothing was added.', 'mcupr' );
@@ -310,7 +344,16 @@ function mcupr_ss_page() {
 		$form( $do, $label );
 		echo '</span>';
 	}
-	echo '</p></div></div>';
+	echo '</p></div>';
+	echo '<div class="card" style="max-width:62rem"><h2>' . esc_html__( '3. Home page demo', 'mcupr' ) . '</h2><p>' . esc_html__( 'One click makes every part of the front page work with sample content, so you can edit it into your own: news with pictures (slider, latest news, hero photo), news by category, upcoming events, a video, photo albums, the quick-link tiles, and all the home page settings. Nothing is overwritten: items already made are skipped, settings are filled only where nothing is typed, and the quick-link menu is attached only if that place is free. The pictures are plain coloured gradients: replace them with your own.', 'mcupr' ) . '</p>';
+	$form( 'demo', __( 'Make the home page demo', 'mcupr' ), true );
+	echo '<p>';
+	foreach ( array( 'dl_demo' => __( 'Download the demo file', 'mcupr' ), 'demo_remove' => __( 'Remove the demo items', 'mcupr' ) ) as $do => $label ) {
+		echo '<span style="display:inline-block;margin-right:.5rem">';
+		$form( $do, $label );
+		echo '</span>';
+	}
+	echo '</p><p class="description">' . esc_html__( '“Remove the demo items” deletes the news, events, video, albums, pictures and menu that the demo made (also if you edited them). The settings stay.', 'mcupr' ) . '</p></div></div>';
 }
 
 add_action(
@@ -328,12 +371,24 @@ add_action(
 			echo wp_json_encode( 'dl_starter' === $do ? mcupr_ss_starter() : mcupr_ss_export(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ); // phpcs:ignore WordPress.Security.EscapeOutput
 			exit;
 		}
-		if ( 'starter' === $do ) {
+		if ( 'dl_demo' === $do ) {
+			nocache_headers();
+			header( 'Content-Type: application/json; charset=utf-8' );
+			header( 'Content-Disposition: attachment; filename="mcupr-demo-home.json"' );
+			echo wp_json_encode( mcupr_demo_data(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ); // phpcs:ignore WordPress.Security.EscapeOutput
+			exit;
+		}
+		if ( 'demo' === $do ) {
+			$d   = mcupr_demo_data();
+			$msg = $d ? mcupr_demo_message( mcupr_demo_apply( $d ) ) : __( 'The demo file is missing from the theme.', 'mcupr' );
+		} elseif ( 'demo_remove' === $do ) {
+			$msg = sprintf( /* translators: %d: items */ __( 'Removed %d demo items.', 'mcupr' ), mcupr_demo_remove() );
+		} elseif ( 'starter' === $do ) {
 			$msg = mcupr_ss_message( mcupr_ss_apply( mcupr_ss_starter() ) );
 		} elseif ( 'upload' === $do ) {
 			$ok = isset( $_FILES['file']['tmp_name'], $_FILES['file']['size'] ) && is_uploaded_file( $_FILES['file']['tmp_name'] ) && (int) $_FILES['file']['size'] > 0 && (int) $_FILES['file']['size'] <= 200 * 1024; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 			$d  = $ok ? mcupr_ss_parse( file_get_contents( $_FILES['file']['tmp_name'] ) ) : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput, WordPress.WP.AlternativeFunctions
-			$msg = $d ? mcupr_ss_message( mcupr_ss_apply( $d ) ) : __( 'That is not a MCUPR settings file (or it is larger than 200 KB).', 'mcupr' );
+			$msg = $d ? ( ! empty( $d['mcupr_demo'] ) ? mcupr_demo_message( mcupr_demo_apply( $d ) ) : mcupr_ss_message( mcupr_ss_apply( $d ) ) ) : __( 'That is not a MCUPR settings file (or it is larger than 200 KB).', 'mcupr' );
 		}
 		set_transient( 'mcupr_ss_msg_' . get_current_user_id(), $msg, 120 );
 		wp_safe_redirect( admin_url( 'admin.php?page=mcupr-settings-io' ) );
