@@ -800,6 +800,18 @@
 		if (next) { next.addEventListener('click', function () { step(1); }); }
 	});
 
+	/* ---------------------------------------------------------------- weather bar: the scrolling text can be paused */
+	$$('[data-wx]').forEach(function (box) {
+		var btn = $('[data-wx-pause]', box);
+		if (!btn) { return; }
+		btn.addEventListener('click', function () {
+			var on = btn.getAttribute('aria-pressed') !== 'true';
+			btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+			btn.setAttribute('aria-label', btn.getAttribute(on ? 'data-l-play' : 'data-l-pause'));
+			box.classList.toggle('is-paused', on);
+		});
+	});
+
 	/* ---------------------------------------------------------------- eased scrolling */
 	var scrollAnim = 0;
 	function cancelScroll() {
