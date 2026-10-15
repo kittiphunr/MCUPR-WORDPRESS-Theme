@@ -30,6 +30,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.18.4 =
+* Sidebar: active item keeps its icon on hover
+
 = 1.18.3 =
 * Welcome and maintenance pages stay centred with the sidebar menu layout
 
