@@ -1,6 +1,6 @@
 {
   "name": "mcupr-theme",
-  "version": "1.27.0",
+  "version": "1.28.1",
   "private": true,
   "description": "MCUPR WordPress theme – Tailwind CSS build",
   "scripts": {
