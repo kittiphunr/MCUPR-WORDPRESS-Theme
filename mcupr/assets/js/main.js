@@ -379,7 +379,6 @@
 		items.forEach(function (term) {
 			var li = document.createElement('li');
 			var a = document.createElement('a');
-			a.className = 'inline-flex min-h-11 items-center rounded-full border border-line px-5 text-fg no-underline hover:border-primary hover:text-link';
 			a.href = (i18n.searchUrl || '/?s=') + encodeURIComponent(term);
 			a.textContent = term;
 			li.appendChild(a);
@@ -392,7 +391,7 @@
 		var form = e.target.closest && e.target.closest('[data-search-form]');
 		if (!form) { return; }
 		var input = form.querySelector('input[type="search"]');
-		var msg = form.querySelector('[data-search-msg]');
+		var msg = form.querySelector('[data-search-msg]') || (form.parentNode && form.parentNode.querySelector('[data-search-msg]'));
 		var term = input ? input.value.trim() : '';
 		if (!term) {
 			e.preventDefault();

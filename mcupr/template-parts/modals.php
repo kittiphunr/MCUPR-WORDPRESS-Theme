@@ -246,30 +246,35 @@ $checks = array(
 </template>
 
 <template id="tpl-search">
-	<div class="mx-auto w-full max-w-5xl px-2 text-left text-fg min-[700px]:px-8">
-		<h2 class="mb-8 text-3xl font-bold"><?php echo esc_html( mcupr_t( 'search_title' ) . ' ' . mcupr_org_name() ); ?></h2>
-		<form role="search" method="get" action="<?php echo esc_url( mcupr_home_url() ); ?>" class="relative max-w-3xl" data-search-form>
+	<?php
+	$mcupr_terms = array_values( array_filter( array_map( 'trim', explode( ',', (string) ( mcupr_text_mod( 'mcupr_popular' ) ? mcupr_text_mod( 'mcupr_popular' ) : mcupr_t( 'popular_terms' ) ) ) ) ) );
+	$mcupr_eg    = $mcupr_terms ? sprintf( mcupr_t( 'sr_eg' ), $mcupr_terms[0] ) : mcupr_t( 'search_ph' );
+	?>
+	<div class="sr-box">
+		<p class="sr-kicker" aria-hidden="true"><?php echo mcupr_icon( 'search', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo esc_html( mcupr_org_name() ); ?></p>
+		<h2 class="sr-title"><?php mcupr_e( 'search_title' ); ?></h2>
+		<p class="sr-sub"><?php mcupr_e( 'sr_sub' ); ?></p>
+		<form role="search" method="get" action="<?php echo esc_url( mcupr_home_url() ); ?>" class="sr-form" data-search-form>
 			<label for="overlay-search" class="sr-only"><?php mcupr_e( 'search' ); ?></label>
-			<div class="relative">
-				<input id="overlay-search" type="search" name="s" autocomplete="off" placeholder="<?php echo esc_attr( mcupr_t( 'search_ph' ) ); ?>" class="min-h-14 w-full rounded-2xl border-2 border-primary bg-bg py-2 pr-16 pl-5 text-lg text-fg">
-				<button type="submit" class="absolute top-1/2 right-2 inline-flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent p-0 text-fg" aria-label="<?php echo esc_attr( mcupr_t( 'search' ) ); ?>"><?php echo mcupr_icon( 'search', 26 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
-			</div>
-			<p class="mt-2 min-h-6 text-sm font-semibold text-link" role="alert" data-search-msg></p>
+			<span class="sr-ic" aria-hidden="true"><?php echo mcupr_icon( 'search', 24 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+			<input id="overlay-search" type="search" name="s" autocomplete="off" enterkeyhint="search" placeholder="<?php echo esc_attr( $mcupr_eg ); ?>" class="sr-input">
+			<button type="submit" class="sr-go" aria-label="<?php echo esc_attr( mcupr_t( 'search' ) ); ?>"><span class="sr-go-t" aria-hidden="true"><?php mcupr_e( 'sr_go' ); ?></span><span class="sr-go-i" aria-hidden="true"><?php echo mcupr_icon( 'arrow', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span></button>
 		</form>
-		<section class="mt-6" data-recent hidden>
-			<div class="mb-3 flex items-center gap-4"><h3 class="m-0 text-lg font-bold"><?php mcupr_e( 'recent' ); ?></h3><button type="button" class="min-h-11 cursor-pointer border-0 bg-transparent p-0 text-link underline" data-clear-recent><?php mcupr_e( 'clear' ); ?></button></div>
-			<ul class="m-0 flex list-none flex-wrap gap-2 p-0" data-recent-list></ul>
+		<p class="sr-msg" role="alert" data-search-msg></p>
+		<section class="sr-sec" data-recent hidden>
+			<div class="sr-h"><h3><?php mcupr_e( 'recent' ); ?></h3><button type="button" class="sr-clear" data-clear-recent><?php mcupr_e( 'clear' ); ?></button></div>
+			<ul class="sr-chips" data-recent-list></ul>
 		</section>
-		<?php $popular = array_filter( array_map( 'trim', explode( ',', (string) mcupr_text_mod( 'mcupr_popular' ) ) ) ); ?>
-		<?php if ( $popular ) : ?>
-			<section class="mt-8">
-				<h3 class="mb-3 text-lg font-bold"><?php mcupr_e( 'popular' ); ?></h3>
-				<ul class="m-0 flex list-none flex-wrap gap-2 p-0">
-					<?php foreach ( $popular as $term ) : ?>
-						<li><a class="inline-flex min-h-11 items-center rounded-full border border-line px-5 text-fg no-underline hover:border-primary hover:text-link" href="<?php echo esc_url( add_query_arg( 's', rawurlencode( $term ), mcupr_home_url() ) ); ?>"><?php echo esc_html( $term ); ?></a></li>
+		<?php if ( $mcupr_terms ) : ?>
+			<section class="sr-sec">
+				<div class="sr-h"><h3><?php echo esc_html( mcupr_text_mod( 'mcupr_popular' ) ? mcupr_t( 'popular' ) : mcupr_t( 'sr_try' ) ); ?></h3></div>
+				<ul class="sr-chips">
+					<?php foreach ( $mcupr_terms as $mcupr_term ) : ?>
+						<li><a href="<?php echo esc_url( add_query_arg( 's', rawurlencode( $mcupr_term ), mcupr_home_url() ) ); ?>"><?php echo mcupr_icon( 'search', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo esc_html( $mcupr_term ); ?></a></li>
 					<?php endforeach; ?>
 				</ul>
 			</section>
 		<?php endif; ?>
+		<p class="sr-hint" aria-hidden="true"><?php mcupr_e( 'sr_hint' ); ?></p>
 	</div>
 </template>
