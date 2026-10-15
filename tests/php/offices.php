@@ -86,6 +86,9 @@ t( false === strpos( $chrome, '>วิดีโอ' ), 'no tab for videos (the o
 ob_start(); mcupr_office_render( $A, '' ); $h = ob_get_clean();
 t( ! $bad( $h ) && false !== strpos( $h, 'of-about' ) && false !== strpos( $h, 'of-info' ) && false !== strpos( $h, 'news-card' ) && false !== strpos( $h, 'ev-row' ) && false !== strpos( $h, 'album-card' ) && false !== strpos( $h, 'of-pages' ), 'office home: about, contact card, news cards, events, album and page tiles, no PHP errors' );
 t( false !== strpos( $h, 'tel:054000001' ) && false !== strpos( $h, 'mailto:campus-office@example.org' ) && false !== strpos( $h, 'google.com/maps/search' ), 'office home: telephone, e-mail and map links' );
+t( false !== strpos( $chrome, 'has-cover' ) && false !== strpos( $chrome, '--of-cover:url(' ) && false !== strpos( $chrome, 'of-chips' ) && false !== strpos( $chrome, 'tel:054000001' ), 'office home header: the cover picture behind the colour, and telephone / e-mail chips' );
+t( false !== strpos( $h, 'class="of-stats"' ) && 4 === substr_count( substr( $h, strpos( $h, 'class="of-stats"' ), 900 ), '<b>' ), 'office home: four figure tiles (news, events, people, albums)' );
+t( false !== strpos( $h, '<dt><span class="of-ic"' ) && false === strpos( $h, '<div><span class="of-ic"' ), 'office home: the contact card has icons inside a valid definition list' );
 foreach ( array( 'news' => 'news-card', 'events' => 'ev-row', 'people' => 'person-card', 'albums' => 'album-card', 'contact' => 'of-dl' ) as $sec => $needle ) {
 	office_page( $A, $sec );
 	ob_start(); mcupr_office_chrome(); $c2 = ob_get_clean();
