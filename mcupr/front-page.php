@@ -39,6 +39,9 @@ $cta_url   = get_theme_mod( 'mcupr_cta_url', '' );
 ?>
 <?php get_template_part( 'template-parts/hero', null, array( 'hero_id' => $hero_id, 'hero_img' => $hero_img, 'line1' => $line1, 'line2' => $line2 ) ); ?>
 <?php mcupr_slot( 'home_top' ); ?>
+<?php if ( is_active_sidebar( 'home-top' ) ) : ?>
+<div class="wrap mt-8"><?php mcupr_widget_area( 'home-top', 'grid gap-8' ); ?></div>
+<?php endif; ?>
 
 <?php
 $about_text = mcupr_text_mod( 'mcupr_about' );
@@ -64,6 +67,10 @@ if ( $about_text && mcupr_home_on( 'about', true ) ) :
 	<h2 id="numbers-title" class="mb-5 flex items-center gap-3 text-2xl font-bold min-[900px]:text-3xl"><span class="stat-ic" aria-hidden="true"><?php echo mcupr_icon( 'cap', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><?php mcupr_e( 'nm_title' ); ?></h2>
 	<?php echo mcupr_numbers_html(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 </section>
+<?php endif; ?>
+
+<?php if ( is_active_sidebar( 'home-mid' ) ) : ?>
+<div class="wrap mt-12"><?php mcupr_widget_area( 'home-mid', 'grid gap-10' ); ?></div>
 <?php endif; ?>
 
 <?php if ( $slider && mcupr_home_on( 'slider', true ) ) : ?>
