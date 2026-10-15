@@ -752,5 +752,16 @@ TH = {
 "Cleared.": "ล้างแล้ว",
 "The “From” address is not usable (give a path such as /old-page/).": "ที่อยู่ “จาก” ใช้ไม่ได้ (ใส่พาธ เช่น /old-page/)",
 "The “To” address is not usable (a path or an https:// address).": "ที่อยู่ “ไปที่” ใช้ไม่ได้ (พาธหรือที่อยู่ https://)",
-"A redirect to the same address would loop.": "การเปลี่ยนเส้นทางไปที่อยู่เดิมจะวนซ้ำ"
+"A redirect to the same address would loop.": "การเปลี่ยนเส้นทางไปที่อยู่เดิมจะวนซ้ำ",
+"Numbers (students, teachers, faculties, students per level) – shown when filled in": "ตัวเลขสำคัญ (นิสิต อาจารย์ คณะ นิสิตแต่ละระดับ) – แสดงเมื่อกรอกข้อมูล",
+"MCUPR: Numbers (students, teachers, faculties)": "MCUPR: ตัวเลขสำคัญ (นิสิต อาจารย์ คณะ)",
+"The figures typed in Customizer → MCUPR: Numbers.": "ตัวเลขที่กรอกไว้ใน ปรับแต่ง → MCUPR: ตัวเลขสำคัญ",
+"Figures for the home page block, the “MCUPR: Numbers” widget and the [mcupr_numbers] shortcode. Leave a box empty to leave that figure out. If “Students (total)” is empty it is the sum of the three levels.": "ตัวเลขสำหรับบล็อกหน้าแรก วิดเจ็ต “MCUPR: ตัวเลขสำคัญ” และชอร์ตโค้ด [mcupr_numbers] ช่องไหนเว้นว่างจะไม่แสดงตัวเลขนั้น ถ้า “นิสิตทั้งหมด” ว่าง ระบบจะใช้ผลรวมของสามระดับ",
+"Students (total)": "นิสิตทั้งหมด",
+"Teachers": "อาจารย์",
+"Faculties": "คณะ",
+"Students: bachelor’s degree": "นิสิตระดับปริญญาตรี",
+"Students: master’s degree": "นิสิตระดับปริญญาโท",
+"Students: doctoral degree": "นิสิตระดับปริญญาเอก",
+"Note under the figures (for example: Data as of academic year 2568)": "หมายเหตุใต้ตัวเลข (เช่น ข้อมูล ณ ปีการศึกษา 2568)"
 }
