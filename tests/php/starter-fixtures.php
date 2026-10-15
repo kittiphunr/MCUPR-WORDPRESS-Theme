@@ -119,4 +119,5 @@ update_post_meta( $alb, '_mcupr_album_images', $pics );
 $pl = wp_insert_post( array( 'post_type' => 'mcupr_poll', 'post_status' => 'publish', 'post_title' => 'คุณพึงพอใจกับเว็บไซต์นี้เพียงใด' ) );
 update_post_meta( $pl, '_mcupr_poll_type', 'satisfaction' );
 wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'แบบสำรวจตัวอย่าง', 'post_name' => 'fx-poll', 'post_content' => '[mcupr_poll id="' . $pl . '"]' ) );
+wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'หน้าทดสอบเกริ่นนำ', 'post_name' => 'fx-lead', 'post_excerpt' => 'คำเกริ่นนำของหน้านี้', 'post_content' => str_repeat( '<p>เนื้อหายาว</p>', 80 ) ) );
 echo "ok $id\n";

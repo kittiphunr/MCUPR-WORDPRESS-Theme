@@ -355,7 +355,10 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(on[2] === '1' && on[0] !== 'rgb(255, 255, 255)' && on[0] !== 'rgba(0, 0, 0, 0)', 'options: a switched-on tile is filled and the option applies (' + on[0] + ')');
     await op.hover('.opt:nth-child(3) .opt-b');
     await op.waitForTimeout(250);
-    ok((await op.evaluate(() => getComputedStyle(document.querySelector('.opt:nth-child(3)'), '::after').opacity)) === '1', 'options: hovering a tile shows its name');
+    ok((await op.evaluate(() => getComputedStyle(document.querySelector('.opt:nth-child(3) .opt-tip')).opacity)) === '1', 'options: hovering a tile shows its name');
+    // the tooltip of a tile at the edge stays inside the dialog (it used to be cut off)
+    const edge = await op.evaluate(async () => { const d = document.querySelector('.swal2-popup').getBoundingClientRect(); const out = []; for (const o of document.querySelectorAll('.opt-grid .opt')) { o.querySelector('.opt-b').dispatchEvent(new Event('pointerover', { bubbles: true })); const r = o.querySelector('.opt-tip').getBoundingClientRect(); out.push(r.left >= d.left - 1 && r.right <= d.right + 1); } return out; });
+    ok(edge.length === 8 && edge.every(Boolean), 'options: every tooltip stays inside the dialog');
     await op.focus('input[data-pref=tv]'); await op.keyboard.press('Space');
     ok((await op.evaluate(() => document.documentElement.dataset.tv)) === '1', 'options: tiles work from the keyboard');
     await oc.close();
@@ -588,6 +591,33 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await aq.waitForSelector('.lb:not([hidden])');
     ok(await aq.evaluate(() => { const r = document.querySelector('.lb-img').getBoundingClientRect(); return r.width <= innerWidth && r.height <= innerHeight; }), 'lightbox on a phone: the picture fits the screen');
     await am.close();
+  }
+  // ---------- page lead, quick links on the back-to-top button
+  {
+    const lc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+    await lc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const lp = await lc.newPage();
+    await lp.goto(B + '/fx-lead/');
+    ok((await lp.locator('header .band-lead').innerText()).includes('คำเกริ่นนำ'), 'page: the excerpt is shown as a lead in the title band');
+    await lp.evaluate(() => document.documentElement.setAttribute('data-menu', 'side'));
+    await lp.waitForTimeout(300);
+    ok(await lp.evaluate(() => { const b = document.querySelector('#content .mcu-wheel nav').getBoundingClientRect(); const h = document.querySelector('#content .mcu-wheel').getBoundingClientRect(); return b.top - h.top < 70; }), 'page (sidebar mode): the breadcrumb sits at the top of the band');
+    await lp.evaluate(() => document.documentElement.removeAttribute('data-menu'));
+    await lp.evaluate(() => scrollTo(0, 1200));
+    await lp.waitForSelector('#back-to-top:not(.hidden)');
+    const box = await lp.locator('#back-to-top').boundingBox();
+    await lp.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await lp.mouse.down();
+    await lp.waitForTimeout(800);
+    await lp.mouse.up();
+    ok((await lp.locator('.top-quick a').count()) >= 1, 'back to top: pressing and holding opens the quick links');
+    ok((await lp.evaluate(() => scrollY)) > 1000, 'back to top: the hold does not scroll up');
+    await lp.keyboard.press('Escape');
+    ok((await lp.locator('.top-quick').count()) === 0, 'back to top: Esc closes the quick links');
+    await lp.locator('#back-to-top').click();
+    await lp.waitForTimeout(1500);
+    ok((await lp.evaluate(() => scrollY)) < 50, 'back to top: a plain click still scrolls to the top');
+    await lc.close();
   }
   // ---------- polls / satisfaction survey
   {
