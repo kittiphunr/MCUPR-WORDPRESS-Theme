@@ -719,14 +719,41 @@ html:not([data-menu="side"]) #content > article > .mcu-wheel:first-child { margi
 }
 .cal-sub { margin: 2rem 0 .75rem; font-size: 1.25rem; font-weight: 800; }
 .ev-list { margin: 0; padding: 0; list-style: none; display: grid; gap: .75rem; }
-.ev-row { display: flex; align-items: center; gap: 1rem; padding: .85rem 1rem; border: 1px solid var(--edge); border-radius: 1.25rem; background: var(--bg); }
-.ev-badge { display: grid; place-items: center; flex: none; width: 3.5rem; height: 3.75rem; border-radius: 1rem; background: var(--tint); color: var(--link); line-height: 1.1; }
-.ev-badge b { font-size: 1.4rem; }
-.ev-badge small { font-size: .75rem; font-weight: 700; }
-.ev-main { display: grid; min-width: 0; gap: .15rem; }
-.ev-title { font-size: 1.05rem; font-weight: 700; color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
+.ev-row { position: relative; display: flex; align-items: center; gap: 1rem; padding: .8rem 1rem .8rem .8rem; border: 1px solid var(--edge); border-radius: 1.25rem; background: var(--bg); transition: border-color .15s, box-shadow .15s, transform .15s; }
+.ev-row:hover, .ev-row:focus-within { border-color: var(--primary); box-shadow: var(--shadow-soft); }
+.ev-row::after { content: "→"; flex: none; margin-left: auto; padding-left: .5rem; color: var(--muted); transition: transform .15s, color .15s; }
+.ev-row:hover::after { color: var(--primary); transform: translateX(3px); }
+/* the date as a little calendar sheet: month on a coloured band, the day below */
+.ev-badge { display: flex; flex-direction: column-reverse; overflow: hidden; flex: none; width: 3.6rem; border-radius: .9rem; background: var(--tint); color: var(--text); line-height: 1.1; text-align: center; box-shadow: inset 0 0 0 1px var(--edge); }
+.ev-badge b { padding: .3rem 0 .35rem; font-size: 1.5rem; font-weight: 800; }
+.ev-badge small { padding: .22rem 0; background: var(--primary); color: var(--on-primary); font-size: .72rem; font-weight: 700; }
+.ev-main { display: grid; min-width: 0; gap: .2rem; }
+.ev-title { font-size: 1.05rem; font-weight: 700; line-height: 1.4; color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
+.ev-title::before { content: ""; position: absolute; inset: 0; border-radius: inherit; } /* the whole row is the link */
 .ev-title:hover { color: var(--link); text-decoration: underline; }
 .ev-meta { font-size: .9rem; color: var(--muted); }
+.home-col { display: flex; flex-direction: column; min-width: 0; }
+.home-ev { flex: 1; }
+.home-ev .ev-list { height: 100%; grid-auto-rows: 1fr; align-content: stretch; }
+.home-ev { padding: .5rem; }
+.home-ev .ev-list { gap: 0; }
+.home-ev .ev-row { padding: .75rem 1rem .75rem .75rem; border: 0; border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent); border-radius: 0; background: none; box-shadow: none; }
+.home-ev .ev-list > li:first-child { border-top: 0; }
+.home-ev .ev-list > li:first-child.ev-row { border-top: 0; }
+.home-ev .ev-row:hover, .home-ev .ev-row:focus-within { background: var(--tint); border-color: transparent; border-radius: 1rem; box-shadow: none; }
+html[data-contrast] .home-ev .ev-row { border-top-color: var(--border); }
+.vcard { display: flex; flex: 1; flex-direction: column; overflow: hidden; padding: 0; }
+.vcard .vid-play, .vcard .vid-frame { border-radius: 0; }
+.vcard .vid-note { margin: 0; padding: .45rem 1.25rem; background: var(--surface); }
+.vcard-bar { display: flex; align-items: center; gap: .9rem; padding: 1rem 1.25rem; border-top: 1px solid var(--edge); background: var(--bg); }
+.vcard-ic { display: grid; place-items: center; flex: none; width: 2.5rem; height: 2.5rem; border-radius: 9999px; background: var(--tint); color: var(--link); }
+.vcard-t { margin: 0; font-size: 1.1rem; font-weight: 800; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.vcard-t a { color: var(--text); text-decoration: none; }
+.vcard-t a:hover { color: var(--link); text-decoration: underline; }
+.vcard-m { margin: .1rem 0 0; color: var(--muted); font-size: .9rem; }
+.vcard-go { display: grid; place-items: center; flex: none; margin-left: auto; width: 2.75rem; height: 2.75rem; border-radius: 9999px; color: var(--link); text-decoration: none; font-size: 1.2rem; }
+.vcard-go:hover { background: var(--tint); }
+@media (prefers-reduced-motion: reduce) { .ev-row, .ev-row::after { transition: none; } .ev-row:hover::after { transform: none; } }
 .ev-info { display: grid; gap: .75rem; margin: 0 0 1rem; }
 .ev-info > div { display: grid; grid-template-columns: 9rem 1fr; gap: .75rem; padding: .75rem 1rem; border-radius: 1rem; background: var(--surface); }
 .ev-info dt { display: flex; align-items: center; gap: .5rem; font-weight: 700; color: var(--link); }
