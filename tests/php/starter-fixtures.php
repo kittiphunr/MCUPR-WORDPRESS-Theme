@@ -61,12 +61,11 @@ foreach ( array( 'head' => array( 2480, 425, array( 200, 40, 90 ) ), 'foot' => a
 	wp_update_attachment_metadata( $aid, wp_generate_attachment_metadata( $aid, $u['file'] ) );
 	set_theme_mod( "mcupr_print_{$k}_img", $aid );
 }
-// home blocks: the samples, plus a weather bar with a stored answer (the test never calls Open-Meteo)
+// home blocks (Customizer): the samples, plus a weather bar with a stored answer (the test never calls Open-Meteo)
 if ( function_exists( 'mcupr_blk_install_samples' ) ) {
 	mcupr_blk_install_samples();
+	set_theme_mod( 'mcupr_wx_lat', '13.69' ); set_theme_mod( 'mcupr_wx_lon', '101.076' ); set_theme_mod( 'mcupr_wx_place', 'ฉะเชิงเทรา' );
 	set_transient( 'mcupr_wx_' . md5( '13.69,101.076' ), array( 'now' => array( 'code' => 3, 'temp' => 31.4, 'hum' => 89, 'wind' => 0.2 ), 'today' => array( 'date' => '2026-10-15', 'code' => 3, 'max' => 32.2, 'min' => 25, 'rain' => 4.7 ), 'tomorrow' => array( 'date' => '2026-10-16', 'code' => 95, 'max' => 32.4, 'min' => 24.5, 'rain' => 10.9 ), 'time' => time() ), DAY_IN_SECONDS );
-	$wo = get_option( 'widget_mcupr_weather', array() ); $wo[7] = array( 'lat' => '13.69', 'lon' => '101.076', 'title' => 'ฉะเชิงเทรา' ); update_option( 'widget_mcupr_weather', $wo );
-	$sbw = wp_get_sidebars_widgets(); $sbw['home-top'] = array_merge( array( 'mcupr_weather-7' ), isset( $sbw['home-top'] ) ? $sbw['home-top'] : array() ); wp_set_sidebars_widgets( $sbw );
 }
 // numbers block on the home page
 foreach ( array( 'teachers' => '1,250', 'faculties' => '12', 'bachelor' => '18,000', 'master' => '3,200', 'doctoral' => '650', 'asof' => 'ข้อมูล ณ ปีการศึกษา 2568' ) as $k => $v ) { set_theme_mod( 'mcupr_num_' . $k, $v ); }
