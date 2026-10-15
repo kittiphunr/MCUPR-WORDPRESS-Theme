@@ -31,6 +31,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await mc.close();
   }
   ok((await p.locator('.vcard .vcard-t a').count()) === 1 && (await p.locator('.vcard .vcard-t').innerText()).trim().length > 0 && (await p.locator('.home-ev .ev-badge').count()) >= 1, 'home: the video has a title bar under it; the events sit in one card with calendar-sheet dates');
+  const framed = await p.evaluate(() => ['.wx', '.figs', '.ab', '.aud', '.wx-view'].map((q) => { const e = document.querySelector(q); if (!e) { return q + ' missing'; } const st = getComputedStyle(e); return parseFloat(st.borderTopWidth) >= 1 && parseFloat(st.borderTopLeftRadius) >= 16 ? '' : q + ' not framed'; }).filter(Boolean));
+  ok(framed.length === 0, 'home blocks: weather bar, figures, about block and audience cards each sit in a rounded, bordered frame like the other cards ' + framed.join(', '));
   const bar = await p.$$eval('.sb-cap .menu > li:not(.menu-more), .sb-cap .menu-more > .sub-menu > li', (l) => l.map((x) => x.textContent.trim().replace(/\s+/g, ' ')));
   ok(bar.length >= 6, 'home: main menu shows ' + bar.length + ' items');
   ok(bar.some((t) => /เกี่ยวกับ/.test(t)) && bar.some((t) => /ธรรมาภิบาล/.test(t)), 'home: Thai labels in the main menu');
