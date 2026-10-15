@@ -13,6 +13,23 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
 
   await p.goto(B + '/');
   ok((await p.locator('#numbers-title').count()) === 1 && (await p.locator('.nm-tile').count()) === 6 && /21,850/.test(await p.locator('.nm').innerText()), 'home: the numbers block shows six figures (the total is the sum of the levels)');
+  ok((await p.locator('.aud .aud-card').count()) === 3 && (await p.locator('.aud .is-lead').count()) === 1 && (await p.locator('.lcs-service .lc').count()) === 4 && (await p.locator('.lcs-links .lc').count()) === 4 && (await p.locator('.ab-card').count()) === 4 && (await p.locator('.figs .fig').count()) === 4, 'home blocks: audience cards, figures, service cards, compact links and the about block are shown');
+  ok((await p.locator('[data-wx]').count()) === 1 && /Open-Meteo/.test(await p.locator('.wx-src').innerText()) && (await p.locator('.wx-windy').getAttribute('href')).includes('windy.com'), 'home blocks: the weather bar shows data, its source and the Windy link');
+  ok((await p.locator('.wx-pause').isHidden()) && (await p.locator('.wx-track').evaluate((e) => getComputedStyle(e).animationName)) === 'none', 'home blocks: with "reduce motion" the weather text does not scroll (and there is nothing to pause)');
+  {
+    const mc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'no-preference' });
+    await mc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const mp = await mc.newPage();
+    await mp.goto(B + '/');
+    await mp.mouse.move(5, 5);
+    ok((await mp.locator('.wx-track').evaluate((e) => getComputedStyle(e).animationName)) === 'wx-scroll', 'home blocks: the weather text scrolls when motion is allowed');
+    await mp.click('[data-wx-pause]');
+    await mp.mouse.move(5, 5);
+    ok((await mp.locator('[data-wx-pause]').getAttribute('aria-pressed')) === 'true' && (await mp.locator('.wx-track').evaluate((e) => getComputedStyle(e).animationPlayState)) === 'paused', 'home blocks: the pause button stops the scrolling weather text');
+    await mp.click('[data-wx-pause]');
+    ok((await mp.locator('[data-wx-pause]').getAttribute('aria-pressed')) === 'false', 'home blocks: and starts it again');
+    await mc.close();
+  }
   const bar = await p.$$eval('.sb-cap .menu > li:not(.menu-more), .sb-cap .menu-more > .sub-menu > li', (l) => l.map((x) => x.textContent.trim().replace(/\s+/g, ' ')));
   ok(bar.length >= 6, 'home: main menu shows ' + bar.length + ' items');
   ok(bar.some((t) => /เกี่ยวกับ/.test(t)) && bar.some((t) => /ธรรมาภิบาล/.test(t)), 'home: Thai labels in the main menu');
