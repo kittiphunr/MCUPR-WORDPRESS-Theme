@@ -32,4 +32,5 @@ defined( 'ABSPATH' ) || exit;
 <?php get_template_part( 'template-parts/site-header' ); ?>
 
 <main id="content" tabindex="-1">
+<?php mcupr_office_chrome(); ?>
 <?php mcupr_slot( 'header_after' ); ?>
