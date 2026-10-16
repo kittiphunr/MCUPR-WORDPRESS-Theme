@@ -33,7 +33,7 @@ while ( have_posts() ) :
 	</header>
 	<div class="wrap mt-8">
 		<?php
-		$mcupr_reader = mcupr_book_reader( $mcupr_id );
+		$mcupr_reader = mcupr_book_reader( $mcupr_id, array( 'mode' => 'embed' ) );
 		echo '' !== $mcupr_reader ? $mcupr_reader : '<p class="bk-empty">' . esc_html( mcupr_t( 'bk_error' ) ) . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		?>
 		<div class="mx-auto max-w-4xl">

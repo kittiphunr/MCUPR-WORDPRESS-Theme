@@ -2042,8 +2042,11 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         array("page"=>2,"kind"=>"video","mode"=>"page","title"=>"Our video","att"=>$vid),
         array("page"=>2,"kind"=>"link","mode"=>"button","title"=>"More info","url"=>"https://example.org/"),
         array("page"=>3,"kind"=>"audio","mode"=>"page","title"=>"Listen","att"=>$snd)));
-      $out[]=$x; echo json_encode($out);`));
-    ok(ids.length === 7, 'e-books: seven sample books were made (two with pictures/PDF, an EPUB, one with extras)');
+      $out[]=$x;
+      $op=sd($fx."book-outline.pdf"); $o=wp_insert_post(array("post_type"=>"mcupr_book","post_status"=>"publish","post_title"=>"E2E Outline")); update_post_meta($o,"_mcupr_bk_src","pdf"); update_post_meta($o,"_mcupr_bk_pdf",$op); $out[]=$o;
+      $pg=wp_insert_post(array("post_type"=>"page","post_status"=>"publish","post_title"=>"E2E lightbox","post_content"=>"[mcupr_book id=\"".$o."\" mode=\"lightbox\"]")); $out[]=$pg;
+      echo json_encode($out);`));
+    ok(ids.length === 9, 'e-books: seven sample books, a book with a contents list and a page with a lightbox were made');
     const bc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
     const bp = await bc.newPage();
     const berr = [];
@@ -2052,7 +2055,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await bp.goto(B + '/?post_type=mcupr_book');
     await bp.evaluate(() => { try { localStorage.removeItem('mcupr_bk_view'); } catch (e) { /* */ } });
     await bp.reload();
-    ok(await bp.locator('.bk-card').count() === 7, 'e-books: the shelf shows the seven books');
+    ok(await bp.locator('.bk-card').count() === 8, 'e-books: the shelf shows the eight books');
     ok((await bp.locator('.bk-shelf-app').getAttribute('data-view')) === 'shelf', 'e-books: the shelf view is the default');
     ok(await bp.locator('.bk-pad').count() >= 0 && await bp.evaluate(() => { const ul = document.querySelector('.bk-books'); const cols = getComputedStyle(ul).gridTemplateColumns.split(' ').length; return (ul.querySelectorAll('.bk-card').length + ul.querySelectorAll('.bk-pad').length) % cols === 0; }), 'e-books: the last board of the shelf is completed with empty slots');
     // search
@@ -2335,6 +2338,119 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await hc.close();
       }
       await brFx.close();
+    }
+    // the look of Real3D Flipbook: a toolbar of icons, zoom, auto-play, the contents, print, a window of its own
+    {
+      const rc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+      await rc.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); localStorage.setItem('mcupr_bk_fx', 'css3d'); } catch (e) { /* */ } });
+      const rp = await rc.newPage();
+      const rerr = [];
+      rp.on('pageerror', (e) => rerr.push(e.message));
+      rp.on('console', (m) => { if (m.type() === 'error') { rerr.push(m.text()); } });
+      await rp.goto(B + '/?p=' + ids[7]);
+      await rp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+      await rp.locator('.bk-reader').scrollIntoViewIfNeeded();
+      const tb = await rp.evaluate(() => [...document.querySelectorAll('.bk-reader .bk-toolbar .bk-tb')].map((b) => ({ name: (b.getAttribute('title') || '').trim(), text: b.textContent.trim(), h: b.getBoundingClientRect().height, w: b.getBoundingClientRect().width })));
+      ok(tb.length >= 12 && tb.every((b) => b.name && b.text), 'e-books: the toolbar has ' + tb.length + ' icon buttons, every one with a name (tooltip and screen-reader text)');
+      ok(tb.every((b) => b.h >= 36 && b.w >= 36), 'e-books: the toolbar buttons are at least 36 px (touch)');
+      const oneRow = await rp.evaluate(() => { const t = document.querySelector('.bk-reader .bk-toolbar'); const ys = new Set([...t.children].filter((c) => c.offsetParent).map((c) => Math.round(c.getBoundingClientRect().top))); return ys.size; });
+      ok(oneRow <= 2, 'e-books: on a wide screen the toolbar is one row (or two with the slider)');
+      const rd = rp.locator('.bk-reader');
+      // first / last
+      await rp.click('.bk-toolbar [data-act="last"]');
+      await rp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '6', null, { timeout: 8000 }).catch(() => {});
+      ok((await rd.getAttribute('data-page')) === '6', 'e-books: the "last page" button goes to the back cover');
+      await rp.click('.bk-toolbar [data-act="first"]');
+      await rp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '1', null, { timeout: 8000 }).catch(() => {});
+      ok((await rd.getAttribute('data-page')) === '1', 'e-books: the "first page" button goes to the cover');
+      // zoom
+      await rp.click('.bk-toolbar [data-act="zoomin"]');
+      await rp.click('.bk-toolbar [data-act="zoomin"]');
+      await rp.waitForTimeout(400);
+      const z = await rp.evaluate(() => ({ t: document.querySelector('.bk-zoom').style.transform, c: document.querySelector('.bk-reader').classList.contains('is-zoomed'), out: document.querySelector('.bk-toolbar [data-act="zoomout"]').disabled }));
+      ok(/scale\(2\)/.test(z.t) && z.c && !z.out, 'e-books: zoom in twice gives 200% and enables zoom out');
+      const sb = await rp.locator('.bk-stage').boundingBox();
+      await rp.mouse.move(sb.x + sb.width * 0.5, sb.y + sb.height * 0.5);
+      await rp.mouse.down(); await rp.mouse.move(sb.x + sb.width * 0.3, sb.y + sb.height * 0.45, { steps: 5 }); await rp.mouse.up();
+      await rp.waitForTimeout(400);
+      ok((await rd.getAttribute('data-page')) === '1' && !/translate\(0px, 0px\)/.test(await rp.evaluate(() => document.querySelector('.bk-zoom').style.transform)), 'e-books: zoomed in, dragging moves the book about and does not turn the page');
+      await rp.keyboard.press('Escape');
+      await rp.click('.bk-toolbar [data-act="zoomout"]'); await rp.click('.bk-toolbar [data-act="zoomout"]');
+      await rp.waitForTimeout(300);
+      ok(!(await rd.evaluate((e) => e.classList.contains('is-zoomed'))), 'e-books: zoom out twice is back to normal');
+      await rp.focus('.bk-stage'); await rp.keyboard.press('+'); await rp.waitForTimeout(200);
+      ok(await rd.evaluate((e) => e.classList.contains('is-zoomed')), 'e-books: the + key zooms in');
+      await rp.keyboard.press('0'); await rp.waitForTimeout(200);
+      ok(!(await rd.evaluate((e) => e.classList.contains('is-zoomed'))), 'e-books: the 0 key shows it whole again');
+      // the contents (bookmarks of the PDF) and the pages
+      await rp.click('.bk-toolbar [data-act="thumbs"]');
+      ok(await rp.locator('.bk-tabs').isVisible() && await rp.locator('.bk-tab').count() === 2, 'e-books: a PDF with bookmarks has the two tabs, pages and contents');
+      await rp.click('.bk-tab[data-tab="contents"]');
+      ok(await rp.locator('.bk-outline .bk-toc').count() === 4 && await rp.locator('.bk-th-list').isHidden(), 'e-books: the contents list the four bookmarks (with their levels)');
+      await rp.locator('.bk-outline .bk-toc').nth(2).click();
+      await rp.waitForFunction(() => +document.querySelector('.bk-reader').dataset.page >= 4, null, { timeout: 8000 }).catch(() => {});
+      ok(+(await rd.getAttribute('data-page')) >= 4, 'e-books: pressing a bookmark goes to its page');
+      await rp.click('.bk-tab[data-tab="pages"]');
+      ok(await rp.locator('.bk-th-list').isVisible(), 'e-books: the pages tab shows the thumbnails again');
+      await rp.click('.bk-toolbar [data-act="thumbs"]');
+      // share shows a note you can see
+      await rp.context().grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => {});
+      await rp.click('.bk-toolbar [data-act="share"]');
+      await rp.waitForTimeout(600);
+      ok(await rp.locator('.bk-toast').count() === 1 && await rp.locator('.bk-toast').isVisible() && !/%/.test(await rp.locator('.bk-toast').innerText()), 'e-books: copying the link shows a note on the screen (and notes do not pile up)');
+      // print
+      await rp.click('.bk-toolbar [data-act="first"]');
+      await rp.waitForTimeout(600);
+      await rp.click('.bk-toolbar [data-act="next"]');
+      await rp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '2', null, { timeout: 8000 }).catch(() => {});
+      await rp.click('.bk-toolbar [data-act="print"]');
+      await rp.waitForSelector('iframe[srcdoc]', { state: 'attached', timeout: 15000 }).catch(() => {});
+      const pr = await rp.evaluate(() => { const f = document.querySelector('iframe[srcdoc]'); return f ? (f.srcdoc.match(/<img /g) || []).length : -1; });
+      ok(pr === 2, 'e-books: print makes a sheet of the two open pages (' + pr + ' pictures)');
+      // auto-play
+      await rp.click('.bk-toolbar [data-act="first"]');
+      await rp.waitForTimeout(500);
+      await rp.click('.bk-toolbar [data-act="auto"]');
+      ok((await rp.locator('.bk-toolbar [data-act="auto"]').getAttribute('aria-pressed')) === 'true', 'e-books: auto-play is switched on');
+      await rp.waitForFunction(() => +document.querySelector('.bk-reader').dataset.page >= 2, null, { timeout: 9000 }).catch(() => {});
+      ok(+(await rd.getAttribute('data-page')) >= 2, 'e-books: auto-play turns the page by itself');
+      await rp.locator('.bk-stage').click({ position: { x: 5, y: 5 } });
+      ok((await rp.locator('.bk-toolbar [data-act="auto"]').getAttribute('aria-pressed')) === 'false', 'e-books: touching the book stops auto-play');
+      ok(rerr.length === 0, 'e-books: the viewer has no script error' + (rerr.length ? ': ' + rerr.slice(0, 2).join(' | ') : ''));
+      // a window of its own (lightbox)
+      await rp.goto(B + '/?page_id=' + ids[8]);
+      await rp.waitForSelector('.bk-launch');
+      ok(await rp.locator('.bk-reader').count() === 0 && await rp.locator('.bk-launch-cta').isVisible(), 'e-books: lightbox: the page holds only the cover and a button; the reader is not built yet');
+      const libLoaded = await rp.evaluate(() => performance.getEntriesByType('resource').map((r) => r.name).filter((n) => /pdf\.min\.mjs|pdf\.worker/.test(n)).length);
+      ok(libLoaded === 0, 'e-books: lightbox: PDF.js is not fetched until the cover is pressed');
+      await rp.click('.bk-launch');
+      await rp.waitForSelector('.bk-reader.is-lb[data-ready="1"]', { timeout: 30000 });
+      const lb = await rp.evaluate(() => { const r = document.querySelector('.bk-reader.is-lb').getBoundingClientRect(); return { w: r.width, h: r.height, role: document.querySelector('.bk-reader.is-lb').getAttribute('role'), modal: document.querySelector('.bk-reader.is-lb').getAttribute('aria-modal'), lock: document.documentElement.classList.contains('bk-lb-open'), foc: document.activeElement.className }; });
+      ok(lb.w >= 1360 && lb.h >= 895 && lb.role === 'dialog' && lb.modal === 'true' && lb.lock, 'e-books: lightbox: the cover opens the reader over the whole screen as a dialog');
+      ok(/bk-stage/.test(lb.foc), 'e-books: lightbox: the focus is on the book');
+      await rp.keyboard.press('Tab');
+      ok(await rp.evaluate(() => !!document.activeElement.closest('.bk-reader.is-lb')), 'e-books: lightbox: Tab stays inside the window');
+      await rp.click('.bk-reader.is-lb .bk-nav.bk-next');
+      await rp.waitForFunction(() => document.querySelector('.bk-reader.is-lb').dataset.page === '2', null, { timeout: 8000 }).catch(() => {});
+      ok((await rp.getAttribute('.bk-reader.is-lb', 'data-page')) === '2' && !/#page=/.test(rp.url()), 'e-books: lightbox: it turns pages and leaves the address of the page alone');
+      await rp.focus('.bk-reader.is-lb .bk-stage');
+      await rp.keyboard.press('Escape');
+      await rp.waitForTimeout(300);
+      const lc = await rp.evaluate(() => ({ n: document.querySelectorAll('.bk-reader').length, lock: document.documentElement.classList.contains('bk-lb-open'), foc: document.activeElement.className }));
+      ok(lc.n === 0 && !lc.lock && /bk-launch/.test(lc.foc), 'e-books: lightbox: Escape closes it and the focus goes back to the cover');
+      await rp.click('.bk-launch');
+      await rp.waitForSelector('.bk-reader.is-lb[data-ready="1"]', { timeout: 30000 });
+      ok((+(await rp.getAttribute('.bk-reader.is-lb', 'data-page')) >= 2), 'e-books: lightbox: opening it again continues where the reader was');
+      await rp.click('.bk-reader.is-lb .bk-close');
+      ok(await rp.locator('.bk-reader').count() === 0, 'e-books: lightbox: the × button closes it');
+      ok(rerr.length === 0, 'e-books: the lightbox has no script error' + (rerr.length ? ': ' + rerr.slice(0, 2).join(' | ') : ''));
+      // a phone
+      await rp.setViewportSize({ width: 390, height: 844 });
+      await rp.goto(B + '/?p=' + ids[7]);
+      await rp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+      const mo = await rp.evaluate(() => ({ sw: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1, tb: document.querySelector('.bk-toolbar').getBoundingClientRect().right <= window.innerWidth, bk: document.querySelector('.bk-fx').getBoundingClientRect().width }));
+      ok(mo.sw && mo.tb && mo.bk > 300, 'e-books: on a phone the toolbar fits and the book fills the width (' + Math.round(mo.bk) + ' px)');
+      await rc.close();
     }
     // a book for students only: the file is not given to a visitor
     phpB('update_post_meta( ' + ids[0] + ', MCUPR_AUD, "students" ); mcupr_aud_reset();');
