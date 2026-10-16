@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.39.0 =
+* E-books: Real3D-style viewer (toolbar, zoom, contents, print, auto-play, lightbox)
+
 = 1.38.0 =
 * E-books: lighter page turning with CSS 3D and WebGL engines
 

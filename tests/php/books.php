@@ -14,7 +14,7 @@ wp_set_current_user( 1 );
 t( post_type_exists( 'mcupr_book' ) && taxonomy_exists( 'mcupr_shelf' ), 'the e-book type and the bookshelf taxonomy exist' );
 t( array_keys( mcupr_book_styles() ) === array( 'wood', 'dark', 'glass', 'white', 'metal', 'custom' ), 'six shelf styles' );
 delete_option( 'mcupr_books_opts' );
-t( mcupr_books_opts() === array( 'style' => 'wood', 'custom' => 0, 'view' => 'shelf', 'sound' => 1, 'download' => 1, 'fx' => 'css3d' ), 'settings default: wood, shelf view, sound on, download on, CSS 3D turning' );
+t( mcupr_books_opts() === array( 'style' => 'wood', 'custom' => 0, 'view' => 'shelf', 'sound' => 1, 'download' => 1, 'fx' => 'css3d', 'mode' => 'embed', 'bg' => '#1f2430' ), 'settings default: wood, shelf view, sound on, download on, CSS 3D turning, embedded, dark background' );
 t( array_keys( mcupr_book_fx_list() ) === array( 'css3d', 'webgl', 'classic' ), 'three ways to turn a page: CSS 3D, WebGL, classic' );
 update_option( 'mcupr_books_opts', array( 'fx' => 'webgl' ) );
 t( 'webgl' === mcupr_books_opts()['fx'], 'the way to turn can be set to WebGL' );
@@ -55,15 +55,15 @@ t( '' !== mcupr_book_cover_url( $b2 ), 'a picture book uses its first picture as
 // ---- the reader
 $h = mcupr_book_reader( $b1 );
 t( false !== strpos( $h, 'class="bk-reader"' ) && false !== strpos( $h, 'data-book' ) && false !== strpos( $h, 'pdf.min.mjs' ), 'PDF reader: markup with the PDF.js address' );
-t( false !== strpos( $h, ' download>' ), 'PDF reader: download is offered by default' );
+t( false !== strpos( $h, ' download ' ), 'PDF reader: download is offered by default' );
 update_post_meta( $b1, '_mcupr_bk_dl', '0' );
-t( false === strpos( mcupr_book_reader( $b1 ), ' download>' ), 'PDF reader: the book can hide the download button' );
+t( false === strpos( mcupr_book_reader( $b1 ), ' download ' ), 'PDF reader: the book can hide the download button' );
 delete_post_meta( $b1, '_mcupr_bk_dl' );
 update_option( 'mcupr_books_opts', array( 'download' => 0 ) );
-t( false === strpos( mcupr_book_reader( $b1 ), ' download>' ), 'PDF reader: the setting can hide the download button' );
+t( false === strpos( mcupr_book_reader( $b1 ), ' download ' ), 'PDF reader: the setting can hide the download button' );
 delete_option( 'mcupr_books_opts' );
 $h2 = mcupr_book_reader( $b2 );
-t( false !== strpos( $h2, '&quot;pages&quot;' ) && false === strpos( $h2, ' download>' ), 'picture reader: pages listed, no download' );
+t( false !== strpos( $h2, '&quot;pages&quot;' ) && false === strpos( $h2, ' download ' ), 'picture reader: pages listed, no download' );
 t( '' === mcupr_book_reader( $b3 ), 'a book with no file shows no reader' );
 t( wp_script_is( 'mcupr-book-engines', 'enqueued' ) && wp_script_is( 'mcupr-book-reader', 'enqueued' ) && ! wp_script_is( 'mcupr-pageflip', 'enqueued' ), 'the engines and the reader are enqueued; the page-flip library is not (it is fetched only when chosen)' );
 t( false !== strpos( $h, 'data-act="fx"' ) && false !== strpos( $h, '&quot;fx&quot;:&quot;css3d&quot;' ) && false !== strpos( $h, 'page-flip.browser.js' ), 'the reader has the effect button and knows the way and the address of the library' );
@@ -137,12 +137,47 @@ t( '' === mcupr_book_reader( $b4 ), 'EPUB book with no file shows no reader' );
 update_post_meta( $b4, '_mcupr_bk_epub', $epub );
 t( 'epub' === mcupr_book_src( $b4 ) && $epub === mcupr_book_epub_id( $b4 ) && 0 === mcupr_book_epub_id( $b1 ), 'EPUB: source and file id' );
 $he = mcupr_book_reader( $b4 );
-t( false !== strpos( $he, 'bk-is-epub' ) && false !== strpos( $he, 'bk-ep-paper' ) && false !== strpos( $he, 'epub.min.js' ) && false !== strpos( $he, ' download>' ), 'EPUB reader: the page, the libraries and the download button' );
+t( false !== strpos( $he, 'bk-is-epub' ) && false !== strpos( $he, 'bk-ep-paper' ) && false !== strpos( $he, 'epub.min.js' ) && false !== strpos( $he, ' download ' ), 'EPUB reader: the page, the libraries and the download button' );
 t( false === strpos( $he, '&quot;media&quot;' ) && wp_script_is( 'mcupr-book-epub', 'enqueued' ), 'EPUB reader: no page extras; its script is enqueued' );
 foreach ( array( 'assets/vendor/epub/epub.min.js', 'assets/vendor/epub/jszip.min.js', 'assets/js/book-epub.js' ) as $f ) {
 	t( is_readable( get_theme_file_path( $f ) ), 'file shipped: ' . $f );
 }
 t( false !== strpos( mcupr_book_shelf(), 'EPUB Book' ), 'the shelf lists an EPUB book' );
+
+
+// ---- round 4: the look of Real3D Flipbook: toolbar, lightbox, background
+update_option( 'mcupr_books_opts', array( 'mode' => 'lightbox', 'bg' => '#123456' ) );
+t( 'lightbox' === mcupr_books_opts()['mode'] && '#123456' === mcupr_books_opts()['bg'], 'settings: lightbox mode and a background colour' );
+update_option( 'mcupr_books_opts', array( 'mode' => 'popup', 'bg' => 'red' ) );
+t( 'embed' === mcupr_books_opts()['mode'] && '#1f2430' === mcupr_books_opts()['bg'], 'settings: an unknown mode and a bad colour fall back' );
+delete_option( 'mcupr_books_opts' );
+$he2 = mcupr_book_reader( $b2, array( 'mode' => 'embed' ) );
+t( false !== strpos( $he2, 'class="bk-toolbar"' ) && false !== strpos( $he2, 'role="toolbar"' ) && false !== strpos( $he2, 'data-act="zoomin"' ) && false !== strpos( $he2, 'data-act="auto"' ) && false !== strpos( $he2, 'data-act="first"' ) && false !== strpos( $he2, 'data-act="last"' ), 'the reader has a toolbar with first / last / zoom / auto-play' );
+update_post_meta( $b1, '_mcupr_bk_dl', 1 );
+t( 1 === preg_match( '/data-act="print"/', mcupr_book_reader( $b1 ) ), 'the reader has a print button when the book may be taken away' );
+update_post_meta( $b1, '_mcupr_bk_dl', '0' );
+t( false === strpos( mcupr_book_reader( $b1 ), 'data-act="print"' ), 'no print button when the book may not be taken away (like the download)' );
+delete_post_meta( $b1, '_mcupr_bk_dl' );
+t( false !== strpos( $he2, '--bk-bg: #1f2430' ), 'the reader carries the background colour' );
+preg_match_all( '/<button[^>]*class="bk-btn bk-tb"[^>]*>(.*?)<\/button>/s', $he2, $btns );
+$named = 0;
+foreach ( $btns[1] as $inner ) { if ( '' !== trim( wp_strip_all_tags( $inner ) ) ) { $named++; } }
+t( count( $btns[1] ) >= 10 && count( $btns[1] ) === $named, 'every toolbar button has a name for screen readers (' . $named . ' of ' . count( $btns[1] ) . ')' );
+t( false === strpos( $he2, 'bk-launch' ) && false === strpos( $he2, '<template' ), 'embedded: no cover launcher, no template' );
+$hl = mcupr_book_reader( $b2, array( 'mode' => 'lightbox' ) );
+t( false !== strpos( $hl, 'class="bk-launch"' ) && false !== strpos( $hl, 'data-bk-launch="bk-tpl-' ) && false !== strpos( $hl, '<template id="bk-tpl-' ) && false !== strpos( $hl, 'is-lb' ) && false !== strpos( $hl, 'data-act="close"' ), 'lightbox: a cover button, the reader inside a template, a close button' );
+t( false !== strpos( do_shortcode( '[mcupr_book id="' . $b2 . '" mode="lightbox"]' ), 'bk-launch' ) && false === strpos( do_shortcode( '[mcupr_book id="' . $b2 . '" mode="embed"]' ), 'bk-launch' ), 'shortcode: mode="lightbox" / mode="embed"' );
+update_option( 'mcupr_books_opts', array( 'mode' => 'lightbox' ) );
+t( false !== strpos( do_shortcode( '[mcupr_book id="' . $b2 . '"]' ), 'bk-launch' ), 'the setting makes books in pages open as a lightbox' );
+update_post_meta( $b2, '_mcupr_bk_mode', 'embed' );
+t( false === strpos( do_shortcode( '[mcupr_book id="' . $b2 . '"]' ), 'bk-launch' ), 'a book can choose its own mode over the setting' );
+delete_post_meta( $b2, '_mcupr_bk_mode' );
+delete_option( 'mcupr_books_opts' );
+$hep = mcupr_book_reader( $b4, array( 'mode' => 'embed' ) );
+t( false === strpos( $hep, 'data-act="first"' ) && false === strpos( $hep, 'data-act="zoomin"' ) && false === strpos( $hep, 'data-act="auto"' ) && false !== strpos( $hep, 'data-act="sound"' ), 'EPUB toolbar has no first / last / zoom / auto-play (the text flows) but has sound' );
+foreach ( array( 'zoom-in', 'zoom-out', 'first', 'last', 'print', 'play', 'pause', 'sound', 'mute', 'list', 'grid', 'download', 'share', 'expand', 'shrink', 'fx', 'close' ) as $ic ) {
+	t( 1 === preg_match( '/<path d="[^"]{6,}"/', mcupr_book_icon( $ic ) ), 'toolbar icon: ' . $ic );
+}
 
 // ---- the guarded stream (needs the site to answer over HTTP)
 $get = static function ( $url, $headers = array() ) { return wp_remote_get( $url, array( 'timeout' => 15, 'redirection' => 0, 'headers' => $headers ) ); };
