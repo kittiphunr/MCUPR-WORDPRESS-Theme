@@ -39,9 +39,24 @@
 				m.checked = t.checked;
 				m.disabled = t.checked;
 			});
-			if (t.checked) { var d = t.closest('details'); if (d) { d.open = true; } }
+			if (t.checked) { show(t.closest('.mcupr-aud-fac'), true); }
 		}
 		update();
 	});
+	box.addEventListener('click', function (e) {
+		var b = e.target.closest('.mcupr-aud-tgl');
+		if (!b) { return; }
+		show(b.closest('.mcupr-aud-fac'), b.getAttribute('aria-expanded') !== 'true');
+	});
+	// the majors of a faculty: shown or folded (all shown without script)
+	function show(row, open) {
+		var b = row && row.querySelector('.mcupr-aud-tgl');
+		if (!b) { return; }
+		var list = document.getElementById(b.getAttribute('aria-controls'));
+		if (list) { list.hidden = !open; }
+		b.setAttribute('aria-expanded', open ? 'true' : 'false');
+		b.firstElementChild.textContent = open ? '\u25BE' : '\u25B8';
+	}
+	Array.prototype.forEach.call(box.querySelectorAll('.mcupr-aud-fac'), function (row) { show(row, row.getAttribute('data-open') === '1'); });
 	update();
 })();

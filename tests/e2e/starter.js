@@ -1496,7 +1496,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       ok(/E2E0001/.test(me) && /นิสิตทดสอบ/.test(me) && /ข่าวสำหรับนิสิตเท่านั้น \(e2e\)/.test(me) && !/ข่าวทั่วไป \(e2e students\)/.test(me), 'student portal: the student\'s own details and the student-only content (not the open news)');
       // -- content for one year, one faculty: who sees it, and the box in the editor
       {
-        const sc2 = JSON.parse(php3('$mk = function ( $t, $rules ) { $p = wp_insert_post( array( "post_type" => "post", "post_status" => "publish", "post_title" => $t, "post_content" => "x" ) ); update_post_meta( $p, MCUPR_AUD, "students" ); foreach ( $rules as $k => $v ) { update_post_meta( $p, $k, $v ); } return $p; }; $sid = mcupr_student_find( "E2E0001" ); $fac = (string) get_post_meta( $sid, "_mcupr_s_faculty", true ); $yr = (string) get_post_meta( $sid, "_mcupr_s_year", true ); $a = $mk( "ประกาศชั้นปีของเรา (e2e scope)", array( "_mcupr_aud_years" => array( $yr ) ) ); $b = $mk( "ประกาศชั้นปีอื่น (e2e scope)", array( "_mcupr_aud_years" => array( $yr === "4" ? "1" : "4" ) ) ); $c = $mk( "ประกาศคณะอื่น (e2e scope)", array( "_mcupr_aud_fac" => array( "คณะที่ไม่มีอยู่จริง" ) ) ); mcupr_aud_reset(); echo json_encode( array( "a" => $a, "b" => $b, "c" => $c, "ua" => get_permalink( $a ), "ub" => get_permalink( $b ), "uc" => get_permalink( $c ), "yr" => $yr, "fac" => $fac ) );'));
+        const sc2 = JSON.parse(php3('$mk = function ( $t, $rules, $type = "post" ) { $p = wp_insert_post( array( "post_type" => $type, "post_status" => "publish", "post_title" => $t, "post_content" => "x" ) ); update_post_meta( $p, MCUPR_AUD, "students" ); foreach ( $rules as $k => $v ) { update_post_meta( $p, $k, $v ); } return $p; }; $sid = mcupr_student_find( "E2E0001" ); $fac = (string) get_post_meta( $sid, "_mcupr_s_faculty", true ); $yr = (string) get_post_meta( $sid, "_mcupr_s_year", true ); $a = $mk( "ประกาศชั้นปีของเรา (e2e scope)", array( "_mcupr_aud_years" => array( $yr ) ) ); $b = $mk( "ประกาศชั้นปีอื่น (e2e scope)", array( "_mcupr_aud_years" => array( $yr === "4" ? "1" : "4" ) ), "mcupr_work" ); $c = $mk( "ประกาศคณะอื่น (e2e scope)", array( "_mcupr_aud_fac" => array( "คณะที่ไม่มีอยู่จริง" ) ) ); mcupr_aud_reset(); echo json_encode( array( "a" => $a, "b" => $b, "c" => $c, "ua" => get_permalink( $a ), "ub" => get_permalink( $b ), "uc" => get_permalink( $c ), "yr" => $yr, "fac" => $fac ) );'));
         await sp.goto(B + '/student/');
         const sm = await sp.locator('main').innerText();
         ok(/ประกาศชั้นปีของเรา/.test(sm) && !/ประกาศชั้นปีอื่น/.test(sm) && !/ประกาศคณะอื่น/.test(sm), 'scope: the portal lists the announcement for the student\'s own year, not the other year or the other faculty');
@@ -1507,15 +1507,16 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         await sp.goto(B + '/?s=' + encodeURIComponent('e2e scope'));
         const sr = await sp.locator('main').innerText();
         ok(!/ประกาศชั้นปีอื่น|ประกาศคณะอื่น/.test(sr), 'scope: search does not list what the student may not see');
-        // the box in the editor (admin)
+        // the box in the editor (admin): a type with the classic editor (the block editor opens a welcome window over the page)
         await ap.goto(B + '/wp-admin/post.php?post=' + sc2.b + '&action=edit');
         await ap.waitForSelector('.mcupr-aud');
+        if (await ap.locator('.components-modal__screen-overlay').count()) { await ap.keyboard.press('Escape'); await ap.waitForSelector('.components-modal__screen-overlay', { state: 'detached' }); }
         ok((await ap.locator('.mcupr-aud-rules').isVisible()) && (await ap.locator('input[name="mcupr_aud_years[]"]').count()) === 5 && (await ap.locator('input[name="mcupr_aud_fac[]"]').count()) >= 1, 'scope box: the levels, the five years and the faculties are in the editor');
         const cnt0 = await ap.locator('.mcupr-aud-count').innerText();
         ok(/\d+/.test(cnt0) && (await ap.locator('.mcupr-aud-count').isVisible()), 'scope box: it says how many students would see the content (' + cnt0 + ')');
         const facBox = ap.locator('input[name="mcupr_aud_fac[]"]').first();
         await facBox.check();
-        const kids = await ap.locator('details:has(input[name="mcupr_aud_fac[]"]:checked) input[name="mcupr_aud_maj[]"]').evaluateAll((a) => a.map((x) => x.checked && x.disabled));
+        const kids = await ap.locator('.mcupr-aud-fac:has(input[name="mcupr_aud_fac[]"]:checked) input[name="mcupr_aud_maj[]"]').evaluateAll((a) => a.map((x) => x.checked && x.disabled));
         ok(kids.length >= 1 && kids.every(Boolean), 'scope box: ticking a faculty ticks its majors and leaves them out of the form');
         await ap.locator('input[name="mcupr_aud"][value=""]').check();
         ok(await ap.locator('.mcupr-aud-rules').isHidden(), 'scope box: "Everyone" hides the rules');
@@ -1523,12 +1524,14 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         await ap.addScriptTag({ content: axeSource() });
         const axB = await ap.evaluate(() => axe.run(document.querySelector('.mcupr-aud'), { runOnly: ['wcag2a', 'wcag2aa'] }).then((r) => r.violations.map((v) => v.id)));
         ok(axB.length === 0, 'axe (scope box): ' + (axB.join(', ') || '0 violations'));
-        await ap.evaluate(() => { window.__wasChecked = document.querySelector('input[name="mcupr_aud_fac[]"]').value; });
-        await ap.waitForFunction(() => !document.querySelector('#publish').classList.contains('disabled'));
-        await ap.click('#publish');
-        await ap.waitForURL(/message=\d+/, { waitUntil: 'domcontentloaded' });
-        ok(await ap.locator('input[name="mcupr_aud_fac[]"]').first().isChecked(), 'scope box: the ticked faculty is still ticked after saving');
-        // the box is not shown to an editor of other content types (e.g. a student record)
+        await ap.locator('input[name="mcupr_aud_years[]"][value="2"]').check();
+        await ap.click('.editor-post-publish-button'); // the block editor saves the post, then the boxes
+        await ap.waitForSelector('.components-snackbar', { timeout: 30000 });
+        await ap.waitForTimeout(2000);
+        await ap.reload({ waitUntil: 'load' });
+        await ap.waitForSelector('.mcupr-aud');
+        if (await ap.locator('.components-modal__screen-overlay').count()) { await ap.keyboard.press('Escape'); }
+        ok((await ap.locator('input[name="mcupr_aud_fac[]"]').first().isChecked()) && (await ap.locator('input[name="mcupr_aud_years[]"][value="2"]').isChecked()), 'scope box: the ticked faculty and year are still ticked after saving and reloading');
         await sp.setViewportSize({ width: 1366, height: 900 });
         php3('foreach ( array( ' + sc2.a + ', ' + sc2.b + ', ' + sc2.c + ' ) as $i ) { wp_delete_post( $i, true ); } mcupr_aud_reset();');
       }

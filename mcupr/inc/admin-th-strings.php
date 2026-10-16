@@ -875,6 +875,7 @@ return array(
 	'Show it on the website' => 'นำไปแสดงบนเว็บไซต์',
 	'Show only what you need on the home page. The hero and the quick links are always shown. Events, videos and albums appear only when there are some.' => 'เลือกแสดงเฉพาะที่จำเป็นบนหน้าแรก ภาพหลักและลิงก์ด่วนแสดงเสมอ ส่วนกิจกรรม วิดีโอ และอัลบั้มจะแสดงเมื่อมีข้อมูลเท่านั้น',
 	'Show or hide each part of the home page and fill in the blocks. A block with nothing typed in is not shown.' => 'เปิด/ปิดแต่ละส่วนของหน้าแรกและกรอกบล็อกต่างๆ บล็อกที่ไม่ได้กรอกอะไรจะไม่แสดง',
+	'Show or hide the majors of %s' => 'แสดงหรือซ่อนสาขาของ %s',
 	'Show or hide the sections' => 'เปิด/ปิดส่วนต่างๆ',
 	'Show small medal badges on the people cards' => 'แสดงเหรียญเล็กๆ บนการ์ดบุคลากร',
 	'Show the "listen to this article" (text-to-speech) tool' => 'แสดงปุ่ม “ฟังเนื้อหานี้” (อ่านออกเสียงบทความ)',
