@@ -2125,12 +2125,14 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await bp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
     const epText = async () => bp.frameLocator('.bk-ep-paper iframe').locator('body').innerText();
     const ep1 = await epText();
+    const cfi = () => bp.evaluate((k) => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }, 'mcupr_bk_cfi_' + ids[5]);
+    const cfi1 = await cfi();
     ok(/Chapter 1/.test(ep1), 'e-books: EPUB: it starts at the first chapter');
     await bp.click('.bk-reader [data-act="next"]');
     await bp.waitForFunction(() => +document.querySelector('.bk-reader').dataset.flips >= 1, null, { timeout: 8000 }).catch(() => {});
     ok(+(await bp.locator('.bk-reader').getAttribute('data-flips')) >= 1, 'e-books: EPUB: turning the page makes the page-turn sound');
     await bp.waitForTimeout(900);
-    ok((await epText()) !== ep1, 'e-books: EPUB: the next button shows other text');
+    ok((await cfi()) !== cfi1, 'e-books: EPUB: the next button moves to another place in the book');
     await bp.click('.bk-reader [data-act="thumbs"]');
     ok(await bp.locator('.bk-toc').count() === 4, 'e-books: EPUB: the contents list has the four chapters');
     await bp.locator('.bk-toc').nth(2).click();
@@ -2158,9 +2160,10 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await bp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
     await bp.locator('.bk-reader').scrollIntoViewIfNeeded();
     ok(await bp.locator('.bk-reader').getAttribute('data-pages') === '8', 'e-books: extras: two pages of their own are added to the six (8 pages)');
-    ok(await bp.locator('.bk-page .bk-chip').count() === 2, 'e-books: extras: the buttons on the pages are there (a YouTube video and a link)');
+    ok(await bp.locator('.bk-chips .bk-chip').count() === 2, 'e-books: extras: the buttons on the pages are there (a YouTube video and a link)');
     ok((await bp.locator('.bk-page a.bk-chip').getAttribute('target')) === '_blank' && /noopener/.test(await bp.locator('.bk-page a.bk-chip').getAttribute('rel')), 'e-books: extras: a link opens in a new tab with noopener');
-    await bp.locator('.bk-page button.bk-chip').first().click();
+    await bp.locator('.bk-chips button.bk-chip').first().click();
+    ok(await bp.locator('.bk-reader').getAttribute('data-page') === '1', 'e-books: extras: pressing a button on a page does not turn the page');
     const mdl = await bp.evaluate(() => { const m = document.querySelector('.bk-modal'); const f = m && m.querySelector('iframe'); return { open: !!m && !m.hidden, src: f ? f.src : '', foc: document.activeElement.className }; });
     ok(mdl.open && /^https:\/\/www\.youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/.test(mdl.src), 'e-books: extras: the YouTube button opens the player window (youtube-nocookie)');
     ok(/bk-modal-x/.test(mdl.foc), 'e-books: extras: the focus moves into the player window');
