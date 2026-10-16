@@ -14,7 +14,12 @@ wp_set_current_user( 1 );
 t( post_type_exists( 'mcupr_book' ) && taxonomy_exists( 'mcupr_shelf' ), 'the e-book type and the bookshelf taxonomy exist' );
 t( array_keys( mcupr_book_styles() ) === array( 'wood', 'dark', 'glass', 'white', 'metal', 'custom' ), 'six shelf styles' );
 delete_option( 'mcupr_books_opts' );
-t( mcupr_books_opts() === array( 'style' => 'wood', 'custom' => 0, 'view' => 'shelf', 'sound' => 1, 'download' => 1 ), 'settings default: wood, shelf view, sound on, download on' );
+t( mcupr_books_opts() === array( 'style' => 'wood', 'custom' => 0, 'view' => 'shelf', 'sound' => 1, 'download' => 1, 'fx' => 'css3d' ), 'settings default: wood, shelf view, sound on, download on, CSS 3D turning' );
+t( array_keys( mcupr_book_fx_list() ) === array( 'css3d', 'webgl', 'classic' ), 'three ways to turn a page: CSS 3D, WebGL, classic' );
+update_option( 'mcupr_books_opts', array( 'fx' => 'webgl' ) );
+t( 'webgl' === mcupr_books_opts()['fx'], 'the way to turn can be set to WebGL' );
+update_option( 'mcupr_books_opts', array( 'fx' => 'flash' ) );
+t( 'css3d' === mcupr_books_opts()['fx'], 'an unknown way to turn falls back to CSS 3D' );
 update_option( 'mcupr_books_opts', array( 'style' => 'nope', 'view' => 'x' ) );
 t( mcupr_books_opts()['style'] === 'wood' && mcupr_books_opts()['view'] === 'shelf', 'unknown style / view fall back to the defaults' );
 delete_option( 'mcupr_books_opts' );
@@ -60,7 +65,11 @@ delete_option( 'mcupr_books_opts' );
 $h2 = mcupr_book_reader( $b2 );
 t( false !== strpos( $h2, '&quot;pages&quot;' ) && false === strpos( $h2, ' download>' ), 'picture reader: pages listed, no download' );
 t( '' === mcupr_book_reader( $b3 ), 'a book with no file shows no reader' );
-t( wp_script_is( 'mcupr-pageflip', 'enqueued' ) && wp_script_is( 'mcupr-book-reader', 'enqueued' ), 'the page-flip and reader scripts are enqueued' );
+t( wp_script_is( 'mcupr-book-engines', 'enqueued' ) && wp_script_is( 'mcupr-book-reader', 'enqueued' ) && ! wp_script_is( 'mcupr-pageflip', 'enqueued' ), 'the engines and the reader are enqueued; the page-flip library is not (it is fetched only when chosen)' );
+t( false !== strpos( $h, 'data-act="fx"' ) && false !== strpos( $h, '&quot;fx&quot;:&quot;css3d&quot;' ) && false !== strpos( $h, 'page-flip.browser.js' ), 'the reader has the effect button and knows the way and the address of the library' );
+update_option( 'mcupr_books_opts', array( 'fx' => 'webgl' ) );
+t( false !== strpos( mcupr_book_reader( $b1 ), '&quot;fx&quot;:&quot;webgl&quot;' ), 'the reader gets the way chosen in the settings' );
+delete_option( 'mcupr_books_opts' );
 foreach ( array( 'assets/vendor/pageflip/page-flip.browser.js', 'assets/vendor/pdfjs/pdf.min.mjs', 'assets/vendor/pdfjs/pdf.worker.min.mjs', 'assets/js/book-reader.js', 'assets/js/book-shelf.js' ) as $f ) {
 	t( is_readable( get_theme_file_path( $f ) ), 'file shipped: ' . $f );
 }
