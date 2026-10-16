@@ -2213,6 +2213,7 @@ html[data-contrast] .stu-st { background: var(--bg); color: var(--text); border:
 /* shelf styles (the board and the back panel) */
 .bks-wood { --bks-board: linear-gradient(#b98255, #8a5a34 60%, #6f4526); --bks-back: linear-gradient(#f6efe3, #eadfca); }
 .bks-dark { --bks-board: linear-gradient(#5b3d29, #3d2819 60%, #2c1c11); --bks-back: linear-gradient(#4a4a52, #34343a); }
+.bk-shelf-app[data-view="shelf"] .bks-dark .bk-link { --text: #f3f4f6; --text-2: #d1d5db; --link: #fbcfe8; }
 .bks-glass { --bks-board: linear-gradient(#e9f6fb, #a9d3e4 55%, #7fb3c9); --bks-back: linear-gradient(#f4fbfe, #e1f1f8); }
 .bks-white { --bks-board: linear-gradient(#fff, #e5e7eb); --bks-back: linear-gradient(#fafafa, #f1f2f4); }
 .bks-metal { --bks-board: linear-gradient(#d7dce2, #9aa3ad 55%, #6b7480); --bks-back: linear-gradient(#e8ebef, #d3d8de); }
