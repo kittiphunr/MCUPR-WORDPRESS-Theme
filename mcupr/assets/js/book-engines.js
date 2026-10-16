@@ -79,7 +79,7 @@
 
 		/* ---- dragging a corner and tapping the sides */
 		function onDown(e) {
-			if ((e.button && e.button > 0) || anim) { return; }
+			if ((e.button && e.button > 0) || anim || (host.closest && host.closest('.bk-reader.is-zoomed'))) { return; } // zoomed in, a drag moves the book about
 			var r = host.getBoundingClientRect();
 			drag = { x0: e.clientX, y0: e.clientY, xr: (e.clientX - r.left) / r.width, w: r.width, started: false, dir: 0 };
 			drag.dir = drag.xr >= 0.5 ? 1 : -1;
