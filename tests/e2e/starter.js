@@ -905,6 +905,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         return { m, arrows };
       });
       ok(r.arrows.every(Boolean), 'top menu ' + w + 'px: the ' + r.arrows.length + ' drop-down arrows are round');
+      const cap = await mp.evaluate(() => [...document.querySelectorAll('#site-nav .menu > li.menu-item-has-children')].map((li) => { const a = li.querySelector(':scope > a'); const t = li.querySelector(':scope > .submenu-toggle'); if (!a || !t || !li.getBoundingClientRect().width) { return null; } const ra = a.getBoundingClientRect(), rt = t.getBoundingClientRect(), rl = li.getBoundingClientRect(); return { apart: rt.left >= ra.right - 0.5, inside: rt.right <= rl.right + 0.5 && ra.left >= rl.left - 0.5 }; }).filter(Boolean));
+      ok(cap.length >= 1 && cap.every((c) => c.apart && c.inside), 'top menu ' + w + 'px: each item with a sub-menu is one capsule: the link and its arrow never overlap (' + cap.length + ' items)');
       if (r.m) { seen++; ok(r.m[0] >= r.m[1] * 1.5 && r.m[2], 'top menu ' + w + 'px: the More button is a pill (' + r.m[0] + 'x' + r.m[1] + ') that holds its word'); }
       if (w === 1280) { await mp.screenshot({ path: shot('menu-top-1280.png'), clip: { x: 0, y: 0, width: 1280, height: 120 } }); }
       await mc.close();
