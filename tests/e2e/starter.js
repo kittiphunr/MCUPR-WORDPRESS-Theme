@@ -1971,6 +1971,53 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
   ok(await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'events calendar fits 240px without horizontal scroll');
   await p.screenshot({ path: shot('starter-about.png') });
   ok(!errors.length, 'no console / page errors' + (errors.length ? ': ' + errors[0] : ''));
+  // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
+  {
+    const { execSync } = require('child_process');
+    const fsP = require('fs');
+    const wpLoadP = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+    const phpP = (code) => { const f = require('os').tmpdir() + '/e2e-plain-' + process.pid + '.php'; fsP.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wpLoadP) + '; ' + code); return execSync('php ' + f + ' 2>/dev/null').toString().trim(); };
+    const was = phpP('echo get_option( "permalink_structure" );');
+    phpP('update_option( "permalink_structure", "" ); flush_rewrite_rules( false );');
+    try {
+      const api = p.context().request;
+      const origin = new URL(B).origin;
+      const norm = (u) => { try { const x = new URL(u, B); if (x.origin !== origin) { return null; } x.hash = ''; return x.href; } catch (e) { return null; } };
+      const skip = /wp-admin|wp-login|wp-content|wp-includes|wp-json|\.(png|jpe?g|gif|webp|svg|css|js|ico|woff2?|pdf|zip|docx?|xlsx?|ics|xml|json|csv)(\?|$)|action=|logout|replytocom|feed|print=|download|mcupr_dl|mcupr_ics|lang=/i;
+      const seen = new Set();
+      const queue = [B + '/', B + '/?mcupr_student=1', B + '/?post_type=mcupr_work', B + '/?post_type=mcupr_event', B + '/?post_type=mcupr_office'];
+      const bad = []; const pretty = new Map(); const sameAsHome = [];
+      let homeH1 = '';
+      let n = 0;
+      while (queue.length && n < 140) {
+        const u = norm(queue.shift());
+        if (!u || seen.has(u) || skip.test(u)) { continue; }
+        seen.add(u);
+        n++;
+        const r = await api.get(u, { timeout: 30000 }).catch(() => null);
+        if (!r || r.status() >= 400) { bad.push(u + ' (' + (r ? r.status() : 'error') + ')'); continue; }
+        if (!/html/.test(r.headers()['content-type'] || '')) { continue; }
+        const html = await r.text();
+        const h1 = ((html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/) || [])[1] || '').replace(/<[^>]+>/g, '').trim();
+        if (u === B + '/') { homeH1 = h1; } else if (h1 && h1 === homeH1 && !/[?&]s=/.test(u)) { sameAsHome.push(u + ' → "' + h1 + '"'); }
+        for (const m of html.matchAll(/<a\s[^>]*href="([^"#][^"]*)"/g)) {
+          const t = norm(m[1].replace(/&#038;|&amp;/g, '&'));
+          if (!t) { continue; }
+          const pth = new URL(t).pathname.replace(new URL(B).pathname.replace(/\/$/, ''), '');
+          if (pth !== '/' && pth !== '' && !/^\/index\.php\/?$/.test(pth) && !/^\/wp-(admin|content|includes|login|json)|\.(png|jpe?g|gif|webp|svg|css|js|ico|woff2?|pdf|zip|docx?|xlsx?|ics|xml|json|csv)$/i.test(pth) && !pretty.has(pth)) { pretty.set(pth, u); }
+          if (!seen.has(t)) { queue.push(t); }
+        }
+      }
+      ok(n >= 60, 'plain permalinks: ' + n + ' pages were visited by following the links from the home page, the student portal and the lists');
+      ok(bad.length === 0, 'plain permalinks: no broken link' + (bad.length ? ': ' + bad.slice(0, 3).join(', ') : ''));
+      ok(pretty.size === 0, 'plain permalinks: no link uses a pretty path (…/works/, …/academics/…)' + (pretty.size ? ': ' + [...pretty.entries()].slice(0, 4).map((e) => e[0] + ' on ' + e[1].replace(B, '')).join(', ') : ''));
+      ok(sameAsHome.length === 0, 'plain permalinks: every page shows its own heading, not the home page\'s' + (sameAsHome.length ? ': ' + sameAsHome.slice(0, 3).join(', ') : ''));
+      const sp2 = await api.get(B + '/?mcupr_student=1');
+      ok(sp2.status() === 200 && /stu-card|พอร์ทัลนิสิต/.test(await sp2.text()), 'plain permalinks: the student portal opens with ?mcupr_student=1');
+    } finally {
+      phpP('update_option( "permalink_structure", ' + JSON.stringify(was) + ' ); flush_rewrite_rules( false );');
+    }
+  }
   await br.close();
   finish();
 })();
