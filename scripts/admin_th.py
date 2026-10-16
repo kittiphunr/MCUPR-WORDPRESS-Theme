@@ -1307,4 +1307,12 @@ TH = {
 "How the pages turn": "วิธีพลิกหน้า",
 "The reader has a button to change this for the visitor (the choice is remembered). WebGL falls back to CSS 3D when the device cannot do it. People who asked their device for less motion get no turning animation.": "ตัวอ่านมีปุ่มให้ผู้อ่านเปลี่ยนเอง (จำค่าที่เลือก) ถ้าอุปกรณ์ทำ WebGL ไม่ได้จะใช้ CSS 3 มิติแทน ผู้ที่ตั้งอุปกรณ์ให้ลดการเคลื่อนไหวจะไม่มีอนิเมชันพลิกหน้า",
 "WebGL (realistic: light and shadow)": "WebGL (สมจริง: มีแสงและเงา)",
+"A book placed in a page opens": "หนังสือที่วางในหน้าเว็บเปิดแบบ",
+"For [mcupr_book]. Each book and each shortcode (mode=\"embed\" or mode=\"lightbox\") can choose its own. A lightbox loads the reader only when the cover is pressed, so the page stays light. The page of a single book is always embedded.": "สำหรับ [mcupr_book] แต่ละเล่มและแต่ละ shortcode (mode=\"embed\" หรือ mode=\"lightbox\") เลือกเองได้ Lightbox จะโหลดตัวอ่านเมื่อกดที่ปกเท่านั้น หน้าเว็บจึงเบา ส่วนหน้าของหนังสือเล่มเดียวจะฝังตัวอ่านเสมอ",
+"In a full-screen window (lightbox)": "ในหน้าต่างเต็มจอ (Lightbox)",
+"In a full-screen window when its cover is pressed (lightbox)": "ในหน้าต่างเต็มจอเมื่อกดที่ปก (Lightbox)",
+"Inside the page (embedded)": "ฝังในหน้าเว็บ",
+"Reader background": "พื้นหลังตัวอ่าน",
+"The colour behind the book (it fades darker towards the edges).": "สีด้านหลังหนังสือ (ไล่เฉดเข้มขึ้นไปทางขอบ)",
+"When placed in a page": "เมื่อวางในหน้าเว็บ",
 }
