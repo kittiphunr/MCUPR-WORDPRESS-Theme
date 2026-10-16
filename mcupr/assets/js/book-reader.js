@@ -39,6 +39,8 @@
 		return true;
 	}
 
+	window.mcuprBook = { turnSound: turnSound, audio: audio, reduced: reduced };
+
 	function store(key, val) { try { if (val === undefined) { return window.localStorage.getItem(key); } window.localStorage.setItem(key, val); } catch (e) { /* private mode */ } return null; }
 	function fmt(s, a, b) { return String(s).replace('%1$d', a).replace('%2$d', b); }
 	function $(sel, el) { return (el || document).querySelector(sel); }
@@ -47,10 +49,12 @@
 	function init(el) {
 		var cfg;
 		try { cfg = JSON.parse(el.getAttribute('data-book')); } catch (e) { return; }
+		if (cfg.src === 'epub') { return; } // book-epub.js takes this one
 		var L = cfg.l, stage = $('.bk-stage', el), bookEl = $('.bk-book', el), status = $('.bk-status', el);
 		var range = $('[data-act="range"]', el), curEl = $('[data-cur]', el), totalEl = $('[data-total]', el), textEl = $('[data-text]', el);
 		var thumbs = $('.bk-thumbs', el), thList = $('.bk-th-list', el);
 		var btn = function (a) { return $('[data-act="' + a + '"]', el); };
+		var seq = [], seqOf = {}, media = cfg.media || [], mbar = $('[data-mbar]', el), modal = null, modalFrom = null;
 		var pdf = null, total = 0, pages = [], pf = null, ratio = 1.4, rendered = {}, queue = [], busy = false, lastW = 0;
 		var soundOn = false, flips = 0, userTurn = false;
 
@@ -74,22 +78,131 @@
 			var w = (pages[0] && pages[0].clientWidth) || Math.max(260, stage.clientWidth / 2);
 			return Math.min(1700, Math.round(w * Math.min(window.devicePixelRatio || 1, 2)));
 		}
+		/* the pages in reading order: the book's own pages, each followed by the "page of its own" extras of it */
+		function buildSeq(n) {
+			var i, k;
+			for (i = 0; i < n; i++) {
+				seqOf[i] = seq.length;
+				seq.push({ n: i });
+				for (k = 0; k < media.length; k++) { if (media[k].mode === 'page' && media[k].page === i + 1) { seq.push({ m: media[k] }); } }
+			}
+		}
+		var KIND = { youtube: 'm_youtube', video: 'm_video', audio: 'm_audio', link: 'm_link' };
+		var ICON = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>';
+		function mTitle(m) { return m.title || L[KIND[m.kind]]; }
+		function player(m) {
+			var x;
+			if (m.kind === 'youtube') {
+				x = document.createElement('iframe');
+				x.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(m.yt) + '?autoplay=1&rel=0&playsinline=1';
+				x.title = mTitle(m); x.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; x.setAttribute('allowfullscreen', ''); x.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+			} else if (m.kind === 'video') {
+				x = document.createElement('video'); x.controls = true; x.autoplay = true; x.setAttribute('playsinline', ''); x.preload = 'metadata'; x.src = m.src; x.setAttribute('aria-label', mTitle(m));
+			} else {
+				x = document.createElement('audio'); x.controls = true; x.autoplay = true; x.src = m.src; x.setAttribute('aria-label', mTitle(m));
+			}
+			return x;
+		}
+		function stopInline() {
+			Array.prototype.forEach.call(el.querySelectorAll('.bk-m-slot.is-on'), function (sl) { sl.classList.remove('is-on'); sl.innerHTML = ''; sl.appendChild(sl._btn); });
+		}
+		/* the window that plays an extra opened from a button */
+		function buildModal() {
+			modal = document.createElement('div');
+			modal.className = 'bk-modal'; modal.hidden = true;
+			modal.innerHTML = '<div class="bk-modal-box" role="dialog" aria-modal="true"><div class="bk-modal-head"><h3 class="bk-modal-t"></h3><button type="button" class="bk-btn bk-modal-x"></button></div><div class="bk-modal-body"></div></div>';
+			$('.bk-modal-x', modal).textContent = L.m_close;
+			$('.bk-modal-x', modal).addEventListener('click', closeModal);
+			modal.addEventListener('mousedown', function (e) { if (e.target === modal) { closeModal(); } });
+			modal.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeModal(); return; }
+				if (e.key === 'Tab') {
+					var f = Array.prototype.filter.call(modal.querySelectorAll('button, [href], iframe, video, audio'), function (n) { return !n.disabled; });
+					if (!f.length) { return; }
+					var first = f[0], last = f[f.length - 1];
+					if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+				}
+			});
+			el.appendChild(modal);
+		}
+		function openModal(m, from) {
+			if (!modal) { buildModal(); }
+			modalFrom = from || null;
+			$('.bk-modal-t', modal).textContent = mTitle(m);
+			$('.bk-modal-box', modal).setAttribute('aria-label', mTitle(m));
+			var body = $('.bk-modal-body', modal);
+			body.innerHTML = ''; body.setAttribute('data-kind', m.kind);
+			body.appendChild(player(m));
+			modal.hidden = false;
+			$('.bk-modal-x', modal).focus();
+		}
+		function closeModal() {
+			if (!modal || modal.hidden) { return; }
+			$('.bk-modal-body', modal).innerHTML = '';
+			modal.hidden = true;
+			if (modalFrom && document.contains(modalFrom)) { modalFrom.focus(); }
+			if (document.activeElement !== modalFrom) { stage.focus(); }
+		}
+		/* a button (or a link) that opens one extra */
+		function mButton(m, cls) {
+			var b;
+			if (m.kind === 'link') {
+				b = document.createElement('a'); b.href = m.href; b.target = '_blank'; b.rel = 'noopener noreferrer';
+				b.setAttribute('aria-label', mTitle(m) + ' – ' + L.m_open);
+			} else {
+				b = document.createElement('button'); b.type = 'button';
+				b.addEventListener('click', function () { openModal(m, b); });
+			}
+			b.className = cls;
+			b.innerHTML = ICON + '<span></span>';
+			b.lastChild.textContent = mTitle(m);
+			return b;
+		}
+		function mediaPage(p, m) {
+			var wrap = document.createElement('div'), slot = document.createElement('div'), btn2;
+			wrap.className = 'bk-media';
+			wrap.innerHTML = '<p class="bk-m-kind"></p><h3 class="bk-m-title"></h3>';
+			wrap.firstChild.textContent = L[KIND[m.kind]]; wrap.lastChild.textContent = m.title || '';
+			slot.className = 'bk-m-slot';
+			if (m.kind === 'link') { btn2 = mButton(m, 'bk-chip bk-chip-big'); } else {
+				btn2 = document.createElement('button'); btn2.type = 'button'; btn2.className = 'bk-chip bk-chip-big';
+				btn2.innerHTML = ICON + '<span></span>'; btn2.lastChild.textContent = L.m_play;
+				btn2.addEventListener('click', function () { stopInline(); slot.classList.add('is-on'); slot.innerHTML = ''; slot.appendChild(player(m)); });
+			}
+			slot._btn = btn2; slot.appendChild(btn2); wrap.appendChild(slot);
+			p.appendChild(wrap);
+			p.classList.add('bk-done', 'bk-mpage');
+		}
 		function makePages(n) {
-			total = n;
-			var i, p, count = n % 2 ? n + 1 : n; // an even number, so the last page is a back cover on its own
+			buildSeq(n);
+			total = seq.length;
+			var i, p, count = total % 2 ? total + 1 : total; // an even number, so the last page is a back cover on its own
 			for (i = 0; i < count; i++) {
 				p = document.createElement('div');
-				p.className = 'bk-page' + (i === 0 || i === count - 1 ? ' bk-hard' : '') + (i >= n ? ' bk-blank' : '');
+				p.className = 'bk-page' + (i === 0 || i === count - 1 ? ' bk-hard' : '') + (i >= total ? ' bk-blank' : '');
 				p.setAttribute('data-density', i === 0 || i === count - 1 ? 'hard' : 'soft');
 				p.setAttribute('data-i', i);
 				p.setAttribute('aria-hidden', 'true');
-				if (i < n) { p.innerHTML = '<span class="bk-num">' + (i + 1) + '</span>'; }
+				if (i < total) {
+					if (seq[i].m) { mediaPage(p, seq[i].m); }
+					p.insertAdjacentHTML('beforeend', '<span class="bk-num">' + (i + 1) + '</span>');
+				}
 				bookEl.appendChild(p);
 				pages.push(p);
 			}
+			// the buttons on the pages
+			var chips = {};
+			media.forEach(function (m) {
+				if (m.mode !== 'button' || !(m.page >= 1 && m.page <= n)) { return; }
+				var idx = seqOf[m.page - 1];
+				if (!chips[idx]) { chips[idx] = document.createElement('div'); chips[idx].className = 'bk-chips'; pages[idx].appendChild(chips[idx]); }
+				var b = mButton(m, 'bk-chip');
+				b.tabIndex = -1; // the same buttons are in the list under the book, for the keyboard
+				chips[idx].appendChild(b);
+			});
 		}
 		function drawPdf(idx) {
-			return pdf.getPage(idx + 1).then(function (pg) {
+			return pdf.getPage(seq[idx].n + 1).then(function (pg) {
 				var v1 = pg.getViewport({ scale: 1 }), scale = sizeFor() / v1.width, vp = pg.getViewport({ scale: scale });
 				var cv = document.createElement('canvas');
 				cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
@@ -105,9 +218,9 @@
 		function drawImg(idx) {
 			return new Promise(function (res) {
 				var im = new Image();
-				im.className = 'bk-cv'; im.alt = cfg.pages[idx].alt; im.decoding = 'async';
+				im.className = 'bk-cv'; im.alt = cfg.pages[seq[idx].n].alt; im.decoding = 'async';
 				im.onload = im.onerror = function () { pages[idx].insertBefore(im, pages[idx].firstChild); pages[idx].classList.add('bk-done'); res(); };
-				im.src = cfg.pages[idx].url;
+				im.src = cfg.pages[seq[idx].n].url;
 			});
 		}
 		function pump() {
@@ -117,7 +230,7 @@
 			(cfg.src === 'pdf' ? drawPdf(idx) : drawImg(idx)).catch(function () { /* one bad page does not stop the book */ }).then(function () { busy = false; pump(); });
 		}
 		function want(idx) {
-			if (idx < 0 || idx >= total || rendered[idx]) { return; }
+			if (idx < 0 || idx >= total || rendered[idx] || seq[idx].m) { return; }
 			rendered[idx] = true;
 			queue.push(idx);
 		}
@@ -138,16 +251,30 @@
 			try { history.replaceState(null, '', '#page=' + a); } catch (e) { /* ignore */ }
 			store('mcupr_bk_pos', JSON.stringify(Object.assign(JSON.parse(store('mcupr_bk_pos') || '{}'), (function () { var o = {}; o[cfg.id] = a; return o; })())));
 			el.setAttribute('aria-label', cfg.title + ' – ' + fmt(L.page, label, total));
+			showMedia(s);
+			var real = s.filter(function (i) { return i < total; });
 			if (cfg.src === 'pdf') {
-				var bits = [];
-				Promise.all(s.filter(function (i) { return i < total; }).map(function (i) {
-					return pdf.getPage(i + 1).then(function (pg) { return pg.getTextContent(); }).then(function (tc) { return tc.items.map(function (t) { return t.str; }).join(' '); });
+				Promise.all(real.map(function (i) {
+					if (seq[i].m) { return Promise.resolve(mTitle(seq[i].m)); }
+					return pdf.getPage(seq[i].n + 1).then(function (pg) { return pg.getTextContent(); }).then(function (tc) { return tc.items.map(function (t) { return t.str; }).join(' '); });
 				})).then(function (tx) { textEl.textContent = tx.join('\n\n').slice(0, 6000); }).catch(function () { /* no text */ });
 			} else {
-				textEl.textContent = s.filter(function (i) { return i < total; }).map(function (i) { return cfg.pages[i].alt; }).join(' · ');
+				textEl.textContent = real.map(function (i) { return seq[i].m ? mTitle(seq[i].m) : cfg.pages[seq[i].n].alt; }).join(' · ');
 			}
 		}
-		function onFlip() { ensureAround(pf.getCurrentPageIndex()); announce(); }
+		/* the list of the extras of the open pages (under the book; for the keyboard and screen readers) */
+		function showMedia(s) {
+			if (!media.length) { return; }
+			mbar.innerHTML = '';
+			var n = 0;
+			s.forEach(function (i) {
+				if (i >= total) { return; }
+				var list = seq[i].m ? [seq[i].m] : media.filter(function (m) { return m.mode === 'button' && m.page === seq[i].n + 1; });
+				list.forEach(function (m) { mbar.appendChild(mButton(m, 'bk-mbtn')); n++; });
+			});
+			mbar.hidden = !n;
+		}
+		function onFlip() { stopInline(); ensureAround(pf.getCurrentPageIndex()); announce(); }
 
 		/* ---- buttons */
 		btn('prev').addEventListener('click', function () { userTurn = true; pf.flipPrev(); });
@@ -202,14 +329,18 @@
 					li.appendChild(b); thList.appendChild(li);
 					todo.push(function () {
 						var box = b.firstChild;
+						if (seq[n].m) {
+							box.innerHTML = '<span class="bk-th-m">' + ICON + '<span></span></span>'; box.firstChild.lastChild.textContent = L[KIND[seq[n].m.kind]];
+							return Promise.resolve();
+						}
 						if (cfg.src === 'pdf') {
-							return pdf.getPage(n + 1).then(function (pg) {
+							return pdf.getPage(seq[n].n + 1).then(function (pg) {
 								var v = pg.getViewport({ scale: 1 }), s = 110 / v.width, vp = pg.getViewport({ scale: s }), cv = document.createElement('canvas');
 								cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
 								return pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise.then(function () { box.appendChild(cv); });
 							});
 						}
-						var im = new Image(); im.alt = ''; im.loading = 'lazy'; im.src = cfg.pages[n].url; box.appendChild(im);
+						var im = new Image(); im.alt = ''; im.loading = 'lazy'; im.src = cfg.pages[seq[n].n].url; box.appendChild(im);
 						return Promise.resolve();
 					});
 				})(i);
@@ -240,7 +371,7 @@
 			el.style.setProperty('--bk-ar1', String(W / H));
 			pf = new window.St.PageFlip(bookEl, {
 				width: W, height: H, size: 'stretch', minWidth: 160, maxWidth: 1000, minHeight: 220, maxHeight: 1500,
-				showCover: true, usePortrait: true, drawShadow: !reduced, maxShadowOpacity: 0.55,
+				showCover: true, usePortrait: true, clickEventForward: true, drawShadow: !reduced, maxShadowOpacity: 0.55,
 				flippingTime: reduced ? 1 : 850, showPageCorners: !reduced, mobileScrollSupport: false, swipeDistance: 24, startZIndex: 5
 			});
 			var startAt = 0, m = /#page=(\d+)/.exec(location.hash), savedPos = null;
