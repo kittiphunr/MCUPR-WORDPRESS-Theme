@@ -69,6 +69,7 @@ function mcupr_audit( $action, $data = array() ) {
 			'post_type'   => MCUPR_AUDIT,
 			'post_status' => 'publish',
 			'post_title'  => sanitize_key( $action ),
+			'post_name'   => wp_generate_uuid4(), // unique at once: WordPress otherwise tries delete-2, delete-3 … one query each
 			'post_author' => (int) $u->ID,
 		),
 		false,
