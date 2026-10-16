@@ -1420,6 +1420,22 @@
 		lbOpen(links, links.indexOf(a), a);
 	});
 
+	/* Office menu on small screens: the tabs fold into one button (the list stays open without JS) */
+	(function () {
+		var nav = $('.of-tabs');
+		var btn = nav && $('.of-tabs-btn', nav);
+		if (!btn) { return; }
+		nav.classList.add('js-tabs');
+		function set(open) {
+			nav.classList.toggle('is-open', open);
+			btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+		}
+		btn.addEventListener('click', function () { set(!nav.classList.contains('is-open')); });
+		nav.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); btn.focus(); }
+		});
+	})();
+
 	apply();
 	reveal();
 })();
