@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.37.0 =
+* E-books round 2: EPUB and extras on the pages
+
 = 1.36.0 =
 * E-books: bookshelf + 3D flipbook (PDF and pictures)
 

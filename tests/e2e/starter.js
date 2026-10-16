@@ -2030,12 +2030,20 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       $fx=${JSON.stringify(fxB)};
       foreach(get_posts(array("post_type"=>"mcupr_book","post_status"=>"any","numberposts"=>-1,"fields"=>"ids")) as $x){wp_delete_post($x,true);}
       $pdf=sd($fx."book.pdf"); $im=array(); for($i=1;$i<=6;$i++){$im[]=sd($fx."book-page-$i.png");}
+      $ep=sd($fx."book.epub"); $vid=sd($fx."book-video.mp4"); $snd=sd($fx."book-sound.wav");
       $sh=wp_insert_term("E2E shelf ".time(),"mcupr_shelf"); $out=array();
       for($n=1;$n<=5;$n++){ $b=wp_insert_post(array("post_type"=>"mcupr_book","post_status"=>"publish","post_title"=>"E2E Book $n"));
         if($n%2){update_post_meta($b,"_mcupr_bk_src","pdf");update_post_meta($b,"_mcupr_bk_pdf",$pdf);}else{update_post_meta($b,"_mcupr_bk_src","images");update_post_meta($b,"_mcupr_bk_imgs",$im);}
         wp_set_object_terms($b,(int)$sh["term_id"],"mcupr_shelf"); $out[]=$b; }
-      echo json_encode($out);`));
-    ok(ids.length === 5, 'e-books: five sample books were made');
+      $e=wp_insert_post(array("post_type"=>"mcupr_book","post_status"=>"publish","post_title"=>"E2E EPUB")); update_post_meta($e,"_mcupr_bk_src","epub"); update_post_meta($e,"_mcupr_bk_epub",$ep); $out[]=$e;
+      $x=wp_insert_post(array("post_type"=>"mcupr_book","post_status"=>"publish","post_title"=>"E2E Extras")); update_post_meta($x,"_mcupr_bk_src","pdf"); update_post_meta($x,"_mcupr_bk_pdf",$pdf);
+      update_post_meta($x,"_mcupr_bk_media",array(
+        array("page"=>1,"kind"=>"youtube","mode"=>"button","title"=>"Intro video","yt"=>"dQw4w9WgXcQ"),
+        array("page"=>2,"kind"=>"video","mode"=>"page","title"=>"Our video","att"=>$vid),
+        array("page"=>2,"kind"=>"link","mode"=>"button","title"=>"More info","url"=>"https://example.org/"),
+        array("page"=>3,"kind"=>"audio","mode"=>"page","title"=>"Listen","att"=>$snd)));
+      $out[]=$x; echo json_encode($out);`));
+    ok(ids.length === 7, 'e-books: seven sample books were made (two with pictures/PDF, an EPUB, one with extras)');
     const bc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
     const bp = await bc.newPage();
     const berr = [];
@@ -2044,7 +2052,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await bp.goto(B + '/?post_type=mcupr_book');
     await bp.evaluate(() => { try { localStorage.removeItem('mcupr_bk_view'); } catch (e) { /* */ } });
     await bp.reload();
-    ok(await bp.locator('.bk-card').count() === 5, 'e-books: the shelf shows the five books');
+    ok(await bp.locator('.bk-card').count() === 7, 'e-books: the shelf shows the seven books');
     ok((await bp.locator('.bk-shelf-app').getAttribute('data-view')) === 'shelf', 'e-books: the shelf view is the default');
     ok(await bp.locator('.bk-pad').count() >= 0 && await bp.evaluate(() => { const ul = document.querySelector('.bk-books'); const cols = getComputedStyle(ul).gridTemplateColumns.split(' ').length; return (ul.querySelectorAll('.bk-card').length + ul.querySelectorAll('.bk-pad').length) % cols === 0; }), 'e-books: the last board of the shelf is completed with empty slots');
     // search
@@ -2106,6 +2114,106 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await bp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
       const c = await bp.evaluate((md) => { document.documentElement.setAttribute('data-contrast', md); const rd = getComputedStyle(document.querySelector('.bk-reader')); const bt = getComputedStyle(document.querySelector('.bk-btn')); return { rb: rd.borderTopWidth, bb: bt.borderTopWidth, col: bt.color, bg: rd.backgroundColor }; }, mode);
       ok(parseFloat(c.rb) >= 2 && parseFloat(c.bb) >= 2, 'e-books: high contrast ' + mode + ': the reader and its buttons have a visible outline');
+    }
+    // EPUB
+    await bp.goto(B + '/?p=' + ids[5]);
+    await bp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+    await bp.locator('.bk-reader').scrollIntoViewIfNeeded();
+    ok(await bp.locator('.bk-ep-paper iframe').count() === 1, 'e-books: an EPUB opens in a page of its own (text that flows)');
+    await bp.evaluate(() => { try { localStorage.setItem('mcupr_bk_sound', '1'); } catch (e) { /* */ } });
+    await bp.reload();
+    await bp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+    const epText = async () => bp.frameLocator('.bk-ep-paper iframe').locator('body').innerText();
+    const ep1 = await epText();
+    const cfi = () => bp.evaluate((k) => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }, 'mcupr_bk_cfi_' + ids[5]);
+    const cfi1 = await cfi();
+    ok(/Chapter 1/.test(ep1), 'e-books: EPUB: it starts at the first chapter');
+    await bp.click('.bk-reader [data-act="next"]');
+    await bp.waitForFunction(() => +document.querySelector('.bk-reader').dataset.flips >= 1, null, { timeout: 8000 }).catch(() => {});
+    ok(+(await bp.locator('.bk-reader').getAttribute('data-flips')) >= 1, 'e-books: EPUB: turning the page makes the page-turn sound');
+    await bp.waitForTimeout(900);
+    ok((await cfi()) !== cfi1, 'e-books: EPUB: the next button moves to another place in the book');
+    await bp.click('.bk-reader [data-act="thumbs"]');
+    ok(await bp.locator('.bk-toc').count() === 4, 'e-books: EPUB: the contents list has the four chapters');
+    await bp.locator('.bk-toc').nth(2).click();
+    await bp.waitForTimeout(1200);
+    ok(/Chapter 3/.test(await epText()), 'e-books: EPUB: a chapter in the contents opens it');
+    const fsz = async () => bp.frameLocator('.bk-ep-paper iframe').locator('body').evaluate((b) => parseFloat(getComputedStyle(b).fontSize));
+    const f0 = await fsz();
+    await bp.click('.bk-fs[aria-label]:has-text("A+")');
+    await bp.waitForTimeout(700);
+    ok((await fsz()) > f0, 'e-books: EPUB: the A+ button makes the text bigger');
+    await bp.waitForFunction(() => !document.querySelector('.bk-reader [data-act="range"]').disabled, null, { timeout: 20000 }).catch(() => {});
+    ok(/%$/.test(await bp.locator('.bk-count').innerText()), 'e-books: EPUB: the progress is shown as a percentage');
+    for (const w of [768, 390, 320]) {
+      await bp.setViewportSize({ width: w, height: 900 });
+      await bp.goto(B + '/?p=' + ids[5]);
+      await bp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+      const m = await bp.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, r: document.querySelector('.bk-ep-paper').getBoundingClientRect().width }));
+      ok(m.sw <= m.cw + 1 && m.r > 200, 'e-books: the EPUB reader fits a ' + w + ' px screen');
+    }
+    await bp.setViewportSize({ width: 1366, height: 900 });
+    ok(berr.length === 0, 'e-books: EPUB: no script error' + (berr.length ? ': ' + berr.slice(0, 2).join(' | ') : ''));
+    // extras on the pages (YouTube is answered with a stub: the test must not need the internet)
+    await bc.route('**/www.youtube-nocookie.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<p>player</p>' }));
+    await bp.goto(B + '/?p=' + ids[6]);
+    await bp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+    await bp.locator('.bk-reader').scrollIntoViewIfNeeded();
+    ok(await bp.locator('.bk-reader').getAttribute('data-pages') === '8', 'e-books: extras: two pages of their own are added to the six (8 pages)');
+    ok(await bp.locator('.bk-chips .bk-chip').count() === 2, 'e-books: extras: the buttons on the pages are there (a YouTube video and a link)');
+    ok((await bp.locator('.bk-page a.bk-chip').getAttribute('target')) === '_blank' && /noopener/.test(await bp.locator('.bk-page a.bk-chip').getAttribute('rel')), 'e-books: extras: a link opens in a new tab with noopener');
+    await bp.locator('.bk-chips button.bk-chip').first().click();
+    ok(await bp.locator('.bk-reader').getAttribute('data-page') === '1', 'e-books: extras: pressing a button on a page does not turn the page');
+    const mdl = await bp.evaluate(() => { const m = document.querySelector('.bk-modal'); const f = m && m.querySelector('iframe'); return { open: !!m && !m.hidden, src: f ? f.src : '', foc: document.activeElement.className }; });
+    ok(mdl.open && /^https:\/\/www\.youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/.test(mdl.src), 'e-books: extras: the YouTube button opens the player window (youtube-nocookie)');
+    ok(/bk-modal-x/.test(mdl.foc), 'e-books: extras: the focus moves into the player window');
+    await bp.keyboard.press('Escape');
+    ok(await bp.locator('.bk-modal').isHidden() && await bp.locator('.bk-modal iframe').count() === 0, 'e-books: extras: Escape closes the window and stops the video');
+    await bp.click('.bk-reader [data-act="next"]');
+    await bp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '2', null, { timeout: 8000 }).catch(() => {});
+    ok(await bp.locator('.bk-mbar .bk-mbtn').count() === 2, 'e-books: extras: the list under the book (for the keyboard) has the extras of the open pages');
+    await bp.locator('.bk-media .bk-chip').first().click();
+    ok(await bp.locator('.bk-m-slot.is-on video').count() === 1, 'e-books: extras: the page of its own plays the video in the page');
+    await bp.click('.bk-reader [data-act="next"]');
+    await bp.waitForTimeout(1200);
+    ok(await bp.locator('.bk-m-slot.is-on').count() === 0, 'e-books: extras: turning the page stops the video');
+    ok(berr.length === 0, 'e-books: extras: no script error' + (berr.length ? ': ' + berr.slice(0, 2).join(' | ') : ''));
+    for (const w of [390, 320]) {
+      await bp.setViewportSize({ width: w, height: 900 });
+      await bp.goto(B + '/?p=' + ids[6]);
+      await bp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+      const m = await bp.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, chip: Math.max(0, ...[...document.querySelectorAll('.bk-chip')].map((c) => c.getBoundingClientRect().right)) }));
+      ok(m.sw <= m.cw + 1, 'e-books: extras: the reader with buttons fits a ' + w + ' px screen');
+    }
+    await bp.setViewportSize({ width: 1366, height: 900 });
+    // the editor's box
+    {
+      const ac = await br.newContext({ viewport: { width: 1366, height: 900 } });
+      const ap = await ac.newPage();
+      const aerr = [];
+      ap.on('pageerror', (e) => aerr.push(e.message));
+      await ap.goto(B + '/wp-login.php');
+      await ap.fill('#user_login', 'e2eadmin'); await ap.fill('#user_pass', 'e2e-Admin-pass-1'); await ap.click('#wp-submit');
+      await ap.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+      await ap.goto(B + '/wp-admin/post.php?post=' + ids[6] + '&action=edit');
+      await ap.waitForSelector('#mcupr-bk-media', { state: 'attached', timeout: 30000 });
+      await ap.keyboard.press('Escape'); // the welcome window
+      await ap.waitForTimeout(800);
+      // the block editor keeps the meta boxes folded at first: open them
+      await ap.locator('button[aria-expanded="false"]:has-text("Meta Boxes")').first().evaluate((b) => b.click());
+      await ap.waitForSelector('#mcupr-bk-media', { state: 'visible', timeout: 15000 });
+      ok(await ap.locator('#mcupr-bk-media tbody tr').count() === 4, 'e-books admin: the four extras of the book are in the table');
+      await ap.click('#mcupr-bk-add-media');
+      ok(await ap.locator('#mcupr-bk-media tbody tr').count() === 5, 'e-books admin: "Add an extra" adds a row');
+      await ap.locator('#mcupr-bk-media tbody tr').last().locator('.mcupr-bk-kind').selectOption('video');
+      ok(await ap.locator('#mcupr-bk-media tbody tr').last().locator('.mcupr-bk-file').isVisible() && await ap.locator('#mcupr-bk-media tbody tr').last().locator('.mcupr-bk-url').isHidden(), 'e-books admin: a video row asks for a file, not an address');
+      await ap.locator('#mcupr-bk-media tbody tr').last().locator('.mcupr-bk-mrm').click();
+      ok(await ap.locator('#mcupr-bk-media tbody tr').count() === 4, 'e-books admin: a row can be removed');
+      ok(await ap.locator('input[name="mcupr_bk_src"]').count() === 3, 'e-books admin: three sources to choose from (PDF, pictures, EPUB)');
+      await ap.check('input[name="mcupr_bk_src"][value="epub"]');
+      ok(await ap.locator('.mcupr-bk-pane[data-src="epub"]').isVisible() && await ap.locator('#mcupr-bk-media').isHidden(), 'e-books admin: choosing EPUB shows the EPUB part and hides the page extras');
+      ok(aerr.length === 0, 'e-books admin: no script error' + (aerr.length ? ': ' + aerr.slice(0, 2).join(' | ') : ''));
+      await ac.close();
     }
     // a book for students only: the file is not given to a visitor
     phpB('update_post_meta( ' + ids[0] + ', MCUPR_AUD, "students" ); mcupr_aud_reset();');
