@@ -389,7 +389,7 @@ function mcupr_student_acc_box( $post ) {
 	$sent = (int) get_user_meta( $uid, 'mcupr_activation_sent', true );
 	$act  = (int) get_user_meta( $uid, 'mcupr_activated', true );
 	echo '<p><strong>' . esc_html( $user->user_login ) . '</strong><br>' . esc_html( $user->user_email ) . '</p><p>' . esc_html( $act ? __( 'The student has set a password.', 'mcupr' ) : ( $sent ? __( 'Link sent, password not set yet.', 'mcupr' ) : __( 'No link sent yet.', 'mcupr' ) ) ) . '</p>';
-	foreach ( array( 'mcupr_stu_send' => __( 'Send the link to set a password', 'mcupr' ), 'mcupr_stu_drop' => __( 'Delete the login account', 'mcupr' ) ) as $action => $label ) {
+	foreach ( array( 'mcupr_stu_send' => __( 'Send the link to set a password', 'mcupr' ), 'mcupr_stu_link' => __( 'Show the link (no e-mail)', 'mcupr' ), 'mcupr_stu_drop' => __( 'Delete the login account', 'mcupr' ) ) as $action => $label ) {
 		echo '<p><a class="button" href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . $action . '&sid=' . (int) $post->ID ), 'mcupr_stu_' . $action . $post->ID ) ) . '">' . esc_html( $label ) . '</a></p>';
 	}
 }
@@ -562,6 +562,7 @@ add_filter(
 				mcupr_student_drop_account( $id ) ? $n++ : $e++;
 			}
 		}
+		mcupr_audit( 'bulk', array( 'n' => $n, 'note' => $action . ( $e ? ' (not done: ' . $e . ')' : '' ) ) );
 		return add_query_arg( array( 'mcs_done' => $n, 'mcs_err' => $e ), $redirect );
 	},
 	10,

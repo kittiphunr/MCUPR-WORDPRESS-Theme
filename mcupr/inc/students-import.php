@@ -496,6 +496,7 @@ function mcupr_si_run( $token ) {
 	$log = get_option( 'mcupr_student_imports', array() );
 	$log[] = array( 't' => time(), 'by' => $by->user_login, 'added' => $s['added'], 'updated' => $s['updated'], 'errors' => count( $s['errors'] ), 'rows' => $total );
 	update_option( 'mcupr_student_imports', array_slice( $log, -20 ), false );
+	mcupr_audit( 'import', array( 'n' => $total, 'note' => sprintf( 'added %d, updated %d, not imported %d', $s['added'], $s['updated'], count( $s['errors'] ) ) . ( ! empty( $d['sample'] ) ? ' (sample file)' : '' ) ) );
 	set_transient( 'mcupr_si_report_' . get_current_user_id(), array( 'state' => $s, 'total' => $total, 'sample' => ! empty( $d['sample'] ) ), HOUR_IN_SECONDS );
 	wp_delete_file( mcupr_si_file( $token ) );
 	echo '<script>location.href=' . wp_json_encode( mcupr_si_url( array( 'step' => 'done' ) ) ) . ';</script><p><a class="button button-primary" href="' . esc_url( mcupr_si_url( array( 'step' => 'done' ) ) ) . '">' . esc_html__( 'Show the report', 'mcupr' ) . '</a></p>';
@@ -580,6 +581,7 @@ add_action(
 			$line[1] = $d['name'];
 			$rows[]  = $line;
 		}
+		mcupr_audit( 'export', array( 'n' => count( $ids ) ) );
 		mcupr_si_csv_out( 'mcupr-students-' . gmdate( 'Y-m-d' ) . '.csv', $rows );
 	}
 );
@@ -595,6 +597,7 @@ add_action(
 		foreach ( $r ? $r['state']['errors'] : array() as $e ) {
 			$rows[] = $e;
 		}
+		mcupr_audit( 'errors', array( 'n' => count( $rows ) - 1 ) );
 		mcupr_si_csv_out( 'mcupr-students-not-imported.csv', $rows );
 	}
 );

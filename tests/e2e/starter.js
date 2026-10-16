@@ -1051,6 +1051,9 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.fill('.mcupr-fb-card:nth-of-type(2) textarea', 'สอบถามทั่วไป\nแจ้งปัญหา');
     await ap.click('.mcupr-fb-card:nth-of-type(2) button[aria-label*="(2)"] >> nth=0'); // move up
     ok((await ap.locator('.mcupr-fb-card').count()) === 2, 'form builder admin: two fields added in the builder, one moved up');
+    // WordPress marks the buttons .disabled while it autosaves the new post and ignores a click then (a race that failed some runs): stop the autosave, wait for the buttons
+    await ap.evaluate(() => { if (window.wp && wp.autosave && wp.autosave.server) { wp.autosave.server.suspend(); } });
+    await ap.waitForFunction(() => !document.querySelector('#publish').classList.contains('disabled'));
     await ap.click('#publish');
     await ap.waitForURL(/post=\d+/, { waitUntil: 'domcontentloaded' });
     await ap.waitForSelector('.mcupr-fb-card');
@@ -1274,8 +1277,15 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       // high contrast
       await vp.goto(url);
       await vp.evaluate(() => document.documentElement.setAttribute('data-contrast', 'high'));
-      const hc = await vp.evaluate(() => { const cs = getComputedStyle(document.querySelector('.office-chrome .of-band')); const cur = getComputedStyle(document.querySelector('.of-tabs a[aria-current=page]')); return { bg: cs.backgroundColor, bb: cs.borderBottomWidth, curBg: cur.backgroundColor }; });
-      ok(hc.bg !== 'rgb(15, 118, 110)' && hc.bb === '2px' && hc.curBg !== hc.bg, 'office in high contrast: the header drops the office colour for the page colours with a 2px line, the current tab stands out (' + hc.bg + ')');
+      const hc = await vp.evaluate(() => { const cs = getComputedStyle(document.querySelector('.office-chrome .of-band')); const cur = getComputedStyle(document.querySelector('.of-tabs a[aria-current=page]')); const pill = getComputedStyle(document.querySelector('.office-chrome[data-variant=full] .of-tabs ul')); return { bg: cs.backgroundColor, bb: pill.borderTopWidth, curBg: cur.backgroundColor }; });
+      ok(hc.bg !== 'rgb(15, 118, 110)' && hc.bb === '2px' && hc.curBg !== hc.bg, 'office in high contrast: the header drops the office colour for the page colours, the tab bar has a 2px outline, the current tab stands out (' + hc.bg + ')');
+      await vp.addScriptTag({ content: axeSource() });
+      for (const mode of ['wb', 'yb', 'by']) {
+        await vp.evaluate((m) => document.documentElement.setAttribute('data-contrast', m), mode);
+        const axh = await vp.evaluate(() => axe.run(document, { runOnly: ['color-contrast'] }).then((r) => r.violations.map((v) => v.nodes.map((n) => n.target.join(' ')).join(','))));
+        const chip = await vp.evaluate(() => { const a = document.querySelector('.of-chips a'); return a ? getComputedStyle(a).borderTopWidth : 'none'; });
+        ok(axh.length === 0 && (chip === '2px' || chip === 'none'), 'office in high contrast "' + mode + '": text contrast passes, the contact chips have a 2px outline (' + (axh.join(';') || chip) + ')');
+      }
       ok(errs.length === 0, 'offices: no JavaScript errors on the office pages' + (errs.length ? ': ' + errs[0] : ''));
       await vc.close();
       // a person who works in one office
@@ -1385,6 +1395,37 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       // -- a student account, activated (what the e-mail link does), and student-only content
       const ids = JSON.parse(php3('$sid = mcupr_student_find( "E2E0001" ); $uid = (int) get_post_meta( $sid, "_mcupr_s_user", true ); wp_set_password( "E2e-Student-pass-1", $uid ); update_user_meta( $uid, "mcupr_activated", time() ); $only = wp_insert_post( array( "post_type" => "post", "post_status" => "publish", "post_title" => "ข่าวสำหรับนิสิตเท่านั้น (e2e)", "post_content" => "เนื้อหาลับของนิสิต" ) ); update_post_meta( $only, MCUPR_AUD, "students" ); $open = wp_insert_post( array( "post_type" => "post", "post_status" => "publish", "post_title" => "ข่าวทั่วไป (e2e students)", "post_content" => "เปิดให้ทุกคน" ) ); mcupr_aud_reset(); if ( ! username_exists( "e2e_sub" ) ) { wp_insert_user( array( "user_login" => "e2e_sub", "user_pass" => "e2e-Sub-pass-1", "user_email" => "e2e-sub@example.org", "role" => "subscriber" ) ); } if ( ! username_exists( "e2e_reg" ) ) { wp_insert_user( array( "user_login" => "e2e_reg", "user_pass" => "e2e-Reg-pass-1", "user_email" => "e2e-reg@example.org", "role" => MCUPR_REGISTRAR_ROLE ) ); } echo json_encode( array( "sid" => $sid, "uid" => $uid, "only" => $only, "open" => $open, "onlyUrl" => get_permalink( $only ), "openUrl" => get_permalink( $open ) ) );'));
       ok(ids.uid > 0, 'students: the account was made at import (the option was ticked)');
+      // -- the activity log, the e-mail test, the link without e-mail, the check of the links
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-log');
+      const logTxt = await ap.locator('.wrap table').first().innerText();
+      ok(/import|นำเข้า/i.test(logTxt) && !/นิสิตทดสอบ/.test(logTxt), 'activity log: the imports are listed, without student names');
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-log&act=import');
+      const onlyImp = await ap.locator('.wrap tbody tr').evaluateAll((r) => r.map((x) => x.children[2].textContent));
+      ok(onlyImp.length >= 2 && onlyImp.every((x) => x === onlyImp[0]), 'activity log: the filter shows one kind of event (' + onlyImp.length + ' rows)');
+      await ap.addScriptTag({ content: axeSource() });
+      const axLog = await ap.evaluate(() => axe.run(document.querySelector('.wrap'), { runOnly: ['wcag2a', 'wcag2aa'] }));
+      ok(axLog.violations.length === 0, 'axe (activity log page): ' + (axLog.violations.map((v) => v.id).join(', ') || '0 violations'));
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-settings');
+      ok((await ap.locator('#stu-to').count()) === 1 && (await ap.locator('#stu-days').inputValue()) === '365', 'e-mail test: the settings page has the test form and the log retention (365 days)');
+      await ap.fill('#stu-to', 'e2e-test@example.org');
+      await ap.click('button:has-text("ส่งอีเมลทดสอบ"), button:has-text("Send a test e-mail")');
+      await ap.waitForURL(/mt=(ok|fail)/, { timeout: 30000 });
+      ok((await ap.locator('.notice').count()) >= 1, 'e-mail test: a result note is shown after the test (' + new URL(ap.url()).searchParams.get('mt') + ')');
+      const sidE = Number(php3('echo mcupr_student_find( "E2E0001" );').trim());
+      await ap.goto(B + '/wp-admin/post.php?post=' + sidE + '&action=edit');
+      await ap.click('a:has-text("แสดงลิงก์"), a:has-text("Show the link")');
+      await ap.waitForSelector('#mcs-link');
+      ok(/action=rp&key=/.test(await ap.locator('#mcs-link').inputValue()), 'link without e-mail: the record screen shows the link to set a password');
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-log&act=link');
+      ok((await ap.locator('.wrap tbody tr').count()) >= 1 && !/key=/.test(await ap.locator('.wrap').innerText()), 'link without e-mail: it is logged, and the log never holds the link');
+      // pretty links: the rule is saved, so no warning; with it removed the warning and the button appear
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-settings');
+      ok((await ap.locator('.notice-warning:has-text("Not Found")').count()) === 0, 'links check: no warning while /student/ is saved');
+      php3('delete_option( "rewrite_rules" );');
+      await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-settings');
+      const hadWarn = (await ap.locator('a[href*="mcupr_rewrite_flush"]').count()) === 1;
+      php3('flush_rewrite_rules( false );');
+      ok(hadWarn, 'links check: with the rules missing, a warning with the rebuild button is shown');
       const sc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
       await sc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
       const sp = await sc.newPage();
@@ -1429,6 +1470,12 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await sp.addScriptTag({ content: axeSource() });
       const axs2 = await sp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
       ok(axs2.violations.length === 0, 'axe (student portal, logged in): ' + (axs2.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      for (const mode of ['wb', 'yb', 'by']) {
+        await sp.evaluate((m) => document.documentElement.setAttribute('data-contrast', m), mode);
+        const axm = await sp.evaluate(() => axe.run(document, { runOnly: ['color-contrast'], exclude: [['#wpadminbar']] }).then((r) => r.violations.map((v) => v.nodes.map((n) => n.target.join(' ')).join(','))));
+        ok(axm.length === 0, 'student portal in high contrast "' + mode + '": text contrast passes (' + (axm.join(';') || 'ok') + ')');
+      }
+      await sp.evaluate(() => document.documentElement.removeAttribute('data-contrast'));
       await sp.screenshot({ path: shot('student-portal.png'), fullPage: true });
       await sp.goto(B + '/wp-admin/');
       ok(/\/student\//.test(sp.url()), 'a student who opens wp-admin is sent back to the portal');

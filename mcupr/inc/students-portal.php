@@ -91,7 +91,7 @@ function mcupr_student_send_activation( $post_id ) {
 	$url  = network_site_url( 'wp-login.php?action=rp&key=' . $key . '&login=' . rawurlencode( $user->user_login ), 'login' );
 	$org  = mcupr_org_name();
 	$body = sprintf( mcupr_t( 'stu_mail_body', 'th' ), $d['name'], $org, $url, mcupr_student_portal_url() ) . "\n\n----\n\n" . sprintf( mcupr_t( 'stu_mail_body', 'en' ), $d['name'], $org, $url, mcupr_student_portal_url() );
-	$ok   = wp_mail( $user->user_email, sprintf( mcupr_t( 'stu_mail_subject', 'th' ), $org ) . ' / ' . sprintf( mcupr_t( 'stu_mail_subject', 'en' ), $org ), $body );
+	$ok   = mcupr_stu_mail( $user->user_email, sprintf( mcupr_t( 'stu_mail_subject', 'th' ), $org ) . ' / ' . sprintf( mcupr_t( 'stu_mail_subject', 'en' ), $org ), $body );
 	if ( ! $ok ) {
 		return new WP_Error( 'mail', 'mail failed' );
 	}
@@ -139,6 +139,9 @@ foreach ( array( 'mcupr_stu_make', 'mcupr_stu_send', 'mcupr_stu_drop' ) as $mcup
 				$r = mcupr_student_send_activation( $id );
 			} else {
 				$r = mcupr_student_drop_account( $id ) ? true : new WP_Error( 'x', 'x' );
+			}
+			if ( ! is_wp_error( $r ) ) {
+				mcupr_audit( substr( $mcupr_stu_action, 9 ), array( 'post' => $id, 'sid' => (string) get_post_meta( $id, '_mcupr_s_sid', true ) ) );
 			}
 			wp_safe_redirect( add_query_arg( array( 'post' => $id, 'action' => 'edit', 'mcs_done' => is_wp_error( $r ) ? 0 : 1, 'mcs_err' => is_wp_error( $r ) ? 1 : 0 ), admin_url( 'post.php' ) ) );
 			exit;
@@ -384,6 +387,14 @@ function mcupr_stu_settings_page() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	$saved = isset( $_GET['saved'] );
 	echo '<div class="wrap"><h1>' . esc_html__( 'Student portal settings', 'mcupr' ) . '</h1>';
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$mt = isset( $_GET['mt'] ) ? sanitize_key( wp_unslash( $_GET['mt'] ) ) : '';
+	if ( 'ok' === $mt ) {
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'The test e-mail was handed to the mail system. Check the inbox (and the spam folder).', 'mcupr' ) . '</p></div>';
+	} elseif ( 'bad' === $mt ) {
+		echo '<div class="notice notice-error"><p>' . esc_html__( 'Please type a valid e-mail address.', 'mcupr' ) . '</p></div>';
+	}
+	echo mcupr_stu_mail_notice(); // phpcs:ignore WordPress.Security.EscapeOutput
 	if ( $saved ) {
 		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Saved.', 'mcupr' ) . '</p></div>';
 	}
@@ -395,7 +406,11 @@ function mcupr_stu_settings_page() {
 	echo '<tr><th scope="row">' . esc_html__( 'First time', 'mcupr' ) . '</th><td><label><input type="checkbox" name="self" value="1"' . checked( $o['self'], 1, false ) . '> ' . esc_html__( 'A student who asks for a password link gets a login account made at once (if the record has an e-mail). Off: only students whose account staff already made can ask.', 'mcupr' ) . '</label></td></tr>';
 	echo '<tr><th scope="row"><label for="stu-intro">' . esc_html__( 'Text above the login form', 'mcupr' ) . '</label></th><td><textarea id="stu-intro" name="intro" rows="3" class="large-text">' . esc_textarea( $o['intro'] ) . '</textarea></td></tr>';
 	echo '<tr><th scope="row"><label for="stu-help">' . esc_html__( 'Who to ask for help', 'mcupr' ) . '</label></th><td><textarea id="stu-help" name="help" rows="2" class="large-text">' . esc_textarea( $o['help'] ) . '</textarea><p class="description">' . esc_html__( 'Shown under the forms, e.g. “Registrar office, 054-000-000, registrar@example.org”.', 'mcupr' ) . '</p></td></tr>';
-	echo '</tbody></table><p><button class="button button-primary">' . esc_html__( 'Save', 'mcupr' ) . '</button></p></form></div>';
+	echo '<tr><th scope="row"><label for="stu-days">' . esc_html__( 'Keep the activity log for (days)', 'mcupr' ) . '</label></th><td><input id="stu-days" name="audit_days" type="number" min="30" max="3650" value="' . (int) mcupr_audit_days() . '" class="small-text"> <a href="' . esc_url( admin_url( 'admin.php?page=mcupr-student-log' ) ) . '">' . esc_html__( 'Open the activity log', 'mcupr' ) . '</a><p class="description">' . esc_html__( 'Older entries are deleted automatically (30 to 3650 days).', 'mcupr' ) . '</p></td></tr>';
+	echo '</tbody></table><p><button class="button button-primary">' . esc_html__( 'Save', 'mcupr' ) . '</button></p></form>';
+	echo '<h2>' . esc_html__( 'Test the e-mail', 'mcupr' ) . '</h2><p style="max-width:56rem">' . esc_html__( 'Students get their link to set a password by e-mail. Send a test message to yourself to be sure the website can send e-mail.', 'mcupr' ) . '</p><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="mcupr_stu_mailtest">';
+	wp_nonce_field( 'mcupr_stu_mailtest', 'mcupr_stu_nonce' );
+	echo '<p><label for="stu-to" class="screen-reader-text">' . esc_html__( 'Send the test to', 'mcupr' ) . '</label><input id="stu-to" name="to" type="email" required class="regular-text" value="' . esc_attr( wp_get_current_user()->user_email ) . '"> <button class="button">' . esc_html__( 'Send a test e-mail', 'mcupr' ) . '</button></p></form></div>';
 }
 
 add_action(
@@ -411,9 +426,11 @@ add_action(
 				'self'   => ! empty( $_POST['self'] ) ? 1 : 0,
 				'intro'  => isset( $_POST['intro'] ) ? sanitize_textarea_field( wp_unslash( $_POST['intro'] ) ) : '',
 				'help'   => isset( $_POST['help'] ) ? sanitize_textarea_field( wp_unslash( $_POST['help'] ) ) : '',
+				'audit_days' => isset( $_POST['audit_days'] ) ? max( 30, min( 3650, absint( $_POST['audit_days'] ) ) ) : 365,
 			),
 			false
 		);
+		mcupr_audit( 'settings', array( 'note' => 'portal settings' ) );
 		flush_rewrite_rules( false );
 		wp_safe_redirect( admin_url( 'admin.php?page=mcupr-student-settings&saved=1' ) );
 		exit;
