@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.33.1 =
+* Top menu: an item with a sub-menu is one capsule (link and arrow no longer overlap)
+
 = 1.33.0 =
 * Student-only content limited by year of study, faculty and major; two fixes found while testing
 
