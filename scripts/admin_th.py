@@ -1229,4 +1229,5 @@ TH = {
 "Only these years of study (none ticked = every year):": "เฉพาะชั้นปีเหล่านี้ (ไม่ติ๊ก = ทุกชั้นปี):",
 "Visible to %1$d of %2$d students who are studying now.": "นิสิตที่กำลังศึกษาอยู่เห็นได้ %1$d จาก %2$d คน",
 "Year %s": "ชั้นปี %s",
+"Show or hide the majors of %s": "แสดงหรือซ่อนสาขาของ %s",
 }

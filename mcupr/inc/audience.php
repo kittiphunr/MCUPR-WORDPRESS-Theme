@@ -297,18 +297,32 @@ function mcupr_aud_box( $post ) {
 	if ( ! $facs ) {
 		echo '<p class="description">' . esc_html__( 'No faculty is in the student database yet.', 'mcupr' ) . '</p>';
 	}
+	$n = 0;
 	foreach ( $facs as $fn => $f ) {
+		++$n;
 		$fon  = in_array( $fn, $nr['fac'], true );
 		$kids = isset( $majs[ $fn ] ) ? $majs[ $fn ] : array();
 		$any  = $fon;
 		foreach ( $kids as $mn => $m ) {
 			$any = $any || in_array( $mn, $nr['maj'], true );
 		}
-		echo '<details' . ( $any ? ' open' : '' ) . '><summary><label><input type="checkbox" name="mcupr_aud_fac[]" value="' . esc_attr( $f[0] ) . '" data-k="' . esc_attr( $fn ) . '" data-g="fac"' . checked( $fon, true, false ) . '> ' . esc_html( $f[0] ) . ' <span class="description">(' . (int) $f[1] . ')</span></label></summary><div style="margin-left:1.5rem">';
-		foreach ( $kids as $mn => $m ) {
-			echo '<label style="display:block"><input type="checkbox" name="mcupr_aud_maj[]" value="' . esc_attr( $f[0] . MCUPR_AUD_SEP . $m[0] ) . '" data-k="' . esc_attr( $mn ) . '" data-g="maj" data-f="' . esc_attr( $fn ) . '"' . checked( $fon || in_array( $mn, $nr['maj'], true ), true, false ) . ( $fon ? ' disabled' : '' ) . '> ' . esc_html( $m[0] ) . ' <span class="description">(' . (int) $m[1] . ')</span></label>';
+		// (a checkbox must not sit inside <summary>: a button inside a button) – so a row, a small toggle, and the majors below
+		echo '<div class="mcupr-aud-fac" data-open="' . ( $any ? '1' : '0' ) . '"><div style="display:flex;align-items:center;gap:.25rem">';
+		if ( $kids ) {
+			/* translators: %s: faculty name */
+			echo '<button type="button" class="mcupr-aud-tgl button-link" aria-expanded="true" aria-controls="mcupr-aud-m-' . (int) $n . '" aria-label="' . esc_attr( sprintf( __( 'Show or hide the majors of %s', 'mcupr' ), $f[0] ) ) . '" style="min-width:24px;min-height:24px;text-decoration:none"><span aria-hidden="true">▾</span></button>';
+		} else {
+			echo '<span style="display:inline-block;min-width:24px"></span>';
 		}
-		echo '</div></details>';
+		echo '<label><input type="checkbox" name="mcupr_aud_fac[]" value="' . esc_attr( $f[0] ) . '" data-k="' . esc_attr( $fn ) . '" data-g="fac"' . checked( $fon, true, false ) . '> ' . esc_html( $f[0] ) . ' <span class="description">(' . (int) $f[1] . ')</span></label></div>';
+		if ( $kids ) {
+			echo '<div id="mcupr-aud-m-' . (int) $n . '" style="margin-left:1.9rem">';
+			foreach ( $kids as $mn => $m ) {
+				echo '<label style="display:block"><input type="checkbox" name="mcupr_aud_maj[]" value="' . esc_attr( $f[0] . MCUPR_AUD_SEP . $m[0] ) . '" data-k="' . esc_attr( $mn ) . '" data-g="maj" data-f="' . esc_attr( $fn ) . '"' . checked( $fon || in_array( $mn, $nr['maj'], true ), true, false ) . ( $fon ? ' disabled' : '' ) . '> ' . esc_html( $m[0] ) . ' <span class="description">(' . (int) $m[1] . ')</span></label>';
+			}
+			echo '</div>';
+		}
+		echo '</div>';
 	}
 	echo '</fieldset><p class="mcupr-aud-count" aria-live="polite" hidden style="margin:.5rem 0;padding:6px 8px;background:#f0f6fc;border-left:4px solid #2271b1"></p>';
 	echo '<p class="description">' . esc_html__( 'Inside one group a student needs any one of the ticked boxes; across groups all groups must match. Ticking a faculty means all its majors.', 'mcupr' ) . '</p></div>';
