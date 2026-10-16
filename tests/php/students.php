@@ -245,6 +245,10 @@ $miss = array();
 foreach ( isset( $submenu['mcupr'] ) ? $submenu['mcupr'] : array() as $it ) {
 	$slug = $it[2];
 	if ( 'mcupr' === $slug || false !== strpos( $slug, 'post-new.php' ) ) { continue; }
+	if ( false !== strpos( $slug, '#sec-' ) ) { // a group of the menu: it opens this page at that heading, so the heading must be here
+		if ( false === strpos( $h, 'id="' . substr( $slug, strpos( $slug, '#' ) + 1 ) . '"' ) ) { $miss[] = $slug; }
+		continue;
+	}
 	$url = false !== strpos( $slug, '.php' ) ? admin_url( $slug ) : admin_url( 'admin.php?page=' . $slug );
 	if ( false === strpos( $h, esc_url( $url ) ) && false === strpos( $h, str_replace( '&', '&#038;', $url ) ) && false === strpos( $h, $url ) ) { $miss[] = $slug; }
 }
