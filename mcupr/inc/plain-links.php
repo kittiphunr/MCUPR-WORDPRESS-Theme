@@ -68,6 +68,9 @@ function mcupr_plain_target( $rel ) {
 	if ( 'student' === $rel && function_exists( 'mcupr_student_portal_url' ) ) {
 		return mcupr_student_portal_url();
 	}
+	if ( 'request' === $rel && function_exists( 'mcupr_rq_track_url' ) ) {
+		return mcupr_rq_track_url();
+	}
 	if ( 'office' === $first && isset( $parts[1] ) && post_type_exists( 'mcupr_office' ) && function_exists( 'mcupr_office_url' ) ) {
 		$o = get_page_by_path( $parts[1], OBJECT, 'mcupr_office' );
 		if ( $o ) {
