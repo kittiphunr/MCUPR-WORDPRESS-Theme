@@ -96,8 +96,16 @@ function mcupr_office_chrome() {
 		echo '</ul>';
 	}
 	echo '</div></div></div></div>';
-	echo '<nav class="of-tabs" aria-label="' . esc_attr( mcupr_t( 'of_nav' ) ) . '"><div class="wrap"><ul>';
-	foreach ( mcupr_office_tabs( $oid ) as $t ) {
+	$tabs = mcupr_office_tabs( $oid );
+	$cur  = '';
+	foreach ( $tabs as $t ) {
+		if ( $t[3] ) {
+			$cur = $t[1];
+		}
+	}
+	// Small screens (JS only): one button that opens the list. Without JS the list stays as it is.
+	echo '<nav class="of-tabs" aria-label="' . esc_attr( mcupr_t( 'of_nav' ) ) . '"><div class="wrap"><button type="button" class="of-tabs-btn" aria-expanded="false" aria-controls="of-tabs-list"><span>' . esc_html( mcupr_t( 'of_nav' ) ) . ( '' !== $cur ? ': <b>' . esc_html( $cur ) . '</b>' : '' ) . '</span>' . mcupr_icon( 'chevron', 18 ) . '</button><ul id="of-tabs-list">'; // phpcs:ignore WordPress.Security.EscapeOutput
+	foreach ( $tabs as $t ) {
 		echo '<li><a href="' . esc_url( $t[2] ) . '"' . ( $t[3] ? ' aria-current="page"' : '' ) . '>' . esc_html( $t[1] ) . '</a></li>';
 	}
 	echo '</ul></div></nav></section>';
