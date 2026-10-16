@@ -1051,6 +1051,9 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.fill('.mcupr-fb-card:nth-of-type(2) textarea', 'สอบถามทั่วไป\nแจ้งปัญหา');
     await ap.click('.mcupr-fb-card:nth-of-type(2) button[aria-label*="(2)"] >> nth=0'); // move up
     ok((await ap.locator('.mcupr-fb-card').count()) === 2, 'form builder admin: two fields added in the builder, one moved up');
+    // WordPress marks the buttons .disabled while it autosaves the new post and ignores a click then (a race that failed some runs): stop the autosave, wait for the buttons
+    await ap.evaluate(() => { if (window.wp && wp.autosave && wp.autosave.server) { wp.autosave.server.suspend(); } });
+    await ap.waitForFunction(() => !document.querySelector('#publish').classList.contains('disabled'));
     await ap.click('#publish');
     await ap.waitForURL(/post=\d+/, { waitUntil: 'domcontentloaded' });
     await ap.waitForSelector('.mcupr-fb-card');
