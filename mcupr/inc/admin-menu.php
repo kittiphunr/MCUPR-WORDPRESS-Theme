@@ -20,6 +20,7 @@ function mcupr_admin_sections() {
 				array( 'type' => 'mcupr_work', 'tax' => array( 'mcupr_work_cat' ), 'icon' => 'dashicons-awards', 'desc' => __( 'Works and awards', 'mcupr' ) ),
 				array( 'type' => 'mcupr_album', 'icon' => 'dashicons-format-gallery', 'desc' => __( 'Photo albums with a lightbox', 'mcupr' ) ),
 				array( 'type' => 'mcupr_video', 'tax' => array( 'mcupr_video_cat' ), 'icon' => 'dashicons-video-alt3', 'desc' => __( 'Videos from YouTube, Vimeo or a file', 'mcupr' ) ),
+				array( 'type' => 'mcupr_book', 'tax' => array( 'mcupr_shelf' ), 'page' => 'mcupr-books', 'icon' => 'dashicons-book-alt', 'desc' => __( 'E-books with a 3D page-turning reader and bookshelves', 'mcupr' ) ),
 				array( 'type' => 'mcupr_faq', 'tax' => array( 'mcupr_faq_cat' ), 'icon' => 'dashicons-editor-help', 'desc' => __( 'Frequently asked questions', 'mcupr' ) ),
 			),
 		),
