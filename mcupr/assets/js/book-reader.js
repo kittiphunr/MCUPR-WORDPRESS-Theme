@@ -44,6 +44,14 @@
 	function store(key, val) { try { if (val === undefined) { return window.localStorage.getItem(key); } window.localStorage.setItem(key, val); } catch (e) { /* private mode */ } return null; }
 	function fmt(s, a, b) { return String(s).replace('%1$d', a).replace('%2$d', b); }
 	function $(sel, el) { return (el || document).querySelector(sel); }
+	function loadScript(src) {
+		return new Promise(function (res, rej) {
+			var x = document.createElement('script');
+			x.src = src; x.onload = res; x.onerror = rej;
+			document.head.appendChild(x);
+		});
+	}
+	var FXS = ['css3d', 'webgl', 'classic'];
 
 	/* ---------------------------------------------------------------- one reader */
 	function init(el) {
@@ -57,6 +65,23 @@
 		var seq = [], seqOf = {}, media = cfg.media || [], mbar = $('[data-mbar]', el), modal = null, modalFrom = null;
 		var pdf = null, total = 0, pages = [], pf = null, ratio = 1.4, rendered = {}, queue = [], busy = false, lastW = 0;
 		var soundOn = false, flips = 0, userTurn = false;
+		/* how the page turns: light CSS 3D, WebGL (bends, light and shadow) or the classic page-flip library; the visitor's choice is remembered */
+		var fx = store('mcupr_bk_fx');
+		if (FXS.indexOf(fx) === -1) { fx = FXS.indexOf(cfg.fx) !== -1 ? cfg.fx : 'css3d'; }
+		if (fx === 'webgl' && !(window.mcuprBookEngines && window.mcuprBookEngines.supported.webgl)) { fx = 'css3d'; }
+		function fxLabel() {
+			var b = btn('fx');
+			if (b) { $('[data-lbl]', b).textContent = L.fx + ': ' + L['fx_' + fx]; }
+		}
+		if (btn('fx')) {
+			fxLabel();
+			btn('fx').addEventListener('click', function () {
+				var list = FXS.filter(function (k) { return k !== 'webgl' || (window.mcuprBookEngines && window.mcuprBookEngines.supported.webgl); });
+				var next = list[(list.indexOf(fx) + 1) % list.length];
+				store('mcupr_bk_fx', next);
+				location.reload(); // the page the reader is on is remembered, so it opens again where it was
+			});
+		}
 
 		function fail(msg) { status.textContent = msg || L.error; status.hidden = false; el.setAttribute('data-ready', 'error'); }
 
@@ -217,6 +242,7 @@
 					if (old) { old.remove(); }
 					pages[idx].insertBefore(cv, pages[idx].firstChild);
 					pages[idx].classList.add('bk-done');
+					if (pf && pf.pageDrawn) { pf.pageDrawn(idx); }
 				});
 			});
 		}
@@ -224,7 +250,7 @@
 			return new Promise(function (res) {
 				var im = new Image();
 				im.className = 'bk-cv'; im.alt = cfg.pages[seq[idx].n].alt; im.decoding = 'async';
-				im.onload = im.onerror = function () { pages[idx].insertBefore(im, pages[idx].firstChild); pages[idx].classList.add('bk-done'); res(); };
+				im.onload = im.onerror = function () { pages[idx].insertBefore(im, pages[idx].firstChild); pages[idx].classList.add('bk-done'); if (pf && pf.pageDrawn) { pf.pageDrawn(idx); } res(); };
 				im.src = cfg.pages[seq[idx].n].url;
 			});
 		}
@@ -374,16 +400,29 @@
 			var W = 500, H = Math.round(W * ratio);
 			el.style.setProperty('--bk-ar', String((2 * W) / H));
 			el.style.setProperty('--bk-ar1', String(W / H));
-			pf = new window.St.PageFlip(bookEl, {
-				width: W, height: H, size: 'stretch', minWidth: 160, maxWidth: 1000, minHeight: 220, maxHeight: 1500,
-				showCover: true, usePortrait: true, clickEventForward: true, drawShadow: !reduced, maxShadowOpacity: 0.55,
-				flippingTime: reduced ? 1 : 850, showPageCorners: !reduced, mobileScrollSupport: false, swipeDistance: 24, startZIndex: 5
-			});
+			if (fx === 'classic') {
+				pf = new window.St.PageFlip(bookEl, {
+					width: W, height: H, size: 'stretch', minWidth: 160, maxWidth: 1000, minHeight: 220, maxHeight: 1500,
+					showCover: true, usePortrait: true, clickEventForward: true, drawShadow: !reduced, maxShadowOpacity: 0.55,
+					flippingTime: reduced ? 1 : 850, showPageCorners: !reduced, mobileScrollSupport: false, swipeDistance: 24, startZIndex: 5
+				});
+			} else {
+				pf = window.mcuprBookEngines.create(fx, bookEl, { ratio: ratio, reduced: reduced });
+				if (!pf) { fx = 'css3d'; pf = window.mcuprBookEngines.create('css3d', bookEl, { ratio: ratio, reduced: reduced }); }
+			}
 			var startAt = 0, m = /#page=(\d+)/.exec(location.hash), savedPos = null;
 			if (m) { startAt = parseInt(m[1], 10) - 1; }
 			else { try { savedPos = JSON.parse(store('mcupr_bk_pos') || '{}')[cfg.id]; } catch (e) { savedPos = null; } if (savedPos) { startAt = savedPos - 1; } }
 			startAt = Math.max(0, Math.min(total - 1, startAt));
-			pf.loadFromHTML(pages);
+			try { pf.loadFromHTML(pages); } catch (err) {
+				if (fx === 'webgl') { // the graphics card said no: the light kind of turn instead
+					if (window.console) { console.warn('mcupr e-book: WebGL failed, using CSS 3D', err); }
+					fx = 'css3d'; bookEl.className = 'bk-book'; bookEl.removeAttribute('style');
+					pf = window.mcuprBookEngines.create('css3d', bookEl, { ratio: ratio, reduced: reduced });
+					pf.loadFromHTML(pages);
+				} else { throw err; }
+			}
+			el.setAttribute('data-fx', fx); fxLabel();
 			range.max = String(total); totalEl.textContent = total;
 			pf.on('flip', onFlip);
 			pf.on('changeState', function (e) {
@@ -399,21 +438,25 @@
 			stage.addEventListener('pointerdown', function () { if (soundOn) { audio(); } }, { passive: true });
 		}
 
-		if (!window.St || !window.St.PageFlip) { fail(); return; }
-		if (cfg.src === 'images') {
-			var first = new Image();
-			first.onload = function () { start(cfg.pages.length, first.naturalHeight / first.naturalWidth); };
-			first.onerror = function () { start(cfg.pages.length, 1.4); };
-			first.src = cfg.pages[0].url;
-		} else {
-			import(cfg.lib).then(function (lib) {
-				lib.GlobalWorkerOptions.workerSrc = cfg.worker;
-				return lib.getDocument({ url: cfg.pdf, cMapUrl: cfg.cmaps, cMapPacked: true, standardFontDataUrl: cfg.fonts }).promise;
-			}).then(function (doc) {
-				pdf = doc;
-				return doc.getPage(1).then(function (pg) { var v = pg.getViewport({ scale: 1 }); start(doc.numPages, v.height / v.width); });
-			}).catch(function (e) { if (window.console) { console.warn('mcupr e-book:', e); } fail(); });
+		function boot() {
+			if (cfg.src === 'images') {
+				var first = new Image();
+				first.onload = function () { start(cfg.pages.length, first.naturalHeight / first.naturalWidth); };
+				first.onerror = function () { start(cfg.pages.length, 1.4); };
+				first.src = cfg.pages[0].url;
+			} else {
+				import(cfg.lib).then(function (lib) {
+					lib.GlobalWorkerOptions.workerSrc = cfg.worker;
+					return lib.getDocument({ url: cfg.pdf, cMapUrl: cfg.cmaps, cMapPacked: true, standardFontDataUrl: cfg.fonts }).promise;
+				}).then(function (doc) {
+					pdf = doc;
+					return doc.getPage(1).then(function (pg) { var v = pg.getViewport({ scale: 1 }); start(doc.numPages, v.height / v.width); });
+				}).catch(function (e) { if (window.console) { console.warn('mcupr e-book:', e); } fail(); });
+			}
 		}
+		if (fx === 'classic') {
+			loadScript(cfg.pageflip).then(function () { if (!window.St || !window.St.PageFlip) { fail(); } else { boot(); } }, function () { fail(); });
+		} else { boot(); }
 	}
 
 	Array.prototype.forEach.call(document.querySelectorAll('.bk-reader[data-book]'), init);
