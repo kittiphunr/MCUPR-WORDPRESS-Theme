@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.38.0 =
+* E-books: lighter page turning with CSS 3D and WebGL engines
+
 = 1.37.0 =
 * E-books round 2: EPUB and extras on the pages
 

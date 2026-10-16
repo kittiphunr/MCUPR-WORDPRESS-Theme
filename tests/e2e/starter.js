@@ -2215,6 +2215,127 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       ok(aerr.length === 0, 'e-books admin: no script error' + (aerr.length ? ': ' + aerr.slice(0, 2).join(' | ') : ''));
       await ac.close();
     }
+    // how the pages turn: CSS 3D (the default, lightest), WebGL (bends, light, shadow) and the classic library
+    {
+      const { chromium: chr } = require('./lib');
+      const brFx = await chr.launch(Object.assign({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] }, process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}));
+      const px = async (page, loc, fx, fy) => { // the colour of the picture at a place of an element
+        const buf = (await loc.screenshot()).toString('base64');
+        return page.evaluate(async ([b64, a, b]) => { const im = new Image(); im.src = 'data:image/png;base64,' + b64; await im.decode(); const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const x = c.getContext('2d'); x.drawImage(im, 0, 0); const d = x.getImageData(Math.floor(im.width * a), Math.floor(im.height * b), 1, 1).data; return [d[0], d[1], d[2]]; }, [buf, fx, fy]);
+      };
+      const isRed = (c) => c[0] > 150 && c[1] < 110 && c[2] < 110, isBlue = (c) => c[2] > 150 && c[0] < 120, isGreen = (c) => c[1] > 130 && c[0] < 140 && c[2] < 140;
+      for (const fx of ['css3d', 'webgl', 'classic']) {
+        const fc = await brFx.newContext({ viewport: { width: 1366, height: 1000 } });
+        await fc.route('**/www.youtube-nocookie.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<p>player</p>' }));
+        const fp = await fc.newPage();
+        const ferr = [];
+        fp.on('pageerror', (e) => ferr.push(e.message));
+        fp.on('console', (m) => { if (m.type() === 'error') { ferr.push(m.text()); } });
+        await fp.addInitScript((f) => { try { if (!sessionStorage.getItem('fxinit')) { sessionStorage.setItem('fxinit', '1'); localStorage.setItem('mcupr_bk_fx', f); localStorage.removeItem('mcupr_bk_pos'); localStorage.setItem('mcupr_bk_sound', '1'); } } catch (e) { /* */ } }, fx);
+        await fp.goto(B + '/?p=' + ids[1]);
+        await fp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+        await fp.locator('.bk-reader').scrollIntoViewIfNeeded();
+        await fp.waitForTimeout(1200);
+        const rd = fp.locator('.bk-reader'), stg = fp.locator('.bk-stage');
+        ok((await rd.getAttribute('data-fx')) === fx, 'e-books: turning "' + fx + '": the reader uses it' + (fx === 'webgl' && (await rd.getAttribute('data-fx')) !== 'webgl' ? ' (WebGL did not start here)' : ''));
+        const lib = await fp.evaluate(() => performance.getEntriesByType('resource').map((r) => r.name).filter((n) => /page-flip\.browser/.test(n)).length);
+        ok((fx === 'classic') === (lib > 0), 'e-books: turning "' + fx + '": the page-flip library is ' + (fx === 'classic' ? 'loaded' : 'NOT loaded (lighter)'));
+        ok(isRed(await px(fp, stg, 0.5, 0.45)), 'e-books: turning "' + fx + '": the closed book shows the red cover page');
+        await fp.click('.bk-reader [data-act="next"]');
+        await fp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '2', null, { timeout: 8000 }).catch(() => {});
+        await fp.waitForTimeout(600);
+        ok((await rd.getAttribute('data-page')) === '2' && +(await rd.getAttribute('data-flips')) >= 1, 'e-books: turning "' + fx + '": the next button opens the book and makes the sound');
+        ok(isBlue(await px(fp, stg, 0.28, 0.45)) && isGreen(await px(fp, stg, 0.72, 0.45)), 'e-books: turning "' + fx + '": pages 2 (left, blue) and 3 (right, green) are shown the right way round');
+        await fp.focus('.bk-stage');
+        await fp.keyboard.press('ArrowRight');
+        await fp.waitForFunction(() => +document.querySelector('.bk-reader').dataset.page >= 4, null, { timeout: 8000 }).catch(() => {});
+        ok(+(await rd.getAttribute('data-page')) >= 4, 'e-books: turning "' + fx + '": the arrow key turns the page');
+        await fp.keyboard.press('Home');
+        await fp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '1', null, { timeout: 8000 }).catch(() => {});
+        ok((await rd.getAttribute('data-page')) === '1', 'e-books: turning "' + fx + '": Home goes back to the cover');
+        if (fx !== 'classic') {
+          const bb = await fp.locator('.bk-fx').boundingBox();
+          const yy = bb.y + bb.height * 0.5;
+          await fp.mouse.move(bb.x + bb.width * 0.8, yy); // a tap on the right side turns the page
+          await fp.mouse.down(); await fp.mouse.up();
+          await fp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '2', null, { timeout: 8000 }).catch(() => {});
+          ok((await rd.getAttribute('data-page')) === '2', 'e-books: turning "' + fx + '": a tap on the right side turns the page');
+          await fp.waitForTimeout(500);
+          await fp.mouse.move(bb.x + bb.width * 0.95, yy); // dragging the corner across turns it
+          await fp.mouse.down();
+          await fp.mouse.move(bb.x + bb.width * 0.5, yy, { steps: 6 });
+          await fp.mouse.move(bb.x + bb.width * 0.08, yy, { steps: 6 });
+          await fp.mouse.up();
+          await fp.waitForFunction(() => +document.querySelector('.bk-reader').dataset.page >= 4, null, { timeout: 8000 }).catch(() => {});
+          ok(+(await rd.getAttribute('data-page')) >= 4, 'e-books: turning "' + fx + '": dragging a corner across turns the page');
+          await fp.mouse.move(bb.x + bb.width * 0.95, yy); // a short drag lets go: the page falls back
+          await fp.waitForTimeout(500);
+          const before = await rd.getAttribute('data-page');
+          await fp.mouse.down(); await fp.mouse.move(bb.x + bb.width * 0.85, yy, { steps: 4 }); await fp.mouse.up();
+          await fp.waitForTimeout(1500);
+          ok((await rd.getAttribute('data-page')) === before, 'e-books: turning "' + fx + '": a short drag does not turn the page');
+        }
+        ok(ferr.length === 0, 'e-books: turning "' + fx + '": no script error' + (ferr.length ? ': ' + ferr.slice(0, 2).join(' | ') : ''));
+        // the buttons on a page (extras) with this way of turning
+        await fp.goto(B + '/?p=' + ids[6]);
+        await fp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+        await fp.locator('.bk-reader').scrollIntoViewIfNeeded();
+        await fp.waitForTimeout(800);
+        await fp.locator('.bk-chips button.bk-chip').first().click();
+        ok(await fp.locator('.bk-modal').isVisible() && (await fp.locator('.bk-reader').getAttribute('data-page')) === '1', 'e-books: turning "' + fx + '": a button on the page opens the player and does not turn the page');
+        await fp.keyboard.press('Escape');
+        // the choice button: the next way, remembered, the page kept
+        await fp.click('.bk-reader [data-act="next"]');
+        await fp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '2', null, { timeout: 8000 }).catch(() => {});
+        const fxBefore = await fp.locator('.bk-reader').getAttribute('data-fx');
+        await Promise.all([fp.waitForNavigation({ waitUntil: 'load' }).catch(() => {}), fp.click('.bk-reader [data-act="fx"]')]);
+        await fp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+        ok((await fp.locator('.bk-reader').getAttribute('data-fx')) !== fxBefore && (await fp.locator('.bk-reader').getAttribute('data-page')) === '2', 'e-books: turning "' + fx + '": the effect button switches to another way and the reader stays on the same page');
+        await fc.close();
+      }
+      // a phone: one page at a time, big; and "less motion"
+      for (const fx of ['css3d', 'webgl']) {
+        const mc = await brFx.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });
+        const mp = await mc.newPage();
+        await mp.addInitScript((f) => { try { localStorage.setItem('mcupr_bk_fx', f); localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } }, fx);
+        await mp.goto(B + '/?p=' + ids[1]);
+        await mp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+        await mp.locator('.bk-reader').scrollIntoViewIfNeeded();
+        await mp.waitForTimeout(800);
+        const box = await mp.locator('.bk-fx').boundingBox();
+        ok(box.height > box.width * 1.2 && box.width > 300, 'e-books: turning "' + fx + '": on a phone one tall page fills the width (' + Math.round(box.width) + '×' + Math.round(box.height) + ')');
+        await mp.click('.bk-reader [data-act="next"]');
+        await mp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '2', null, { timeout: 8000 }).catch(() => {});
+        await mp.waitForTimeout(500);
+        ok((await mp.locator('.bk-reader').getAttribute('data-page')) === '2' && isBlue(await px(mp, mp.locator('.bk-stage'), 0.5, 0.45)), 'e-books: turning "' + fx + '": on a phone the next button shows the single page 2');
+        const sw = await mp.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1);
+        ok(sw, 'e-books: turning "' + fx + '": no sideways scroll on a phone');
+        await mc.close();
+        const rc = await brFx.newContext({ viewport: { width: 1366, height: 1000 }, reducedMotion: 'reduce' });
+        const rp = await rc.newPage();
+        await rp.addInitScript((f) => { try { localStorage.setItem('mcupr_bk_fx', f); localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } }, fx);
+        await rp.goto(B + '/?p=' + ids[1]);
+        await rp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+        await rp.locator('.bk-reader').scrollIntoViewIfNeeded();
+        await rp.click('.bk-reader [data-act="next"]');
+        await rp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '2', null, { timeout: 600 }).catch(() => {});
+        ok((await rp.locator('.bk-reader').getAttribute('data-page')) === '2', 'e-books: turning "' + fx + '": with "less motion" the page changes at once');
+        await rc.close();
+      }
+      // high contrast: the pages are not tinted over
+      {
+        const hc = await brFx.newContext({ viewport: { width: 1366, height: 1000 } });
+        const hp = await hc.newPage();
+        await hp.addInitScript(() => { try { localStorage.setItem('mcupr_bk_fx', 'css3d'); localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
+        await hp.goto(B + '/?p=' + ids[1]);
+        await hp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+        await hp.evaluate(() => document.documentElement.setAttribute('data-contrast', 'wb'));
+        const bg = await hp.evaluate(() => getComputedStyle(document.querySelector('.bkc-face')).backgroundColor);
+        ok(/255, 255, 255/.test(bg), 'e-books: high contrast: the pages of the CSS 3D book are plain white');
+        await hc.close();
+      }
+      await brFx.close();
+    }
     // a book for students only: the file is not given to a visitor
     phpB('update_post_meta( ' + ids[0] + ', MCUPR_AUD, "students" ); mcupr_aud_reset();');
     const rr = await bc.request.get(B + '/?post_type=mcupr_book');
