@@ -2334,4 +2334,35 @@ html[data-contrast] .bk-m-kind, html[data-contrast] .bk-m-title, html[data-contr
 html[data-contrast] .bk-toc:hover, html[data-contrast] .bk-toc:focus-visible { background: var(--text); color: var(--bg); }
 html[data-contrast] .bk-modal-box { border: 3px solid var(--border); }
 @media (max-width: 760px) { .bk-ep-paper { height: clamp(24rem, 70vh, 40rem); } .bk-chips { bottom: .35rem; } .bk-chip { min-height: 2.25rem; font-size: .78rem; } }
+/* e-books: the light page-turning engines (CSS 3D and WebGL) */
+.bk-fx { position: relative; width: min(100%, calc(82vh * var(--bk-arc, 1.43))); aspect-ratio: var(--bk-arc, 1.43); max-height: none; margin: 0 auto; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.bk-reader.is-fs .bk-fx { width: min(100%, calc((100vh - 11rem) * var(--bk-arc, 1.43))); max-height: none; }
+.bkc { position: absolute; inset: 0; perspective: 2400px; overflow: hidden; }
+.bkc-book { position: absolute; inset: 0; transform-style: preserve-3d; transition: none; }
+.bkc-leaf { position: absolute; top: 0; height: 100%; transform-origin: left center; transform-style: preserve-3d; will-change: transform; }
+.bkc[data-mode="landscape"] .bkc-leaf { left: 50%; width: 50%; }
+.bkc[data-mode="portrait"] .bkc-leaf { left: 0; width: 100%; }
+.bkc-face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: #fbfaf6; }
+.bkc-back { transform: rotateY(180deg); }
+.bkc-face > .bk-page { position: absolute; inset: 0; width: auto; height: auto; }
+.bkc-face::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: calc(var(--sh, 0) * .75); background: linear-gradient(to right, rgb(0 0 0 / .6), rgb(0 0 0 / 0) 75%); }
+.bkc-back::after { background: linear-gradient(to left, rgb(0 0 0 / .6), rgb(0 0 0 / 0) 75%); }
+.bkc[data-mode="landscape"] .bkc-book::before { content: ""; position: absolute; z-index: 1; top: 0; bottom: 0; left: calc(50% - 1.6rem); width: 3.2rem; pointer-events: none; background: linear-gradient(90deg, rgb(0 0 0 / 0), rgb(0 0 0 / .22) 50%, rgb(0 0 0 / 0)); transform: translateZ(1px); }
+.bkc-cast { position: absolute; top: 0; bottom: 0; left: 50%; width: 50%; display: none; pointer-events: none; background: linear-gradient(to right, rgb(0 0 0 / .8), rgb(0 0 0 / 0) 80%); transform: translateZ(1px); }
+.bkc-cast.on-left { left: 0; background: linear-gradient(to left, rgb(0 0 0 / .8), rgb(0 0 0 / 0) 80%); }
+.bkc[data-mode="portrait"] .bkc-cast { left: 0; width: 100%; }
+.bk-gl { overflow: visible; }
+.bkg-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.bkg-ov { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.bk-gl .bkg-ov .bk-page { position: absolute; top: 0; height: 100%; background: transparent; outline: 0; visibility: hidden; }
+.bk-gl .bk-page .bk-cv, .bk-gl .bk-page .bk-num { visibility: hidden; }
+.bk-gl .bk-page.bk-mpage { background: transparent; }
+.bk-gl .bk-chips, .bk-gl .bk-m-slot, .bk-gl .bk-chip, .bk-gl .bk-media .bk-m-slot * { pointer-events: auto; }
+.bk-gl .bkg-ov.is-turning .bk-chips, .bk-gl .bkg-ov.is-turning .bk-media { opacity: 0; transition: none; }
+.bk-fx .bk-media { background: transparent; }
+.bkc .bk-media { background: linear-gradient(160deg, #fff7fb, #fbfaf6 55%, #f3e8ff); }
+html[data-contrast] .bkc .bk-media { background: var(--bg); }
+html[data-contrast] .bk-gl .bk-page { outline: 0; }
+html[data-contrast] .bkc-face { background: #fff; }
+@media (prefers-reduced-motion: reduce) { .bkc-leaf { will-change: auto; } }
 @media print { .bk-bar, .bk-nav, .bk-foot, .bk-tools { display: none; } }
