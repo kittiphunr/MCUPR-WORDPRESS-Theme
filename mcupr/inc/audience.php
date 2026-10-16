@@ -22,7 +22,7 @@ const MCUPR_AUD = '_mcupr_aud';
 /** The kinds of content that can be for students only. */
 function mcupr_aud_types() {
 	$t = function_exists( 'mcupr_tool_types' ) ? mcupr_tool_types() : array( 'post', 'page' );
-	return array_values( array_unique( array_merge( $t, array( 'mcupr_album', 'mcupr_video' ) ) ) );
+	return array_values( array_unique( array_merge( $t, array( 'mcupr_album', 'mcupr_video', 'mcupr_book' ) ) ) );
 }
 
 /* ------------------------------------------------------------------ who may see it: the rules */

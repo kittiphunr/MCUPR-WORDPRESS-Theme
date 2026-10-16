@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.36.0 =
+* E-books: bookshelf + 3D flipbook (PDF and pictures)
+
 = 1.35.0 =
 * Plain permalinks: every link into the website with a pretty path becomes ?p=123 style (menus, content, demo pages); no notice about permalinks
 
