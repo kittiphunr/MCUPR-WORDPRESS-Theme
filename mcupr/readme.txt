@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.31.3 =
+* Office band reaches the top of the page (top menu and sidebar), gradient and seal
+
 = 1.31.2 =
 * Office pages: header no longer covered by the page band; empty person profile
 

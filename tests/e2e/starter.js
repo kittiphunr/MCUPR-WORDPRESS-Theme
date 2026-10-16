@@ -1254,6 +1254,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await vp.waitForSelector('.office-chrome');
       ok((await vp.locator('.office-chrome[data-variant=slim]').count()) === 1 && (await vp.locator('.of-tabs a').count()) >= 7 && (await vp.locator('main h1').count()) === 1, 'office article: the slim office header with the tabs, and still exactly one h1');
       const ov = await vp.evaluate(() => { const c = document.querySelector('.office-chrome').getBoundingClientRect(); const h = document.querySelector('#content > article > .mcu-wheel'); return h ? { gap: h.getBoundingClientRect().top - c.bottom } : null; });
+      const top = await vp.evaluate(() => Math.round(document.querySelector('.office-chrome .of-band').getBoundingClientRect().top + scrollY));
+      ok(top <= 16, 'office article: the office band reaches the top of the page (top ' + top + 'px)');
       ok(!ov || ov.gap >= -1, 'office article: the page band starts below the office header (not pulled up under it) (gap ' + (ov && ov.gap) + ')');
       await vp.addScriptTag({ content: axeSource() });
       const ax2 = await vp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
