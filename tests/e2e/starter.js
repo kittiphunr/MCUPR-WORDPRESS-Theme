@@ -939,6 +939,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       });
       m.cards = cardsInfo.cards; m.hscroll = cardsInfo.hscroll; m.info = cardsInfo;
       ok(m.tops.filter((t) => /MCUPR/.test(t)).length === 1 && m.subs.length >= 18 && m.open, 'admin ' + w + 'px: one MCUPR menu, open on its overview, with ' + m.subs.length + ' entries');
+      const vis = await ap.evaluate(() => [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li')].filter((l) => l.offsetParent !== null).map((l) => l.textContent.trim()));
+      ok(vis.length >= 5 && vis.length <= 6 && !vis.some((t) => /หมวดหมู่ผลงาน|ตั้งค่ากระดาน|นำเข้านิสิต|ผังการบริหาร|Theme options/.test(t)), 'admin ' + w + 'px: the MCUPR menu shows only the overview and the main groups (' + vis.length + ': ' + vis.join(' | ') + ')');
       ok(!m.tops.some((t) => /กระดาน|วิดีโอ|อัลบั้ม|กิจกรรม|ผลงาน|บุคลากร|Forum|Video|Album|Event|Work|Staff|Polls|FAQ|Form messages/i.test(t)), 'admin ' + w + 'px: none of the theme sections is scattered in the main menu (' + m.tops.join(' | ') + ')');
       ok(m.cards >= 12 && !m.hscroll, 'admin ' + w + 'px: the overview shows ' + m.cards + ' cards without sideways scroll');
       ok(m.info.hero && m.info.chips >= 3 && m.info.acts >= 4 && m.info.tools >= 5, 'admin ' + w + 'px: the control page has the banner, the status chips (' + m.info.chips + '), the quick actions (' + m.info.acts + ') and its sections');
@@ -948,6 +950,15 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
           const open = await ap.evaluate(() => !!document.querySelector('#adminmenu > li.toplevel_page_mcupr.wp-has-current-submenu'));
           ok(r.status() === 200 && open && !(await ap.locator('.wp-die-message').count()), 'admin: ' + u + ' opens and keeps the MCUPR menu open');
         }
+        // the menu's groups open the control page at that group; the group lights up; the pages below show a way back
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
+        await ap.click('#adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("นิสิต"), #adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("Students")');
+        await ap.waitForFunction(() => /#sec-students/.test(location.hash));
+        const grp = await ap.evaluate(() => ({ lit: [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li.current')].map((l) => l.textContent.trim()), top: Math.round(document.getElementById('sec-students').getBoundingClientRect().top) }));
+        ok(grp.lit.length === 1 && /นิสิต|Students/.test(grp.lit[0]) && grp.top >= 0 && grp.top < 400, 'admin menu: "Students" opens the control page at the students group and is the one lit (' + grp.lit.join(',') + ', heading at ' + grp.top + 'px)');
+        await ap.goto(B + '/wp-admin/edit.php?post_type=mcupr_event');
+        const crumb = await ap.evaluate(() => ({ text: (document.querySelector('.mcupr-crumb') || {}).textContent || '', lit: [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li.current')].map((l) => l.textContent.trim()), overlap: (() => { const c = document.querySelector('.mcupr-crumb'); const o = document.getElementById('screen-options-link-wrap'); if (!c || !o) { return false; } const a = c.getBoundingClientRect(), b = o.getBoundingClientRect(); return a.right > b.left && a.bottom > b.top && a.left < b.right && a.top < b.bottom; })() }));
+        ok(/MCUPR|ภาพรวม/.test(crumb.text) && crumb.lit.length === 1 && /เนื้อหา|Content/.test(crumb.lit[0]) && !crumb.overlap, 'admin menu: a page below the groups (events) shows "‹ overview › group", lights its group, and the bar does not cover Screen Options (' + crumb.lit.join(',') + ')');
         await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
         await ap.addScriptTag({ content: axeSource() });
         const axo = await ap.evaluate(() => axe.run(document.querySelector('.mcupr-ov'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
