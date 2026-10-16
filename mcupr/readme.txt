@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.33.2 =
+* Top menu: the More pill is not a capsule (it drew a double outline); high-contrast outline for More
+
 = 1.33.1 =
 * Top menu: an item with a sub-menu is one capsule (link and arrow no longer overlap)
 
