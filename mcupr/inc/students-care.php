@@ -375,8 +375,7 @@ add_action(
 			return;
 		}
 		if ( 'plain' === $st ) {
-			echo '<div class="notice notice-info"><p>' . esc_html__( 'The permalinks of this website are “Plain”. The student portal and the offices still work (their links use ?…=), but pretty links like /student/ and /office/name/ need Settings → Permalinks → “Post name”.', 'mcupr' ) . ' <a href="' . esc_url( admin_url( 'options-permalink.php' ) ) . '">' . esc_html__( 'Open the permalink settings', 'mcupr' ) . '</a></p></div>';
-			return;
+			return; // Plain permalinks are a supported setting (some servers allow nothing else): the links adapt, nothing to tell
 		}
 		echo '<div class="notice notice-warning"><p>' . esc_html__( 'The links /student/ and /office/… are not saved on the server yet, so they would show “Not Found”.', 'mcupr' ) . ' <a class="button" href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=mcupr_rewrite_flush' ), 'mcupr_rewrite_flush' ) ) . '">' . esc_html__( 'Rebuild the link rules', 'mcupr' ) . '</a> ' . esc_html__( 'If it still shows “Not Found”, the server may not allow WordPress to write the .htaccess file: open Settings → Permalinks and copy the rules shown there.', 'mcupr' ) . '</p></div>';
 	}
