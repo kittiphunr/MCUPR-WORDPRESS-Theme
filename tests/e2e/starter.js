@@ -1224,6 +1224,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       for (const [w, h] of [[1920, 1080], [1366, 800], [768, 1024], [390, 844], [320, 568]]) {
         await vp.setViewportSize({ width: w, height: h });
         await vp.goto(url);
+        if (await vp.locator('.of-tabs-btn').isVisible()) { await vp.click('.of-tabs-btn'); } // on a small screen the tabs are folded into a button: open it
         const g = await vp.evaluate(() => { const band = document.querySelector('.office-chrome .of-band'); const tabs = [...document.querySelectorAll('.of-tabs a')]; const cur = document.querySelector('.of-tabs a[aria-current=page]'); return { h1: document.querySelectorAll('h1').length, name: (document.querySelector('h1') || {}).textContent, bg: getComputedStyle(band).backgroundColor, fg: getComputedStyle(band).color, tabs: tabs.length, minH: Math.min(...tabs.map((a) => a.getBoundingClientRect().height)), cur: cur ? cur.textContent : '', hs: document.documentElement.scrollWidth > innerWidth + 1, cut: tabs.some((a) => a.getBoundingClientRect().right > innerWidth + 1) }; });
         ok(g.h1 === 1 && /สำนักงานวิทยาเขตแพร่/.test(g.name) && g.bg === 'rgb(15, 118, 110)' && g.fg === 'rgb(255, 255, 255)', 'office home at ' + w + 'px: one h1 (the office), its own colour (' + g.bg + ')');
         const lay = await vp.evaluate(() => { const nm = document.querySelector('.of-name').getBoundingClientRect(); const chips = document.querySelector('.of-chips'); const cb = chips ? chips.getBoundingClientRect().bottom : nm.bottom; const tb = document.querySelector('.of-tabs ul').getBoundingClientRect(); const st = [...document.querySelectorAll('.of-stats a')].map((a) => a.getBoundingClientRect()); return { clear: tb.top >= Math.max(nm.bottom, cb) - 1, tiles: st.length, tilesIn: st.every((r) => r.left >= 0 && r.right <= innerWidth + 1), icons: document.querySelectorAll('.of-dl .of-ic').length }; });
@@ -1270,6 +1271,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         ok(dsk.btn === 'none' && dsk.ul !== 'none', 'office menu: on a wide screen the tabs stay as they were and there is no button');
         for (const w of [640, 390, 320]) {
           await vp.setViewportSize({ width: w, height: 800 });
+          await vp.reload({ waitUntil: 'load' });
+          await vp.addScriptTag({ content: axeSource() });
           const cl = await vp.evaluate(() => ({ btn: getComputedStyle(document.querySelector('.of-tabs-btn')).display, ul: getComputedStyle(document.querySelector('.of-tabs ul')).display, exp: document.querySelector('.of-tabs-btn').getAttribute('aria-expanded'), hs: document.documentElement.scrollWidth > innerWidth + 1, h: document.querySelector('.of-tabs-btn').getBoundingClientRect().height }));
           ok(cl.btn !== 'none' && cl.ul === 'none' && cl.exp === 'false' && !cl.hs && cl.h >= 44, 'office menu at ' + w + 'px: one button (at least 44px tall), the list is folded, no sideways scroll');
           await vp.click('.of-tabs-btn');
@@ -1491,6 +1494,44 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await sp.goto(B + '/student/');
       const me = await sp.locator('main').innerText();
       ok(/E2E0001/.test(me) && /นิสิตทดสอบ/.test(me) && /ข่าวสำหรับนิสิตเท่านั้น \(e2e\)/.test(me) && !/ข่าวทั่วไป \(e2e students\)/.test(me), 'student portal: the student\'s own details and the student-only content (not the open news)');
+      // -- content for one year, one faculty: who sees it, and the box in the editor
+      {
+        const sc2 = JSON.parse(php3('$mk = function ( $t, $rules ) { $p = wp_insert_post( array( "post_type" => "post", "post_status" => "publish", "post_title" => $t, "post_content" => "x" ) ); update_post_meta( $p, MCUPR_AUD, "students" ); foreach ( $rules as $k => $v ) { update_post_meta( $p, $k, $v ); } return $p; }; $sid = mcupr_student_find( "E2E0001" ); $fac = (string) get_post_meta( $sid, "_mcupr_s_faculty", true ); $yr = (string) get_post_meta( $sid, "_mcupr_s_year", true ); $a = $mk( "ประกาศชั้นปีของเรา (e2e scope)", array( "_mcupr_aud_years" => array( $yr ) ) ); $b = $mk( "ประกาศชั้นปีอื่น (e2e scope)", array( "_mcupr_aud_years" => array( $yr === "4" ? "1" : "4" ) ) ); $c = $mk( "ประกาศคณะอื่น (e2e scope)", array( "_mcupr_aud_fac" => array( "คณะที่ไม่มีอยู่จริง" ) ) ); mcupr_aud_reset(); echo json_encode( array( "a" => $a, "b" => $b, "c" => $c, "ua" => get_permalink( $a ), "ub" => get_permalink( $b ), "uc" => get_permalink( $c ), "yr" => $yr, "fac" => $fac ) );'));
+        await sp.goto(B + '/student/');
+        const sm = await sp.locator('main').innerText();
+        ok(/ประกาศชั้นปีของเรา/.test(sm) && !/ประกาศชั้นปีอื่น/.test(sm) && !/ประกาศคณะอื่น/.test(sm), 'scope: the portal lists the announcement for the student\'s own year, not the other year or the other faculty');
+        const rOwn = await sp.goto(sc2.ua);
+        const rOther = await sp.goto(sc2.ub);
+        const rFac = await sp.goto(sc2.uc);
+        ok(rOwn.status() !== 403 && rOther.status() === 403 && rFac.status() === 403, 'scope: the direct link works for the own year and is refused (403) for another year and another faculty (' + rOwn.status() + '/' + rOther.status() + '/' + rFac.status() + ')');
+        await sp.goto(B + '/?s=' + encodeURIComponent('e2e scope'));
+        const sr = await sp.locator('main').innerText();
+        ok(!/ประกาศชั้นปีอื่น|ประกาศคณะอื่น/.test(sr), 'scope: search does not list what the student may not see');
+        // the box in the editor (admin)
+        await ap.goto(B + '/wp-admin/post.php?post=' + sc2.b + '&action=edit');
+        await ap.waitForSelector('.mcupr-aud');
+        ok((await ap.locator('.mcupr-aud-rules').isVisible()) && (await ap.locator('input[name="mcupr_aud_years[]"]').count()) === 5 && (await ap.locator('input[name="mcupr_aud_fac[]"]').count()) >= 1, 'scope box: the levels, the five years and the faculties are in the editor');
+        const cnt0 = await ap.locator('.mcupr-aud-count').innerText();
+        ok(/\d+/.test(cnt0) && (await ap.locator('.mcupr-aud-count').isVisible()), 'scope box: it says how many students would see the content (' + cnt0 + ')');
+        const facBox = ap.locator('input[name="mcupr_aud_fac[]"]').first();
+        await facBox.check();
+        const kids = await ap.locator('details:has(input[name="mcupr_aud_fac[]"]:checked) input[name="mcupr_aud_maj[]"]').evaluateAll((a) => a.map((x) => x.checked && x.disabled));
+        ok(kids.length >= 1 && kids.every(Boolean), 'scope box: ticking a faculty ticks its majors and leaves them out of the form');
+        await ap.locator('input[name="mcupr_aud"][value=""]').check();
+        ok(await ap.locator('.mcupr-aud-rules').isHidden(), 'scope box: "Everyone" hides the rules');
+        await ap.locator('input[name="mcupr_aud"][value="students"]').check();
+        await ap.addScriptTag({ content: axeSource() });
+        const axB = await ap.evaluate(() => axe.run(document.querySelector('.mcupr-aud'), { runOnly: ['wcag2a', 'wcag2aa'] }).then((r) => r.violations.map((v) => v.id)));
+        ok(axB.length === 0, 'axe (scope box): ' + (axB.join(', ') || '0 violations'));
+        await ap.evaluate(() => { window.__wasChecked = document.querySelector('input[name="mcupr_aud_fac[]"]').value; });
+        await ap.waitForFunction(() => !document.querySelector('#publish').classList.contains('disabled'));
+        await ap.click('#publish');
+        await ap.waitForURL(/message=\d+/, { waitUntil: 'domcontentloaded' });
+        ok(await ap.locator('input[name="mcupr_aud_fac[]"]').first().isChecked(), 'scope box: the ticked faculty is still ticked after saving');
+        // the box is not shown to an editor of other content types (e.g. a student record)
+        await sp.setViewportSize({ width: 1366, height: 900 });
+        php3('foreach ( array( ' + sc2.a + ', ' + sc2.b + ', ' + sc2.c + ' ) as $i ) { wp_delete_post( $i, true ); } mcupr_aud_reset();');
+      }
       for (const [w, h] of [[1366, 900], [390, 844], [320, 568]]) {
         await sp.setViewportSize({ width: w, height: h });
         const g = await sp.evaluate(() => ({ hs: document.documentElement.scrollWidth > innerWidth + 1, cut: [...document.querySelectorAll('.stu-card, .stu-list a, .stu-dl')].some((e) => e.getBoundingClientRect().right > innerWidth + 1) }));
@@ -1700,6 +1741,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
   ok(chips.includes('การแข่งขัน') && chips.includes('นวัตกรรมและงานวิจัย') && chips.includes('ศิลปะและวัฒนธรรม'), '/works/ filters by the works\' own categories (' + chips.length + ' chips)');
   ok(!chips.includes('ข่าวประชาสัมพันธ์'), '/works/ does not offer the news categories');
   await p.click('.pill-tabs a:has-text("ศิลปะและวัฒนธรรม")');
+  await p.waitForURL(/work-category/, { waitUntil: 'domcontentloaded' });
   ok((await p.$$('.work-card')).length === 1 && /work-category/.test(p.url()), 'a work category shows only its own works');
   await p.goto(B + '/category/press-releases/');
   ok((await p.$$('.work-card')).length === 0, 'a news category never lists works');

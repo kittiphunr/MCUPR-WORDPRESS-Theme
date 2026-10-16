@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.33.0 =
+* Student-only content limited by year of study, faculty and major; two fixes found while testing
+
 = 1.32.1 =
 * Office menu folds into one button on small screens
 
