@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.34.0 =
+* MCUPR admin menu: only the overview and five main groups; every page is one click from the control page
+
 = 1.33.2 =
 * Top menu: the More pill is not a capsule (it drew a double outline); high-contrast outline for More
 
