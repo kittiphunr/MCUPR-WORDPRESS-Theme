@@ -2004,6 +2004,24 @@ html[data-contrast] .office-chrome .of-band::before { display: none; }
 html[data-contrast] .office-chrome[data-variant="full"] .of-band { border-bottom: 0; }
 html[data-contrast] .of-chips a { border: 2px solid var(--border); background: transparent; color: var(--text); }
 html[data-contrast] .of-chips a:hover, html[data-contrast] .of-chips a:focus-visible { background: var(--text); color: var(--bg); }
+/* Office menu on small screens: the tabs fold into one button (set by main.js; without JS the list stays open) */
+.of-tabs-btn { display: none; }
+@media (max-width: 640px) {
+	.of-tabs.js-tabs .of-tabs-btn { display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; min-height: 2.75rem; padding: .35rem 1rem; border: 1px solid var(--edge, var(--border)); border-radius: 9999px; background: var(--surface); color: var(--text); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+	.of-tabs.js-tabs .of-tabs-btn b { font-weight: 800; }
+	.of-tabs.js-tabs .of-tabs-btn svg { flex: none; transform: rotate(90deg); transition: transform .2s; }
+	.of-tabs.js-tabs.is-open .of-tabs-btn svg { transform: rotate(-90deg); }
+	.of-tabs.js-tabs:not(.is-open) ul { display: none; }
+	.of-tabs.js-tabs .wrap { padding-block: .4rem; }
+	.of-tabs.js-tabs ul { margin-top: .4rem; padding: .35rem; }
+	.office-chrome[data-variant="full"] .of-tabs.js-tabs { margin-top: -2.4rem; }
+	.office-chrome[data-variant="full"] .of-tabs.js-tabs .of-tabs-btn { box-shadow: 0 10px 28px -12px rgb(15 23 42 / .35); }
+	.office-chrome[data-variant="full"] .of-tabs.js-tabs ul { margin-top: .5rem; }
+	.office-chrome[data-variant="full"] .of-tabs.js-tabs .wrap { padding-block: 0; }
+}
+.of-tabs-btn:focus-visible { outline: 3px solid var(--focus, var(--primary)); outline-offset: 2px; }
+html[data-contrast] .of-tabs .of-tabs-btn, html[data-contrast] .of-tabs.js-tabs .of-tabs-btn { border: 2px solid var(--border); background: var(--bg); color: var(--text); box-shadow: none; }
+@media print { .of-tabs-btn { display: none !important; } }
 @media print { .office-chrome { margin-top: 0; } .office-chrome .of-band { padding-top: 1rem; } .office-chrome .of-band::before { display: none; } }
 
 .of-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 0; padding: 0; list-style: none; }
