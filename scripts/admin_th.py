@@ -1302,4 +1302,9 @@ TH = {
 "Use the cover of the EPUB": "ใช้ปกของ EPUB",
 "Video file": "ไฟล์วิดีโอ",
 "YouTube link": "ลิงก์ YouTube",
+"CSS 3D (lightest)": "CSS 3 มิติ (เบาที่สุด)",
+"Classic (page-flip library, heavier)": "คลาสสิก (ไลบรารี page-flip หนักกว่า)",
+"How the pages turn": "วิธีพลิกหน้า",
+"The reader has a button to change this for the visitor (the choice is remembered). WebGL falls back to CSS 3D when the device cannot do it. People who asked their device for less motion get no turning animation.": "ตัวอ่านมีปุ่มให้ผู้อ่านเปลี่ยนเอง (จำค่าที่เลือก) ถ้าอุปกรณ์ทำ WebGL ไม่ได้จะใช้ CSS 3 มิติแทน ผู้ที่ตั้งอุปกรณ์ให้ลดการเคลื่อนไหวจะไม่มีอนิเมชันพลิกหน้า",
+"WebGL (realistic: light and shadow)": "WebGL (สมจริง: มีแสงและเงา)",
 }
