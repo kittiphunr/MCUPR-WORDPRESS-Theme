@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.32.0 =
+* Student data care: activity log, e-mail test and link without e-mail, link-rule check, high-contrast fixes
+
 = 1.31.3 =
 * Office band reaches the top of the page (top menu and sidebar), gradient and seal
 
