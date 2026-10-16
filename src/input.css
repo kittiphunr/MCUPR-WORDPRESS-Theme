@@ -1990,6 +1990,19 @@ html[data-contrast] .office-card .of-badge { border: 2px solid var(--border); }
 /* Offices, a prettier look: the cover picture behind the header (under the office colour so the text stays readable), contact chips,
    floating tabs, figure tiles, icons in the contact card, covers on the cards */
 .office-chrome.has-cover .of-band { background-image: linear-gradient(90deg, var(--of) 0%, var(--of) 42%, color-mix(in srgb, var(--of) 80%, transparent) 72%, color-mix(in srgb, var(--of) 45%, transparent) 100%), var(--of-cover); background-size: cover; background-position: center; }
+/* Office band reaches the top of the page (the floating header sits ON it, like the page bands); a soft gradient and the university seal.
+   Covers keep their own picture. The page bands below an office header are not pulled up (see above). */
+.office-chrome { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); }
+.office-chrome[data-variant] .of-band { position: relative; overflow: hidden; isolation: isolate; padding-top: calc(var(--hdr-h, 5.5rem) + 1.25rem); }
+.office-chrome[data-variant="slim"] .of-band { padding-top: calc(var(--hdr-h, 5.5rem) + .6rem); }
+.office-chrome:not(.has-cover) .of-band { background-image: linear-gradient(115deg, var(--of) 0%, color-mix(in srgb, var(--of) 80%, #000) 100%); }
+.office-chrome .of-band::before { content: ""; position: absolute; z-index: -1; right: max(1rem, 5%); top: 50%; height: 190%; aspect-ratio: 802 / 787; max-width: 70%; transform: translateY(-50%); background: var(--of-on); opacity: .16; -webkit-mask: var(--seal) center / contain no-repeat; mask: var(--seal) center / contain no-repeat; pointer-events: none; }
+.office-chrome[data-variant="slim"] .of-band::before { height: 520%; opacity: .12; }
+@media (max-width: 640px) { .office-chrome[data-variant="slim"] .of-tabs ul { gap: 0; padding: .25rem 0; } .office-chrome[data-variant="slim"] .of-tabs a { min-height: 2.5rem; padding: .25rem .7rem; font-size: .95rem; } }
+html[data-contrast] .office-chrome .of-band { background-image: none; }
+html[data-contrast] .office-chrome .of-band::before { display: none; }
+@media print { .office-chrome { margin-top: 0; } .office-chrome .of-band { padding-top: 1rem; } .office-chrome .of-band::before { display: none; } }
+
 .of-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 0; padding: 0; list-style: none; }
 .of-chips a { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.25rem; padding: .2rem .9rem; border: 1px solid color-mix(in srgb, var(--of-on) 45%, transparent); border-radius: 9999px; background: color-mix(in srgb, var(--of-on) 14%, transparent); color: var(--of-on); font-size: .95rem; font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
 .of-chips a:hover, .of-chips a:focus-visible { background: var(--of-on); color: var(--of); }
