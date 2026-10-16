@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.40.0 =
+* Requests: tracking number, status, files, e-mails (2B)
+
 = 1.39.0 =
 * E-books: Real3D-style viewer (toolbar, zoom, contents, print, auto-play, lightbox)
 
