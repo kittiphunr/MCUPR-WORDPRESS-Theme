@@ -1230,4 +1230,7 @@ TH = {
 "Visible to %1$d of %2$d students who are studying now.": "นิสิตที่กำลังศึกษาอยู่เห็นได้ %1$d จาก %2$d คน",
 "Year %s": "ชั้นปี %s",
 "Show or hide the majors of %s": "แสดงหรือซ่อนสาขาของ %s",
+"Go to": "ไปที่",
+"MCUPR": "MCUPR",
+"Staff and offices": "บุคลากรและหน่วยงาน",
 }
