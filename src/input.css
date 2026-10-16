@@ -2284,4 +2284,54 @@ html[data-contrast] .bk-noscript a { color: var(--text); }
 html[data-contrast] .bk-slider input { accent-color: var(--text); }
 html[data-contrast] .bk-reader :focus-visible { outline-color: var(--text); }
 html[data-contrast] .bk-page { outline: 2px solid var(--text); }
+/* e-books, round 2: extras on the pages (buttons on the page, pages of their own, the player window) and the EPUB reader */
+.bk-chips { position: absolute; left: .5rem; right: .5rem; bottom: .6rem; z-index: 3; display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center; }
+.bk-chip, .bk-mbtn { display: inline-flex; align-items: center; gap: .4rem; max-width: 100%; min-height: 2.25rem; padding: .2rem .8rem .2rem .55rem; border: 2px solid transparent; border-radius: 9999px; background: #be185d; color: #fff; font: inherit; font-size: .85rem; font-weight: 700; line-height: 1.2; text-decoration: none; cursor: pointer; box-shadow: 0 6px 14px -6px rgb(0 0 0 / .6); }
+.bk-chip span, .bk-mbtn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bk-chip:hover, .bk-chip:focus-visible, .bk-mbtn:hover, .bk-mbtn:focus-visible { background: #9d174d; }
+.bk-chip-big { min-height: 3.25rem; padding: .4rem 1.4rem .4rem 1rem; font-size: 1rem; }
+.bk-mbar { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.bk-mbar:focus-within { position: static; width: auto; height: auto; overflow: visible; clip-path: none; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin-top: .75rem; }
+.bk-mbar[hidden] { display: none; }
+.bk-media { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .6rem; padding: 1rem 1rem 2rem; text-align: center; background: linear-gradient(160deg, #fff7fb, #fbfaf6 55%, #f3e8ff); }
+.bk-m-kind { margin: 0; color: #9d174d; font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.bk-m-title { margin: 0; color: #222; font-size: 1.2rem; line-height: 1.3; overflow-wrap: anywhere; }
+.bk-m-slot { display: grid; place-items: center; width: 100%; }
+.bk-m-slot.is-on iframe, .bk-m-slot.is-on video { width: 100%; aspect-ratio: 16 / 9; border: 0; background: #000; }
+.bk-m-slot.is-on audio { width: 100%; }
+.bk-th-m { display: grid; place-items: center; gap: .2rem; padding: .4rem; color: #9d174d; font-size: .8rem; font-weight: 700; }
+.bk-modal { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; padding: 1rem; background: rgb(0 0 0 / .72); border-radius: inherit; }
+.bk-modal[hidden] { display: none; }
+.bk-modal-box { width: min(52rem, 100%); max-height: 100%; overflow: auto; padding: 1rem; border-radius: 1rem; background: var(--bk-bg); color: var(--bk-fg); box-shadow: 0 24px 60px -20px rgb(0 0 0 / .8); }
+.bk-modal-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .75rem; }
+.bk-modal-t { margin: 0; font-size: 1.1rem; overflow-wrap: anywhere; }
+.bk-modal-body iframe, .bk-modal-body video { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: .5rem; background: #000; }
+.bk-modal-body audio { display: block; width: 100%; }
+.bk-ep { display: flex; justify-content: center; perspective: 1800px; width: 100%; }
+.bk-ep-paper { --ep-bg: #fffdf8; --ep-fg: #1f2937; position: relative; width: min(100%, 46rem); height: clamp(26rem, 76vh, 50rem); overflow: hidden; border-radius: .5rem; background: var(--ep-bg); color: var(--ep-fg); box-shadow: 0 18px 40px -16px rgb(0 0 0 / .7), inset 10px 0 14px -12px rgb(0 0 0 / .45); }
+.bk-ep-view { width: 100%; height: 100%; }
+.bk-ep-view .epub-container, .bk-ep-view iframe { max-width: 100%; }
+.bk-ep-out-next { transform-origin: left center; animation: bkEpOutNext .26s ease-in forwards; }
+.bk-ep-in-next { transform-origin: right center; animation: bkEpInNext .3s ease-out; }
+.bk-ep-out-prev { transform-origin: right center; animation: bkEpOutPrev .26s ease-in forwards; }
+.bk-ep-in-prev { transform-origin: left center; animation: bkEpInPrev .3s ease-out; }
+@keyframes bkEpOutNext { to { transform: rotateY(-78deg); opacity: .25; filter: brightness(.8); } }
+@keyframes bkEpInNext { from { transform: rotateY(78deg); opacity: .25; filter: brightness(.8); } }
+@keyframes bkEpOutPrev { to { transform: rotateY(78deg); opacity: .25; filter: brightness(.8); } }
+@keyframes bkEpInPrev { from { transform: rotateY(-78deg); opacity: .25; filter: brightness(.8); } }
+.bk-fs { min-width: 2.75rem; padding: 0 .8rem; font-weight: 800; }
+.bk-toc { display: block; width: 100%; padding: .5rem .6rem; border: 0; border-radius: .5rem; background: transparent; color: inherit; font: inherit; font-size: .9rem; text-align: left; cursor: pointer; }
+.bk-toc:hover, .bk-toc:focus-visible { background: rgb(255 255 255 / .18); }
+.bk-is-epub .bk-th-list { gap: .1rem; }
+.bk-is-epub.is-fs .bk-ep-paper { height: calc(100vh - 11rem); }
+@media (prefers-reduced-motion: reduce) { .bk-ep-out-next, .bk-ep-in-next, .bk-ep-out-prev, .bk-ep-in-prev { animation: none; } }
+html[data-theme="dark"] .bk-ep-paper { --ep-bg: #1e293b; --ep-fg: #e5e7eb; }
+html[data-contrast] .bk-ep-paper { --ep-bg: var(--bg); --ep-fg: var(--text); border: 3px solid var(--border); box-shadow: none; }
+html[data-contrast] .bk-chip, html[data-contrast] .bk-mbtn { background: var(--bg); color: var(--text); border-color: var(--text); box-shadow: none; }
+html[data-contrast] .bk-chip:hover, html[data-contrast] .bk-chip:focus-visible, html[data-contrast] .bk-mbtn:hover, html[data-contrast] .bk-mbtn:focus-visible { background: var(--text); color: var(--bg); }
+html[data-contrast] .bk-media { background: var(--bg); }
+html[data-contrast] .bk-m-kind, html[data-contrast] .bk-m-title, html[data-contrast] .bk-th-m { color: var(--text); }
+html[data-contrast] .bk-toc:hover, html[data-contrast] .bk-toc:focus-visible { background: var(--text); color: var(--bg); }
+html[data-contrast] .bk-modal-box { border: 3px solid var(--border); }
+@media (max-width: 760px) { .bk-ep-paper { height: clamp(24rem, 70vh, 40rem); } .bk-chips { bottom: .35rem; } .bk-chip { min-height: 2.25rem; font-size: .78rem; } }
 @media print { .bk-bar, .bk-nav, .bk-foot, .bk-tools { display: none; } }
