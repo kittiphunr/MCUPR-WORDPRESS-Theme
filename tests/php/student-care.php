@@ -21,6 +21,14 @@ t( $id && 12 === $d['n'] && 'xy' === $d['note'] && 'admin' === $d['by'] || ( $d[
 t( ! isset( $d['ip'] ) && false === strpos( (string) get_post_meta( $id, '_mcupr_a', true ), $_SERVER['REMOTE_ADDR'] ?? 'no-ip-set' ), 'log: no IP address is stored' );
 t( isset( mcupr_audit_actions()['import'], mcupr_audit_actions()['delete'], mcupr_audit_actions()['link'] ), 'log: the actions have names' );
 
+// ---- many events of the same kind stay fast (WordPress looks for a free address one try at a time, unless it is unique at once)
+$t0 = microtime( true );
+for ( $i = 0; $i < 150; $i++ ) { mcupr_audit( 'errors', array( 'n' => $i ) ); }
+$el = microtime( true ) - $t0;
+t( $el < 25, 'log: 150 events of one kind are written in ' . round( $el, 1 ) . ' s (not one slow try per earlier event)' );
+$names = $GLOBALS['wpdb']->get_col( "SELECT post_name FROM {$GLOBALS['wpdb']->posts} WHERE post_type = 'mcupr_audit'" );
+t( count( $names ) === count( array_unique( $names ) ) && 0 === preg_match( '/^(errors|delete|export)(-\d+)?$/', (string) $names[ count( $names ) - 1 ] ), 'log: every event has its own address, no errors-2, errors-3 …' );
+
 // ---- retention
 update_option( 'mcupr_stu_opts', array( 'audit_days' => 5 ) );
 t( 30 === mcupr_audit_days(), 'retention: at least 30 days' );

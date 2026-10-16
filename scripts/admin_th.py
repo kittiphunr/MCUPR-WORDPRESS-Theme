@@ -1222,4 +1222,11 @@ TH = {
 "What": "ทำอะไร",
 "Who imported, exported, changed or deleted student data, and when. The log holds no student names and no IP addresses, and is cleared after %d days (set in the student portal settings).": "ใครนำเข้า ส่งออก แก้ไข หรือลบข้อมูลนิสิต และเมื่อไหร่ บันทึกนี้ไม่เก็บชื่อนิสิตและไม่เก็บ IP และจะถูกล้างหลัง %d วัน (ตั้งได้ในการตั้งค่าพอร์ทัลนิสิต)",
 "give it only to this student (it works once and expires). It is shown for five minutes.": "ให้เฉพาะนิสิตคนนี้เท่านั้น (ใช้ได้ครั้งเดียวและหมดอายุ) แสดงไว้ห้านาที",
+"Inside one group a student needs any one of the ticked boxes; across groups all groups must match. Ticking a faculty means all its majors.": "ในกลุ่มเดียวกัน นิสิตต้องตรงกับช่องที่ติ๊กอย่างน้อยหนึ่งช่อง ส่วนระหว่างกลุ่มต้องตรงทุกกลุ่ม การติ๊กคณะหมายถึงทุกสาขาในคณะนั้น",
+"No faculty is in the student database yet.": "ยังไม่มีคณะในฐานข้อมูลนิสิต",
+"Only these faculties / majors (none ticked = every faculty):": "เฉพาะคณะ / สาขาเหล่านี้ (ไม่ติ๊ก = ทุกคณะ):",
+"Only these levels (none ticked = every level):": "เฉพาะระดับเหล่านี้ (ไม่ติ๊ก = ทุกระดับ):",
+"Only these years of study (none ticked = every year):": "เฉพาะชั้นปีเหล่านี้ (ไม่ติ๊ก = ทุกชั้นปี):",
+"Visible to %1$d of %2$d students who are studying now.": "นิสิตที่กำลังศึกษาอยู่เห็นได้ %1$d จาก %2$d คน",
+"Year %s": "ชั้นปี %s",
 }
