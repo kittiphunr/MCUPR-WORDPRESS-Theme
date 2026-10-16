@@ -1274,8 +1274,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       // high contrast
       await vp.goto(url);
       await vp.evaluate(() => document.documentElement.setAttribute('data-contrast', 'high'));
-      const hc = await vp.evaluate(() => { const cs = getComputedStyle(document.querySelector('.office-chrome .of-band')); const cur = getComputedStyle(document.querySelector('.of-tabs a[aria-current=page]')); return { bg: cs.backgroundColor, bb: cs.borderBottomWidth, curBg: cur.backgroundColor }; });
-      ok(hc.bg !== 'rgb(15, 118, 110)' && hc.bb === '2px' && hc.curBg !== hc.bg, 'office in high contrast: the header drops the office colour for the page colours with a 2px line, the current tab stands out (' + hc.bg + ')');
+      const hc = await vp.evaluate(() => { const cs = getComputedStyle(document.querySelector('.office-chrome .of-band')); const cur = getComputedStyle(document.querySelector('.of-tabs a[aria-current=page]')); const pill = getComputedStyle(document.querySelector('.office-chrome[data-variant=full] .of-tabs ul')); return { bg: cs.backgroundColor, bb: pill.borderTopWidth, curBg: cur.backgroundColor }; });
+      ok(hc.bg !== 'rgb(15, 118, 110)' && hc.bb === '2px' && hc.curBg !== hc.bg, 'office in high contrast: the header drops the office colour for the page colours, the tab bar has a 2px outline, the current tab stands out (' + hc.bg + ')');
       await vp.addScriptTag({ content: axeSource() });
       for (const mode of ['wb', 'yb', 'by']) {
         await vp.evaluate((m) => document.documentElement.setAttribute('data-contrast', m), mode);
