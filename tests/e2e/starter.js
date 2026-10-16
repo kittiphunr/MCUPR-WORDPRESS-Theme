@@ -2044,7 +2044,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         array("page"=>3,"kind"=>"audio","mode"=>"page","title"=>"Listen","att"=>$snd)));
       $out[]=$x;
       $op=sd($fx."book-outline.pdf"); $o=wp_insert_post(array("post_type"=>"mcupr_book","post_status"=>"publish","post_title"=>"E2E Outline")); update_post_meta($o,"_mcupr_bk_src","pdf"); update_post_meta($o,"_mcupr_bk_pdf",$op); $out[]=$o;
-      $pg=wp_insert_post(array("post_type"=>"page","post_status"=>"publish","post_title"=>"E2E lightbox","post_content"=>"[mcupr_book id=\"".$o."\" mode=\"lightbox\"]")); $out[]=$pg;
+      $pg=wp_insert_post(array("post_type"=>"page","post_status"=>"publish","post_title"=>"E2E lightbox","post_content"=>'[mcupr_book id="'.$o.'" mode="lightbox"]')); $out[]=$pg;
       echo json_encode($out);`));
     ok(ids.length === 9, 'e-books: seven sample books, a book with a contents list and a page with a lightbox were made');
     const bc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
