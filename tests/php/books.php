@@ -20,9 +20,13 @@ t( mcupr_books_opts()['style'] === 'wood' && mcupr_books_opts()['view'] === 'she
 delete_option( 'mcupr_books_opts' );
 
 $pdf  = side( $fx . 'book.pdf' );
+$epub = side( $fx . 'book.epub' );
+$vid  = side( $fx . 'book-video.mp4' );
+$snd  = side( $fx . 'book-sound.wav' );
 $imgs = array();
 for ( $i = 1; $i <= 6; $i++ ) { $imgs[] = side( $fx . "book-page-$i.png" ); }
 t( $pdf && 6 === count( array_filter( $imgs ) ), 'fixtures uploaded' );
+t( 'application/epub+zip' === get_post_mime_type( $epub ) && 0 === strpos( (string) get_post_mime_type( $vid ), 'video/' ) && 0 === strpos( (string) get_post_mime_type( $snd ), 'audio/' ), 'an .epub, a video and a sound file can be uploaded and are recognised' );
 
 foreach ( get_posts( array( 'post_type' => 'mcupr_book', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ) ) as $x ) { wp_delete_post( $x, true ); }
 foreach ( get_terms( array( 'taxonomy' => 'mcupr_shelf', 'hide_empty' => false, 'fields' => 'ids' ) ) as $x ) { wp_delete_term( $x, 'mcupr_shelf' ); }
@@ -77,6 +81,60 @@ t( '' === do_shortcode( '[mcupr_book id="999999"]' ), '[mcupr_book] with an unkn
 $css = mcupr_book_shelf_css();
 t( is_string( $css ), 'the shelf CSS can be built' );
 
+
+// ---- round 2: YouTube links, extras of the pages, EPUB
+foreach ( array( 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' => 'dQw4w9WgXcQ', 'https://youtu.be/dQw4w9WgXcQ?t=5' => 'dQw4w9WgXcQ', 'https://www.youtube.com/embed/dQw4w9WgXcQ' => 'dQw4w9WgXcQ', 'https://youtube.com/shorts/dQw4w9WgXcQ' => 'dQw4w9WgXcQ', 'dQw4w9WgXcQ' => 'dQw4w9WgXcQ', 'https://m.youtube.com/watch?v=dQw4w9WgXcQ&list=x' => 'dQw4w9WgXcQ', 'https://evil.example/watch?v=dQw4w9WgXcQ' => '', 'https://www.youtube.com/watch?v=short' => '', 'javascript:alert(1)' => '', '' => '' ) as $in => $want ) {
+	t( mcupr_book_yt_id( $in ) === $want, 'YouTube id: "' . $in . '" → "' . $want . '"' );
+}
+update_post_meta( $b1, '_mcupr_bk_media', array(
+	array( 'page' => 1, 'kind' => 'youtube', 'mode' => 'button', 'title' => 'Intro', 'yt' => 'dQw4w9WgXcQ' ),
+	array( 'page' => 2, 'kind' => 'video', 'mode' => 'page', 'title' => 'Clip', 'att' => $vid ),
+	array( 'page' => 2, 'kind' => 'audio', 'mode' => 'button', 'title' => 'Sound', 'att' => $snd ),
+	array( 'page' => 3, 'kind' => 'link', 'mode' => 'button', 'title' => 'Site', 'url' => 'https://example.org/x' ),
+	array( 'page' => 3, 'kind' => 'link', 'mode' => 'button', 'title' => 'Bad', 'url' => 'javascript:alert(1)' ),
+	array( 'page' => 3, 'kind' => 'youtube', 'mode' => 'button', 'yt' => 'nope' ),
+	array( 'page' => 3, 'kind' => 'video', 'mode' => 'button', 'att' => $pdf ),
+	array( 'page' => 3, 'kind' => 'audio', 'mode' => 'button', 'att' => $vid ),
+	array( 'page' => 3, 'kind' => 'flash', 'mode' => 'button', 'url' => 'https://example.org/' ),
+) );
+$m = mcupr_book_media( $b1 );
+t( 4 === count( $m ), 'extras: the four real ones are kept, the five bad ones (script link, bad YouTube id, a PDF as video, a video as sound, an unknown type) are dropped' );
+t( 'page' === $m[1]['mode'] && 'button' === $m[0]['mode'], 'extras: the way of showing (button / page of its own) is kept' );
+$cfgm = mcupr_book_media_cfg( $b1 );
+t( 'dQw4w9WgXcQ' === $cfgm[0]['yt'] && ! empty( $cfgm[1]['src'] ) && ! empty( $cfgm[3]['href'] ), 'extras: the reader gets a YouTube id, file addresses and links' );
+t( false !== strpos( mcupr_book_reader( $b1 ), '&quot;media&quot;' ) && false !== strpos( mcupr_book_reader( $b1 ), 'data-mbar' ), 'PDF reader: carries the extras and the list of them' );
+t( false === strpos( mcupr_book_reader( $b2 ), '&quot;media&quot;' ), 'a book without extras carries none' );
+// saving from the editor box
+$_POST = array(
+	'mcupr_book_nonce' => wp_create_nonce( 'mcupr_book_save' ),
+	'mcupr_bk_src'     => 'pdf',
+	'mcupr_bk_pdf'     => $pdf,
+	'mcupr_bk_media'   => array(
+		array( 'page' => '2', 'kind' => 'youtube', 'url' => 'https://youtu.be/dQw4w9WgXcQ', 'title' => '<b>Hi</b>', 'mode' => 'page', 'att' => '0' ),
+		array( 'page' => '0', 'kind' => 'link', 'url' => 'https://example.org/', 'title' => 'L', 'mode' => 'weird', 'att' => '0' ),
+		array( 'page' => '1', 'kind' => 'link', 'url' => 'ftp://example.org/', 'title' => 'bad' ),
+		array( 'page' => '1', 'kind' => 'video', 'att' => (string) $vid, 'title' => 'V' ),
+	),
+);
+do_action( 'save_post_mcupr_book', $b1 );
+$_POST = array();
+$m = mcupr_book_media( $b1 );
+t( 3 === count( $m ) && 'dQw4w9WgXcQ' === $m[0]['yt'] && 'Hi' === $m[0]['title'] && 'page' === $m[0]['mode'], 'saving the box: a YouTube link becomes its id, tags are stripped from the name, bad rows are dropped' );
+t( 1 === $m[1]['page'] && 'button' === $m[1]['mode'], 'saving the box: page 0 becomes 1 and an unknown mode becomes "button"' );
+// EPUB
+$b4 = wp_insert_post( array( 'post_type' => 'mcupr_book', 'post_status' => 'publish', 'post_title' => 'EPUB Book' ) );
+update_post_meta( $b4, '_mcupr_bk_src', 'epub' );
+t( '' === mcupr_book_reader( $b4 ), 'EPUB book with no file shows no reader' );
+update_post_meta( $b4, '_mcupr_bk_epub', $epub );
+t( 'epub' === mcupr_book_src( $b4 ) && $epub === mcupr_book_epub_id( $b4 ) && 0 === mcupr_book_epub_id( $b1 ), 'EPUB: source and file id' );
+$he = mcupr_book_reader( $b4 );
+t( false !== strpos( $he, 'bk-is-epub' ) && false !== strpos( $he, 'bk-ep-paper' ) && false !== strpos( $he, 'epub.min.js' ) && false !== strpos( $he, ' download>' ), 'EPUB reader: the page, the libraries and the download button' );
+t( false === strpos( $he, '&quot;media&quot;' ) && wp_script_is( 'mcupr-book-epub', 'enqueued' ), 'EPUB reader: no page extras; its script is enqueued' );
+foreach ( array( 'assets/vendor/epub/epub.min.js', 'assets/vendor/epub/jszip.min.js', 'assets/js/book-epub.js' ) as $f ) {
+	t( is_readable( get_theme_file_path( $f ) ), 'file shipped: ' . $f );
+}
+t( false !== strpos( mcupr_book_shelf(), 'EPUB Book' ), 'the shelf lists an EPUB book' );
+
 // ---- the guarded stream (needs the site to answer over HTTP)
 $get = static function ( $url, $headers = array() ) { return wp_remote_get( $url, array( 'timeout' => 15, 'redirection' => 0, 'headers' => $headers ) ); };
 $u   = mcupr_book_file_url( $b1, $pdf );
@@ -95,12 +153,21 @@ if ( is_wp_error( $probe ) ) {
 	t( ! is_wp_error( $r ) && false === strpos( wp_remote_retrieve_body( $r ), '%PDF' ), 'guarded stream: nothing of the file is sent' );
 	$r = $get( add_query_arg( 'mcupr_bf', $b1 . '-' . $imgs[0], home_url( '/' ) ) );
 	t( ! is_wp_error( $r ) && in_array( wp_remote_retrieve_response_code( $r ), array( 403, 404 ), true ), 'guarded stream: a file that is not the book\'s is refused' );
+	$vr = $get( add_query_arg( 'mcupr_bf', $b1 . '-' . $vid, home_url( '/' ) ) );
+	t( ! is_wp_error( $vr ) && 403 === wp_remote_retrieve_response_code( $vr ), 'guarded stream: the video of a student-only book is refused to a visitor' );
 	delete_post_meta( $b1, MCUPR_AUD );
 	mcupr_aud_reset();
 	$r = $get( add_query_arg( 'mcupr_bf', $b1 . '-' . $pdf, home_url( '/' ) ) );
 	t( ! is_wp_error( $r ) && 200 === wp_remote_retrieve_response_code( $r ) && 0 === strpos( wp_remote_retrieve_body( $r ), '%PDF' ), 'stream: an open book is sent (200, %PDF)' );
 	$r = $get( add_query_arg( 'mcupr_bf', $b1 . '-' . $pdf, home_url( '/' ) ), array( 'Range' => 'bytes=0-9' ) );
 	t( ! is_wp_error( $r ) && 206 === wp_remote_retrieve_response_code( $r ) && 10 === strlen( wp_remote_retrieve_body( $r ) ) && 0 === strpos( (string) wp_remote_retrieve_header( $r, 'content-range' ), 'bytes 0-9/' ), 'stream: Range gives 206 with Content-Range' );
+	update_post_meta( $b1, '_mcupr_bk_media', array( array( 'page' => 2, 'kind' => 'video', 'mode' => 'page', 'title' => 'Clip', 'att' => $vid ) ) );
+	$r = $get( add_query_arg( 'mcupr_bf', $b1 . '-' . $vid, home_url( '/' ) ), array( 'Range' => 'bytes=0-3' ) );
+	t( ! is_wp_error( $r ) && 206 === wp_remote_retrieve_response_code( $r ) && 0 === strpos( (string) wp_remote_retrieve_header( $r, 'content-type' ), 'video/' ), 'stream: the video of a book is sent in pieces (206, video/…)' );
+	$r = $get( add_query_arg( 'mcupr_bf', $b4 . '-' . $epub, home_url( '/' ) ) );
+	t( ! is_wp_error( $r ) && 200 === wp_remote_retrieve_response_code( $r ) && 'PK' === substr( wp_remote_retrieve_body( $r ), 0, 2 ), 'stream: the EPUB of a book is sent (a ZIP)' );
+	$r = $get( add_query_arg( 'mcupr_bf', $b2 . '-' . $vid, home_url( '/' ) ) );
+	t( ! is_wp_error( $r ) && in_array( wp_remote_retrieve_response_code( $r ), array( 403, 404 ), true ), 'stream: a video that is not an extra of that book is refused' );
 	$r = $get( add_query_arg( 'mcupr_bf', $b1 . '-' . $pdf, home_url( '/' ) ), array( 'Range' => 'bytes=99999999-' ) );
 	t( ! is_wp_error( $r ) && 416 === wp_remote_retrieve_response_code( $r ), 'stream: a Range past the end gives 416' );
 }
@@ -109,7 +176,7 @@ if ( is_wp_error( $probe ) ) {
 $src = file_get_contents( get_theme_file_path( 'inc/strings.php' ) );
 preg_match_all( "/'(bk_[a-z0-9_]+)' => array\\( ('[^']*'|\"[^\"]*\"), ('[^']*'|\"[^\"]*\"), ('[^']*'|\"[^\"]*\"), ('[^']*'|\"[^\"]*\") \\)/", $src, $mm );
 t( count( $mm[1] ) >= 30, 'e-book words have all four languages (' . count( $mm[1] ) . ' keys)' );
-foreach ( array( $b1, $b2, $b3 ) as $x ) { wp_delete_post( $x, true ); }
+foreach ( array( $b1, $b2, $b3, $b4 ) as $x ) { wp_delete_post( $x, true ); }
 wp_delete_term( (int) $shelf['term_id'], 'mcupr_shelf' );
 echo $fails ? "\n$fails FAILED\n" : "\nall passed\n";
 exit( $fails ? 1 : 0 );
