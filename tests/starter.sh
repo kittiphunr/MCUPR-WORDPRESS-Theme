@@ -43,6 +43,7 @@ php php/office-band.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAI
 php php/student-care.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/office-tabs.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/nav-capsule.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
+php php/plain-links.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/audience-scope.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/query-budget.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/menu-bar.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
