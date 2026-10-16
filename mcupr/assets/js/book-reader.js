@@ -170,8 +170,13 @@
 				btn2.addEventListener('click', function () { stopInline(); slot.classList.add('is-on'); slot.innerHTML = ''; slot.appendChild(player(m)); });
 			}
 			slot._btn = btn2; slot.appendChild(btn2); wrap.appendChild(slot);
+			noFlip(wrap);
 			p.appendChild(wrap);
 			p.classList.add('bk-done', 'bk-mpage');
+		}
+		/* a click on a button or a player must not turn the page: keep its mouse and touch events from the flip-book */
+		function noFlip(node) {
+			['mousedown', 'mouseup', 'mousemove', 'touchstart', 'touchend', 'touchmove', 'pointerdown', 'pointerup'].forEach(function (t) { node.addEventListener(t, function (e) { e.stopPropagation(); }); });
 		}
 		function makePages(n) {
 			buildSeq(n);
@@ -195,7 +200,7 @@
 			media.forEach(function (m) {
 				if (m.mode !== 'button' || !(m.page >= 1 && m.page <= n)) { return; }
 				var idx = seqOf[m.page - 1];
-				if (!chips[idx]) { chips[idx] = document.createElement('div'); chips[idx].className = 'bk-chips'; pages[idx].appendChild(chips[idx]); }
+				if (!chips[idx]) { chips[idx] = document.createElement('div'); chips[idx].className = 'bk-chips'; noFlip(chips[idx]); pages[idx].appendChild(chips[idx]); }
 				var b = mButton(m, 'bk-chip');
 				b.tabIndex = -1; // the same buttons are in the list under the book, for the keyboard
 				chips[idx].appendChild(b);
