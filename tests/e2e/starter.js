@@ -2018,6 +2018,108 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       phpP('update_option( "permalink_structure", ' + JSON.stringify(was) + ' ); flush_rewrite_rules( false );');
     }
   }
+  // ---------- e-books: the bookshelf (shelf and grid, six styles) and the page-turning reader (PDF and pictures)
+  {
+    const { execSync } = require('child_process');
+    const fsB = require('fs');
+    const wpLoadB = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+    const fxB = require('path').resolve(__dirname, '../fixtures') + '/';
+    const phpB = (code) => { const f = require('os').tmpdir() + '/e2e-books-' + process.pid + '.php'; fsB.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wpLoadB) + '; require_once ABSPATH."wp-admin/includes/image.php"; require_once ABSPATH."wp-admin/includes/file.php"; require_once ABSPATH."wp-admin/includes/media.php"; ' + code); return execSync('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const ids = JSON.parse(phpB(`
+      function sd($f){ $t=wp_tempnam($f); copy($f,$t); $i=media_handle_sideload(array("name"=>basename($f),"tmp_name"=>$t),0); return is_wp_error($i)?0:$i; }
+      $fx=${JSON.stringify(fxB)};
+      foreach(get_posts(array("post_type"=>"mcupr_book","post_status"=>"any","numberposts"=>-1,"fields"=>"ids")) as $x){wp_delete_post($x,true);}
+      $pdf=sd($fx."book.pdf"); $im=array(); for($i=1;$i<=6;$i++){$im[]=sd($fx."book-page-$i.png");}
+      $sh=wp_insert_term("E2E shelf ".time(),"mcupr_shelf"); $out=array();
+      for($n=1;$n<=5;$n++){ $b=wp_insert_post(array("post_type"=>"mcupr_book","post_status"=>"publish","post_title"=>"E2E Book $n"));
+        if($n%2){update_post_meta($b,"_mcupr_bk_src","pdf");update_post_meta($b,"_mcupr_bk_pdf",$pdf);}else{update_post_meta($b,"_mcupr_bk_src","images");update_post_meta($b,"_mcupr_bk_imgs",$im);}
+        wp_set_object_terms($b,(int)$sh["term_id"],"mcupr_shelf"); $out[]=$b; }
+      echo json_encode($out);`));
+    ok(ids.length === 5, 'e-books: five sample books were made');
+    const bc = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+    const bp = await bc.newPage();
+    const berr = [];
+    bp.on('pageerror', (e) => berr.push(e.message));
+    bp.on('console', (m) => { if (m.type() === 'error') { berr.push(m.text()); } });
+    await bp.goto(B + '/?post_type=mcupr_book');
+    await bp.evaluate(() => { try { localStorage.removeItem('mcupr_bk_view'); } catch (e) { /* */ } });
+    await bp.reload();
+    ok(await bp.locator('.bk-card').count() === 5, 'e-books: the shelf shows the five books');
+    ok((await bp.locator('.bk-shelf-app').getAttribute('data-view')) === 'shelf', 'e-books: the shelf view is the default');
+    ok(await bp.locator('.bk-pad').count() >= 0 && await bp.evaluate(() => { const ul = document.querySelector('.bk-books'); const cols = getComputedStyle(ul).gridTemplateColumns.split(' ').length; return (ul.querySelectorAll('.bk-card').length + ul.querySelectorAll('.bk-pad').length) % cols === 0; }), 'e-books: the last board of the shelf is completed with empty slots');
+    // search
+    await bp.fill('#bk-q', 'Book 3');
+    ok(await bp.locator('.bk-card:visible').count() === 1, 'e-books: search narrows the shelf to one book');
+    await bp.fill('#bk-q', 'zzzz');
+    ok(await bp.locator('.bk-none').isVisible(), 'e-books: search with no match says so');
+    await bp.fill('#bk-q', '');
+    // views
+    await bp.click('.bk-vbtn[data-view="grid"]');
+    ok((await bp.locator('.bk-shelf-app').getAttribute('data-view')) === 'grid' && await bp.locator('.bk-vbtn[data-view="grid"]').getAttribute('aria-pressed') === 'true', 'e-books: the grid of covers can be chosen');
+    await bp.reload();
+    ok((await bp.locator('.bk-shelf-app').getAttribute('data-view')) === 'grid', 'e-books: the chosen view is remembered');
+    await bp.click('.bk-vbtn[data-view="shelf"]');
+    // every style draws a board and a back panel that differ
+    const looks = [];
+    for (const st of ['wood', 'dark', 'glass', 'white', 'metal', 'custom']) {
+      looks.push(await bp.evaluate((x) => { const r = document.querySelector('.bk-row'); r.className = r.className.replace(/bks-\w+/, 'bks-' + x); const cs = getComputedStyle(r.querySelector('.bk-books')); const slot = getComputedStyle(r.querySelector('.bk-slot'), '::after'); return cs.backgroundImage + '|' + slot.backgroundImage; }, st));
+    }
+    ok(new Set(looks.slice(0, 5)).size === 5 && looks.every((l) => /gradient|url/.test(l)), 'e-books: the five ready-made shelf styles look different (and custom has a board)');
+    // the reader of a PDF book and of a picture book
+    for (const [i, kind] of [[0, 'pdf'], [1, 'images']]) {
+      await bp.goto(B + '/?p=' + ids[i]);
+      await bp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+      ok(await bp.locator('.bk-reader').getAttribute('data-pages') === '6', 'e-books: the ' + kind + ' book opens with six pages');
+      await bp.locator('.bk-reader').scrollIntoViewIfNeeded();
+      await bp.click('.bk-reader [data-act="next"]');
+      await bp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '2', null, { timeout: 8000 }).catch(() => {});
+      ok(await bp.locator('.bk-reader').getAttribute('data-page') === '2', 'e-books: ' + kind + ' book: the next button turns the page');
+      await bp.focus('.bk-stage');
+      await bp.keyboard.press('ArrowRight');
+      await bp.waitForFunction(() => +document.querySelector('.bk-reader').dataset.page >= 3, null, { timeout: 8000 }).catch(() => {});
+      ok(+(await bp.locator('.bk-reader').getAttribute('data-page')) >= 3, 'e-books: ' + kind + ' book: the arrow key turns the page');
+      await bp.keyboard.press('Home');
+      await bp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '1', null, { timeout: 8000 }).catch(() => {});
+      ok(await bp.locator('.bk-reader').getAttribute('data-page') === '1', 'e-books: ' + kind + ' book: Home goes back to the cover');
+      const snd0 = await bp.locator('.bk-reader').getAttribute('data-sound');
+      await bp.click('.bk-reader [data-act="sound"]');
+      const snd1 = await bp.locator('.bk-reader').getAttribute('data-sound');
+      ok(snd0 !== snd1 && (await bp.locator('.bk-reader [data-act="sound"]').getAttribute('aria-pressed')) === (snd1 === '1' ? 'true' : 'false'), 'e-books: ' + kind + ' book: the sound button switches the sound and says so');
+      await bp.click('.bk-reader [data-act="thumbs"]');
+      ok(await bp.locator('.bk-thumbs').isVisible() && await bp.locator('.bk-th-list li').count() === 6, 'e-books: ' + kind + ' book: the page list shows six thumbnails');
+      ok(berr.length === 0, 'e-books: ' + kind + ' book: no script error' + (berr.length ? ': ' + berr.slice(0, 2).join(' | ') : ''));
+    }
+    // sizes and the high-contrast modes
+    for (const w of [1920, 1366, 768, 390, 320]) {
+      await bp.setViewportSize({ width: w, height: 900 });
+      await bp.goto(B + '/?p=' + ids[1]);
+      await bp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+      const m = await bp.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, r: document.querySelector('.bk-reader').getBoundingClientRect().width }));
+      ok(m.sw <= m.cw + 1 && m.r > 200, 'e-books: the reader fits a ' + w + ' px screen (no sideways scroll)');
+      await bp.goto(B + '/?post_type=mcupr_book');
+      const m2 = await bp.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
+      ok(m2.sw <= m2.cw + 1, 'e-books: the shelf fits a ' + w + ' px screen (no sideways scroll)');
+    }
+    await bp.setViewportSize({ width: 1366, height: 900 });
+    for (const mode of ['wb', 'yb', 'by']) {
+      await bp.goto(B + '/?p=' + ids[0]);
+      await bp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+      const c = await bp.evaluate((md) => { document.documentElement.setAttribute('data-contrast', md); const rd = getComputedStyle(document.querySelector('.bk-reader')); const bt = getComputedStyle(document.querySelector('.bk-btn')); return { rb: rd.borderTopWidth, bb: bt.borderTopWidth, col: bt.color, bg: rd.backgroundColor }; }, mode);
+      ok(parseFloat(c.rb) >= 2 && parseFloat(c.bb) >= 2, 'e-books: high contrast ' + mode + ': the reader and its buttons have a visible outline');
+    }
+    // a book for students only: the file is not given to a visitor
+    phpB('update_post_meta( ' + ids[0] + ', MCUPR_AUD, "students" ); mcupr_aud_reset();');
+    const rr = await bc.request.get(B + '/?post_type=mcupr_book');
+    ok(rr.status() === 200, 'e-books: the shelf opens with a student-only book on it');
+    const pdfAtt = phpB('echo mcupr_book_pdf_id( ' + ids[0] + ' );');
+    const sf = await bc.request.get(B + '/?mcupr_bf=' + ids[0] + '-' + pdfAtt);
+    ok(sf.status() === 403, 'e-books: the PDF of a student-only book is refused to a visitor (403)');
+    phpB('delete_post_meta( ' + ids[0] + ', MCUPR_AUD ); mcupr_aud_reset();');
+    const sf2 = await bc.request.get(B + '/?mcupr_bf=' + ids[0] + '-' + pdfAtt, { headers: { Range: 'bytes=0-4' } });
+    ok(sf2.status() === 206 && (await sf2.text()) === '%PDF-', 'e-books: an open book streams the file in pieces (206)');
+    phpB('foreach(get_posts(array("post_type"=>"mcupr_book","post_status"=>"any","numberposts"=>-1,"fields"=>"ids")) as $x){wp_delete_post($x,true);} foreach(get_terms(array("taxonomy"=>"mcupr_shelf","hide_empty"=>false,"fields"=>"ids")) as $t){wp_delete_term($t,"mcupr_shelf");}');
+    await bc.close();
+  }
   await br.close();
   finish();
 })();
