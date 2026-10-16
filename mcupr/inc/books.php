@@ -203,7 +203,121 @@ foreach ( array( 'created_' . MCUPR_SHELF, 'edited_' . MCUPR_SHELF ) as $mcupr_h
 /** Where a book's pages come from: 'pdf' or 'images' ('epub' later). */
 function mcupr_book_src( $id ) {
 	$s = (string) get_post_meta( $id, '_mcupr_bk_src', true );
-	return in_array( $s, array( 'pdf', 'images' ), true ) ? $s : 'pdf';
+	return in_array( $s, array( 'pdf', 'images', 'epub' ), true ) ? $s : 'pdf';
+}
+
+/** The attachment id of the EPUB (0 if none or not an EPUB). */
+function mcupr_book_epub_id( $id ) {
+	$a = (int) get_post_meta( $id, '_mcupr_bk_epub', true );
+	return $a && 'application/epub+zip' === get_post_mime_type( $a ) ? $a : 0;
+}
+
+/** WordPress does not know .epub files: allow them for people who may upload, and recognise them (a ZIP to the server's eyes). */
+add_filter(
+	'upload_mimes',
+	static function ( $m ) {
+		$m['epub'] = 'application/epub+zip';
+		return $m;
+	}
+);
+add_filter(
+	'wp_check_filetype_and_ext',
+	static function ( $r, $file, $name ) {
+		if ( empty( $r['type'] ) && preg_match( '/\.epub$/i', (string) $name ) && is_readable( $file ) && 'PK' === (string) file_get_contents( $file, false, null, 0, 2 ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions
+			$r = array( 'ext' => 'epub', 'type' => 'application/epub+zip', 'proper_filename' => false );
+		}
+		return $r;
+	},
+	10,
+	3
+);
+
+/** The id of a YouTube video from a link (watch, youtu.be, embed, shorts, live) or the bare id; '' when it is not one. */
+function mcupr_book_yt_id( $u ) {
+	$u = trim( (string) $u );
+	if ( preg_match( '/^[A-Za-z0-9_-]{11}$/', $u ) ) {
+		return $u;
+	}
+	$p = wp_parse_url( $u );
+	if ( ! $p || empty( $p['host'] ) ) {
+		return '';
+	}
+	$h  = strtolower( preg_replace( '/^www\./', '', $p['host'] ) );
+	$id = '';
+	if ( 'youtu.be' === $h && ! empty( $p['path'] ) ) {
+		$id = trim( $p['path'], '/' );
+	} elseif ( in_array( $h, array( 'youtube.com', 'm.youtube.com', 'music.youtube.com', 'youtube-nocookie.com' ), true ) ) {
+		if ( ! empty( $p['query'] ) ) {
+			parse_str( $p['query'], $q );
+			$id = isset( $q['v'] ) && is_string( $q['v'] ) ? $q['v'] : '';
+		}
+		if ( '' === $id && ! empty( $p['path'] ) && preg_match( '#^/(?:embed|shorts|live|v)/([A-Za-z0-9_-]{11})#', $p['path'], $m ) ) {
+			$id = $m[1];
+		}
+	}
+	return preg_match( '/^[A-Za-z0-9_-]{11}$/', $id ) ? $id : '';
+}
+
+/**
+ * The extras of the pages of a book, checked: arrays of page (1-based, of the book's own pages), kind (youtube|video|audio|link),
+ * mode (button = a button on the page, page = a page of its own after it), title, yt (YouTube id), att (file), url (link).
+ */
+function mcupr_book_media( $id ) {
+	$rows = get_post_meta( $id, '_mcupr_bk_media', true );
+	$out  = array();
+	if ( ! is_array( $rows ) ) {
+		return $out;
+	}
+	foreach ( $rows as $r ) {
+		if ( ! is_array( $r ) || empty( $r['page'] ) || empty( $r['kind'] ) ) {
+			continue;
+		}
+		$k = $r['kind'];
+		$i = array( 'page' => max( 1, (int) $r['page'] ), 'kind' => $k, 'mode' => isset( $r['mode'] ) && 'page' === $r['mode'] ? 'page' : 'button', 'title' => isset( $r['title'] ) ? (string) $r['title'] : '', 'yt' => '', 'att' => 0, 'url' => '' );
+		if ( 'youtube' === $k ) {
+			$i['yt'] = mcupr_book_yt_id( isset( $r['yt'] ) ? $r['yt'] : '' );
+			if ( '' === $i['yt'] ) {
+				continue;
+			}
+		} elseif ( 'video' === $k || 'audio' === $k ) {
+			$a = isset( $r['att'] ) ? (int) $r['att'] : 0;
+			if ( ! $a || 0 !== strpos( (string) get_post_mime_type( $a ), $k . '/' ) ) {
+				continue;
+			}
+			$i['att'] = $a;
+		} elseif ( 'link' === $k ) {
+			$u = esc_url_raw( isset( $r['url'] ) ? (string) $r['url'] : '', array( 'http', 'https' ) );
+			if ( '' === $u ) {
+				continue;
+			}
+			$i['url'] = $u;
+		} else {
+			continue;
+		}
+		$out[] = $i;
+	}
+	return array_slice( $out, 0, 200 );
+}
+
+/** The extras ready for the reader's script. */
+function mcupr_book_media_cfg( $id ) {
+	$o = array();
+	foreach ( mcupr_book_media( $id ) as $i ) {
+		$t = $i['title'];
+		$c = array( 'page' => $i['page'], 'kind' => $i['kind'], 'mode' => $i['mode'], 'title' => $t );
+		if ( 'youtube' === $i['kind'] ) {
+			$c['yt'] = $i['yt'];
+		} elseif ( $i['att'] ) {
+			$c['src'] = mcupr_book_file_url( $id, $i['att'] );
+			if ( '' === $t ) {
+				$c['title'] = get_the_title( $i['att'] );
+			}
+		} else {
+			$c['href'] = $i['url'];
+		}
+		$o[] = $c;
+	}
+	return $o;
 }
 
 /** The attachment ids of the pictures of an "images" book, in order (only real images). */
@@ -303,9 +417,15 @@ add_action(
 					'fonts'  => get_theme_file_uri( 'assets/vendor/pdfjs/standard_fonts/' ),
 					'ajax'   => admin_url( 'admin-ajax.php' ),
 					'nonce'  => wp_create_nonce( 'mcupr_book_cover' ),
+					'jszip'  => get_theme_file_uri( 'assets/vendor/epub/jszip.min.js' ),
+					'epub'   => get_theme_file_uri( 'assets/vendor/epub/epub.min.js' ),
 					'i'      => array(
 						'pick'     => __( 'Choose the PDF', 'mcupr' ),
 						'pickImgs' => __( 'Choose the pictures', 'mcupr' ),
+						'pickEpub' => __( 'Choose the EPUB', 'mcupr' ),
+						'notEpub'  => __( 'This is not an EPUB file (.epub).', 'mcupr' ),
+						'pickVideo' => __( 'Choose the video', 'mcupr' ),
+						'pickAudio' => __( 'Choose the sound file', 'mcupr' ),
 						'making'   => __( 'Making the cover…', 'mcupr' ),
 						'done'     => __( 'The cover is set.', 'mcupr' ),
 						'fail'     => __( 'The cover could not be made.', 'mcupr' ),
@@ -317,17 +437,41 @@ add_action(
 	}
 );
 
+/** One row of the extras table (also the template for new rows: $i = '__i__'). */
+function mcupr_book_media_row( $i, $m ) {
+	$n    = 'mcupr_bk_media[' . $i . ']';
+	$kind = $m['kind'];
+	$what = 'youtube' === $kind ? 'https://youtu.be/' . $m['yt'] : ( 'link' === $kind ? $m['url'] : '' );
+	$name = $m['att'] ? get_the_title( $m['att'] ) . ' – ' . basename( (string) get_attached_file( $m['att'] ) ) : '';
+	$h    = '<tr class="mcupr-bk-mrow">';
+	$h   .= '<td><label class="screen-reader-text">' . esc_html__( 'Page', 'mcupr' ) . '</label><input type="number" min="1" class="small-text" name="' . esc_attr( $n ) . '[page]" value="' . (int) $m['page'] . '"></td>';
+	$h   .= '<td><label class="screen-reader-text">' . esc_html__( 'Type', 'mcupr' ) . '</label><select class="mcupr-bk-kind" name="' . esc_attr( $n ) . '[kind]">';
+	foreach ( array( 'youtube' => __( 'YouTube link', 'mcupr' ), 'video' => __( 'Video file', 'mcupr' ), 'audio' => __( 'Sound file', 'mcupr' ), 'link' => __( 'Link', 'mcupr' ) ) as $k => $l ) {
+		$h .= '<option value="' . esc_attr( $k ) . '"' . selected( $kind, $k, false ) . '>' . esc_html( $l ) . '</option>';
+	}
+	$h .= '</select></td>';
+	$h .= '<td><input type="hidden" class="mcupr-bk-att" name="' . esc_attr( $n ) . '[att]" value="' . (int) $m['att'] . '">';
+	$h .= '<input type="url" class="regular-text mcupr-bk-url" name="' . esc_attr( $n ) . '[url]" placeholder="https://" value="' . esc_attr( $what ) . '"' . ( 'video' === $kind || 'audio' === $kind ? ' hidden' : '' ) . '>';
+	$h .= '<span class="mcupr-bk-file"' . ( 'video' === $kind || 'audio' === $kind ? '' : ' hidden' ) . '><button type="button" class="button mcupr-bk-pick-file">' . esc_html__( 'Choose the file', 'mcupr' ) . '</button> <span class="mcupr-bk-fname">' . esc_html( $name ) . '</span></span></td>';
+	$h .= '<td><label class="screen-reader-text">' . esc_html__( 'Name shown', 'mcupr' ) . '</label><input type="text" class="regular-text" name="' . esc_attr( $n ) . '[title]" value="' . esc_attr( $m['title'] ) . '"></td>';
+	$h .= '<td><label class="screen-reader-text">' . esc_html__( 'Shown as', 'mcupr' ) . '</label><select name="' . esc_attr( $n ) . '[mode]"><option value="button"' . selected( $m['mode'], 'button', false ) . '>' . esc_html__( 'A button on the page', 'mcupr' ) . '</option><option value="page"' . selected( $m['mode'], 'page', false ) . '>' . esc_html__( 'A page of its own', 'mcupr' ) . '</option></select></td>';
+	$h .= '<td><button type="button" class="button-link mcupr-bk-mrm">' . esc_html__( 'Remove', 'mcupr' ) . '</button></td></tr>';
+	return $h;
+}
+
 function mcupr_book_box( $post ) {
 	wp_nonce_field( 'mcupr_book_save', 'mcupr_book_nonce' );
 	$src  = mcupr_book_src( $post->ID );
 	$pdf  = mcupr_book_pdf_id( $post->ID );
 	$imgs = mcupr_book_image_ids( $post->ID );
+	$epub = mcupr_book_epub_id( $post->ID );
 	$dl   = get_post_meta( $post->ID, '_mcupr_bk_dl', true );
 	$dl   = '' === $dl ? 1 : (int) $dl;
 	echo '<p class="description" style="max-width:52rem">' . esc_html__( 'Choose where the pages come from. The reader turns the pages like a real book, with a page-turn sound the visitor can switch off.', 'mcupr' ) . '</p>';
 	echo '<fieldset style="margin:.5rem 0 1rem"><legend class="screen-reader-text">' . esc_html__( 'Pages from', 'mcupr' ) . '</legend>';
 	echo '<label style="margin-right:1.5rem"><input type="radio" name="mcupr_bk_src" value="pdf"' . checked( $src, 'pdf', false ) . '> <strong>' . esc_html__( 'A PDF file', 'mcupr' ) . '</strong></label>';
-	echo '<label><input type="radio" name="mcupr_bk_src" value="images"' . checked( $src, 'images', false ) . '> <strong>' . esc_html__( 'Pictures (one picture per page)', 'mcupr' ) . '</strong></label></fieldset>';
+	echo '<label style="margin-right:1.5rem"><input type="radio" name="mcupr_bk_src" value="images"' . checked( $src, 'images', false ) . '> <strong>' . esc_html__( 'Pictures (one picture per page)', 'mcupr' ) . '</strong></label>';
+	echo '<label><input type="radio" name="mcupr_bk_src" value="epub"' . checked( $src, 'epub', false ) . '> <strong>' . esc_html__( 'An EPUB file', 'mcupr' ) . '</strong></label></fieldset>';
 	// PDF
 	echo '<div class="mcupr-bk-pane" data-src="pdf"' . ( 'pdf' === $src ? '' : ' hidden' ) . '><input type="hidden" name="mcupr_bk_pdf" id="mcupr-bk-pdf" value="' . (int) $pdf . '"><p><strong id="mcupr-bk-pdf-name">' . ( $pdf ? esc_html( get_the_title( $pdf ) . ' – ' . basename( (string) get_attached_file( $pdf ) ) ) : esc_html__( 'No PDF chosen yet.', 'mcupr' ) ) . '</strong></p><p><button type="button" class="button" id="mcupr-bk-pick-pdf">' . esc_html__( 'Choose the PDF', 'mcupr' ) . '</button> <button type="button" class="button" id="mcupr-bk-cover"' . ( $pdf ? '' : ' disabled' ) . '>' . esc_html__( 'Use the first page as the cover', 'mcupr' ) . '</button> <span id="mcupr-bk-msg" role="status" class="description"></span></p></div>';
 	// pictures
@@ -336,6 +480,16 @@ function mcupr_book_box( $post ) {
 		echo '<li data-id="' . (int) $a . '" style="position:relative;width:96px;border:1px solid #c3c4c7;background:#fff;padding:4px;cursor:move"><input type="hidden" name="mcupr_bk_imgs[]" value="' . (int) $a . '">' . wp_get_attachment_image( $a, 'thumbnail', false, array( 'style' => 'display:block;width:100%;height:auto', 'alt' => '' ) ) . '<button type="button" class="button-link mcupr-bk-rm" style="display:block;margin-top:2px">' . esc_html__( 'Remove', 'mcupr' ) . '</button></li>';
 	}
 	echo '</ul><p><button type="button" class="button" id="mcupr-bk-pick-imgs">' . esc_html__( 'Add pictures', 'mcupr' ) . '</button> <span class="description">' . esc_html__( 'Drag to change the order. The first picture is the cover when no featured image is set.', 'mcupr' ) . '</span></p></div>';
+	// EPUB
+	echo '<div class="mcupr-bk-pane" data-src="epub"' . ( 'epub' === $src ? '' : ' hidden' ) . '><input type="hidden" name="mcupr_bk_epub" id="mcupr-bk-epub" value="' . (int) $epub . '"><p><strong id="mcupr-bk-epub-name">' . ( $epub ? esc_html( get_the_title( $epub ) . ' – ' . basename( (string) get_attached_file( $epub ) ) ) : esc_html__( 'No EPUB chosen yet.', 'mcupr' ) ) . '</strong></p><p><button type="button" class="button" id="mcupr-bk-pick-epub">' . esc_html__( 'Choose the EPUB', 'mcupr' ) . '</button> <button type="button" class="button" id="mcupr-bk-cover-epub"' . ( $epub ? '' : ' disabled' ) . '>' . esc_html__( 'Use the cover of the EPUB', 'mcupr' ) . '</button> <span id="mcupr-bk-msg-epub" role="status" class="description"></span></p><p class="description">' . esc_html__( 'An EPUB is text that flows to fit the screen, so it is read page by page with a simple turning effect. Extras on a page (videos, links) are for PDF and picture books.', 'mcupr' ) . '</p></div>';
+	// extras of the pages
+	echo '<div class="mcupr-bk-pane" data-src="pdf images"' . ( 'epub' === $src ? ' hidden' : '' ) . ' style="margin-top:1.25rem"><h3 style="margin:0 0 .25rem">' . esc_html__( 'Extras on the pages', 'mcupr' ) . '</h3><p class="description" style="max-width:52rem">' . esc_html__( 'Add a video, a YouTube link, a sound or a link to a page. “A button on the page” puts a button on that page that opens the player; “A page of its own” adds a page after it that plays the item.', 'mcupr' ) . '</p>';
+	echo '<table class="widefat striped" id="mcupr-bk-media" style="max-width:62rem"><thead><tr><th scope="col">' . esc_html__( 'Page', 'mcupr' ) . '</th><th scope="col">' . esc_html__( 'Type', 'mcupr' ) . '</th><th scope="col">' . esc_html__( 'What', 'mcupr' ) . '</th><th scope="col">' . esc_html__( 'Name shown', 'mcupr' ) . '</th><th scope="col">' . esc_html__( 'Shown as', 'mcupr' ) . '</th><th scope="col"><span class="screen-reader-text">' . esc_html__( 'Remove', 'mcupr' ) . '</span></th></tr></thead><tbody>';
+	foreach ( mcupr_book_media( $post->ID ) as $n => $m ) {
+		echo mcupr_book_media_row( (string) $n, $m ); // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+	echo '</tbody></table><p><button type="button" class="button" id="mcupr-bk-add-media">' . esc_html__( 'Add an extra', 'mcupr' ) . '</button></p>';
+	echo '<script type="text/html" id="mcupr-bk-media-tpl">' . mcupr_book_media_row( '__i__', array( 'page' => 1, 'kind' => 'youtube', 'mode' => 'button', 'title' => '', 'yt' => '', 'att' => 0, 'url' => '' ) ) . '</script></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	// details
 	echo '<table class="form-table" role="presentation"><tbody>';
 	echo '<tr><th scope="row"><label for="mcupr-bk-author">' . esc_html__( 'Author', 'mcupr' ) . '</label></th><td><input type="text" class="regular-text" id="mcupr-bk-author" name="mcupr_bk_author" value="' . esc_attr( (string) get_post_meta( $post->ID, '_mcupr_bk_author', true ) ) . '"> <label for="mcupr-bk-year" class="screen-reader-text">' . esc_html__( 'Year', 'mcupr' ) . '</label><input type="text" class="small-text" id="mcupr-bk-year" name="mcupr_bk_year" placeholder="' . esc_attr__( 'Year', 'mcupr' ) . '" value="' . esc_attr( (string) get_post_meta( $post->ID, '_mcupr_bk_year', true ) ) . '"></td></tr>';
@@ -353,10 +507,34 @@ add_action(
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
-		$src = isset( $_POST['mcupr_bk_src'] ) && 'images' === $_POST['mcupr_bk_src'] ? 'images' : 'pdf';
+		$src = isset( $_POST['mcupr_bk_src'] ) && in_array( $_POST['mcupr_bk_src'], array( 'images', 'epub' ), true ) ? sanitize_key( wp_unslash( $_POST['mcupr_bk_src'] ) ) : 'pdf';
 		update_post_meta( $post_id, '_mcupr_bk_src', $src );
 		$pdf = isset( $_POST['mcupr_bk_pdf'] ) ? absint( $_POST['mcupr_bk_pdf'] ) : 0;
 		$pdf && 'application/pdf' === get_post_mime_type( $pdf ) ? update_post_meta( $post_id, '_mcupr_bk_pdf', $pdf ) : delete_post_meta( $post_id, '_mcupr_bk_pdf' );
+		$epub = isset( $_POST['mcupr_bk_epub'] ) ? absint( $_POST['mcupr_bk_epub'] ) : 0;
+		$epub && 'application/epub+zip' === get_post_mime_type( $epub ) ? update_post_meta( $post_id, '_mcupr_bk_epub', $epub ) : delete_post_meta( $post_id, '_mcupr_bk_epub' );
+		$rows = array();
+		if ( isset( $_POST['mcupr_bk_media'] ) && is_array( $_POST['mcupr_bk_media'] ) ) {
+			foreach ( wp_unslash( $_POST['mcupr_bk_media'] ) as $r ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+				if ( ! is_array( $r ) ) {
+					continue;
+				}
+				$k    = isset( $r['kind'] ) ? sanitize_key( $r['kind'] ) : '';
+				$link = isset( $r['url'] ) ? trim( (string) $r['url'] ) : '';
+				$rows[] = array(
+					'page'  => isset( $r['page'] ) ? max( 1, absint( $r['page'] ) ) : 1,
+					'kind'  => $k,
+					'mode'  => isset( $r['mode'] ) && 'page' === $r['mode'] ? 'page' : 'button',
+					'title' => isset( $r['title'] ) ? sanitize_text_field( $r['title'] ) : '',
+					'yt'    => 'youtube' === $k ? mcupr_book_yt_id( $link ) : '',
+					'att'   => isset( $r['att'] ) ? absint( $r['att'] ) : 0,
+					'url'   => 'link' === $k ? esc_url_raw( $link, array( 'http', 'https' ) ) : '',
+				);
+			}
+		}
+		update_post_meta( $post_id, '_mcupr_bk_media', $rows );
+		$clean = mcupr_book_media( $post_id ); // keep only the rows that hold something real
+		$clean ? update_post_meta( $post_id, '_mcupr_bk_media', $clean ) : delete_post_meta( $post_id, '_mcupr_bk_media' );
 		$imgs = isset( $_POST['mcupr_bk_imgs'] ) && is_array( $_POST['mcupr_bk_imgs'] ) ? array_values( array_unique( array_map( 'absint', wp_unslash( $_POST['mcupr_bk_imgs'] ) ) ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 		$imgs = array_slice( array_filter( $imgs, 'wp_attachment_is_image' ), 0, 1000 );
 		$imgs ? update_post_meta( $post_id, '_mcupr_bk_imgs', $imgs ) : delete_post_meta( $post_id, '_mcupr_bk_imgs' );
@@ -405,8 +583,8 @@ add_action(
 			wp_send_json_error( 'denied', 403 );
 		}
 		$att = isset( $_POST['att'] ) ? absint( $_POST['att'] ) : mcupr_book_pdf_id( $id ); // the one just chosen, even before the book is saved
-		if ( ! $att || 'application/pdf' !== get_post_mime_type( $att ) || ! current_user_can( 'upload_files' ) ) {
-			wp_send_json_error( 'no pdf', 404 );
+		if ( ! $att || ! in_array( get_post_mime_type( $att ), array( 'application/pdf', 'application/epub+zip' ), true ) || ! current_user_can( 'upload_files' ) ) {
+			wp_send_json_error( 'no file', 404 );
 		}
 		wp_send_json_success( array( 'url' => (string) wp_get_attachment_url( $att ) ) );
 	}
@@ -431,7 +609,7 @@ add_action(
 			wp_die( esc_html( mcupr_t( 'stu_denied_t' ) ), '', array( 'response' => 403 ) );
 		}
 		// only the files that belong to this book
-		$mine = array_merge( array( mcupr_book_pdf_id( $book ) ), mcupr_book_image_ids( $book ) );
+		$mine = array_merge( array( mcupr_book_pdf_id( $book ), mcupr_book_epub_id( $book ) ), mcupr_book_image_ids( $book ), wp_list_pluck( mcupr_book_media( $book ), 'att' ) );
 		if ( ! in_array( $att, $mine, true ) ) {
 			wp_die( esc_html( mcupr_t( 'file_missing' ) ), '', array( 'response' => 404 ) );
 		}
@@ -507,7 +685,7 @@ function mcupr_book_stream( $real, $mime ) {
 
 /** The words the reader's script needs, in the language of the page. */
 function mcupr_book_labels() {
-	$k = array( 'bk_prev', 'bk_next', 'bk_page', 'bk_of', 'bk_sound_on', 'bk_sound_off', 'bk_thumbs', 'bk_fullscreen', 'bk_exit_fs', 'bk_download', 'bk_share', 'bk_loading', 'bk_error', 'bk_copied', 'bk_cover', 'bk_back_cover', 'bk_goto', 'bk_close', 'bk_text', 'bk_spread', 'bk_keys' );
+	$k = array( 'bk_prev', 'bk_next', 'bk_page', 'bk_of', 'bk_sound_on', 'bk_sound_off', 'bk_thumbs', 'bk_fullscreen', 'bk_exit_fs', 'bk_download', 'bk_share', 'bk_loading', 'bk_error', 'bk_copied', 'bk_cover', 'bk_back_cover', 'bk_goto', 'bk_close', 'bk_text', 'bk_spread', 'bk_keys', 'bk_m_play', 'bk_m_close', 'bk_m_open', 'bk_m_youtube', 'bk_m_video', 'bk_m_audio', 'bk_m_link', 'bk_m_here', 'bk_m_page', 'bk_ep_toc', 'bk_ep_bigger', 'bk_ep_smaller', 'bk_ep_progress' );
 	$o = array();
 	foreach ( $k as $key ) {
 		$o[ str_replace( 'bk_', '', $key ) ] = mcupr_t( $key );
@@ -542,6 +720,15 @@ function mcupr_book_reader( $id ) {
 		$cfg['cmaps']  = get_theme_file_uri( 'assets/vendor/pdfjs/cmaps/' );
 		$cfg['fonts']  = get_theme_file_uri( 'assets/vendor/pdfjs/standard_fonts/' );
 		$dl            = $cfg['pdf'];
+	} elseif ( 'epub' === $src ) {
+		$ep = mcupr_book_epub_id( $id );
+		if ( ! $ep ) {
+			return '';
+		}
+		$cfg['epub'] = mcupr_book_file_url( $id, $ep );
+		$cfg['jszip'] = get_theme_file_uri( 'assets/vendor/epub/jszip.min.js' );
+		$cfg['lib']   = get_theme_file_uri( 'assets/vendor/epub/epub.min.js' );
+		$dl           = $cfg['epub'];
 	} else {
 		$pages = mcupr_book_image_pages( $id );
 		if ( ! $pages ) {
@@ -549,18 +736,27 @@ function mcupr_book_reader( $id ) {
 		}
 		$cfg['pages'] = $pages;
 	}
+	if ( 'epub' !== $src ) {
+		$media = mcupr_book_media_cfg( $id );
+		if ( $media ) {
+			$cfg['media'] = $media;
+		}
+	}
 	$dlm = get_post_meta( $id, '_mcupr_bk_dl', true );
-	$can = $o['download'] && ( '' === $dlm || (int) $dlm ) && 'pdf' === $src && '' !== $dl;
+	$can = $o['download'] && ( '' === $dlm || (int) $dlm ) && in_array( $src, array( 'pdf', 'epub' ), true ) && '' !== $dl;
 	if ( $can ) {
 		$cfg['dl'] = $dl;
 	}
 	$hash = (int) $id;
 	wp_enqueue_script( 'mcupr-pageflip', get_theme_file_uri( 'assets/vendor/pageflip/page-flip.browser.js' ), array(), MCUPR_VERSION, true );
 	wp_enqueue_script( 'mcupr-book-reader', get_theme_file_uri( 'assets/js/book-reader.js' ), array( 'mcupr-pageflip' ), MCUPR_VERSION, true );
+	if ( 'epub' === $src ) {
+		wp_enqueue_script( 'mcupr-book-epub', get_theme_file_uri( 'assets/js/book-epub.js' ), array( 'mcupr-book-reader' ), MCUPR_VERSION, true );
+	}
 	$l = $cfg['l'];
 	ob_start();
 	?>
-<section class="bk-reader" id="bk-<?php echo (int) $hash; ?>" data-book="<?php echo esc_attr( wp_json_encode( $cfg ) ); ?>" aria-label="<?php echo esc_attr( get_the_title( $id ) ); ?>">
+<section class="bk-reader<?php echo 'epub' === $src ? ' bk-is-epub' : ''; ?>" id="bk-<?php echo (int) $hash; ?>" data-book="<?php echo esc_attr( wp_json_encode( $cfg ) ); ?>" aria-label="<?php echo esc_attr( get_the_title( $id ) ); ?>">
 	<div class="bk-bar">
 		<button type="button" class="bk-btn" data-act="thumbs" aria-expanded="false" aria-controls="bk-th-<?php echo (int) $hash; ?>"><?php echo mcupr_icon( 'grid', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( $l['thumbs'] ); ?></span></button>
 		<button type="button" class="bk-btn" data-act="sound" aria-pressed="false"><?php echo mcupr_icon( 'bell', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span data-lbl><?php echo esc_html( $l['sound_off'] ); ?></span></button>
@@ -575,7 +771,11 @@ function mcupr_book_reader( $id ) {
 		<div class="bk-stage-wrap">
 			<button type="button" class="bk-nav bk-prev" data-act="prev" aria-label="<?php echo esc_attr( $l['prev'] ); ?>"><?php echo mcupr_icon( 'chevron', 28 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 			<div class="bk-stage" tabindex="0" role="group" aria-roledescription="<?php echo esc_attr( $l['spread'] ); ?>" aria-label="<?php echo esc_attr( $l['keys'] ); ?>">
-				<div class="bk-book"></div>
+				<?php if ( 'epub' === $src ) : ?>
+					<div class="bk-ep"><div class="bk-ep-paper"><div class="bk-ep-view"></div></div></div>
+				<?php else : ?>
+					<div class="bk-book"></div>
+				<?php endif; ?>
 				<p class="bk-status" role="status"><?php echo esc_html( $l['loading'] ); ?></p>
 			</div>
 			<button type="button" class="bk-nav bk-next" data-act="next" aria-label="<?php echo esc_attr( $l['next'] ); ?>"><?php echo mcupr_icon( 'chevron', 28 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
@@ -586,6 +786,7 @@ function mcupr_book_reader( $id ) {
 		<p class="bk-count" aria-live="polite"><span data-cur>1</span> / <span data-total>–</span></p>
 	</div>
 	<div class="bk-text sr-only" data-text aria-label="<?php echo esc_attr( $l['text'] ); ?>"></div>
+	<div class="bk-mbar" data-mbar role="group" aria-label="<?php echo esc_attr( $l['m_here'] ); ?>" hidden></div>
 	<noscript><p class="bk-noscript"><?php echo esc_html( mcupr_t( 'bk_noscript' ) ); ?><?php if ( $can ) : ?> <a href="<?php echo esc_url( $cfg['dl'] ); ?>"><?php echo esc_html( $l['download'] ); ?></a><?php endif; ?></p></noscript>
 </section>
 	<?php
