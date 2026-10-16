@@ -707,28 +707,32 @@ html.fs-open-lock { overflow: hidden; }
 html:not([data-menu="side"]) #content > .mcu-wheel:first-child,
 html:not([data-menu="side"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: calc(var(--hdr-h, 5.5rem) + 2.5rem); }
 
-/* Top menu: an item with a sub-menu is ONE capsule (the link and its arrow button side by side, never overlapping):
+/* Top menu: an item with a sub-menu is ONE capsule (the link and its arrow button side by side, never overlapping; not the "More" button, which is one pill already):
    the colour of hover / open / current is on the capsule, not on the two pieces */
 @media (min-width: 1100px) {
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children { display: inline-flex; align-items: center; border-radius: 9999px; transition: background-color .15s, box-shadow .15s; }
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children > a { padding-right: .2rem; background: transparent !important; box-shadow: none !important; filter: none !important; }
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children > .submenu-toggle:not(.more-btn) { width: 2.5rem; min-width: 2.5rem; height: 2.5rem; min-height: 2.5rem; margin: 0 .2rem 0 0; background: transparent !important; }
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.current-menu-item, .current_page_item, .current-menu-ancestor):has(> a:hover, > .submenu-toggle:hover, > .submenu-toggle[aria-expanded="true"]) { background: var(--hover-bg); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 40%, transparent); }
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.current-menu-item, .current_page_item, .current-menu-ancestor):has(> a:hover) > .submenu-toggle,
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.current-menu-item, .current_page_item, .current-menu-ancestor):has(> .submenu-toggle:hover) > a { color: var(--link); }
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more) { display: inline-flex; align-items: center; border-radius: 9999px; transition: background-color .15s, box-shadow .15s; }
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more) > a { padding-right: .2rem; background: transparent !important; box-shadow: none !important; filter: none !important; }
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more) > .submenu-toggle:not(.more-btn) { width: 2.5rem; min-width: 2.5rem; height: 2.5rem; min-height: 2.5rem; margin: 0 .2rem 0 0; background: transparent !important; }
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more):not(.current-menu-item, .current_page_item, .current-menu-ancestor):has(> a:hover, > .submenu-toggle:hover, > .submenu-toggle[aria-expanded="true"]) { background: var(--hover-bg); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 40%, transparent); }
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more):not(.current-menu-item, .current_page_item, .current-menu-ancestor):has(> a:hover) > .submenu-toggle,
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more):not(.current-menu-item, .current_page_item, .current-menu-ancestor):has(> .submenu-toggle:hover) > a { color: var(--link); }
 	/* the keyboard ring goes round the whole capsule */
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:has(> a:focus-visible, > .submenu-toggle:focus-visible) { outline: 3px solid var(--focus, var(--primary)); outline-offset: 2px; }
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children > a:focus-visible, html[data-menu="top"] .site-nav .menu > li.menu-item-has-children > .submenu-toggle:focus-visible { outline: 0 !important; box-shadow: none !important; }
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:is(.current-menu-item, .current_page_item, .current-menu-ancestor) { background: var(--primary); box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 38%, transparent); }
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:is(.current-menu-item, .current_page_item, .current-menu-ancestor) > .submenu-toggle { color: var(--on-primary); }
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:is(.current-menu-item, .current_page_item, .current-menu-ancestor):has(> a:hover, > .submenu-toggle:hover, > .submenu-toggle[aria-expanded="true"]) { filter: brightness(1.1); }
-	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:is(.current-menu-item, .current_page_item, .current-menu-ancestor) > .submenu-toggle:hover { background: color-mix(in srgb, var(--on-primary) 18%, transparent) !important; }
-	html[data-contrast][data-menu="top"] .site-nav .menu > li.menu-item-has-children:has(> a:hover, > .submenu-toggle:hover, > .submenu-toggle[aria-expanded="true"]) { box-shadow: inset 0 0 0 3px var(--text); }
-	html[data-contrast][data-menu="top"] .site-nav .menu > li.menu-item-has-children:has(> a:focus-visible, > .submenu-toggle:focus-visible) { outline-color: var(--text); }
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more):has(> a:focus-visible, > .submenu-toggle:focus-visible) { outline: 3px solid var(--focus, var(--primary)); outline-offset: 2px; }
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more) > a:focus-visible, html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more) > .submenu-toggle:focus-visible { outline: 0 !important; box-shadow: none !important; }
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more):is(.current-menu-item, .current_page_item, .current-menu-ancestor) { background: var(--primary); box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 38%, transparent); }
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more):is(.current-menu-item, .current_page_item, .current-menu-ancestor) > .submenu-toggle { color: var(--on-primary); }
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more):is(.current-menu-item, .current_page_item, .current-menu-ancestor):has(> a:hover, > .submenu-toggle:hover, > .submenu-toggle[aria-expanded="true"]) { filter: brightness(1.1); }
+	html[data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more):is(.current-menu-item, .current_page_item, .current-menu-ancestor) > .submenu-toggle:hover { background: color-mix(in srgb, var(--on-primary) 18%, transparent) !important; }
+	html[data-contrast][data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more):has(> a:hover, > .submenu-toggle:hover, > .submenu-toggle[aria-expanded="true"]) { box-shadow: inset 0 0 0 3px var(--text); }
+	html[data-contrast][data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more):has(> a:focus-visible, > .submenu-toggle:focus-visible) { outline-color: var(--text); }
 	/* high contrast: the page you are on is drawn with a 3px outline (the fill is the same colour as the page in these modes) */
-	html[data-contrast][data-menu="top"] .site-nav .menu > li.menu-item-has-children:is(.current-menu-item, .current_page_item, .current-menu-ancestor) { box-shadow: inset 0 0 0 3px var(--text); }
+	html[data-contrast][data-menu="top"] .site-nav .menu > li.menu-item-has-children:not(.menu-more):is(.current-menu-item, .current_page_item, .current-menu-ancestor) { box-shadow: inset 0 0 0 3px var(--text); }
 	html[data-contrast][data-menu="top"] .site-nav .menu > li:not(.menu-item-has-children):is(.current-menu-item, .current_page_item, .current-menu-ancestor) > a { box-shadow: inset 0 0 0 3px var(--text); }
 }
+
+/* High contrast: the "More" pill shows hover / open with an outline and "current" with a 3px ring (the fills are the colours of the page) */
+html[data-contrast][data-menu="top"] .site-nav .menu-more > .more-btn:hover, html[data-contrast][data-menu="top"] .site-nav .menu-more.is-open > .more-btn { outline: 3px solid var(--text); outline-offset: 0; }
+html[data-contrast][data-menu="top"] .site-nav .menu-more.has-current > .more-btn { box-shadow: inset 0 0 0 3px var(--text); }
 
 /* A page inside an office sits under the office band: no pull-up under the floating header (the band already clears it) */
 html body #content > .office-chrome ~ article > .mcu-wheel:first-child { margin-top: 0; padding-top: 2.25rem; }
