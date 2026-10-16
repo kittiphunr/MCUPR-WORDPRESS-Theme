@@ -2363,6 +2363,32 @@ html[data-contrast] .bkc .bk-media { background: var(--bg); }
 html[data-contrast] .bk-gl .bk-page { outline: 0; }
 html[data-contrast] .bkc-face { background: #fff; }
 @media (prefers-reduced-motion: reduce) { .bkc-leaf { will-change: auto; } }
+/* requests (คำร้อง): the student's list, the timeline and the status chips */
+.rq-st { display: inline-block; padding: .05rem .7rem; border-radius: 9999px; background: #334155; color: #fff; font-size: .85rem; font-weight: 700; line-height: 1.5; white-space: nowrap; }
+.rq-st[data-st="new"] { background: #1d4ed8; } .rq-st[data-st="review"] { background: #b45309; } .rq-st[data-st="need"] { background: #6d28d9; }
+.rq-st[data-st="approved"] { background: #15803d; } .rq-st[data-st="rejected"] { background: #b91c1c; } .rq-st[data-st="done"] { background: #0f766e; }
+.rq-forms { display: flex; flex-wrap: wrap; gap: .6rem; margin: 0 0 1.25rem; padding: 0; list-style: none; }
+.rq-new-l { margin: 0 0 .5rem; font-weight: 700; }
+.rq-list { display: grid; gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.rq-item { border: 1px solid var(--border); border-radius: 1rem; background: var(--surface); }
+.rq-item > details > summary { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .9rem; min-height: 3rem; padding: .7rem 1rem; cursor: pointer; list-style: none; }
+.rq-item > details > summary::-webkit-details-marker { display: none; }
+.rq-item > details[open] > summary { border-bottom: 1px solid var(--border); }
+.rq-t { flex: 1 1 14rem; font-weight: 700; overflow-wrap: anywhere; }
+.rq-m { color: var(--text-2); font-size: .9rem; }
+.rq-item .rq-tl, .stu-card .rq-tl { margin: 0; padding: .9rem 1rem 0 1.5rem; list-style: none; border-left: 3px solid var(--border); margin-left: 1.25rem; }
+.rq-tl li { position: relative; padding: 0 0 1rem 1rem; }
+.rq-tl li::before { content: ""; position: absolute; left: -1.05rem; top: .55rem; width: .8rem; height: .8rem; border-radius: 50%; border: 2px solid var(--surface); background: var(--text-2); }
+.rq-tl li.is-cur::before { background: var(--primary); }
+.rq-tl time { margin-left: .4rem; color: var(--text-2); font-size: .85rem; }
+.rq-tl-m { margin: .3rem 0 0; overflow-wrap: anywhere; }
+.rq-files { margin: 0; padding: 0 1rem 1rem; }
+.fb-file input[type="file"] { width: 100%; min-height: 2.75rem; padding: .55rem .75rem; border: 2px dashed var(--border); border-radius: .75rem; background: var(--bg); color: var(--text); font: inherit; }
+.fb-file input[type="file"]::file-selector-button { margin-right: .75rem; min-height: 2rem; padding: 0 .9rem; border: 0; border-radius: 9999px; background: var(--primary); color: var(--on-primary); font: inherit; font-weight: 700; cursor: pointer; }
+.rq-ok-code { font-weight: 800; font-size: 1.1rem; }
+html[data-contrast] .rq-st { background: transparent !important; color: var(--text); border: 2px solid var(--text); }
+html[data-contrast] .rq-item { border: 2px solid var(--border); }
+html[data-contrast] .rq-tl li::before { background: var(--text); border-color: var(--bg); }
 /* e-books: the reader looks like a flip-book viewer (a dark stage, a floating toolbar, arrows at the sides, a panel that slides in) and can open in a full-screen window */
 .bk-reader { --bk-fg: #f4f5f7; --bk-h: min(78vh, 54rem); --bk-room: calc(var(--bk-h) - 6.5rem); position: relative; display: flex; flex-direction: column; max-width: 76rem; height: var(--bk-h); margin: 0 auto; padding: 0; overflow: hidden; border-radius: 1rem; background: var(--bk-bg); background: radial-gradient(ellipse at 50% 38%, color-mix(in srgb, var(--bk-bg) 72%, #fff) 0%, var(--bk-bg) 60%, color-mix(in srgb, var(--bk-bg) 55%, #000) 100%); color: var(--bk-fg); }
 .bk-reader.is-fs, .bk-reader.is-lb { --bk-h: 100vh; --bk-room: calc(100vh - 6.5rem); max-width: none; border-radius: 0; }
