@@ -287,7 +287,7 @@ add_action(
 	'admin_post_mcupr_stu_link',
 	static function () {
 		$id = isset( $_GET['sid'] ) ? absint( $_GET['sid'] ) : 0;
-		if ( ! $id || ! current_user_can( MCUPR_STU_CAP ) || ! check_admin_referer( 'mcupr_stu_link' . $id ) ) {
+		if ( ! $id || ! current_user_can( MCUPR_STU_CAP ) || ! check_admin_referer( 'mcupr_stu_mcupr_stu_link' . $id ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$d    = mcupr_student_data( $id );
