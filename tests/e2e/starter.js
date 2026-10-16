@@ -2081,8 +2081,10 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await bp.keyboard.press('Home');
       await bp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '1', null, { timeout: 8000 }).catch(() => {});
       ok(await bp.locator('.bk-reader').getAttribute('data-page') === '1', 'e-books: ' + kind + ' book: Home goes back to the cover');
+      const snd0 = await bp.locator('.bk-reader').getAttribute('data-sound');
       await bp.click('.bk-reader [data-act="sound"]');
-      ok(await bp.locator('.bk-reader [data-act="sound"]').getAttribute('aria-pressed') === 'true', 'e-books: ' + kind + ' book: the sound button switches the sound');
+      const snd1 = await bp.locator('.bk-reader').getAttribute('data-sound');
+      ok(snd0 !== snd1 && (await bp.locator('.bk-reader [data-act="sound"]').getAttribute('aria-pressed')) === (snd1 === '1' ? 'true' : 'false'), 'e-books: ' + kind + ' book: the sound button switches the sound and says so');
       await bp.click('.bk-reader [data-act="thumbs"]');
       ok(await bp.locator('.bk-thumbs').isVisible() && await bp.locator('.bk-th-list li').count() === 6, 'e-books: ' + kind + ' book: the page list shows six thumbnails');
       ok(berr.length === 0, 'e-books: ' + kind + ' book: no script error' + (berr.length ? ': ' + berr.slice(0, 2).join(' | ') : ''));
