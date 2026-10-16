@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.35.0 =
+* Plain permalinks: every link into the website with a pretty path becomes ?p=123 style (menus, content, demo pages); no notice about permalinks
+
 = 1.34.0 =
 * MCUPR admin menu: only the overview and five main groups; every page is one click from the control page
 
