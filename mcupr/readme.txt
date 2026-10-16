@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.32.1 =
+* Office menu folds into one button on small screens
+
 = 1.32.0 =
 * Student data care: activity log, e-mail test and link without e-mail, link-rule check, high-contrast fixes
 
