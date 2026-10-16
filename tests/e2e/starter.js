@@ -1263,6 +1263,36 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await vp.addScriptTag({ content: axeSource() });
       const ax2 = await vp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
       ok(ax2.violations.length === 0, 'axe (office article): ' + (ax2.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      {
+        const vs0 = vp.viewportSize();
+        await vp.setViewportSize({ width: 1366, height: 900 });
+        const dsk = await vp.evaluate(() => ({ btn: getComputedStyle(document.querySelector('.of-tabs-btn')).display, ul: getComputedStyle(document.querySelector('.of-tabs ul')).display }));
+        ok(dsk.btn === 'none' && dsk.ul !== 'none', 'office menu: on a wide screen the tabs stay as they were and there is no button');
+        for (const w of [640, 390, 320]) {
+          await vp.setViewportSize({ width: w, height: 800 });
+          const cl = await vp.evaluate(() => ({ btn: getComputedStyle(document.querySelector('.of-tabs-btn')).display, ul: getComputedStyle(document.querySelector('.of-tabs ul')).display, exp: document.querySelector('.of-tabs-btn').getAttribute('aria-expanded'), hs: document.documentElement.scrollWidth > innerWidth + 1, h: document.querySelector('.of-tabs-btn').getBoundingClientRect().height }));
+          ok(cl.btn !== 'none' && cl.ul === 'none' && cl.exp === 'false' && !cl.hs && cl.h >= 44, 'office menu at ' + w + 'px: one button (at least 44px tall), the list is folded, no sideways scroll');
+          await vp.click('.of-tabs-btn');
+          const op = await vp.evaluate(() => ({ ul: getComputedStyle(document.querySelector('.of-tabs ul')).display, exp: document.querySelector('.of-tabs-btn').getAttribute('aria-expanded'), hs: document.documentElement.scrollWidth > innerWidth + 1, cut: [...document.querySelectorAll('.of-tabs a')].some((a) => a.getBoundingClientRect().right > innerWidth + 1) }));
+          ok(op.ul !== 'none' && op.exp === 'true' && !op.hs && !op.cut, 'office menu at ' + w + 'px: the button opens the list (aria-expanded true), nothing cut off');
+          if (w === 390) {
+            const axT = await vp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'], exclude: [['#wpadminbar']] }).then((r) => r.violations.map((v) => v.id)));
+            ok(axT.length === 0, 'axe (office menu, open): ' + (axT.join(', ') || '0 violations'));
+            await vp.keyboard.press('Escape');
+            const esc = await vp.evaluate(() => ({ exp: document.querySelector('.of-tabs-btn').getAttribute('aria-expanded'), on: document.activeElement.classList.contains('of-tabs-btn') }));
+            ok(esc.exp === 'false' && esc.on, 'office menu: Escape folds the list and puts the focus back on the button');
+            for (const mode of ['wb', 'yb', 'by']) {
+              await vp.evaluate((m) => document.documentElement.setAttribute('data-contrast', m), mode);
+              await vp.click('.of-tabs-btn');
+              const hcT = await vp.evaluate(() => axe.run(document, { runOnly: ['color-contrast'], exclude: [['#wpadminbar']] }).then((r) => ({ v: r.violations.length, bw: getComputedStyle(document.querySelector('.of-tabs-btn')).borderTopWidth })));
+              ok(hcT.v === 0 && hcT.bw === '2px', 'office menu in high contrast "' + mode + '": text contrast passes, the button has a 2px outline (' + hcT.bw + ')');
+              await vp.click('.of-tabs-btn');
+            }
+            await vp.evaluate(() => document.documentElement.removeAttribute('data-contrast'));
+          }
+        }
+        await vp.setViewportSize(vs0 || { width: 1366, height: 900 });
+      }
       await vp.goto(url);
       await vp.locator('.of-tabs a', { hasText: 'แบบฟอร์มและเอกสารดาวน์โหลด' }).click();
       await vp.waitForSelector('.office-chrome');
