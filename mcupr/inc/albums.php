@@ -51,7 +51,7 @@ function mcupr_album_images( $id ) {
 	$ids = get_post_meta( $id, '_mcupr_album_images', true );
 	$ids = is_array( $ids ) ? array_map( 'absint', $ids ) : array();
 	if ( count( $ids ) > 1 ) {
-		_prime_post_caches( $ids, false, false ); // one query for all the pictures, not one each
+		_prime_post_caches( $ids, false, true ); // the pictures and their data in two queries, not two each
 	}
 	return array_values( array_filter( $ids, static function ( $a ) { return $a && wp_attachment_is_image( $a ); } ) );
 }
