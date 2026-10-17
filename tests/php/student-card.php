@@ -63,6 +63,9 @@ t( ! is_wp_error( mcupr_si_parse( "รหัสนิสิต,ชื่อ\n1,x
 $ex = ''; foreach ( mcupr_student_data( $s1 ) as $k => $v ) { $ex .= $k . '=' . $v . ';'; }
 t( false === strpos( $ex, '4028251661' ) && ! in_array( 'rfid', array_keys( mcupr_si_columns() ), true ), 'export: the student data and the export columns have no card data' );
 
+// a real Excel / PDF file is told apart from a CSV (it used to look "empty")
+t( 'excel' === mcupr_si_binary_kind( "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1" . str_repeat( "\0", 40 ) ) && 'excel' === mcupr_si_binary_kind( "PK\x03\x04abc" ) && 'pdf' === mcupr_si_binary_kind( '%PDF-1.7' ) && '' === mcupr_si_binary_kind( "\xEF\xBB\xBFรหัสนิสิต,ชื่อ\n" ) && '' === mcupr_si_binary_kind( "sid,name\n1,x\n" ), 'import: an .xls / .xlsx / PDF is recognised before reading, a CSV (with or without BOM) is not' );
+
 // ---- the check at sign-in
 t( '' === mcupr_card_verify( $s1, '4028251661', '' ), 'check: the right card code' );
 t( 'card' === mcupr_card_verify( $s1, '4028251662', '' ) && 'card' === mcupr_card_verify( $s1, '', '' ), 'check: a wrong or missing card code' );

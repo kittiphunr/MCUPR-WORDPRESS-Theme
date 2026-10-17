@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.45.1 =
+* Import students: a clear message when an Excel file is chosen instead of a CSV.
+
 = 1.45.0 =
 * Student import from registrar reports; student card (RFID) and national ID number as a second step at sign-in.
 
