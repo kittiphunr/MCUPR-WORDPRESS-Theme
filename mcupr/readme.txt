@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.46.0 =
+* Import students straight from the registrar's .xls reports (several files at once).
+
 = 1.45.2 =
 * Fix: student CSV import said the file was empty on PHP 7.0-7.3 (empty fgetcsv escape character); PHP 7.0 compatibility of two other calls; import shows what it saw.
 
