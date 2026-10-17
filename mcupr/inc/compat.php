@@ -56,3 +56,23 @@ add_action(
 		}
 	}
 );
+
+/**
+ * The "escape" character for fgetcsv() / fputcsv(). PHP 7.4 and later accept '' (no escape character), but PHP 7.0 – 7.3 want exactly
+ * one character and otherwise warn and return false – which made a good file look "empty". NUL never occurs in a CSV, so it is safe everywhere.
+ */
+function mcupr_csv_escape() {
+	return "\0";
+}
+
+/** setcookie() for every PHP version the theme supports (7.0 – 7.2 have no options array): first-party, path /, SameSite=Lax. */
+function mcupr_set_cookie( $name, $value, $expires, $httponly = true ) {
+	if ( headers_sent() ) {
+		return;
+	}
+	if ( PHP_VERSION_ID >= 70300 ) {
+		setcookie( $name, $value, array( 'expires' => $expires, 'path' => '/', 'secure' => is_ssl(), 'httponly' => $httponly, 'samesite' => 'Lax' ) );
+	} else {
+		setcookie( $name, $value, $expires, '/; samesite=Lax', '', is_ssl(), $httponly );
+	}
+}

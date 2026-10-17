@@ -168,7 +168,7 @@ add_action(
 			$state = bin2hex( random_bytes( 16 ) );
 			$nonce = bin2hex( random_bytes( 16 ) );
 			set_transient( 'mcupr_sso_' . $state, $nonce, 10 * MINUTE_IN_SECONDS );
-			setcookie( 'mcupr_sso_state', $state, array( 'expires' => time() + 600, 'path' => '/', 'secure' => is_ssl(), 'httponly' => true, 'samesite' => 'Lax' ) );
+			mcupr_set_cookie( 'mcupr_sso_state', $state, time() + 600 );
 			wp_redirect( // phpcs:ignore WordPress.Security.SafeRedirect
 				add_query_arg(
 					array(
@@ -199,7 +199,7 @@ add_action(
 		if ( '' !== $state ) {
 			delete_transient( 'mcupr_sso_' . $state ); // one time only
 		}
-		setcookie( 'mcupr_sso_state', '', array( 'expires' => time() - 3600, 'path' => '/' ) );
+		mcupr_set_cookie( 'mcupr_sso_state', '', time() - 3600 );
 		if ( '' === $state || '' === $cookie || ! hash_equals( $state, $cookie ) || false === $nonce ) {
 			mcupr_sso_fail( 'state' );
 		}

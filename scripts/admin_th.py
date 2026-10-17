@@ -1492,4 +1492,5 @@ TH = {
 "with only a national ID number": "มีแค่เลขบัตรประชาชน",
 "This is a PDF, not a spreadsheet. Choose a .csv file.": "นี่คือไฟล์ PDF ไม่ใช่ตาราง กรุณาเลือกไฟล์ .csv",
 "This is an Excel file (.xls / .xlsx), which cannot be imported as it is. Open it in Excel and choose Save as → CSV UTF-8, then choose that .csv file here.": "นี่คือไฟล์ Excel (.xls / .xlsx) นำเข้าตรงๆ ไม่ได้ ให้เปิดใน Excel แล้วเลือก บันทึกเป็น → CSV UTF-8 จากนั้นเลือกไฟล์ .csv ที่นี่",
+"What the website saw: %1$d bytes, PHP %2$s. First line: “%3$s”": "สิ่งที่เว็บไซต์เห็น: %1$d ไบต์, PHP %2$s บรรทัดแรก: “%3$s”",
 }
