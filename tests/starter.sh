@@ -39,6 +39,7 @@ php php/admin-overview.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|
 php php/students.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/plain-permalinks.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/books.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
+php php/requests.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/person-empty.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/office-band.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/student-care.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
