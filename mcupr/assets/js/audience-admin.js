@@ -9,7 +9,7 @@
 	var combos = [];
 	try { combos = JSON.parse(box.getAttribute('data-combos') || '[]'); } catch (e) { combos = []; }
 	var total = parseInt(box.getAttribute('data-total') || '0', 10);
-	var msg = (window.mcuprAud && window.mcuprAud.count) || '%1$d / %2$d';
+	var msg = box.getAttribute('data-msg') || (window.mcuprAud && window.mcuprAud.count) || '%1$d / %2$d';
 
 	function ticked(group) {
 		return Array.prototype.filter.call(box.querySelectorAll('input[data-g="' + group + '"]'), function (i) { return i.checked && !i.disabled; })
@@ -17,7 +17,8 @@
 	}
 	function has(list, v) { return list.indexOf(v) !== -1; }
 	function update() {
-		var on = box.querySelector('input[name="mcupr_aud"][value="students"]').checked;
+		var radio = box.querySelector('input[name="mcupr_aud"][value="students"]');
+		var on = radio ? radio.checked : true; // the e-mail page has no "everyone" choice: the rules are always there
 		rules.hidden = !on;
 		if (!on) { out.hidden = true; return; }
 		var lv = ticked('level'), yr = ticked('year'), fac = ticked('fac'), maj = ticked('maj');
