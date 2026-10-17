@@ -2,6 +2,7 @@
 /** E-books: type, settings, shelf styles, PDF and picture books, the reader markup, the shelf, shortcodes, the guarded stream (student-only books, Range).   php php/books.php [site] */
 $site = isset( $argv[1] ) ? $argv[1] : __DIR__ . '/../.site-starter';
 require rtrim( $site, '/' ) . '/wp-load.php';
+require_once ABSPATH . 'wp-admin/includes/admin.php';
 require_once ABSPATH . 'wp-admin/includes/image.php';
 require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/media.php';
@@ -14,12 +15,35 @@ wp_set_current_user( 1 );
 t( post_type_exists( 'mcupr_book' ) && taxonomy_exists( 'mcupr_shelf' ), 'the e-book type and the bookshelf taxonomy exist' );
 t( array_keys( mcupr_book_styles() ) === array( 'wood', 'dark', 'glass', 'white', 'metal', 'custom' ), 'six shelf styles' );
 delete_option( 'mcupr_books_opts' );
-t( mcupr_books_opts() === array( 'style' => 'wood', 'custom' => 0, 'view' => 'shelf', 'sound' => 1, 'download' => 1, 'fx' => 'css3d', 'mode' => 'embed', 'bg' => '#1f2430' ), 'settings default: wood, shelf view, sound on, download on, CSS 3D turning, embedded, dark background' );
+t( mcupr_books_opts() === array( 'style' => 'wood', 'custom' => 0, 'view' => 'shelf', 'sound' => 1, 'download' => 1, 'fx' => 'webgl', 'fx_set' => 0, 'mode' => 'embed', 'bg' => '#1f2430' ), 'settings default: wood, shelf view, sound on, download on, WebGL turning (not yet chosen by an admin), embedded, dark background' );
 t( array_keys( mcupr_book_fx_list() ) === array( 'css3d', 'webgl', 'classic' ), 'three ways to turn a page: CSS 3D, WebGL, classic' );
 update_option( 'mcupr_books_opts', array( 'fx' => 'webgl' ) );
-t( 'webgl' === mcupr_books_opts()['fx'], 'the way to turn can be set to WebGL' );
+t( 'webgl' === mcupr_books_opts()['fx'] && 1 === mcupr_books_opts()['fx_set'], 'the way to turn can be set to WebGL, and then it counts as chosen' );
+update_option( 'mcupr_books_opts', array( 'fx' => 'css3d' ) );
+t( 'css3d' === mcupr_books_opts()['fx'] && 1 === mcupr_books_opts()['fx_set'], 'the way to turn can be set to CSS 3D' );
 update_option( 'mcupr_books_opts', array( 'fx' => 'flash' ) );
 t( 'css3d' === mcupr_books_opts()['fx'], 'an unknown way to turn falls back to CSS 3D' );
+// the admin is asked to choose until the settings are saved
+delete_option( 'mcupr_books_opts' );
+set_current_screen( 'dashboard' );
+ob_start(); do_action( 'admin_notices' ); $nt = ob_get_clean();
+t( false !== strpos( $nt, 'admin.php?page=mcupr-books' ) && false !== strpos( $nt, 'WebGL' ), 'the admin is told to choose how the pages turn (on the dashboard), with a link to the settings' );
+set_current_screen( 'mcupr_page_mcupr-books' );
+ob_start(); do_action( 'admin_notices' ); $nt2 = ob_get_clean();
+t( false !== strpos( $nt2, 'notice-info' ) && false === strpos( $nt2, esc_html__( 'Choose now', 'mcupr' ) ), 'the settings page says it too, without a link to itself' );
+set_current_screen( 'edit-post' );
+ob_start(); do_action( 'admin_notices' ); $nt3 = ob_get_clean();
+t( false === strpos( $nt3, 'mcupr-books' ), 'other screens are left alone' );
+update_option( 'mcupr_books_opts', array( 'fx' => 'webgl' ) );
+set_current_screen( 'dashboard' );
+ob_start(); do_action( 'admin_notices' ); $nt4 = ob_get_clean();
+t( false === strpos( $nt4, 'admin.php?page=mcupr-books' ), 'once the settings are saved the notice is gone' );
+delete_option( 'mcupr_books_opts' );
+$ed0 = wp_insert_user( array( 'user_login' => 'bk-editor0', 'user_pass' => wp_generate_password(), 'user_email' => 'bk-editor0@example.org', 'role' => 'editor' ) );
+wp_set_current_user( $ed0 ); set_current_screen( 'dashboard' );
+ob_start(); do_action( 'admin_notices' ); $nt5 = ob_get_clean();
+t( false === strpos( $nt5, 'admin.php?page=mcupr-books' ), 'an editor is not asked (only an admin can choose)' );
+wp_set_current_user( 1 ); wp_delete_user( $ed0 ); set_current_screen( 'front' );
 update_option( 'mcupr_books_opts', array( 'style' => 'nope', 'view' => 'x' ) );
 t( mcupr_books_opts()['style'] === 'wood' && mcupr_books_opts()['view'] === 'shelf', 'unknown style / view fall back to the defaults' );
 delete_option( 'mcupr_books_opts' );
@@ -66,9 +90,26 @@ $h2 = mcupr_book_reader( $b2 );
 t( false !== strpos( $h2, '&quot;pages&quot;' ) && false === strpos( $h2, ' download ' ), 'picture reader: pages listed, no download' );
 t( '' === mcupr_book_reader( $b3 ), 'a book with no file shows no reader' );
 t( wp_script_is( 'mcupr-book-engines', 'enqueued' ) && wp_script_is( 'mcupr-book-reader', 'enqueued' ) && ! wp_script_is( 'mcupr-pageflip', 'enqueued' ), 'the engines and the reader are enqueued; the page-flip library is not (it is fetched only when chosen)' );
-t( false !== strpos( $h, 'data-act="fx"' ) && false !== strpos( $h, '&quot;fx&quot;:&quot;css3d&quot;' ) && false !== strpos( $h, 'page-flip.browser.js' ), 'the reader has the effect button and knows the way and the address of the library' );
+t( false === strpos( $h, 'data-act="fx"' ) && false !== strpos( $h, '&quot;fx&quot;:&quot;webgl&quot;' ) && false !== strpos( $h, 'page-flip.browser.js' ), 'the reader has no effect button; it gets the way chosen for the site (WebGL until chosen) and the address of the library' );
 update_option( 'mcupr_books_opts', array( 'fx' => 'webgl' ) );
 t( false !== strpos( mcupr_book_reader( $b1 ), '&quot;fx&quot;:&quot;webgl&quot;' ), 'the reader gets the way chosen in the settings' );
+// each book can have its own
+update_option( 'mcupr_books_opts', array( 'fx' => 'css3d' ) );
+update_post_meta( $b1, '_mcupr_bk_fx', 'classic' );
+t( 'classic' === mcupr_book_fx( $b1 ) && 'css3d' === mcupr_book_fx( $b2 ) && false !== strpos( mcupr_book_reader( $b1 ), '&quot;fx&quot;:&quot;classic&quot;' ), 'a book can have its own way of turning; the others keep the setting of the site' );
+update_post_meta( $b1, '_mcupr_bk_fx', 'flash' );
+t( 'css3d' === mcupr_book_fx( $b1 ), 'an unknown way set on a book is ignored' );
+$bx = wp_insert_post( array( 'post_type' => 'mcupr_book', 'post_status' => 'publish', 'post_title' => 'Fx Book' ) );
+$_POST = array( 'mcupr_book_nonce' => wp_create_nonce( 'mcupr_book_save' ), 'mcupr_bk_src' => 'images', 'mcupr_bk_fx' => 'webgl' );
+do_action( 'save_post_mcupr_book', $bx, get_post( $bx ), true );
+t( 'webgl' === get_post_meta( $bx, '_mcupr_bk_fx', true ), 'the edit screen saves the way chosen for the book' );
+$_POST = array( 'mcupr_book_nonce' => wp_create_nonce( 'mcupr_book_save' ), 'mcupr_bk_src' => 'images', 'mcupr_bk_fx' => '' );
+do_action( 'save_post_mcupr_book', $bx, get_post( $bx ), true );
+t( '' === (string) get_post_meta( $bx, '_mcupr_bk_fx', true ), '“Same as the settings” removes it' );
+$_POST = array();
+ob_start(); mcupr_book_box( get_post( $bx ) ); $bb = ob_get_clean();
+t( false !== strpos( $bb, 'name="mcupr_bk_fx"' ) && false !== strpos( $bb, esc_html__( 'Same as the settings', 'mcupr' ) ), 'the edit screen of a book has the choice' );
+wp_delete_post( $bx, true );
 delete_option( 'mcupr_books_opts' );
 foreach ( array( 'assets/vendor/pageflip/page-flip.browser.js', 'assets/vendor/pdfjs/pdf.min.mjs', 'assets/vendor/pdfjs/pdf.worker.min.mjs', 'assets/js/book-reader.js', 'assets/js/book-shelf.js' ) as $f ) {
 	t( is_readable( get_theme_file_path( $f ) ), 'file shipped: ' . $f );
@@ -175,7 +216,7 @@ delete_post_meta( $b2, '_mcupr_bk_mode' );
 delete_option( 'mcupr_books_opts' );
 $hep = mcupr_book_reader( $b4, array( 'mode' => 'embed' ) );
 t( false === strpos( $hep, 'data-act="first"' ) && false === strpos( $hep, 'data-act="zoomin"' ) && false === strpos( $hep, 'data-act="auto"' ) && false !== strpos( $hep, 'data-act="sound"' ), 'EPUB toolbar has no first / last / zoom / auto-play (the text flows) but has sound' );
-foreach ( array( 'zoom-in', 'zoom-out', 'first', 'last', 'print', 'play', 'pause', 'sound', 'mute', 'list', 'grid', 'download', 'share', 'expand', 'shrink', 'fx', 'close' ) as $ic ) {
+foreach ( array( 'zoom-in', 'zoom-out', 'first', 'last', 'print', 'play', 'pause', 'sound', 'mute', 'list', 'grid', 'download', 'share', 'expand', 'shrink', 'close' ) as $ic ) {
 	t( 1 === preg_match( '/<path d="[^"]{6,}"/', mcupr_book_icon( $ic ) ), 'toolbar icon: ' . $ic );
 }
 
