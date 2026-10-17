@@ -32,6 +32,8 @@ function mcupr_si_headers() {
 		'email'   => array( 'อีเมล', 'อีเมลมหาวิทยาลัย', 'email', 'e-mail', 'mail' ),
 		'phone'   => array( 'โทร', 'โทรศัพท์', 'เบอร์โทร', 'เบอร์โทรศัพท์', 'phone', 'tel', 'telephone', 'mobile' ),
 		'note'    => array( 'หมายเหตุ', 'note', 'notes', 'remark' ),
+		'rfid'    => array( 'รหัสบัตร RFID', 'รหัสบัตรrfid', 'รหัสความปลอดภัย', 'รหัสบัตร', 'rfid', 'rfidcode', 'cardcode', 'securitycode' ),
+		'idcard'  => array( 'เลขบัตรประชาชน', 'เลขประจำตัวประชาชน', 'เลขบัตร ปชช', 'เลขบัตรประจำตัวประชาชน', 'idcard', 'nationalid', 'citizenid', 'pid' ),
 	);
 }
 
@@ -120,7 +122,7 @@ function mcupr_si_parse( $text ) {
 			$unknown[] = trim( (string) $h );
 		}
 	}
-	if ( ! isset( $cols['sid'] ) || ! isset( $cols['name'] ) ) {
+	if ( ! isset( $cols['sid'] ) || ( ! isset( $cols['name'] ) && ! isset( $cols['rfid'] ) && ! isset( $cols['idcard'] ) ) ) {
 		fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		return new WP_Error( 'columns', 'the file needs a student ID column and a name column' );
 	}
@@ -130,6 +132,11 @@ function mcupr_si_parse( $text ) {
 		$line++;
 		if ( 1 === count( $r ) && ( null === $r[0] || '' === trim( (string) $r[0] ) ) ) {
 			continue; // an empty line
+		}
+		foreach ( array( 'rfid', 'idcard' ) as $kind ) { // the card code and the ID number are turned into a hash at once
+			if ( isset( $cols[ $kind ] ) ) {
+				$r[ $cols[ $kind ] ] = mcupr_card_import_cell( $kind, isset( $r[ $cols[ $kind ] ] ) ? $r[ $cols[ $kind ] ] : '' );
+			}
 		}
 		$rows[] = array( $line, $r );
 		if ( count( $rows ) > MCUPR_SI_MAX ) {
@@ -145,6 +152,22 @@ function mcupr_si_parse( $text ) {
  * Check one row of a file against what is in the database.
  * Returns array( 'row' => cleaned values, 'errors' => list of codes, 'warnings' => list of codes ).
  */
+/** Which student has this card-code hash (one query for the whole request; the run adds what it writes). $set: remember it; $reset: forget all. */
+function mcupr_si_rfid_owner( $hash, $set = 0, $reset = false ) {
+	static $map = null;
+	if ( $reset ) {
+		$map = null;
+		return 0;
+	}
+	if ( null === $map ) {
+		$map = mcupr_card_rfid_map();
+	}
+	if ( $set ) {
+		$map[ $hash ] = (int) $set;
+	}
+	return isset( $map[ $hash ] ) ? (int) $map[ $hash ] : 0;
+}
+
 function mcupr_si_check( $values, $cols, $map, &$seen, $mode ) {
 	$get = static function ( $field ) use ( $values, $cols ) {
 		return isset( $cols[ $field ], $values[ $cols[ $field ] ] ) ? (string) $values[ $cols[ $field ] ] : null;
@@ -168,6 +191,28 @@ function mcupr_si_check( $values, $cols, $map, &$seen, $mode ) {
 		}
 	}
 	$row['name'] = mb_substr( sanitize_text_field( (string) $get( 'name' ) ), 0, 120 );
+	foreach ( array( 'rfid', 'idcard' ) as $kind ) {
+		$cell = $get( $kind );
+		if ( null === $cell || '' === $cell ) {
+			$row[ '_' . $kind ] = null;
+		} elseif ( 'bad' === $cell || 0 !== strpos( $cell, 'h:' ) ) {
+			$row[ '_' . $kind ] = null;
+			$warn[]             = $kind;
+		} else {
+			$row[ '_' . $kind ] = substr( $cell, 2 );
+		}
+	}
+	if ( ! empty( $row['_rfid'] ) ) {
+		$own   = isset( $map[ $row['sid'] ] ) ? (int) $map[ $row['sid'] ] : 0;
+		$owner = mcupr_si_rfid_owner( $row['_rfid'] );
+		if ( isset( $seen[ 'rfid:' . $row['_rfid'] ] ) && $seen[ 'rfid:' . $row['_rfid'] ] !== $row['sid'] ) {
+			$err[] = 'rfid_dup';
+		} elseif ( $owner && $owner !== $own ) {
+			$err[] = 'rfid_used';
+		} else {
+			$seen[ 'rfid:' . $row['_rfid'] ] = $row['sid'];
+		}
+	}
 	if ( '' === $row['sid'] ) {
 		$err[] = 'sid';
 	} elseif ( isset( $seen[ $row['sid'] ] ) ) {
@@ -175,7 +220,7 @@ function mcupr_si_check( $values, $cols, $map, &$seen, $mode ) {
 	} else {
 		$seen[ $row['sid'] ] = true;
 	}
-	if ( '' === $row['name'] ) {
+	if ( '' === $row['name'] && ( isset( $cols['name'] ) || ! isset( $map[ $row['sid'] ] ) ) ) { // a file without a name column (card codes only) is fine for students already there
 		$err[] = 'name';
 	}
 	if ( ! $err ) {
@@ -199,6 +244,10 @@ function mcupr_si_msg( $code ) {
 		'year'    => __( 'Year of study is not a number from 1 to 12, left empty', 'mcupr' ),
 		'entry'   => __( 'Year of entry is not a year, left empty', 'mcupr' ),
 		'email'   => __( 'E-mail is not valid, left empty', 'mcupr' ),
+		'rfid'    => __( 'The card code is not 10 digits, not saved', 'mcupr' ),
+		'idcard'  => __( 'The national ID number is not valid (13 digits with the right check digit), not saved', 'mcupr' ),
+		'rfid_dup' => __( 'The same card code is on another row of the file', 'mcupr' ),
+		'rfid_used' => __( 'This card code already belongs to another student', 'mcupr' ),
 		'error'   => __( 'Could not be saved', 'mcupr' ),
 	);
 	return isset( $m[ $code ] ) ? $m[ $code ] : $code;
@@ -473,6 +522,17 @@ function mcupr_si_run( $token ) {
 		if ( $id ) {
 			$map[ $c['row']['sid'] ] = $id;
 		}
+		if ( $id && in_array( $res, array( 'added', 'updated', 'unchanged' ), true ) ) {
+			foreach ( array( '_rfid' => MCUPR_CARD_RFID, '_idcard' => MCUPR_CARD_IDC ) as $rk => $mk ) {
+				if ( ! empty( $c['row'][ $rk ] ) && (string) get_post_meta( $id, $mk, true ) !== $c['row'][ $rk ] ) {
+					update_post_meta( $id, $mk, $c['row'][ $rk ] );
+					if ( '_rfid' === $rk ) {
+						mcupr_si_rfid_owner( $c['row'][ $rk ], $id );
+					}
+					$res = 'unchanged' === $res ? 'updated' : $res;
+				}
+			}
+		}
 		$k       = 'added' === $res ? 'added' : ( 'updated' === $res ? 'updated' : ( 'unchanged' === $res ? 'unchanged' : 'skipped' ) );
 		$s[ $k ]++;
 		if ( $d['accounts'] && $id && in_array( $res, array( 'added', 'updated', 'unchanged' ), true ) && '' !== (string) get_post_meta( $id, '_mcupr_s_email', true ) && ! get_post_meta( $id, '_mcupr_s_user', true ) ) {
@@ -546,6 +606,11 @@ function mcupr_si_columns() {
 	return array( 'sid' => 'รหัสนิสิต', 'name' => 'ชื่อ-สกุล', 'name_en' => 'ชื่ออังกฤษ', 'level' => 'ระดับ', 'year' => 'ชั้นปี', 'entry' => 'ปีที่เข้า', 'faculty' => 'คณะ', 'major' => 'สาขา', 'status' => 'สถานะ', 'email' => 'อีเมล', 'phone' => 'โทร', 'note' => 'หมายเหตุ' );
 }
 
+/** Columns of the template (the card columns are for import only: the export never has them, they are not kept). */
+function mcupr_si_template_columns() {
+	return array_merge( array_values( mcupr_si_columns() ), array( 'รหัสบัตร RFID', 'เลขบัตรประชาชน' ) );
+}
+
 add_action(
 	'admin_post_mcupr_si_template',
 	static function () {
@@ -555,9 +620,9 @@ add_action(
 		mcupr_si_csv_out(
 			'mcupr-students-template.csv',
 			array(
-				array_values( mcupr_si_columns() ),
-				array( '6600000001', 'นายตัวอย่าง ใจดี', 'Tuayang Jaidee', 'ตรี', '2', '2567', 'คณะพุทธศาสตร์', 'พุทธศาสตร์', 'กำลังศึกษา', 'tuayang.j@example.org', '081-000-0001', '' ),
-				array( '6600000002', 'นางสาวสมหญิง รักเรียน', '', 'โท', '1', '2568', 'คณะมนุษยศาสตร์', 'ภาษาอังกฤษ', 'กำลังศึกษา', 'somying.r@example.org', '', 'ตัวอย่างแถวที่สอง' ),
+				mcupr_si_template_columns(),
+				array( '6600000001', 'นายตัวอย่าง ใจดี', 'Tuayang Jaidee', 'ตรี', '2', '2567', 'คณะพุทธศาสตร์', 'พุทธศาสตร์', 'กำลังศึกษา', 'tuayang.j@example.org', '081-000-0001', '', '1234567890', '' ),
+				array( '6600000002', 'นางสาวสมหญิง รักเรียน', '', 'โท', '1', '2568', 'คณะมนุษยศาสตร์', 'ภาษาอังกฤษ', 'กำลังศึกษา', 'somying.r@example.org', '', 'ตัวอย่างแถวที่สอง', '', '' ),
 			)
 		);
 	}
