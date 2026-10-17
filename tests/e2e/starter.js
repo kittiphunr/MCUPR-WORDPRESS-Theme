@@ -2365,6 +2365,131 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     phpG(cleanG);
     await gc.close(); await sc.close(); await oc.close(); await vc.close();
   }
+  // ---------- Sign in with the university Google account (2E): a pretend Google on another port, the real redirects and cookies
+  {
+    const { execSync } = require('child_process');
+    const fsO = require('fs');
+    const httpO = require('http');
+    const wpLoadO = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+    const muO = require('path').resolve(__dirname, '../.site-starter/wp-content/mu-plugins/e2e-sso.php');
+    const phpO = (code) => { const f = require('os').tmpdir() + '/e2e-sso-' + process.pid + '.php'; fsO.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wpLoadO) + '; ' + code); return execSync('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const cleanO = 'wp_set_current_user(1); foreach(get_posts(array("post_type"=>"mcupr_student","post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_key"=>"_mcupr_sso_e2e")) as $x){ $u=(int)get_post_meta($x,"_mcupr_s_user",true); if($u){require_once ABSPATH."wp-admin/includes/user.php"; wp_delete_user($u);} wp_delete_post($x,true);} delete_option("mcupr_sso"); $b=get_user_by("login","sso-e2e-boss"); if($b){require_once ABSPATH."wp-admin/includes/user.php"; wp_delete_user($b->ID);} delete_transient("mcupr_thr_".md5("sso|127.0.0.1"));';
+    const IDP = 8099;
+    let idpEmail = 'ssoe2e1@mcu-e2e.test';
+    let idpHd = 'mcu-e2e.test';
+    let verified = true;
+    const codes = {};
+    const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+    const idp = httpO.createServer((req, res) => {
+      const u = new URL(req.url, 'http://localhost:' + IDP);
+      if (u.pathname === '/auth') {
+        const code = 'c' + Math.random().toString(16).slice(2);
+        codes[code] = { nonce: u.searchParams.get('nonce'), email: idpEmail, hd: idpHd, verified, aud: u.searchParams.get('client_id'), hdParam: u.searchParams.get('hd') };
+        res.writeHead(302, { Location: u.searchParams.get('redirect_uri') + '&code=' + code + '&state=' + u.searchParams.get('state') }); res.end();
+      } else if (u.pathname === '/token' && req.method === 'POST') {
+        let body = ''; req.on('data', (d) => { body += d; }); req.on('end', () => {
+          const p = new URLSearchParams(body); const c = codes[p.get('code')];
+          if (!c || p.get('client_secret') !== 'e2e-secret') { res.writeHead(400); res.end('{}'); return; }
+          delete codes[p.get('code')];
+          const claims = { iss: 'https://accounts.google.com', aud: c.aud, exp: Math.floor(Date.now() / 1000) + 600, nonce: c.nonce, sub: 'g-' + c.email, email: c.email, email_verified: c.verified, hd: c.hd };
+          res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ id_token: b64({ alg: 'RS256' }) + '.' + b64(claims) + '.sig', access_token: 'x' }));
+        });
+      } else { res.writeHead(404); res.end(); }
+    });
+    await new Promise((r) => idp.listen(IDP, r));
+    fsO.writeFileSync(muO, '<?php add_filter( "mcupr_sso_endpoints", function ( $e ) { return array( "auth" => "http://localhost:' + IDP + '/auth", "token" => "http://localhost:' + IDP + '/token", "issuer" => array( "https://accounts.google.com" ) ); } );');
+    phpO(cleanO + `
+      $mk=function($sid,$name,$email){ $r=array("sid"=>$sid,"name"=>$name,"name_en"=>"","level"=>"bachelor","year"=>"2","entry"=>"2567","faculty"=>"คณะพุทธศาสตร์","major"=>"พุทธศาสตร์","status"=>"studying","email"=>$email,"phone"=>"","note"=>""); list(,$p)=mcupr_student_upsert($r,"add_update"); update_post_meta($p,"_mcupr_sso_e2e",1); return $p; };
+      $mk("SSOE2E1","นิสิต เอสเอสโอ","ssoe2e1@mcu-e2e.test"); $mk("SSOE2E2","นิสิต จบแล้ว","ssoe2e2@mcu-e2e.test"); update_post_meta(mcupr_student_find("SSOE2E2"),"_mcupr_s_status","graduated");
+      $mk("SSOE2E3","นิสิต อีเมลเดียวกับแอดมิน","e2eadmin-sso@mcu-e2e.test"); wp_insert_user(array("user_login"=>"sso-e2e-boss","user_pass"=>wp_generate_password(),"user_email"=>"e2eadmin-sso@mcu-e2e.test","role"=>"administrator"));`);
+    const oc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    const op = await oc.newPage();
+    const oerr = [];
+    op.on('pageerror', (e) => oerr.push(e.message));
+    await op.goto(B + '/?mcupr_student=1');
+    ok(await op.locator('.stu-sso').count() === 0, 'google sign-in: no button while it is switched off');
+    const outer = await oc.request.get(B + '/?mcupr_sso=start', { maxRedirects: 0 });
+    ok(outer.status() >= 300 && /student/.test(outer.headers()['location'] || ''), 'google sign-in: while off, the start address just goes to the portal');
+    // set it up in the admin
+    const ac = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const ap = await ac.newPage();
+    await ap.goto(B + '/wp-login.php');
+    await ap.fill('#user_login', 'e2eadmin'); await ap.fill('#user_pass', 'e2e-Admin-pass-1'); await ap.click('#wp-submit');
+    await ap.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-settings');
+    ok(await ap.locator('code:has-text("mcupr_sso=callback")').count() === 1, 'google sign-in settings: shows the address to give to Google');
+    await ap.check('input[name=on]'); await ap.fill('#sso-id', 'e2e-client'); await ap.fill('#sso-secret', 'e2e-secret'); await ap.fill('#sso-domain', '@MCU-E2E.test');
+    await Promise.all([ap.waitForNavigation(), ap.click('form:has(#sso-id) button.button-primary')]);
+    await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-settings');
+    ok((await ap.inputValue('#sso-domain')) === 'mcu-e2e.test' && (await ap.inputValue('#sso-secret')) === '' && !/e2e-secret/.test(await ap.content()), 'google sign-in settings: the domain is cleaned, and the secret is never printed back');
+    const login = async (email, hd) => { idpEmail = email; idpHd = hd === undefined ? 'mcu-e2e.test' : hd; await oc.clearCookies(); await op.goto(B + '/?mcupr_student=1'); await op.click('.stu-sso a'); await op.waitForLoadState('domcontentloaded'); };
+    await op.goto(B + '/?mcupr_student=1');
+    ok(await op.locator('.stu-sso a').count() === 1, 'google sign-in: the button is in the portal once it is switched on');
+    // a student
+    await login('ssoe2e1@mcu-e2e.test');
+    ok(await op.locator('.stu-hello').count() === 1 && /ssoe2e1/.test(phpO('$u=get_user_by("login","ssoe2e1"); echo $u?$u->user_login:"none";')), 'google sign-in: a student with that e-mail is signed in and has an account');
+    ok(phpO('$u=get_user_by("login","ssoe2e1"); echo get_user_meta($u->ID,"mcupr_sso_sub",true);') === 'g-ssoe2e1@mcu-e2e.test', 'google sign-in: Google’s account number is kept with the account');
+    ok(!(await op.goto(B + '/wp-admin/')).url().includes('/wp-admin/index.php') || /wp-login|student|profile/.test(op.url()), 'google sign-in: and the student cannot use the admin');
+    const again = await oc.request.get(B + '/?mcupr_sso=start', { maxRedirects: 0 });
+    ok(again.status() >= 300 && !/localhost:8099/.test(again.headers()['location'] || ''), 'google sign-in: someone already signed in is not sent to Google again');
+    // refusals
+    const refuse = async (email, hd, label, msg) => { await login(email, hd); ok(await op.locator('.stu-hello').count() === 0 && await op.locator('.stu-note-err').count() === 1 && (msg ? msg.test(await op.locator('.stu-note-err').innerText()) : true), 'google sign-in refused: ' + label); };
+    await refuse('nobody@mcu-e2e.test', undefined, 'an e-mail that is in no student record (a clear message to contact the staff)', /เจ้าหน้าที่|staff/);
+    await refuse('ssoe2e2@mcu-e2e.test', undefined, 'a student who has graduated', /เจ้าหน้าที่|staff/);
+    await refuse('someone@gmail.com', 'gmail.com', 'an account of another domain');
+    await refuse('ssoe2e1@mcu-e2e.test', 'other.example', 'Google says another hosted domain');
+    verified = false; await refuse('ssoe2e1@mcu-e2e.test', undefined, 'an e-mail Google has not verified'); verified = true;
+    await refuse('e2eadmin-sso@mcu-e2e.test', undefined, 'a student record whose e-mail is not free (no account is made or taken over)');
+    ok(phpO('$b=get_user_by("login","sso-e2e-boss"); echo in_array("administrator",$b->roles,true)&&!get_user_meta($b->ID,"mcupr_student_id",true)&&!get_user_meta($b->ID,"mcupr_sso_sub",true)?"untouched":"changed";') === 'untouched', 'google sign-in: and the administrator account was not linked to the student or changed');
+    // replay and forged state
+    await oc.clearCookies(); await op.goto(B + '/?mcupr_student=1');
+    let cb = '';
+    op.on('request', (r) => { if (/mcupr_sso=callback/.test(r.url())) { cb = r.url(); } });
+    idpEmail = 'ssoe2e1@mcu-e2e.test'; idpHd = 'mcu-e2e.test';
+    await op.click('.stu-sso a'); await op.waitForSelector('.stu-hello');
+    await oc.clearCookies();
+    await op.goto(cb);
+    ok(await op.locator('.stu-hello').count() === 0 && await op.locator('.stu-note-err').count() === 1, 'google sign-in: the same return address used again is refused (state is single-use)');
+    await oc.clearCookies();
+    await op.goto(B + '/?mcupr_sso=callback&code=abc&state=' + 'a'.repeat(32));
+    ok(await op.locator('.stu-hello').count() === 0 && await op.locator('.stu-note-err').count() === 1, 'google sign-in: a made-up state is refused');
+    // state from another browser: start in one browser, finish in another
+    const oc2 = await br.newContext();
+    const op2 = await oc2.newPage();
+    await op2.goto(B + '/?mcupr_student=1');
+    let loc2 = '';
+    op2.on('request', (r) => { if (/localhost:8099\/auth/.test(r.url())) { loc2 = r.url(); } });
+    await op2.click('.stu-sso a'); await op2.waitForSelector('.stu-hello');
+    const forged = cb.replace(/state=[a-f0-9]+/, 'state=' + new URL(loc2).searchParams.get('state'));
+    await oc.clearCookies();
+    await op.goto(forged);
+    ok(await op.locator('.stu-hello').count() === 0 && await op.locator('.stu-note-err').count() === 1, 'google sign-in: a return address from another browser is refused (the state must match this browser’s cookie)');
+    // the log
+    ok(phpO('$e=get_posts(array("post_type"=>"mcupr_audit","post_status"=>"any","numberposts"=>-1)); $t=array_map(function($p){return $p->post_title;},$e); echo in_array("sso",$t,true)&&in_array("ssofail",$t,true)?"yes":"no";') === 'yes', 'google sign-in: sign-ins and refusals are in the activity log');
+    // layout
+    await oc.clearCookies();
+    for (const w of [390, 320]) {
+      await op.setViewportSize({ width: w, height: 800 });
+      await op.goto(B + '/?mcupr_student=1');
+      const m = await op.evaluate(() => ({ hs: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, h: document.querySelector('.stu-sso a').getBoundingClientRect().height }));
+      ok(!m.hs && m.h >= 40, 'google sign-in: the button fits a ' + w + ' px screen (no sideways scroll, at least 40 px high)');
+    }
+    await op.setViewportSize({ width: 1280, height: 900 });
+    await op.goto(B + '/?mcupr_student=1&e=ssonone');
+    await op.addScriptTag({ content: axeSource() });
+    const axO = await op.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(axO.violations.length === 0, 'axe (portal login with the Google button and the message): ' + (axO.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    for (const mode of ['wb', 'yb', 'by']) {
+      await op.evaluate((md) => document.documentElement.setAttribute('data-contrast', md), mode);
+      const c = await op.evaluate(() => { const e = getComputedStyle(document.querySelector('.stu-sso a')); return { b: parseFloat(e.borderTopWidth), fg: e.color, bg: e.backgroundColor }; });
+      ok(c.b >= 2 && c.fg !== c.bg, 'google sign-in: high contrast ' + mode + ': the button has an outline and readable text');
+    }
+    ok(oerr.length === 0, 'google sign-in: no script error' + (oerr.length ? ': ' + oerr.slice(0, 2).join(' | ') : ''));
+    phpO(cleanO);
+    try { fsO.unlinkSync(muO); } catch (e) { /* already gone */ }
+    await new Promise((r) => idp.close(r));
+    await oc.close(); await oc2.close(); await ac.close();
+  }
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
   {
     const { execSync } = require('child_process');
