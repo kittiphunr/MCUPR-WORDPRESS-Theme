@@ -169,6 +169,16 @@ do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
 $_POST = array( 'mcupr_card_rfid' => '5555555555' );
 do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
 t( ! mcupr_card_state( $s4 )['rfid'], 'staff: without the nonce nothing is saved' );
+// a repeat import keeps what is already set on the record and only fills what is empty
+$hs = get_post_meta( $s4, MCUPR_CARD_IDC, true );
+$hc = get_post_meta( $s1, MCUPR_CARD_RFID, true );
+$pr = mcupr_si_parse( "รหัสนิสิต,ชื่อ-สกุล,รหัสบัตร RFID,เลขบัตรประชาชน\n9204,นิสิตสี่,9876543210,3100200000008\n9201,นิสิตหนึ่ง,9876543211,3100200000008\n" );
+$tk = bin2hex( random_bytes( 16 ) );
+mcupr_si_save( $tk, array( 'cols' => $pr['cols'], 'rows' => $pr['rows'], 'unknown' => array(), 'mode' => 'add_update', 'accounts' => false, 'user' => 1, 'sample' => false, 'state' => array( 'offset' => 0, 'added' => 0, 'updated' => 0, 'unchanged' => 0, 'skipped' => 0, 'accounts' => 0, 'errors' => array(), 'warn' => 0 ) ) );
+ob_start(); mcupr_si_run( $tk ); ob_get_clean();
+t( $hs === get_post_meta( $s4, MCUPR_CARD_IDC, true ) && '1101700203450' === mcupr_sp_get( $s4 )['idcard'], 'import again: an ID number already set (hash and central copy) is not overwritten' );
+t( $hc === get_post_meta( $s1, MCUPR_CARD_RFID, true ), 'import again: a card code already set is not overwritten' );
+t( ! empty( get_post_meta( $s4, MCUPR_CARD_RFID, true ) ) && ! empty( get_post_meta( $s1, MCUPR_CARD_IDC, true ) ), 'import again: an empty card code / ID number is still filled from the file' );
 $_POST = array();
 $ev = array_map( function ( $p ) { return $p->post_title; }, get_posts( array( 'post_type' => MCUPR_AUDIT, 'post_status' => 'any', 'posts_per_page' => -1 ) ) );
 $ex = implode( ' ', array_map( function ( $p ) { return get_post_meta( $p->ID, '_mcupr_a', true ); }, get_posts( array( 'post_type' => MCUPR_AUDIT, 'post_status' => 'any', 'posts_per_page' => -1 ) ) ) );
