@@ -284,6 +284,15 @@ function mcupr_sp_put( $post_id, $p, $s ) {
 	return $r['p'] !== $old['p'] || $r['s'] !== $old['s'];
 }
 
+/** Drop one encrypted detail (used when staff remove the national ID number). */
+function mcupr_sp_forget( $post_id, $key ) {
+	$r = mcupr_sp_raw( $post_id );
+	if ( isset( $r['s'][ $key ] ) ) {
+		unset( $r['s'][ $key ] );
+		update_post_meta( $post_id, MCUPR_SP_SECURE, wp_slash( wp_json_encode( $r['s'] ) ) );
+	}
+}
+
 /* ------------------------------------------------------------------ the codes → names table */
 
 function mcupr_sp_code_defaults() {
