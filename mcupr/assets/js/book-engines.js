@@ -152,7 +152,7 @@
 				drag.started = true;
 				begin(drag.dir, 0.6);
 			}
-			var tip = clamp((drag.dir > 0 ? 1 : -1) + dx / pw, -1, 1), th = Math.acos(tip) / RAD, now = performance.now(), h = drag.hist;
+			var tip = clamp((drag.dir > 0 ? 1 : -1) + dx / pw, -1, 1), th = Math.acos(tip) / RAD, now = e.timeStamp || performance.now(), h = drag.hist; // when the pointer moved, not when this code got to run
 			drag.cy = clamp((e.clientY - drag.top) / drag.h * 2 - 1, -1, 1);
 			h.push({ t: now, th: th });
 			while (h.length > 2 && now - h[0].t > 90) { h.shift(); }
