@@ -66,6 +66,16 @@ t( false === strpos( $ex, '4028251661' ) && ! in_array( 'rfid', array_keys( mcup
 // a real Excel / PDF file is told apart from a CSV (it used to look "empty")
 t( 'excel' === mcupr_si_binary_kind( "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1" . str_repeat( "\0", 40 ) ) && 'excel' === mcupr_si_binary_kind( "PK\x03\x04abc" ) && 'pdf' === mcupr_si_binary_kind( '%PDF-1.7' ) && '' === mcupr_si_binary_kind( "\xEF\xBB\xBFรหัสนิสิต,ชื่อ\n" ) && '' === mcupr_si_binary_kind( "sid,name\n1,x\n" ), 'import: an .xls / .xlsx / PDF is recognised before reading, a CSV (with or without BOM) is not' );
 
+// old PHP (7.0 – 7.3) rejects an empty escape character in fgetcsv/fputcsv and returns false: a good file then looked "empty"
+t( 1 === strlen( mcupr_csv_escape() ), 'csv: the escape character is exactly one character (PHP 7.0 – 7.3 need that)' );
+$bad = array();
+foreach ( glob( __DIR__ . '/../../mcupr/inc/*.php' ) as $f ) { if ( preg_match( '/(fgetcsv|fputcsv)\([^;]*\'"\'\s*,\s*\'\'\s*\)/', file_get_contents( $f ) ) ) { $bad[] = basename( $f ); } }
+t( ! $bad, 'csv: no code gives fgetcsv/fputcsv an empty escape character' . ( $bad ? ' (' . implode( ', ', $bad ) . ')' : '' ) );
+foreach ( array( 'no BOM' => "รหัสนิสิต,ชื่อ-สกุล\n1234,นิสิต หนึ่ง\n", 'CRLF' => "รหัสนิสิต,ชื่อ-สกุล\r\n1234,นิสิต หนึ่ง\r\n", 'BOM' => "\xEF\xBB\xBFรหัสนิสิต,ชื่อ-สกุล\n1234,นิสิต หนึ่ง\n", 'semicolon' => "รหัสนิสิต;ชื่อ-สกุล\n1234;นิสิต หนึ่ง\n", 'tab' => "รหัสนิสิต\tชื่อ-สกุล\n1234\tนิสิต หนึ่ง\n", 'no final newline' => "รหัสนิสิต,ชื่อ-สกุล\n1234,นิสิต หนึ่ง" ) as $label => $txt ) {
+	$pp = mcupr_si_parse( $txt );
+	t( ! is_wp_error( $pp ) && 1 === count( $pp['rows'] ), 'csv: a file with ' . $label . ' is read' );
+}
+
 // ---- the check at sign-in
 t( '' === mcupr_card_verify( $s1, '4028251661', '' ), 'check: the right card code' );
 t( 'card' === mcupr_card_verify( $s1, '4028251662', '' ) && 'card' === mcupr_card_verify( $s1, '', '' ), 'check: a wrong or missing card code' );
