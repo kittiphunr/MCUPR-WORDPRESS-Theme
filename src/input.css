@@ -2143,6 +2143,14 @@ html[data-contrast] .wk-team li { background: var(--bg); border: 2px solid var(-
 .stu-btn2 { background: transparent; border: 2px solid var(--primary); color: var(--link); }
 .stu-btn2:hover, .stu-btn2:focus-visible { background: var(--primary); color: var(--on-primary); }
 .stu-note { max-width: 62rem; margin: 0 auto 1.25rem; padding: .85rem 1.1rem; border: 1px solid var(--edge); border-left: 6px solid var(--primary); border-radius: 1rem; background: var(--tint); font-weight: 600; }
+.sp-g { margin: 0 0 .75rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--surface); }
+.sp-g > summary { display: flex; align-items: center; min-height: 2.75rem; padding: .6rem 1.1rem; font-weight: 800; cursor: pointer; }
+.sp-g > summary:focus-visible { outline: 3px solid var(--focus, var(--primary)); outline-offset: 2px; border-radius: 1rem; }
+.sp-g .sp-dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: .6rem 1.25rem; margin: 0; padding: .25rem 1.1rem 1rem; }
+.sp-g .sp-dl > div { min-width: 0; }
+.sp-g .sp-dl dt { font-size: .85rem; color: var(--muted, var(--text)); }
+.sp-g .sp-dl dd { margin: 0; overflow-wrap: anywhere; }
+html[data-contrast] .sp-g { border: 2px solid var(--border); }
 .stu-card-f input { letter-spacing: .15em; }
 .stu-sso { margin: 1.25rem 0 0; padding-top: 1rem; border-top: 1px solid var(--border); }
 .stu-sso .btn { min-height: 2.75rem; }
