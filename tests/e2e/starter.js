@@ -3070,7 +3070,12 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
           const pg0 = +(await rd.getAttribute('data-page'));
           await fp.mouse.move(bw.x + bw.width * 0.95, cy); // a flick: let go before the middle, but fast enough to carry the page over
           await fp.mouse.down();
-          for (let k = 1; k <= 8; k++) { await fp.mouse.move(bw.x + bw.width * (0.95 - 0.055 * k), cy - bw.height * 0.01 * k); await fp.waitForTimeout(25); }
+          await fp.evaluate(async ([x0, y0, w, h]) => { // the moves come from the page itself, 14 ms apart (the test driver is too slow to make a flick)
+            for (let k = 1; k <= 8; k++) {
+              document.dispatchEvent(new PointerEvent('pointermove', { clientX: x0 - w * 0.055 * k, clientY: y0 - h * 0.01 * k, bubbles: true, pointerType: 'mouse' }));
+              await new Promise((r) => setTimeout(r, 14));
+            }
+          }, [bw.x + bw.width * 0.95, cy, bw.width, bw.height]);
           await fp.mouse.up();
           await fp.waitForFunction((b) => +document.querySelector('.bk-reader').dataset.page > b, pg0, { timeout: 8000 }).catch(() => {});
           ok(+(await rd.getAttribute('data-page')) > pg0, 'e-books: turning "webgl": a quick flick turns the page even when it is let go short of the middle');
