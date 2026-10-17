@@ -157,7 +157,7 @@ $_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), '
 do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
 t( '1234567890123' === mcupr_sp_get( $s4 )['idcard'] && ! mcupr_card_state( $s4 )['idcard'], 'sync: a number with a wrong check digit is kept centrally but is not a sign-in factor' );
 ob_start(); mcupr_card_box( get_post( $s4 ) ); $bx = ob_get_clean();
-t( false !== strpos( $bx, 'value="1234567890123"' ) && false !== strpos( $bx, 'check digit is wrong' ), 'sync: the box says the check digit is wrong' );
+t( false !== strpos( $bx, 'value="1234567890123"' ) && false !== strpos( $bx, esc_html__( 'in the central details, but the check digit is wrong (cannot be used to sign in)', 'mcupr' ) ), 'sync: the box says the check digit is wrong' );
 $_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_idc' => '1101700203450' );
 do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
 t( mcupr_card_state( $s4 )['idcard'] && '1101700203450' === mcupr_sp_get( $s4 )['idcard'], 'sync: a valid number sets both again' );
