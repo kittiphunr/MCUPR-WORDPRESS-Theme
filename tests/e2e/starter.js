@@ -3057,6 +3057,25 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
           await fp.waitForTimeout(1500);
           ok((await rd.getAttribute('data-page')) === before, 'e-books: turning "' + fx + '": a short drag does not turn the page');
         }
+        if (fx === 'webgl' && (await rd.getAttribute('data-fx')) === 'webgl') {
+          const bw = await fp.locator('.bk-fx').boundingBox(), cy = bw.y + bw.height * 0.88, mid = bw.y + bw.height * 0.5;
+          await fp.mouse.move(bw.x + bw.width * 0.5, mid);
+          ok((await fp.locator('.bk-fx').getAttribute('data-peel')) === null, 'e-books: turning "webgl": with the mouse in the middle no page is lifted');
+          await fp.mouse.move(bw.x + bw.width * 0.97, cy, { steps: 4 });
+          await fp.waitForFunction(() => document.querySelector('.bk-fx').getAttribute('data-peel') === '1', null, { timeout: 4000 }).catch(() => {});
+          ok((await fp.locator('.bk-fx').getAttribute('data-peel')) === '1', 'e-books: turning "webgl": the corner lifts when the mouse comes near it');
+          await fp.mouse.move(bw.x + bw.width * 0.5, mid, { steps: 4 });
+          await fp.waitForFunction(() => document.querySelector('.bk-fx').getAttribute('data-peel') === null, null, { timeout: 4000 }).catch(() => {});
+          ok((await fp.locator('.bk-fx').getAttribute('data-peel')) === null, 'e-books: turning "webgl": it is put down when the mouse leaves the corner');
+          const pg0 = +(await rd.getAttribute('data-page'));
+          await fp.mouse.move(bw.x + bw.width * 0.95, cy); // a flick: let go before the middle, but fast enough to carry the page over
+          await fp.mouse.down();
+          for (let k = 1; k <= 8; k++) { await fp.mouse.move(bw.x + bw.width * (0.95 - 0.055 * k), cy - bw.height * 0.01 * k); await fp.waitForTimeout(25); }
+          await fp.mouse.up();
+          await fp.waitForFunction((b) => +document.querySelector('.bk-reader').dataset.page > b, pg0, { timeout: 8000 }).catch(() => {});
+          ok(+(await rd.getAttribute('data-page')) > pg0, 'e-books: turning "webgl": a quick flick turns the page even when it is let go short of the middle');
+          ok(+(await rd.getAttribute('data-lands')) >= 1, 'e-books: turning "webgl": the page makes a landing sound of its own');
+        }
         ok(ferr.length === 0, 'e-books: turning "' + fx + '": no script error' + (ferr.length ? ': ' + ferr.slice(0, 2).join(' | ') : ''));
         // the buttons on a page (extras) with this way of turning
         await fp.goto(B + '/?p=' + ids[6]);
