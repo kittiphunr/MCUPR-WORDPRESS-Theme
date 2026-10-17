@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.48.0 =
+* E-book (WebGL): lifting corner, spring paper, book thickness, hard covers, new page sounds.
+
 = 1.47.2 =
 * Re-import keeps card code and ID number already set.
 
