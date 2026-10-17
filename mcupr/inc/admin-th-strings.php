@@ -1363,6 +1363,7 @@ return array(
 	'What' => 'ทำอะไร',
 	'What is imported' => 'ที่นำเข้าแล้ว',
 	'What the file holds' => 'ไฟล์นี้เป็นข้อมูลอะไร',
+	'What the website saw: %1$d bytes, PHP %2$s. First line: “%3$s”' => 'สิ่งที่เว็บไซต์เห็น: %1$d ไบต์, PHP %2$s บรรทัดแรก: “%3$s”',
 	'What to do' => 'ควรทำอะไร',
 	'What to do with students already in the database (same student ID)' => 'ทำอย่างไรกับนิสิตที่มีในฐานข้อมูลแล้ว (รหัสนิสิตเดียวกัน)',
 	'When' => 'เมื่อไร',
