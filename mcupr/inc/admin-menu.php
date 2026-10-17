@@ -37,7 +37,7 @@ function mcupr_admin_sections() {
 		'students'  => array(
 			'label' => __( 'Students', 'mcupr' ),
 			'items' => array(
-				array( 'type' => 'mcupr_student', 'pages' => array( 'mcupr-student-import', 'mcupr-student-settings', 'mcupr-student-log', 'mcupr-requests', 'mcupr-student-mail', 'mcupr-student-grades' ), 'icon' => 'dashicons-id-alt', 'desc' => __( 'Student database with bulk import, login accounts and student-only content', 'mcupr' ) ),
+				array( 'type' => 'mcupr_student', 'pages' => array( 'mcupr-student-import', 'mcupr-student-settings', 'mcupr-student-log', 'mcupr-requests', 'mcupr-student-mail', 'mcupr-student-grades', 'mcupr-student-codes' ), 'icon' => 'dashicons-id-alt', 'desc' => __( 'Student database with bulk import, login accounts and student-only content', 'mcupr' ) ),
 			),
 		),
 		'people'    => array(

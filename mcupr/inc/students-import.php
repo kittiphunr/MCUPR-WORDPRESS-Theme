@@ -19,13 +19,13 @@ const MCUPR_SI_MAX   = 20000;
 
 /** Names a column may have in a file → the field. */
 function mcupr_si_headers() {
-	return array(
+	$base = array(
 		'sid'     => array( 'รหัสนิสิต', 'รหัสนักศึกษา', 'รหัสประจำตัว', 'รหัส', 'studentid', 'studentcode', 'sid', 'id' ),
 		'name'    => array( 'ชื่อสกุล', 'ชื่อนามสกุล', 'ชื่อ-สกุล', 'ชื่อ-นามสกุล', 'ชื่อ', 'name', 'fullname', 'studentname' ),
 		'name_en' => array( 'ชื่ออังกฤษ', 'ชื่อภาษาอังกฤษ', 'nameen', 'englishname', 'nameenglish' ),
 		'level'   => array( 'ระดับ', 'ระดับการศึกษา', 'level', 'degree' ),
 		'year'    => array( 'ชั้นปี', 'ปี', 'year', 'yearofstudy' ),
-		'entry'   => array( 'ปีที่เข้า', 'ปีที่เข้าศึกษา', 'ปีการศึกษาที่เข้า', 'entry', 'entryyear', 'yearofentry' ),
+		'entry'   => array( 'ปีที่เข้า', 'ปีที่เข้าศึกษา', 'ปีการศึกษาที่เข้า', 'entry', 'entryyear', 'yearofentry', 'ADMITACADYEAR' ),
 		'faculty' => array( 'คณะ', 'faculty', 'school' ),
 		'major'   => array( 'สาขา', 'สาขาวิชา', 'หลักสูตร', 'major', 'program', 'programme' ),
 		'status'  => array( 'สถานะ', 'สถานภาพ', 'status' ),
@@ -35,6 +35,11 @@ function mcupr_si_headers() {
 		'rfid'    => array( 'รหัสบัตร RFID', 'รหัสบัตรrfid', 'รหัสความปลอดภัย', 'รหัสบัตร', 'rfid', 'rfidcode', 'cardcode', 'securitycode' ),
 		'idcard'  => array( 'เลขบัตรประชาชน', 'เลขประจำตัวประชาชน', 'เลขบัตร ปชช', 'เลขบัตรประจำตัวประชาชน', 'idcard', 'nationalid', 'citizenid', 'pid' ),
 	);
+	$all  = $base;
+	foreach ( mcupr_sp_headers() as $k => $names ) { // the columns of the central file; a field that has names of its own too keeps both
+		$all[ $k ] = isset( $all[ $k ] ) ? array_merge( $all[ $k ], $names ) : $names;
+	}
+	return $all;
 }
 
 function mcupr_si_key( $s ) {
@@ -105,10 +110,16 @@ function mcupr_si_parse( $text ) {
 	}
 	$cols    = array();
 	$unknown = array();
+	$hk      = array_map( 'mcupr_si_key', $head );
+	// the university's central file (STUDENTCODE is the student ID, STUDENTID the central one, "ชื่อ" the first name) or this website's own file made from it
+	$central = ( in_array( 'studentcode', $hk, true ) && in_array( 'studentid', $hk, true ) ) || ( in_array( mcupr_si_key( mcupr_sp_fields()['central_id'][5] ), $hk, true ) && in_array( mcupr_si_key( mcupr_sp_fields()['first_th'][5] ), $hk, true ) );
 	foreach ( $head as $i => $h ) {
 		$k     = mcupr_si_key( $h );
 		$found = '';
 		foreach ( mcupr_si_headers() as $field => $names ) {
+			if ( $central && ( ( in_array( $field, array( 'name', 'name_en' ), true ) && in_array( $k, array( 'ชื่อ', 'name' ), true ) ) || ( 'sid' === $field && 'studentid' === $k ) ) ) {
+				continue;
+			}
 			foreach ( $names as $nm ) {
 				if ( mcupr_si_key( $nm ) === $k ) {
 					$found = $field;
@@ -122,7 +133,7 @@ function mcupr_si_parse( $text ) {
 			$unknown[] = trim( (string) $h );
 		}
 	}
-	if ( ! isset( $cols['sid'] ) || ( ! isset( $cols['name'] ) && ! isset( $cols['rfid'] ) && ! isset( $cols['idcard'] ) ) ) {
+	if ( ! isset( $cols['sid'] ) || ( ! isset( $cols['name'] ) && ! isset( $cols['first_th'] ) && ! isset( $cols['rfid'] ) && ! isset( $cols['idcard'] ) ) ) {
 		fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		return new WP_Error( 'columns', 'the file needs a student ID column and a name column' );
 	}
@@ -133,9 +144,13 @@ function mcupr_si_parse( $text ) {
 		if ( 1 === count( $r ) && ( null === $r[0] || '' === trim( (string) $r[0] ) ) ) {
 			continue; // an empty line
 		}
-		foreach ( array( 'rfid', 'idcard' ) as $kind ) { // the card code and the ID number are turned into a hash at once
-			if ( isset( $cols[ $kind ] ) ) {
-				$r[ $cols[ $kind ] ] = mcupr_card_import_cell( $kind, isset( $r[ $cols[ $kind ] ] ) ? $r[ $cols[ $kind ] ] : '' );
+		if ( isset( $cols['rfid'] ) ) { // the card code is turned into a hash at once
+			$r[ $cols['rfid'] ] = mcupr_card_import_cell( 'rfid', isset( $r[ $cols['rfid'] ] ) ? $r[ $cols['rfid'] ] : '' );
+		}
+		foreach ( mcupr_sp_fields() as $sk => $sf ) { // the sensitive details (ID number, blood group, date of birth, religion …) are encrypted at once
+			if ( 1 === (int) $sf[2] && isset( $cols[ $sk ] ) ) {
+				$clean               = mcupr_sp_clean( $sk, isset( $r[ $cols[ $sk ] ] ) ? $r[ $cols[ $sk ] ] : '' );
+				$r[ $cols[ $sk ] ] = '' === $clean ? '' : mcupr_sp_encrypt( $clean );
 			}
 		}
 		$rows[] = array( $line, $r );
@@ -145,7 +160,7 @@ function mcupr_si_parse( $text ) {
 		}
 	}
 	fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-	return array( 'cols' => $cols, 'rows' => $rows, 'unknown' => $unknown, 'delimiter' => $best );
+	return array( 'cols' => $cols, 'rows' => $rows, 'unknown' => $unknown, 'delimiter' => $best, 'central' => $central );
 }
 
 /**
@@ -191,15 +206,27 @@ function mcupr_si_check( $values, $cols, $map, &$seen, $mode ) {
 		}
 	}
 	$row['name'] = mb_substr( sanitize_text_field( (string) $get( 'name' ) ), 0, 120 );
-	foreach ( array( 'rfid', 'idcard' ) as $kind ) {
-		$cell = $get( $kind );
-		if ( null === $cell || '' === $cell ) {
-			$row[ '_' . $kind ] = null;
-		} elseif ( 'bad' === $cell || 0 !== strpos( $cell, 'h:' ) ) {
-			$row[ '_' . $kind ] = null;
-			$warn[]             = $kind;
+	$row          = mcupr_sp_row( $row, $get );
+	$cell = $get( 'rfid' );
+	if ( null === $cell || '' === $cell ) {
+		$row['_rfid'] = null;
+	} elseif ( 'bad' === $cell || 0 !== strpos( $cell, 'h:' ) ) {
+		$row['_rfid'] = null;
+		$warn[]       = 'rfid';
+	} else {
+		$row['_rfid'] = substr( $cell, 2 );
+	}
+	// the national ID number: kept (encrypted) as it is in the file; the hash for signing in only when it is a valid number
+	$cell = $get( 'idcard' );
+	$row['_idcard'] = null;
+	if ( null !== $cell && '' !== $cell ) {
+		$plain = mcupr_sp_decrypt( $cell );
+		if ( '' === $plain ) {
+			$warn[] = 'nosecure';
+		} elseif ( mcupr_card_idcard_ok( $plain ) ) {
+			$row['_idcard'] = mcupr_card_hash( 'idcard', $plain );
 		} else {
-			$row[ '_' . $kind ] = substr( $cell, 2 );
+			$warn[] = 'idcard';
 		}
 	}
 	if ( ! empty( $row['_rfid'] ) ) {
@@ -360,7 +387,8 @@ function mcupr_si_msg( $code ) {
 		'entry'   => __( 'Year of entry is not a year, left empty', 'mcupr' ),
 		'email'   => __( 'E-mail is not valid, left empty', 'mcupr' ),
 		'rfid'    => __( 'The card code is not 10 digits, not saved', 'mcupr' ),
-		'idcard'  => __( 'The national ID number is not valid (13 digits with the right check digit), not saved', 'mcupr' ),
+		'idcard'  => __( 'The national ID number is kept as it is in the file, but it is not a valid number (13 digits with the right check digit), so it cannot be used to sign in', 'mcupr' ),
+		'nosecure' => __( 'The ID number could not be read back (no encryption on this server), not saved', 'mcupr' ),
 		'rfid_dup' => __( 'The same card code is on another row of the file', 'mcupr' ),
 		'rfid_used' => __( 'This card code already belongs to another student', 'mcupr' ),
 		'error'   => __( 'Could not be saved', 'mcupr' ),
@@ -563,7 +591,7 @@ add_action(
 		}
 		$mode  = isset( $_POST['mode'] ) && in_array( $_POST['mode'], array( 'add_update', 'add_only', 'update_only' ), true ) ? sanitize_key( wp_unslash( $_POST['mode'] ) ) : 'add_update';
 		$token = bin2hex( random_bytes( 16 ) );
-		$ok    = mcupr_si_save( $token, array( 'cols' => $p['cols'], 'rows' => $p['rows'], 'unknown' => $p['unknown'], 'mode' => $mode, 'accounts' => ! empty( $_POST['accounts'] ), 'user' => get_current_user_id(), 'sample' => ! empty( $_POST['sample'] ) ) );
+		$ok    = mcupr_si_save( $token, array( 'cols' => $p['cols'], 'rows' => $p['rows'], 'unknown' => $p['unknown'], 'central' => ! empty( $p['central'] ), 'mode' => $mode, 'accounts' => ! empty( $_POST['accounts'] ), 'user' => get_current_user_id(), 'sample' => ! empty( $_POST['sample'] ) ) );
 		wp_safe_redirect( $ok ? mcupr_si_url( array( 'step' => 'preview', 't' => $token ) ) : mcupr_si_url( array( 'err' => 'file' ) ) );
 		exit;
 	}
@@ -578,6 +606,7 @@ function mcupr_si_preview( $token ) {
 	$map  = mcupr_student_map();
 	$seen = array();
 	$n    = array( 'new' => 0, 'upd' => 0, 'err' => 0, 'warn' => 0 );
+	$x    = array( 'central' => 0, 'overdue' => 0, 'secret' => 0, 'unmapped' => array(), 'idc' => 0 );
 	$errs = array();
 	$show = array();
 	foreach ( $d['rows'] as $r ) {
@@ -590,6 +619,14 @@ function mcupr_si_preview( $token ) {
 			continue;
 		}
 		isset( $map[ $c['row']['sid'] ] ) ? $n['upd']++ : $n['new']++;
+		if ( ! empty( $c['row']['_central'] ) ) {
+			++$x['central'];
+			$x['overdue'] += (int) $c['row']['_overdue'];
+			$x['secret']  += empty( $c['row']['_s'] ) ? 0 : 1;
+			if ( ! empty( $c['row']['_p']['program_id'] ) && '' === mcupr_sp_code_name( 'program', $c['row']['_p']['program_id'] ) ) {
+				$x['unmapped'][ $c['row']['_p']['program_id'] ] = ( isset( $x['unmapped'][ $c['row']['_p']['program_id'] ] ) ? $x['unmapped'][ $c['row']['_p']['program_id'] ] : 0 ) + 1;
+			}
+		}
 		if ( $c['warnings'] ) {
 			$n['warn']++;
 		}
@@ -600,6 +637,21 @@ function mcupr_si_preview( $token ) {
 	$modes = array( 'add_update' => __( 'Add the new and update the others', 'mcupr' ), 'add_only' => __( 'Add the new only', 'mcupr' ), 'update_only' => __( 'Update existing only', 'mcupr' ) );
 	echo '<div class="card"><h2>' . esc_html__( '2. Check', 'mcupr' ) . '</h2><p>' . esc_html( sprintf( /* translators: 1: rows, 2: mode */ __( '%1$d rows read. Mode: %2$s.', 'mcupr' ), count( $d['rows'] ), $modes[ $d['mode'] ] ) ) . '</p>';
 	echo '<div class="sc"><div><b>' . (int) $n['new'] . '</b>' . esc_html( 'update_only' === $d['mode'] ? __( 'new (will be skipped)', 'mcupr' ) : __( 'new students', 'mcupr' ) ) . '</div><div><b>' . (int) $n['upd'] . '</b>' . esc_html( 'add_only' === $d['mode'] ? __( 'already there (will be skipped)', 'mcupr' ) : __( 'to update', 'mcupr' ) ) . '</div><div><b style="color:' . ( $n['err'] ? '#b32d2e' : 'inherit' ) . '">' . (int) $n['err'] . '</b>' . esc_html__( 'with a mistake (not imported)', 'mcupr' ) . '</div><div><b>' . (int) $n['warn'] . '</b>' . esc_html__( 'with a warning (imported)', 'mcupr' ) . '</div></div>';
+	if ( $x['central'] ) {
+		/* translators: 1: students from the central file, 2: with sensitive details (kept encrypted), 3: beyond the usual length */
+		echo '<p>' . esc_html( sprintf( __( 'This is the central file: %1$d students; %2$d with sensitive details (kept encrypted); %3$d beyond the usual length of the programme (no year of study, a label instead).', 'mcupr' ), $x['central'], $x['secret'], $x['overdue'] ) ) . '</p>';
+		if ( ! mcupr_sp_can_encrypt() ) {
+			echo '<div class="notice notice-error inline"><p>' . esc_html__( 'This server cannot encrypt (the PHP openssl extension is missing), so the sensitive details will NOT be saved.', 'mcupr' ) . '</p></div>';
+		}
+		if ( $x['unmapped'] ) {
+			arsort( $x['unmapped'] );
+			$list = array();
+			foreach ( $x['unmapped'] as $code => $cnt ) {
+				$list[] = $code . ' (' . $cnt . ')';
+			}
+			echo '<p class="description">' . esc_html__( 'Programme codes with no name yet (the programme is left empty until you name them under “Faculty and programme codes”):', 'mcupr' ) . ' ' . esc_html( implode( ', ', array_slice( $list, 0, 20 ) ) ) . '</p>';
+		}
+	}
 	if ( ! empty( $d['unknown'] ) ) {
 		echo '<p class="description">' . esc_html( sprintf( /* translators: %s: names */ __( 'Columns that were not recognised and are ignored: %s', 'mcupr' ), implode( ', ', array_slice( $d['unknown'], 0, 12 ) ) ) ) . '</p>';
 	}
@@ -624,6 +676,9 @@ function mcupr_si_preview( $token ) {
 	}
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin-top:1.25rem"><input type="hidden" name="action" value="mcupr_si_start"><input type="hidden" name="t" value="' . esc_attr( $token ) . '">';
 	wp_nonce_field( 'mcupr_si_start' . $token, 'mcupr_si_nonce' );
+	if ( ! empty( $d['central'] ) ) {
+		echo '<p><label><input type="checkbox" name="mark_missing" value="1" checked> ' . esc_html__( 'This is the complete list from the central system: give the label “Not in the central file” to students who are not in it (nobody is deleted or changed otherwise)', 'mcupr' ) . '</label></p>';
+	}
 	echo '<p><label><input type="checkbox" name="accounts" value="1"' . checked( ! empty( $d['accounts'] ), true, false ) . '> ' . esc_html__( 'Also make a login account for each student who has an e-mail (no e-mail is sent yet)', 'mcupr' ) . '</label></p>';
 	echo '<p><button class="button button-primary"' . ( $n['new'] + $n['upd'] ? '' : ' disabled' ) . '>' . esc_html__( 'Import now', 'mcupr' ) . '</button> <a class="button" href="' . esc_url( mcupr_si_url() ) . '">' . esc_html__( 'Cancel', 'mcupr' ) . '</a></p></form></div>';
 }
@@ -642,7 +697,8 @@ add_action(
 			exit;
 		}
 		$d['accounts'] = ! empty( $_POST['accounts'] );
-		$d['state']    = array( 'offset' => 0, 'added' => 0, 'updated' => 0, 'unchanged' => 0, 'skipped' => 0, 'accounts' => 0, 'errors' => array(), 'warn' => 0 );
+		$d['state']    = array( 'offset' => 0, 'added' => 0, 'updated' => 0, 'unchanged' => 0, 'skipped' => 0, 'accounts' => 0, 'errors' => array(), 'warn' => 0, 'present' => array() );
+		$d['mark_missing'] = ! empty( $d['central'] ) && ! empty( $_POST['mark_missing'] );
 		mcupr_si_save( $token, $d );
 		wp_safe_redirect( mcupr_si_url( array( 'step' => 'run', 't' => $token ) ) );
 		exit;
@@ -678,6 +734,9 @@ function mcupr_si_run( $token ) {
 		$c    = mcupr_si_check( $d['rows'][ $i ][1], $d['cols'], $map, $seen, $d['mode'] );
 		if ( $c['errors'] ) {
 			$s['errors'][] = array( $line, $c['row']['sid'], $c['row']['name'], implode( '; ', array_map( 'mcupr_si_msg', $c['errors'] ) ) );
+			if ( isset( $map[ $c['row']['sid'] ] ) ) {
+				$s['present'][] = (int) $map[ $c['row']['sid'] ]; // it is in the file, only this row was not good
+			}
 			continue;
 		}
 		$s['warn'] += $c['warnings'] ? 1 : 0;
@@ -689,7 +748,13 @@ function mcupr_si_run( $token ) {
 		if ( $id ) {
 			$map[ $c['row']['sid'] ] = $id;
 		}
+		if ( $id ) {
+			$s['present'][] = (int) $id;
+		}
 		if ( $id && in_array( $res, array( 'added', 'updated', 'unchanged' ), true ) ) {
+			if ( mcupr_sp_store( $id, $c['row'] ) && 'unchanged' === $res ) {
+				$res = 'updated'; // only the details from the central file were new
+			}
 			foreach ( array( '_rfid' => MCUPR_CARD_RFID, '_idcard' => MCUPR_CARD_IDC ) as $rk => $mk ) {
 				if ( ! empty( $c['row'][ $rk ] ) && (string) get_post_meta( $id, $mk, true ) !== $c['row'][ $rk ] ) {
 					update_post_meta( $id, $mk, $c['row'][ $rk ] );
@@ -718,7 +783,14 @@ function mcupr_si_run( $token ) {
 		echo '<script>setTimeout(function(){location.href=' . wp_json_encode( mcupr_si_url( array( 'step' => 'run', 't' => $token ) ) ) . ';},400);</script>';
 		return;
 	}
-	// finished: keep the report for the next page, drop the upload
+	// finished: whoever is not in a complete central file gets the label; the choices of the students-only content are counted again
+	$s['missing'] = 0;
+	if ( ! empty( $d['mark_missing'] ) ) {
+		$s['missing'] = mcupr_sp_mark_missing( $s['present'] );
+	}
+	unset( $s['present'] );
+	mcupr_aud_reset();
+	// keep the report for the next page, drop the upload
 	$by  = wp_get_current_user();
 	$log = get_option( 'mcupr_student_imports', array() );
 	$log[] = array( 't' => time(), 'by' => $by->user_login, 'added' => $s['added'], 'updated' => $s['updated'], 'errors' => count( $s['errors'] ), 'rows' => $total );
@@ -736,7 +808,7 @@ function mcupr_si_report() {
 		return;
 	}
 	$s = $r['state'];
-	echo '<div class="card"><h2>' . esc_html__( 'Done', 'mcupr' ) . '</h2><div class="sc"><div><b>' . (int) $s['added'] . '</b>' . esc_html__( 'added', 'mcupr' ) . '</div><div><b>' . (int) $s['updated'] . '</b>' . esc_html__( 'updated', 'mcupr' ) . '</div><div><b>' . (int) $s['unchanged'] . '</b>' . esc_html__( 'unchanged', 'mcupr' ) . '</div><div><b>' . (int) $s['skipped'] . '</b>' . esc_html__( 'skipped by the mode', 'mcupr' ) . '</div><div><b>' . (int) $s['accounts'] . '</b>' . esc_html__( 'login accounts made', 'mcupr' ) . '</div><div><b style="color:' . ( $s['errors'] ? '#b32d2e' : 'inherit' ) . '">' . count( $s['errors'] ) . '</b>' . esc_html__( 'not imported', 'mcupr' ) . '</div></div>';
+	echo '<div class="card"><h2>' . esc_html__( 'Done', 'mcupr' ) . '</h2><div class="sc"><div><b>' . (int) $s['added'] . '</b>' . esc_html__( 'added', 'mcupr' ) . '</div><div><b>' . (int) $s['updated'] . '</b>' . esc_html__( 'updated', 'mcupr' ) . '</div><div><b>' . (int) $s['unchanged'] . '</b>' . esc_html__( 'unchanged', 'mcupr' ) . '</div><div><b>' . (int) $s['skipped'] . '</b>' . esc_html__( 'skipped by the mode', 'mcupr' ) . '</div><div><b>' . (int) $s['accounts'] . '</b>' . esc_html__( 'login accounts made', 'mcupr' ) . '</div>' . ( ! empty( $s['missing'] ) ? '<div><b>' . (int) $s['missing'] . '</b>' . esc_html__( 'labelled “Not in the central file”', 'mcupr' ) . '</div>' : '' ) . '<div><b style="color:' . ( $s['errors'] ? '#b32d2e' : 'inherit' ) . '">' . count( $s['errors'] ) . '</b>' . esc_html__( 'not imported', 'mcupr' ) . '</div></div>';
 	if ( $s['errors'] ) {
 		echo '<h3>' . esc_html__( 'Rows that were not imported', 'mcupr' ) . '</h3><div class="scroll"><table class="widefat striped"><thead><tr><th>' . esc_html__( 'Row', 'mcupr' ) . '</th><th>' . esc_html__( 'Student ID', 'mcupr' ) . '</th><th>' . esc_html__( 'Name', 'mcupr' ) . '</th><th>' . esc_html__( 'Problem', 'mcupr' ) . '</th></tr></thead><tbody>';
 		foreach ( array_slice( $s['errors'], 0, 100 ) as $e ) {
