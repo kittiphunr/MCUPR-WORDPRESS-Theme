@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.43.0 =
+* Fewer database queries per page: figure counts, options read on every page, featured images of lists.
+
 = 1.42.0 =
 * Class schedule and grades in the student portal: CSV import per term, weekly schedule, calendar file, GPA/GPAX, print.
 
