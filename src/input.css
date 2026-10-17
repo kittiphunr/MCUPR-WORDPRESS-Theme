@@ -2517,3 +2517,8 @@ html[data-contrast] .bk-close { background: var(--bg); }
 html[data-contrast] .bk-launch-cover { outline: 2px solid var(--text); }
 html[data-contrast] .bk-launch-cta { background: var(--bg); color: var(--text); border: 2px solid var(--text); }
 @media print { .bk-toolbar, .bk-nav, .bk-tools, .bk-close, .bk-thumbs { display: none; } }
+
+/* e-book (WebGL): the book is lifted off the page a little, with a soft shadow under it */
+.bk-gl .bkg-cv { filter: drop-shadow(0 .6rem .9rem rgba(0, 0, 0, .32)); }
+.bk-gl .bkg-ov { transform: scale(.955); transform-origin: 50% 50%; }
+html[data-contrast] .bk-gl .bkg-cv { filter: none; }
