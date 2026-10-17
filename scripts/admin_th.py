@@ -1493,4 +1493,10 @@ TH = {
 "This is a PDF, not a spreadsheet. Choose a .csv file.": "นี่คือไฟล์ PDF ไม่ใช่ตาราง กรุณาเลือกไฟล์ .csv",
 "This is an Excel file (.xls / .xlsx), which cannot be imported as it is. Open it in Excel and choose Save as → CSV UTF-8, then choose that .csv file here.": "นี่คือไฟล์ Excel (.xls / .xlsx) นำเข้าตรงๆ ไม่ได้ ให้เปิดใน Excel แล้วเลือก บันทึกเป็น → CSV UTF-8 จากนั้นเลือกไฟล์ .csv ที่นี่",
 "What the website saw: %1$d bytes, PHP %2$s. First line: “%3$s”": "สิ่งที่เว็บไซต์เห็น: %1$d ไบต์, PHP %2$s บรรทัดแรก: “%3$s”",
+"An .xlsx file cannot be imported as it is. Open it in Excel and choose Save as → CSV UTF-8 (or Excel 97-2003 .xls), then choose that file here.": "ไฟล์ .xlsx นำเข้าตรงๆ ไม่ได้ ให้เปิดใน Excel แล้วเลือก บันทึกเป็น → CSV UTF-8 (หรือ Excel 97-2003 .xls) จากนั้นเลือกไฟล์นั้นที่นี่",
+"File (CSV, or the registrar's .xls report)": "ไฟล์ (CSV หรือรายงาน .xls จากระบบทะเบียน)",
+"The .xls file could not be read. Open it in Excel and choose Save as → CSV UTF-8, then choose that .csv file here.": "อ่านไฟล์ .xls ไม่ได้ ให้เปิดใน Excel แล้วเลือก บันทึกเป็น → CSV UTF-8 จากนั้นเลือกไฟล์ .csv ที่นี่",
+"The files have different columns, so they cannot be imported together. Import them one at a time.": "ไฟล์มีคอลัมน์ไม่เหมือนกัน จึงนำเข้าพร้อมกันไม่ได้ ให้นำเข้าทีละไฟล์",
+"The registrar’s .xls report can be chosen as it is": "เลือกรายงาน .xls จากระบบทะเบียนได้เลย",
+"one file or several at once (the reports of different years of entry). Each programme block gives the faculty, programme, level, year of entry, campus and adviser; the year of study is worked out from the year of entry, and the card code (RFID) is read when the report has one.": "จะเลือกหนึ่งไฟล์หรือหลายไฟล์พร้อมกันก็ได้ (รายงานของแต่ละปีที่เข้า) แต่ละบล็อกสาขาให้คณะ สาขา ระดับ ปีที่เข้า วิทยาเขต และอาจารย์ที่ปรึกษา ชั้นปีคำนวณจากปีที่เข้า และอ่านรหัสบัตร (RFID) ถ้ารายงานมี",
 }
