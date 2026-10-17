@@ -89,6 +89,10 @@ add_action( 'customize_register', 'mcupr_customize_register_extra', 20 );
 /** Slides 2 and 3 that have a photo: array of array( image, title, sub, btn, url ). */
 function mcupr_hero_extra_slides() {
 	$out = array();
+	$ids = array_filter( array( (int) get_theme_mod( 'mcupr_hero2_image', 0 ), (int) get_theme_mod( 'mcupr_hero3_image', 0 ) ) );
+	if ( count( $ids ) > 1 ) {
+		_prime_post_caches( $ids, false, true ); // both pictures in two queries, not two each
+	}
 	foreach ( array( 2, 3 ) as $n ) {
 		$img = (int) get_theme_mod( "mcupr_hero{$n}_image", 0 );
 		if ( $img && wp_get_attachment_image_src( $img, 'mcupr-hero' ) ) {
