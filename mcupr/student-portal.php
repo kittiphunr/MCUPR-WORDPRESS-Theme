@@ -26,6 +26,8 @@ $mcupr_errs = array(
 	'pwcur'   => 'stu_pw_cur_bad',
 	'pwshort' => 'stu_pw_short',
 	'pwsame'  => 'stu_pw_same',
+	'card'    => 'stu_card_bad',
+	'cardnone' => 'stu_card_none',
 	'sso'     => 'stu_sso_bad',
 	'ssonone' => 'stu_sso_none',
 	'ssowait' => 'stu_wait',
@@ -48,6 +50,10 @@ get_template_part( 'template-parts/band', null, array( 'title' => esc_html( mcup
 					<?php if ( '' !== $mcupr_to ) : ?><input type="hidden" name="redirect_to" value="<?php echo esc_url( $mcupr_to ); ?>"><?php endif; ?>
 					<p><label for="stu-log"><?php mcupr_e( 'stu_id' ); ?></label><input id="stu-log" type="text" name="log" autocomplete="username" autocapitalize="off" required></p>
 					<p><label for="stu-pwd"><?php mcupr_e( 'stu_pass' ); ?></label><input id="stu-pwd" type="password" name="pwd" autocomplete="current-password" required></p>
+					<?php if ( mcupr_card_required() ) : ?>
+						<p class="stu-card-f"><label for="stu-rfid"><?php mcupr_e( 'stu_card_tap' ); ?></label><input id="stu-rfid" type="password" name="rfid" inputmode="none" autocomplete="off" maxlength="10" data-card-typing="<?php echo mcupr_card_opts()['typing'] ? '1' : '0'; ?>" data-card-msg="<?php echo esc_attr( mcupr_t( 'stu_card_typed' ) ); ?>" aria-describedby="stu-rfid-h"><span id="stu-rfid-h" class="stu-help" role="status"></span></p>
+						<p class="stu-card-f"><label for="stu-idc"><?php mcupr_e( 'stu_card_idc' ); ?></label><input id="stu-idc" type="password" name="idc" inputmode="numeric" autocomplete="off" maxlength="13" pattern="[0-9]{13}"></p>
+					<?php endif; ?>
 					<p class="stu-check"><label><input type="checkbox" name="rememberme" value="1"> <?php mcupr_e( 'stu_remember' ); ?></label></p>
 					<p><button type="submit" class="btn"><?php mcupr_e( 'stu_login' ); ?></button></p>
 				</form>
