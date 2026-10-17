@@ -752,11 +752,15 @@ function mcupr_si_run( $token ) {
 			$s['present'][] = (int) $id;
 		}
 		if ( $id && in_array( $res, array( 'added', 'updated', 'unchanged' ), true ) ) {
+			// a card code or ID number already set on the record is kept: the file only fills what is empty (the central copy of the ID number stays in step with its hash)
+			if ( '' !== (string) get_post_meta( $id, MCUPR_CARD_IDC, true ) ) {
+				unset( $c['row']['_s']['idcard'] );
+			}
 			if ( mcupr_sp_store( $id, $c['row'] ) && 'unchanged' === $res ) {
 				$res = 'updated'; // only the details from the central file were new
 			}
 			foreach ( array( '_rfid' => MCUPR_CARD_RFID, '_idcard' => MCUPR_CARD_IDC ) as $rk => $mk ) {
-				if ( ! empty( $c['row'][ $rk ] ) && (string) get_post_meta( $id, $mk, true ) !== $c['row'][ $rk ] ) {
+				if ( ! empty( $c['row'][ $rk ] ) && '' === (string) get_post_meta( $id, $mk, true ) ) {
 					update_post_meta( $id, $mk, $c['row'][ $rk ] );
 					if ( '_rfid' === $rk ) {
 						mcupr_si_rfid_owner( $c['row'][ $rk ], $id );
