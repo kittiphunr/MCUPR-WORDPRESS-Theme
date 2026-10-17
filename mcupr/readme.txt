@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.49.0 =
+* E-book: the admin chooses how the pages turn (site and per book); the visitor's effect button is gone.
+
 = 1.48.0 =
 * E-book (WebGL): lifting corner, spring paper, book thickness, hard covers, new page sounds.
 
