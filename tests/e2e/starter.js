@@ -2087,7 +2087,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await vp.goto(B + '/?mcupr_request=1');
     await vp.fill('#rq-code', pcode);
     await vp.fill('#rq-who', 'someone-else@example.org');
-    await vp.click('.stu-form button[type=submit]');
+    await Promise.all([vp.waitForNavigation(), vp.click('.stu-form button[type=submit]')]); // (counted before the page came back: flaky)
     ok(await vp.locator('.stu-note-err').count() === 1 && await vp.locator('#rq-result').count() === 0, 'requests: a wrong e-mail shows nothing, only one clear message');
     await vp.fill('#rq-code', pcode);
     await vp.fill('#rq-who', 'GUEST-rq@example.org');
