@@ -26,6 +26,9 @@ $mcupr_errs = array(
 	'pwcur'   => 'stu_pw_cur_bad',
 	'pwshort' => 'stu_pw_short',
 	'pwsame'  => 'stu_pw_same',
+	'sso'     => 'stu_sso_bad',
+	'ssonone' => 'stu_sso_none',
+	'ssowait' => 'stu_wait',
 );
 get_template_part( 'template-parts/band', null, array( 'title' => esc_html( mcupr_t( 'stu_portal' ) ), 'description' => '', 'chips' => false ) );
 ?>
@@ -48,6 +51,7 @@ get_template_part( 'template-parts/band', null, array( 'title' => esc_html( mcup
 					<p class="stu-check"><label><input type="checkbox" name="rememberme" value="1"> <?php mcupr_e( 'stu_remember' ); ?></label></p>
 					<p><button type="submit" class="btn"><?php mcupr_e( 'stu_login' ); ?></button></p>
 				</form>
+				<?php if ( mcupr_sso_ready() ) : ?><p class="stu-sso"><a class="btn stu-btn2" href="<?php echo esc_url( mcupr_sso_start_url() ); ?>"><?php mcupr_e( 'stu_sso' ); ?></a></p><?php endif; ?>
 			</section>
 			<section class="stu-card" aria-labelledby="stu-first-t">
 				<h2 id="stu-first-t"><?php mcupr_e( 'stu_first' ); ?></h2>
