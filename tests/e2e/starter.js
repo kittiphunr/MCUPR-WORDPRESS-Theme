@@ -2656,6 +2656,24 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     phpX(cleanX);
     await xc.close();
   }
+  // ---------- the mega menu of the page you are on: the panel must still span the header (a filter on the capsule had squeezed it to the capsule's width)
+  {
+    for (const w of [1100, 1366, 1920]) {
+      const mc = await br.newContext({ viewport: { width: w, height: 800 }, reducedMotion: 'reduce' });
+      await mc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+      const mp = await mc.newPage();
+      await mp.goto(B + '/');
+      await Promise.all([mp.waitForNavigation(), mp.click('.site-nav .menu > li.mcupr-mega > a')]); // now this section is "the page you are on"
+      const tg = await mp.$('.site-nav .menu > li.mcupr-mega > .submenu-toggle');
+      const bb = await tg.boundingBox();
+      await mp.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
+      await tg.click();
+      await mp.waitForTimeout(300);
+      const m = await mp.evaluate(() => { const li = document.querySelector('.site-nav .menu > li.mcupr-mega'); const s = li.querySelector(':scope > .sub-menu'); const b = s.getBoundingClientRect(); const h = document.querySelector('.site-header').getBoundingClientRect(); const items = [...s.querySelectorAll(':scope > li > a')].map((a) => a.getBoundingClientRect().width); return { cur: /current-menu/.test(li.className), open: li.classList.contains('is-open'), filter: getComputedStyle(li).filter, w: b.width, hw: h.width, minHead: Math.min.apply(null, items) }; });
+      ok(m.cur && m.open && m.filter === 'none' && m.w > m.hw * 0.8 && m.minHead > 120, 'mega menu of the current section at ' + w + ' px: opens as wide as the header, column headings are readable (panel ' + Math.round(m.w) + ' of ' + Math.round(m.hw) + ' px, narrowest heading ' + Math.round(m.minHead) + ' px, filter ' + m.filter + ')');
+      await mc.close();
+    }
+  }
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
   {
     const { execSync } = require('child_process');
