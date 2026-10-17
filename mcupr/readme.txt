@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.47.2 =
+* Re-import keeps card code and ID number already set.
+
 = 1.47.1 =
 * National ID number box shows and syncs the central number.
 
