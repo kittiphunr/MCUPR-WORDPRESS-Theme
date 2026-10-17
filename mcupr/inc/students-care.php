@@ -52,6 +52,8 @@ function mcupr_audit_actions() {
 		'link'     => __( 'Showed the link to set a password', 'mcupr' ),
 		'drop'     => __( 'Deleted a login account', 'mcupr' ),
 		'settings' => __( 'Changed the student portal settings', 'mcupr' ),
+		'sso'      => __( 'A student signed in with the Google account', 'mcupr' ),
+		'ssofail'  => __( 'A sign-in with the Google account was refused', 'mcupr' ),
 		'sgimport' => __( 'Imported schedule or grades', 'mcupr' ),
 		'sgdrop'   => __( 'Deleted the schedule or grades of a term', 'mcupr' ),
 		'sgview'   => __( 'Opened the schedule and grades of a student', 'mcupr' ),
