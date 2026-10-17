@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.47.1 =
+* National ID number box shows and syncs the central number.
+
 = 1.47.0 =
 * Student details from the university's central file (86 columns): import as it is, encrypted sensitive fields, codes to names table, labels, the student's own view.
 
