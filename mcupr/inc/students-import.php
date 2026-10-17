@@ -63,7 +63,7 @@ function mcupr_si_utf8( $raw ) {
 			if ( $b < 0x80 ) {
 				$out .= $raw[ $i ];
 			} elseif ( $b >= 0xA1 && $b <= 0xFB ) {
-				$out .= mb_chr( 0x0E01 + $b - 0xA1, 'UTF-8' );
+				$out .= html_entity_decode( '&#' . ( 0x0E01 + $b - 0xA1 ) . ';', ENT_QUOTES, 'UTF-8' ); // (mb_chr needs PHP 7.2)
 			} elseif ( isset( $extra[ $b ] ) ) {
 				$out .= $extra[ $b ];
 			} elseif ( 0xA0 === $b ) {
@@ -98,7 +98,7 @@ function mcupr_si_parse( $text ) {
 	$fh = fopen( 'php://temp', 'r+' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	fwrite( $fh, $text ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	rewind( $fh );
-	$head = fgetcsv( $fh, 0, $best, '"', '' );
+	$head = fgetcsv( $fh, 0, $best, '"', mcupr_csv_escape() );
 	if ( ! is_array( $head ) ) {
 		fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		return new WP_Error( 'empty', 'empty' );
@@ -128,7 +128,7 @@ function mcupr_si_parse( $text ) {
 	}
 	$rows = array();
 	$line = 1;
-	while ( false !== ( $r = fgetcsv( $fh, 0, $best, '"', '' ) ) ) { // phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition
+	while ( false !== ( $r = fgetcsv( $fh, 0, $best, '"', mcupr_csv_escape() ) ) ) { // phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition
 		$line++;
 		if ( 1 === count( $r ) && ( null === $r[0] || '' === trim( (string) $r[0] ) ) ) {
 			continue; // an empty line
@@ -325,7 +325,13 @@ function mcupr_si_page() {
 	if ( isset( $_GET['err'] ) ) {
 		$e = sanitize_key( wp_unslash( $_GET['err'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$t = array( 'file' => __( 'No file was uploaded (or it is bigger than 5 MB).', 'mcupr' ), 'empty' => __( 'The file is empty.', 'mcupr' ), 'excel' => __( 'This is an Excel file (.xls / .xlsx), which cannot be imported as it is. Open it in Excel and choose Save as → CSV UTF-8, then choose that .csv file here.', 'mcupr' ), 'pdf' => __( 'This is a PDF, not a spreadsheet. Choose a .csv file.', 'mcupr' ), 'columns' => __( 'The first line must name the columns, and there must be a student ID column (รหัสนิสิต) and a name column (ชื่อ-สกุล).', 'mcupr' ), 'big' => __( 'The file has too many rows (20,000 at most). Split it in parts.', 'mcupr' ), 'gone' => __( 'That import has expired. Upload the file again.', 'mcupr' ) );
-		echo '<div class="notice notice-error"><p>' . esc_html( isset( $t[ $e ] ) ? $t[ $e ] : $e ) . '</p></div>';
+		echo '<div class="notice notice-error"><p>' . esc_html( isset( $t[ $e ] ) ? $t[ $e ] : $e ) . '</p>';
+		$dg = get_transient( 'mcupr_si_diag_' . get_current_user_id() );
+		if ( is_array( $dg ) && in_array( $e, array( 'empty', 'columns' ), true ) ) {
+			/* translators: 1: size in bytes, 2: PHP version, 3: the first line of the file */
+			echo '<p class="description">' . esc_html( sprintf( __( 'What the website saw: %1$d bytes, PHP %2$s. First line: “%3$s”', 'mcupr' ), $dg['size'], $dg['php'], $dg['head'] ) ) . '</p>';
+		}
+		echo '</div>';
 	}
 	if ( 'preview' === $step && $token ) {
 		mcupr_si_preview( $token );
@@ -405,6 +411,9 @@ add_action(
 		}
 		$p = mcupr_si_parse( $text );
 		if ( is_wp_error( $p ) ) {
+			// what was seen, so that "the file is empty" can be understood: size, PHP, the first line (the column names only)
+			$first = (string) strtok( str_replace( array( "\r\n", "\r" ), "\n", mcupr_si_utf8( $text ) ), "\n" );
+			set_transient( 'mcupr_si_diag_' . get_current_user_id(), array( 'size' => strlen( $text ), 'php' => PHP_VERSION, 'head' => mb_substr( sanitize_text_field( $first ), 0, 200 ), 'why' => (string) $p->get_error_message() ), 10 * MINUTE_IN_SECONDS );
 			wp_safe_redirect( mcupr_si_url( array( 'err' => $p->get_error_code() ) ) );
 			exit;
 		}
@@ -609,7 +618,7 @@ function mcupr_si_csv_out( $filename, $rows ) {
 	echo "\xEF\xBB\xBF"; // so that Excel reads Thai
 	$out = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	foreach ( $rows as $r ) {
-		fputcsv( $out, array_map( 'mcupr_si_cell', $r ), ',', '"', '' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		fputcsv( $out, array_map( 'mcupr_si_cell', $r ), ',', '"', mcupr_csv_escape() ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	}
 	fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	exit;
