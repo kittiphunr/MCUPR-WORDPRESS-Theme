@@ -2126,6 +2126,124 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     phpR('wp_set_current_user(1); foreach(get_posts(array("post_type"=>array("mcupr_fe","mcupr_fb","page"),"post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_key"=>"_mcupr_rq_e2e")) as $x){wp_delete_post($x,true);} foreach(get_posts(array("post_type"=>"mcupr_fe","post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_key"=>"_mcupr_rq_code")) as $x){wp_delete_post($x,true);} foreach(array("rqe2e1","rqe2e2") as $l){ $u=get_user_by("login",$l); if($u){ $sid=(int)get_user_meta($u->ID,"mcupr_student_id",true); if($sid){wp_delete_post($sid,true);} wp_delete_user($u->ID);} }');
     await rb.close(); await rb2.close(); await ac.close();
   }
+  // ---------- e-mail to students (2D): the admin page (choose who, check, send, stop) and the "no more announcements" page
+  {
+    const { execSync } = require('child_process');
+    const fsM = require('fs');
+    const wpLoadM = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+    const fxM = require('path').resolve(__dirname, '../fixtures') + '/';
+    const phpM = (code) => { const f = require('os').tmpdir() + '/e2e-mail-' + process.pid + '.php'; fsM.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wpLoadM) + '; ' + code); return execSync('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const clean = 'wp_set_current_user(1); foreach(get_posts(array("post_type"=>"mcupr_student","post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_key"=>"_mcupr_me2e")) as $x){wp_delete_post($x,true);} foreach(get_posts(array("post_type"=>"mcupr_mailjob","post_status"=>"any","numberposts"=>-1,"fields"=>"ids")) as $x){mcupr_mail_att_delete(mcupr_mail_job($x)["att"]); wp_delete_post($x,true);} delete_option("mcupr_mail_tpls");';
+    const ids = JSON.parse(phpM(clean + `
+      $mk=function($sid,$name,$o=array()){ $r=array_merge(array("sid"=>$sid,"name"=>$name,"name_en"=>"","level"=>"bachelor","year"=>"1","entry"=>"2567","faculty"=>"คณะพุทธศาสตร์","major"=>"พุทธศาสตร์","status"=>"studying","email"=>$sid."@mail-e2e.example.org","phone"=>"","note"=>""),$o); list(,$id)=mcupr_student_upsert($r,"add_update"); update_post_meta($id,"_mcupr_me2e",1); return $id; };
+      $a=$mk("7701","นิสิต เมลหนึ่ง"); $b=$mk("7702","นิสิต เมลสอง"); $c=$mk("7703","นิสิต เมลสาม",array("level"=>"master","faculty"=>"คณะครุศาสตร์","major"=>"การสอน"));
+      echo json_encode(array($a,$b,$c, mcupr_mail_unsub_url($a)));`));
+    const unsubUrl = ids[3];
+    const mc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const mp = await mc.newPage();
+    const merr = [];
+    mp.on('pageerror', (e) => merr.push(e.message));
+    await mp.goto(B + '/wp-login.php');
+    await mp.fill('#user_login', 'e2eadmin'); await mp.fill('#user_pass', 'e2e-Admin-pass-1'); await mp.click('#wp-submit');
+    await mp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    await mp.goto(B + '/wp-admin/admin.php?page=mcupr-student-mail');
+    ok(await mp.locator('#mm-subject').count() === 1 && await mp.locator('#mm-aud input[name="mcupr_aud_levels[]"]').count() >= 2, 'e-mail to students: the page has the subject, the message and the same ticking of who as students-only content');
+    // check: tick Master -> 1 student
+    await mp.fill('#mm-subject', 'ประกาศทดสอบ E2E');
+    await mp.fill('#mm-body', 'สวัสดี {name}\nนี่คือข้อความทดสอบ');
+    await mp.check('#mm-aud input[name="mcupr_aud_levels[]"][value="master"]');
+    await mp.click('#mm-preview');
+    await mp.waitForFunction(() => /^(Will|จะ)/.test(document.getElementById('mm-preview-out').textContent.trim()) || /\d/.test(document.getElementById('mm-preview-out').textContent), null, { timeout: 15000 });
+    const prev = await mp.locator('#mm-preview-out').innerText();
+    const smp = await mp.locator('#mm-sample').innerText();
+    ok(/(^|\D)1(\D|$)/.test(prev) && /นิสิต เมลสาม/.test(smp) && /mcupr_unsub=/.test(smp), 'e-mail to students: "check" says how many get it and shows the first e-mail with the name and the stop link');
+    // template
+    await mp.fill('#mm-tplname', 'แม่แบบ E2E');
+    await Promise.all([mp.waitForNavigation(), mp.click('button[name=do][value=tpl]')]);
+    ok(await mp.locator('#mm-tpl option:has-text("แม่แบบ E2E")').count() === 1, 'e-mail to students: a saved template is offered');
+    await mp.fill('#mm-subject', ''); await mp.fill('#mm-body', '');
+    await mp.selectOption('#mm-tpl', { label: 'แม่แบบ E2E' });
+    ok((await mp.inputValue('#mm-subject')) === 'ประกาศทดสอบ E2E' && /นี่คือข้อความทดสอบ/.test(await mp.inputValue('#mm-body')), 'e-mail to students: choosing the template fills the subject and the message');
+    // not checked -> refused
+    await mp.check('#mm-aud input[name="mcupr_aud_levels[]"][value="master"]');
+    await Promise.all([mp.waitForNavigation(), mp.click('button[name=do][value=send]')]);
+    ok(await mp.locator('.notice-error').count() >= 1 && (await mp.locator('#mm-subject').inputValue()) === 'ประกาศทดสอบ E2E', 'e-mail to students: without "I have checked" nothing is sent, the text is kept');
+    ok(phpM('echo count(get_posts(array("post_type"=>"mcupr_mailjob","post_status"=>"any","numberposts"=>-1,"fields"=>"ids")));') === '0', 'e-mail to students: and no job was made');
+    // a text file called .pdf is refused
+    fsM.writeFileSync(require('os').tmpdir() + '/fake.pdf', 'not a pdf');
+    await mp.check('#mm-aud input[name="mcupr_aud_levels[]"][value="master"]');
+    await mp.check('input[name=checked]');
+    await mp.setInputFiles('#mm-att', require('os').tmpdir() + '/fake.pdf');
+    await Promise.all([mp.waitForNavigation(), mp.click('button[name=do][value=send]')]);
+    ok(/PDF/.test(await mp.locator('.notice-error').first().innerText()), 'e-mail to students: a text file called .pdf is refused');
+    // send for real (later, so the cron does not take it before we look), with a PDF
+    await mp.check('#mm-aud input[name="mcupr_aud_levels[]"][value="master"]');
+    await mp.check('input[name=checked]');
+    await mp.setInputFiles('#mm-att', fxM + 'book.pdf');
+    const when = await mp.evaluate(() => { const d = new Date(Date.now() + 3 * 3600 * 1000); const p = (n) => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()); });
+    await mp.fill('#mm-at', when);
+    await Promise.all([mp.waitForNavigation(), mp.click('button[name=do][value=send]')]);
+    ok(await mp.locator('.notice-success').count() >= 1 && await mp.locator('tr[data-job]').count() === 1, 'e-mail to students: a message for later is accepted and listed (' + (await mp.locator('tr[data-job] .mm-st').first().innerText()) + ')');
+    ok(/0 \/ 1/.test(await mp.locator('tr[data-job] .mm-sent').first().innerText()), 'e-mail to students: the list says 0 of 1 sent, and the job waits for its time');
+    const att = phpM('$j=get_posts(array("post_type"=>"mcupr_mailjob","post_status"=>"any","numberposts"=>1,"fields"=>"ids")); $m=mcupr_mail_job($j[0]); echo is_file(mcupr_mail_att_path($m["att"]))?"file":"nofile"," ",$m["status"];');
+    ok(att === 'file scheduled', 'e-mail to students: the attachment is kept and the job is "scheduled" (' + att + ')');
+    const direct = await mp.request.get(B + '/wp-content/uploads/mcupr-mail/index.php');
+    ok(direct.status() !== 200 || (await direct.text()).trim() === '', 'e-mail to students: the attachment folder shows nothing');
+    // stop it
+    await Promise.all([mp.waitForNavigation(), mp.click('tr[data-job] form button')]);
+    ok(await mp.locator('tr[data-job] form').count() === 0 && phpM('$j=get_posts(array("post_type"=>"mcupr_mailjob","post_status"=>"any","numberposts"=>1,"fields"=>"ids")); echo mcupr_mail_job($j[0])["status"];') === 'cancelled', 'e-mail to students: "Stop" cancels it');
+    // the limit
+    await mp.fill('#mm-cap', '7');
+    await Promise.all([mp.waitForNavigation(), mp.click('#mm-cap ~ button')]);
+    ok((await mp.inputValue('#mm-cap')) === '7', 'e-mail to students: the limit per hour is saved');
+    await mp.fill('#mm-cap', '100'); await Promise.all([mp.waitForNavigation(), mp.click('#mm-cap ~ button')]);
+    // an editor cannot open the page
+    // the page for the student
+    const sc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    const up = await sc.newPage();
+    const uerr = [];
+    up.on('pageerror', (e) => uerr.push(e.message));
+    await up.goto(unsubUrl);
+    ok(await up.locator('.stu-form button').count() === 1 && /\*\*\*@mail-e2e/.test(await up.locator('.stu-intro').innerText()) && !/7701@mail-e2e/.test(await up.content()), 'unsubscribe page: opening the link shows a button and a hidden address, it changes nothing');
+    ok(phpM('echo get_post_meta(' + ids[0] + ',"_mcupr_s_nomail",true)===""?"none":"stopped";') === 'none', 'unsubscribe page: and nothing was changed by opening it');
+    await Promise.all([up.waitForNavigation(), up.click('.stu-form button')]);
+    ok(await up.locator('[role=status]').count() === 1 && phpM('echo get_post_meta(' + ids[0] + ',"_mcupr_s_nomail",true)===""?"none":"stopped";') === 'stopped', 'unsubscribe page: the button stops announcements and says so');
+    ok(phpM('echo count(mcupr_mail_recipients(array())["ids"]) . " " . mcupr_mail_recipients(array())["stopped"];') === '2 1', 'unsubscribe page: that student is no longer in the list of who gets it');
+    await Promise.all([up.waitForNavigation(), up.click('.stu-form button')]);
+    ok(phpM('echo get_post_meta(' + ids[0] + ',"_mcupr_s_nomail",true)===""?"none":"stopped";') === 'none', 'unsubscribe page: the student can start announcements again');
+    await up.goto(B + '/?mcupr_unsub=1.' + 'a'.repeat(32));
+    ok(await up.locator('.stu-note-err').count() === 1 && await up.locator('.stu-form').count() === 0, 'unsubscribe page: a wrong link shows one clear message and no button');
+    await up.goto(unsubUrl);
+    ok(/noindex/.test(await up.locator('meta[name=robots]').getAttribute('content')), 'unsubscribe page: search engines are told to stay out');
+    for (const w of [390, 320]) {
+      await up.setViewportSize({ width: w, height: 800 });
+      await up.goto(unsubUrl);
+      const m = await up.evaluate(() => ({ hs: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, h: document.querySelector('.stu-form button').getBoundingClientRect().height }));
+      ok(!m.hs && m.h >= 40, 'unsubscribe page: fits a ' + w + ' px screen (no sideways scroll, button at least 40 px)');
+    }
+    await up.setViewportSize({ width: 1280, height: 900 });
+    await up.addScriptTag({ content: axeSource() });
+    const axU = await up.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(axU.violations.length === 0, 'axe (unsubscribe page): ' + (axU.violations.map((v) => v.id + '(' + v.nodes.length + ')').join('; ') || '0 violations'));
+    for (const mode of ['wb', 'yb', 'by']) {
+      await up.evaluate((md) => document.documentElement.setAttribute('data-contrast', md), mode);
+      const bt = await up.evaluate(() => { const c = getComputedStyle(document.querySelector('.stu-form button')); return { b: parseFloat(c.borderTopWidth), fg: c.color, bg: c.backgroundColor }; });
+      ok(bt.fg !== bt.bg, 'unsubscribe page: high contrast ' + mode + ': the button text differs from its background');
+    }
+    // the admin page itself
+    await mp.goto(B + '/wp-admin/admin.php?page=mcupr-student-mail');
+    await mp.addScriptTag({ content: axeSource() });
+    const axA = await mp.evaluate(() => axe.run(document.getElementById('mcupr-mail-form'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+    ok(axA.violations.filter((v) => !['color-contrast'].includes(v.id)).length === 0, 'axe (e-mail form in the admin): ' + (axA.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    for (const w of [768, 390]) {
+      await mp.setViewportSize({ width: w, height: 900 });
+      await mp.goto(B + '/wp-admin/admin.php?page=mcupr-student-mail');
+      ok(await mp.evaluate(() => document.getElementById('mcupr-mail-form').scrollWidth <= document.getElementById('wpbody-content').clientWidth + 1), 'e-mail to students: the form fits a ' + w + ' px screen');
+    }
+    ok(merr.length === 0 && uerr.length === 0, 'e-mail to students: no script error' + (merr.concat(uerr).length ? ': ' + merr.concat(uerr).slice(0, 2).join(' | ') : ''));
+    phpM(clean);
+    await mc.close(); await sc.close();
+  }
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
   {
     const { execSync } = require('child_process');
