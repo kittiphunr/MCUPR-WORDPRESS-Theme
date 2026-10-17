@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.44.0 =
+* Students can sign in with the university Google account (Google Workspace, OpenID Connect).
+
 = 1.43.0 =
 * Fewer database queries per page: figure counts, options read on every page, featured images of lists.
 
