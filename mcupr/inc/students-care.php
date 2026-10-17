@@ -52,6 +52,7 @@ function mcupr_audit_actions() {
 		'link'     => __( 'Showed the link to set a password', 'mcupr' ),
 		'drop'     => __( 'Deleted a login account', 'mcupr' ),
 		'settings' => __( 'Changed the student portal settings', 'mcupr' ),
+		'profileview' => __( 'Opened the details from the central file of a student', 'mcupr' ),
 		'cardset'  => __( 'Set or removed the card code or national ID number of a student', 'mcupr' ),
 		'sso'      => __( 'A student signed in with the Google account', 'mcupr' ),
 		'ssofail'  => __( 'A sign-in with the Google account was refused', 'mcupr' ),
