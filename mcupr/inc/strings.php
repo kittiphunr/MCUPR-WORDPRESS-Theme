@@ -630,6 +630,8 @@ If you did not ask for this, you can ignore this message.', '您好 %1$s，已�
 	'stu_card_read' => array( 'อ่านบัตรแล้ว', 'Card read', '已读取卡片', 'カードを読み取りました' ),
 	'stu_card_bad' => array( 'รหัสบัตรหรือเลขบัตรประชาชนไม่ถูกต้อง ลองแตะบัตรใหม่ หรือติดต่อเจ้าหน้าที่', 'The card or national ID number is not right. Tap the card again, or contact the staff.', '卡片或身份证号不正确。请重新刷卡，或联系工作人员。', 'カードまたは国民IDが正しくありません。もう一度かざすか、担当者にご連絡ください。' ),
 	'stu_card_none' => array( 'ยังไม่มีรหัสบัตรหรือเลขบัตรประชาชนของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่', 'Your card code or national ID number is not in the system yet. Please contact the staff.', '系统中还没有您的卡号或身份证号。请联系工作人员。', 'カード情報または国民IDが未登録です。担当者にご連絡ください。' ),
+	'sp_mine' => array( 'รายละเอียดจากระบบส่วนกลาง', 'Details from the central system', '中央系统的详细资料', '中央システムの詳細情報' ),
+	'sp_note' => array( 'ข้อมูลจากระบบส่วนกลางของมหาวิทยาลัย เห็นได้เฉพาะคุณและเจ้าหน้าที่ทะเบียน เลขบัตรประชาชนและเลขพาสปอร์ตแสดงเฉพาะ 4 ตัวท้าย หากไม่ถูกต้อง โปรดติดต่อฝ่ายทะเบียน', 'From the university’s central system. Only you and the registrar’s staff can see it. The national ID and passport numbers show only their last four characters. If something is wrong, please contact the registrar.', '来自学校中央系统的资料，仅您本人和教务人员可见。身份证号和护照号仅显示末四位。如有错误，请联系教务处。', '大学の中央システムの情報です。本人と教務担当者のみが閲覧できます。国民IDとパスポート番号は下4桁のみ表示されます。誤りがある場合は教務課へご連絡ください。' ),
 	'rq_send' => array( 'ส่งคำร้อง', 'Send the request', '提交申请', '申請を送る' ),
 	'rq_file_hint' => array( 'ไฟล์ PDF, JPG หรือ PNG ขนาดไม่เกิน %s', 'PDF, JPG or PNG file, at most %s', 'PDF、JPG 或 PNG 文件，最大 %s', 'PDF・JPG・PNG ファイル（最大 %s）' ),
 	'rq_e_type' => array( 'ไฟล์ต้องเป็น PDF, JPG หรือ PNG', 'The file must be a PDF, JPG or PNG', '文件必须是 PDF、JPG 或 PNG', 'ファイルは PDF・JPG・PNG にしてください' ),
