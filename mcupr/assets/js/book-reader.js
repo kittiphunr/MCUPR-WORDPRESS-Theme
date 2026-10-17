@@ -132,23 +132,9 @@
 		var seq = [], seqOf = {}, media = cfg.media || [], mbar = $('[data-mbar]', el), modal = null, modalFrom = null;
 		var pdf = null, total = 0, pages = [], pf = null, ratio = 1.4, rendered = {}, queue = [], busy = false, lastW = 0;
 		var soundOn = false, flips = 0, lands = 0, userTurn = false;
-		/* how the page turns: light CSS 3D, WebGL (bends, light and shadow) or the classic page-flip library; the visitor's choice is remembered */
-		var fx = store('mcupr_bk_fx');
-		if (FXS.indexOf(fx) === -1) { fx = FXS.indexOf(cfg.fx) !== -1 ? cfg.fx : 'css3d'; }
+		/* how the page turns (light CSS 3D, WebGL that bends the page with light and shadow, or the classic page-flip library) is the choice of the admin: for the whole site, or for this book */
+		var fx = FXS.indexOf(cfg.fx) !== -1 ? cfg.fx : 'css3d';
 		if (fx === 'webgl' && !(window.mcuprBookEngines && window.mcuprBookEngines.supported.webgl)) { fx = 'css3d'; }
-		function fxLabel() {
-			var b = btn('fx');
-			if (b) { lbl(b, L.fx + ': ' + L['fx_' + fx]); }
-		}
-		if (btn('fx')) {
-			fxLabel();
-			btn('fx').addEventListener('click', function () {
-				var list = FXS.filter(function (k) { return k !== 'webgl' || (window.mcuprBookEngines && window.mcuprBookEngines.supported.webgl); });
-				var next = list[(list.indexOf(fx) + 1) % list.length];
-				store('mcupr_bk_fx', next);
-				location.reload(); // the page the reader is on is remembered, so it opens again where it was
-			});
-		}
 
 		function fail(msg) { status.textContent = msg || L.error; status.hidden = false; el.setAttribute('data-ready', 'error'); }
 
@@ -606,7 +592,7 @@
 					pf.loadFromHTML(pages);
 				} else { throw err; }
 			}
-			el.setAttribute('data-fx', fx); fxLabel();
+			el.setAttribute('data-fx', fx);
 			range.max = String(total); totalEl.textContent = total;
 			pf.on('flip', onFlip);
 			var meta = {}, ownLand = fx !== 'classic'; // our own engines tell when a page lands; the old library does not (its sound has the landing in it)
