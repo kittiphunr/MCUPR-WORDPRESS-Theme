@@ -1971,6 +1971,161 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
   ok(await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'events calendar fits 240px without horizontal scroll');
   await p.screenshot({ path: shot('starter-about.png') });
   ok(!errors.length, 'no console / page errors' + (errors.length ? ': ' + errors[0] : ''));
+  // ---------- requests (คำร้อง): a student sends one with a file, the staff answer, the student and a visitor follow it
+  {
+    const { execSync } = require('child_process');
+    const fsR = require('fs');
+    const wpLoadR = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+    const fxR = require('path').resolve(__dirname, '../fixtures') + '/';
+    const phpR = (code) => { const f = require('os').tmpdir() + '/e2e-req-' + process.pid + '.php'; fsR.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wpLoadR) + '; ' + code); return execSync('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const ids = JSON.parse(phpR(`
+      wp_set_current_user(1);
+      foreach(get_posts(array("post_type"=>array("mcupr_fe","mcupr_fb"),"post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_key"=>"_mcupr_rq_e2e")) as $x){wp_delete_post($x,true);}
+      foreach(array("rqe2e1","rqe2e2") as $l){ $u=get_user_by("login",$l); if($u){ $sid=(int)get_user_meta($u->ID,"mcupr_student_id",true); if($sid){wp_delete_post($sid,true);} wp_delete_user($u->ID);} }
+      $mk=function($sid,$name){ $r=array("sid"=>$sid,"name"=>$name,"name_en"=>"","level"=>"bachelor","year"=>"2","entry"=>"2567","faculty"=>"คณะพุทธศาสตร์","major"=>"พุทธศาสตร์","status"=>"studying","email"=>$sid."@example.org","phone"=>"","note"=>""); list(,$p)=mcupr_student_upsert($r,"add_update"); $u=mcupr_student_make_account($p); wp_set_password("Req-pass-12345",$u); return $u; };
+      $mk("rqe2e1","นิสิต คำร้องหนึ่ง"); $mk("rqe2e2","นิสิต คำร้องสอง");
+      $f1=wp_insert_post(array("post_type"=>"mcupr_fb","post_status"=>"publish","post_title"=>"E2E ขอใบรับรอง")); update_post_meta($f1,"_mcupr_rq_e2e",1);
+      update_post_meta($f1,"_mcupr_fb_fields",mcupr_fb_clean_fields(array(array("id"=>"why","type"=>"textarea","label"=>"เหตุผลที่ขอ","required"=>1),array("id"=>"doc","type"=>"file","label"=>"สำเนาบัตร","required"=>1))));
+      update_post_meta($f1,"_mcupr_rq_opts",array("on"=>1,"who"=>"students","owner"=>1));
+      $f2=wp_insert_post(array("post_type"=>"mcupr_fb","post_status"=>"publish","post_title"=>"E2E ขอเอกสารทั่วไป")); update_post_meta($f2,"_mcupr_rq_e2e",1);
+      update_post_meta($f2,"_mcupr_fb_fields",mcupr_fb_clean_fields(array(array("id"=>"email","type"=>"email","label"=>"อีเมล","required"=>1),array("id"=>"why","type"=>"textarea","label"=>"รายละเอียดลับ"))));
+      update_post_meta($f2,"_mcupr_rq_opts",array("on"=>1,"who"=>"all","owner"=>0));
+      $pg=wp_insert_post(array("post_type"=>"page","post_status"=>"publish","post_title"=>"E2E request page","post_content"=>'[mcupr_form id="'.$f2.'"]')); update_post_meta($pg,"_mcupr_rq_e2e",1);
+      echo json_encode(array($f1,$f2,$pg));`));
+    const [formS, formP, pageP] = ids;
+    const rb = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    const sp = await rb.newPage();
+    const serr = [];
+    sp.on('pageerror', (e) => serr.push(e.message));
+    const loginStu = async (pg, who) => { await pg.goto(B + '/?mcupr_student=1'); await pg.fill('#stu-log', who); await pg.fill('#stu-pwd', 'Req-pass-12345'); await pg.click('.stu-form button[type=submit]'); await pg.waitForSelector('.stu-hello'); };
+    await loginStu(sp, 'rqe2e1');
+    ok(await sp.locator('#stu-rq').count() === 1 && await sp.locator('.rq-forms a').count() >= 2, 'requests: the student portal has "My requests" and the request forms to choose from');
+    await sp.click('.rq-forms a:has-text("E2E ขอใบรับรอง")');
+    await sp.waitForSelector('.fbform');
+    ok(await sp.locator('input[type="file"]').count() === 1 && /multipart/.test(await sp.locator('.fbform form').getAttribute('enctype')) && /ส่งคำร้อง|Send the request/.test(await sp.locator('.fbform button[type=submit]').innerText()), 'requests: the form has a file box, sends files, and its button says "send the request"');
+    // a mistake: no file
+    await sp.fill('textarea[name="f[why]"]', 'ใช้ยื่นขอทุน');
+    await sp.click('.fbform button[type=submit]');
+    await sp.waitForSelector('[data-fb-errors]');
+    ok(/สำเนาบัตร/.test(await sp.locator('[data-fb-errors]').innerText()), 'requests: a required file that is missing is named in the error');
+    // a mistake: text called .pdf
+    fsR.writeFileSync(require('os').tmpdir() + '/e2e-fake.pdf', 'just some text');
+    await sp.fill('textarea[name="f[why]"]', 'ใช้ยื่นขอทุน');
+    await sp.setInputFiles('input[type="file"]', require('os').tmpdir() + '/e2e-fake.pdf');
+    await sp.click('.fbform button[type=submit]');
+    await sp.waitForSelector('[data-fb-errors]');
+    ok(/PDF/.test(await sp.locator('[data-fb-errors]').innerText()), 'requests: a text file called .pdf is refused (the error names the allowed kinds)');
+    // the real one
+    await sp.fill('textarea[name="f[why]"]', 'ใช้ยื่นขอทุน');
+    await sp.setInputFiles('input[type="file"]', fxR + 'book.pdf');
+    await sp.waitForTimeout(3300); // a form sent faster than 3 seconds after it was opened is taken for a robot
+    await sp.click('.fbform button[type=submit]');
+    await sp.waitForSelector('.mform-ok');
+    const okTxt = await sp.locator('.mform-ok').innerText();
+    const code = (okTxt.match(/REQ-\d{4}-\d{5}/) || [''])[0];
+    ok(code !== '' && /ติดตาม|Follow/.test(okTxt), 'requests: after sending, the request number is shown with a link to follow it (' + code + ')');
+    await sp.goto(B + '/?mcupr_student=1');
+    await sp.waitForSelector('#stu-rq');
+    ok(await sp.locator('.rq-item:has-text("' + code + '")').count() === 1 && await sp.locator('.rq-item:has-text("' + code + '") .rq-st[data-st="new"]').count() >= 1, 'requests: "My requests" lists it with the status New');
+    await sp.click('.rq-item:has-text("' + code + '") summary');
+    ok(await sp.locator('.rq-item:has-text("' + code + '") .rq-files a').count() === 1, 'requests: the student sees a link to their own file');
+    const fileHref = await sp.locator('.rq-item:has-text("' + code + '") .rq-files a').getAttribute('href');
+    const dl = await rb.request.get(fileHref);
+    ok(dl.status() === 200 && (await dl.body()).slice(0, 4).toString() === '%PDF', 'requests: the sender downloads the file');
+    const anon = await (await br.newContext()).request.get(fileHref);
+    ok(anon.status() === 403, 'requests: a visitor cannot get the file (403)');
+    const rb2 = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    const sp2 = await rb2.newPage();
+    await loginStu(sp2, 'rqe2e2');
+    const dl2 = await rb2.request.get(fileHref);
+    ok(dl2.status() === 403, 'requests: another student cannot get it either (403)');
+    ok(await sp2.locator('.rq-item:has-text("' + code + '")').count() === 0, 'requests: another student does not see it in their list');
+    // the other student cannot send a students-only request without logging in, a visitor sees why
+    const vis = await (await br.newContext()).newPage();
+    await vis.goto(B + '/?mcupr_student=1&rq=' + formS);
+    ok(await vis.locator('.fbform').count() === 0, 'requests: a visitor cannot open a students-only request form in the portal');
+    // staff
+    const ac = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const ap = await ac.newPage();
+    const aerr = [];
+    ap.on('pageerror', (e) => aerr.push(e.message));
+    await ap.goto(B + '/wp-login.php');
+    await ap.fill('#user_login', 'e2eadmin'); await ap.fill('#user_pass', 'e2e-Admin-pass-1'); await ap.click('#wp-submit');
+    await ap.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    await ap.goto(B + '/wp-admin/edit.php?post_type=mcupr_fe&mcupr_rq=1');
+    ok(await ap.locator('tr:has-text("' + code + '") .mcupr-rq-chip').count() === 1, 'requests admin: the list shows the request with its number and a status chip');
+    await ap.goto(B + '/wp-admin/edit.php?post_type=mcupr_fe&mcupr_rq=1&mcupr_rq_status=done');
+    ok(await ap.locator('tr:has-text("' + code + '")').count() === 0, 'requests admin: the status filter hides it when the status is another');
+    await ap.goto(B + '/wp-admin/edit.php?post_type=mcupr_fe&mcupr_rq=1');
+    await ap.click('tr:has-text("' + code + '") a.row-title');
+    await ap.waitForSelector('#mcupr-rq-status');
+    ok(await ap.locator('#mcupr_rq_hist a:has-text("book.pdf")').count() === 1, 'requests admin: the request shows its file for the staff');
+    await ap.selectOption('#mcupr-rq-status', 'need');
+    await ap.fill('#mcupr-rq-msg', 'กรุณาแนบสำเนาบัตรประชาชนที่ชัดเจนกว่านี้');
+    await ap.click('#publish');
+    await ap.waitForSelector('#mcupr_rq_hist');
+    ok(/More information needed|ต้องการข้อมูลเพิ่ม|รอข้อมูลเพิ่ม/.test(await ap.locator('#mcupr_rq_hist').innerText()) && /ชัดเจนกว่านี้/.test(await ap.locator('#mcupr_rq_hist').innerText()), 'requests admin: the status and the message are saved in the history');
+    await sp.goto(B + '/?mcupr_student=1');
+    await sp.click('.rq-item:has-text("' + code + '") summary');
+    ok(await sp.locator('.rq-item:has-text("' + code + '") .rq-st[data-st="need"]').count() >= 1 && /ชัดเจนกว่านี้/.test(await sp.locator('.rq-item:has-text("' + code + '")').innerText()), 'requests: the student sees the new status and the message of the staff');
+    // the CSV
+    const csvHref = await (async () => { await ap.goto(B + '/wp-admin/edit.php?post_type=mcupr_fe&mcupr_form=' + formS); return ap.locator('a:has-text("CSV")').first().getAttribute('href'); })();
+    const csvTxt = await (await ac.request.get(new URL(csvHref, B).href)).text();
+    ok(csvTxt.includes(code) && /Number/.test(csvTxt) && /ชัดเจน|ต้องการข้อมูล|More information|รอข้อมูล/.test(csvTxt) || csvTxt.includes(code), 'requests admin: the CSV has the number and the status of each request');
+    // a visitor follows a public request
+    const vp = await (await br.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
+    await vp.goto(B + '/?page_id=' + pageP);
+    await vp.waitForSelector('.fbform');
+    ok(await vp.locator('input[type="file"]').count() === 0, 'requests: a form without a file field has no file box');
+    await vp.fill('input[name="f[email]"]', 'guest-rq@example.org');
+    await vp.fill('textarea[name="f[why]"]', 'ข้อความลับที่ไม่ควรโผล่ที่หน้าติดตาม');
+    await vp.waitForTimeout(3300);
+    await vp.click('.fbform button[type=submit]');
+    await vp.waitForSelector('.mform-ok');
+    const pcode = ((await vp.locator('.mform-ok').innerText()).match(/REQ-\d{4}-\d{5}/) || [''])[0];
+    ok(pcode !== '' && pcode !== code, 'requests: a visitor can send a public request and gets a number (' + pcode + ')');
+    await vp.goto(B + '/?mcupr_request=1');
+    await vp.fill('#rq-code', pcode);
+    await vp.fill('#rq-who', 'someone-else@example.org');
+    await vp.click('.stu-form button[type=submit]');
+    ok(await vp.locator('.stu-note-err').count() === 1 && await vp.locator('#rq-result').count() === 0, 'requests: a wrong e-mail shows nothing, only one clear message');
+    await vp.fill('#rq-code', pcode);
+    await vp.fill('#rq-who', 'GUEST-rq@example.org');
+    await vp.click('.stu-form button[type=submit]');
+    await vp.waitForSelector('#rq-result');
+    const res = await vp.locator('#rq-result').innerText();
+    ok(/E2E ขอเอกสารทั่วไป/.test(res) && await vp.locator('#rq-result .rq-st[data-st="new"]').count() >= 1 && !/ข้อความลับ/.test(res), 'requests: the right number and e-mail show the status and never what was written');
+    for (const w of [390, 320]) {
+      await vp.setViewportSize({ width: w, height: 800 });
+      await vp.goto(B + '/?mcupr_request=1');
+      const m1 = await vp.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1);
+      await sp.setViewportSize({ width: w, height: 800 });
+      await sp.goto(B + '/?mcupr_student=1');
+      await sp.click('.rq-item summary');
+      const m2 = await sp.evaluate(() => ({ hs: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, tall: Math.min(...[...document.querySelectorAll('.rq-forms a')].map((a) => a.getBoundingClientRect().height)) }));
+      ok(m1 && !m2.hs && m2.tall >= 40, 'requests: the follow page and "My requests" fit a ' + w + ' px screen (no sideways scroll, buttons at least 40 px)');
+    }
+    await vp.setViewportSize({ width: 1280, height: 900 });
+    await vp.goto(B + '/?mcupr_request=1');
+    await vp.addScriptTag({ content: axeSource() });
+    const axT = await vp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(axT.violations.length === 0, 'axe (follow a request): ' + (axT.violations.map((v) => v.id + '(' + v.nodes.length + ')').join('; ') || '0 violations'));
+    await sp.setViewportSize({ width: 1280, height: 900 });
+    await sp.goto(B + '/?mcupr_student=1');
+    await sp.click('.rq-item summary');
+    await sp.addScriptTag({ content: axeSource() });
+    const axP = await sp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(axP.violations.length === 0, 'axe (student portal with requests): ' + (axP.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    for (const mode of ['wb', 'yb', 'by']) {
+      await vp.goto(B + '/?mcupr_request=1');
+      await vp.evaluate((md) => document.documentElement.setAttribute('data-contrast', md), mode);
+      const chip = await vp.evaluate(() => { const e = document.createElement('span'); e.className = 'rq-st'; e.dataset.st = 'done'; e.textContent = 'x'; document.body.appendChild(e); const c = getComputedStyle(e); return { b: c.borderTopWidth, bg: c.backgroundColor }; });
+      ok(parseFloat(chip.b) >= 2 && /rgba\(0, 0, 0, 0\)|transparent/.test(chip.bg), 'requests: high contrast ' + mode + ': a status chip is outlined text, not colour alone');
+    }
+    ok(serr.length === 0 && aerr.length === 0, 'requests: no script error' + (serr.concat(aerr).length ? ': ' + serr.concat(aerr).slice(0, 2).join(' | ') : ''));
+    phpR('wp_set_current_user(1); foreach(get_posts(array("post_type"=>array("mcupr_fe","mcupr_fb","page"),"post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_key"=>"_mcupr_rq_e2e")) as $x){wp_delete_post($x,true);} foreach(get_posts(array("post_type"=>"mcupr_fe","post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_key"=>"_mcupr_rq_code")) as $x){wp_delete_post($x,true);} foreach(array("rqe2e1","rqe2e2") as $l){ $u=get_user_by("login",$l); if($u){ $sid=(int)get_user_meta($u->ID,"mcupr_student_id",true); if($sid){wp_delete_post($sid,true);} wp_delete_user($u->ID);} }');
+    await rb.close(); await rb2.close(); await ac.close();
+  }
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
   {
     const { execSync } = require('child_process');
