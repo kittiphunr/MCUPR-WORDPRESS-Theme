@@ -242,6 +242,112 @@ function mcupr_si_binary_kind( $raw ) {
 	return 0 === strpos( $h, '%PDF' ) ? 'pdf' : '';
 }
 
+/** The current academic year (Buddhist era): the new year starts in June. */
+function mcupr_si_academic_year() {
+	$y = (int) mcupr_ev_fmt( 'Y', time() ) + 543 - ( (int) mcupr_ev_fmt( 'n', time() ) < 6 ? 1 : 0 ); // (wp_date would give the Buddhist year already)
+	return (int) apply_filters( 'mcupr_si_academic_year', $y );
+}
+
+/** A cell of an .xls as text: whole numbers without ".0", no stray spaces. */
+function mcupr_si_xls_cell( $v ) {
+	if ( is_float( $v ) || is_int( $v ) || ( is_string( $v ) && is_numeric( $v ) && false !== strpos( $v, '.' ) ) ) {
+		$f = (float) $v;
+		return floor( $f ) === $f && abs( $f ) < 1e15 ? number_format( $f, 0, '', '' ) : (string) $v;
+	}
+	return trim( preg_replace( '/\s+/u', ' ', str_replace( "\xC2\xA0", ' ', (string) $v ) ) );
+}
+
+/**
+ * The registrar's report (one block per programme: a line "คณะ : … / วิทยาเขต … / ภาคการศึกษาที่เข้า 1 / 2567 / สาขาวิชา : 6515011 พระพุทธศาสนา / ระดับ : …
+ * / ชื่ออาจารย์ที่ปรึกษา : …", then the students: number, student ID, name, …, card code) as the rows of the usual table, or null when the
+ * sheet is not such a report. The year of study is worked out from the year of entry.
+ */
+function mcupr_si_registrar_rows( $rows ) {
+	$head = array( 'รหัสนิสิต', 'ชื่อ-สกุล', 'ระดับ', 'ชั้นปี', 'ปีที่เข้า', 'คณะ', 'สาขา', 'สถานะ', 'หมายเหตุ', 'รหัสบัตร RFID' );
+	$out  = array( $head );
+	$ctx  = null;
+	$now  = mcupr_si_academic_year();
+	foreach ( $rows as $r ) {
+		$c = array_map( 'mcupr_si_xls_cell', array_pad( (array) $r, 15, '' ) );
+		$g = null;
+		foreach ( array_slice( $c, 0, 9 ) as $cell ) {
+			if ( preg_match( '/^คณะ\s*:\s*(.+)$/u', $cell, $m ) ) {
+				$g = array( 'fac' => trim( $m[1] ) );
+				break;
+			}
+		}
+		if ( null !== $g ) { // a block header
+			$all = implode( ' | ', array_slice( $c, 0, 9 ) );
+			preg_match( '/วิทยาเขต\s*([^|]*)/u', $all, $m1 );
+			preg_match( '/ภาคการศึกษาที่เข้า\s*\d*\s*\/\s*(\d{4})/u', $all, $m2 );
+			preg_match( '/สาขาวิชา\s*:\s*\d*\s*([^|]+)/u', $all, $m3 );
+			preg_match( '/ระดับ\s*:\s*([^|]+)/u', $all, $m4 );
+			preg_match( '/ชื่ออาจารย์ที่ปรึกษา\s*:\s*([^|]*)/u', $all, $m5 );
+			$g['campus'] = isset( $m1[1] ) ? trim( $m1[1] ) : '';
+			$g['entry']  = isset( $m2[1] ) ? $m2[1] : '';
+			$g['major']  = isset( $m3[1] ) ? trim( $m3[1] ) : '';
+			$g['level']  = isset( $m4[1] ) ? trim( $m4[1] ) : '';
+			$g['adv']    = isset( $m5[1] ) ? trim( $m5[1] ) : '';
+			$ctx         = $g;
+			continue;
+		}
+		if ( $ctx && preg_match( '/^\d+$/', $c[9] ) && preg_match( '/^[A-Za-z0-9\-]{4,20}$/', $c[10] ) && '' !== $c[11] ) { // a student of the block
+			$entry = (int) $ctx['entry'];
+			$note  = array();
+			if ( '' !== $ctx['campus'] ) {
+				$note[] = 'วิทยาเขต' . $ctx['campus'];
+			}
+			if ( '' !== $ctx['adv'] ) {
+				$note[] = 'อาจารย์ที่ปรึกษา: ' . $ctx['adv'];
+			}
+			$card  = mcupr_card_digits( $c[13] );
+			$out[] = array( $c[10], $c[11], $ctx['level'], $entry ? max( 1, $now - $entry + 1 ) : '', $ctx['entry'], $ctx['fac'], $ctx['major'], 'กำลังศึกษา', implode( ' · ', $note ), $card );
+		}
+	}
+	return $ctx && count( $out ) > 1 ? $out : null;
+}
+
+/** The text (CSV) of an .xls file – the registrar's report, or any table with the column names in the first row – or a WP_Error. */
+function mcupr_si_xls_to_csv( $bytes ) {
+	if ( ! class_exists( '\Shuchkin\SimpleXLS' ) ) {
+		require_once get_theme_file_path( 'inc/lib/SimpleXLS.php' );
+	}
+	$x = \Shuchkin\SimpleXLS::parseData( $bytes );
+	if ( ! $x ) {
+		return new WP_Error( 'xls', \Shuchkin\SimpleXLS::parseError() );
+	}
+	$rows = $x->rows( 0 );
+	$tab  = mcupr_si_registrar_rows( $rows );
+	if ( null === $tab ) {
+		$tab = array();
+		foreach ( $rows as $r ) {
+			$tab[] = array_map( 'mcupr_si_xls_cell', (array) $r );
+		}
+	}
+	$fh = fopen( 'php://temp', 'r+' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+	foreach ( $tab as $r ) {
+		fputcsv( $fh, $r, ',', '"', mcupr_csv_escape() ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+	}
+	rewind( $fh );
+	$text = (string) stream_get_contents( $fh );
+	fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+	return $text;
+}
+
+/** The files chosen in the form as a list of array( name, tmp, size ) (one box, several files). */
+function mcupr_si_posted_files() {
+	$out = array();
+	if ( empty( $_FILES['file'] ) || ! is_array( $_FILES['file'] ) || ! isset( $_FILES['file']['tmp_name'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		return $out;
+	}
+	$f = $_FILES['file']; // phpcs:ignore WordPress.Security
+	foreach ( (array) $f['tmp_name'] as $i => $tmp ) {
+		$err = is_array( $f['error'] ) ? $f['error'][ $i ] : $f['error'];
+		$out[] = array( 'name' => is_array( $f['name'] ) ? (string) $f['name'][ $i ] : (string) $f['name'], 'tmp' => $tmp, 'size' => (int) ( is_array( $f['size'] ) ? $f['size'][ $i ] : $f['size'] ), 'ok' => UPLOAD_ERR_OK === (int) $err );
+	}
+	return array_slice( $out, 0, 12 );
+}
+
 function mcupr_si_msg( $code ) {
 	$m = array(
 		'sid'     => __( 'Student ID is missing or not valid (4–20 letters, digits or dashes)', 'mcupr' ),
@@ -324,10 +430,10 @@ function mcupr_si_page() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	if ( isset( $_GET['err'] ) ) {
 		$e = sanitize_key( wp_unslash( $_GET['err'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$t = array( 'file' => __( 'No file was uploaded (or it is bigger than 5 MB).', 'mcupr' ), 'empty' => __( 'The file is empty.', 'mcupr' ), 'excel' => __( 'This is an Excel file (.xls / .xlsx), which cannot be imported as it is. Open it in Excel and choose Save as → CSV UTF-8, then choose that .csv file here.', 'mcupr' ), 'pdf' => __( 'This is a PDF, not a spreadsheet. Choose a .csv file.', 'mcupr' ), 'columns' => __( 'The first line must name the columns, and there must be a student ID column (รหัสนิสิต) and a name column (ชื่อ-สกุล).', 'mcupr' ), 'big' => __( 'The file has too many rows (20,000 at most). Split it in parts.', 'mcupr' ), 'gone' => __( 'That import has expired. Upload the file again.', 'mcupr' ) );
+		$t = array( 'file' => __( 'No file was uploaded (or it is bigger than 5 MB).', 'mcupr' ), 'empty' => __( 'The file is empty.', 'mcupr' ), 'excel' => __( 'An .xlsx file cannot be imported as it is. Open it in Excel and choose Save as → CSV UTF-8 (or Excel 97-2003 .xls), then choose that file here.', 'mcupr' ), 'xls' => __( 'The .xls file could not be read. Open it in Excel and choose Save as → CSV UTF-8, then choose that .csv file here.', 'mcupr' ), 'mixed' => __( 'The files have different columns, so they cannot be imported together. Import them one at a time.', 'mcupr' ), 'pdf' => __( 'This is a PDF, not a spreadsheet. Choose a .csv file.', 'mcupr' ), 'columns' => __( 'The first line must name the columns, and there must be a student ID column (รหัสนิสิต) and a name column (ชื่อ-สกุล).', 'mcupr' ), 'big' => __( 'The file has too many rows (20,000 at most). Split it in parts.', 'mcupr' ), 'gone' => __( 'That import has expired. Upload the file again.', 'mcupr' ) );
 		echo '<div class="notice notice-error"><p>' . esc_html( isset( $t[ $e ] ) ? $t[ $e ] : $e ) . '</p>';
 		$dg = get_transient( 'mcupr_si_diag_' . get_current_user_id() );
-		if ( is_array( $dg ) && in_array( $e, array( 'empty', 'columns' ), true ) ) {
+		if ( is_array( $dg ) && in_array( $e, array( 'empty', 'columns', 'xls' ), true ) ) {
 			/* translators: 1: size in bytes, 2: PHP version, 3: the first line of the file */
 			echo '<p class="description">' . esc_html( sprintf( __( 'What the website saw: %1$d bytes, PHP %2$s. First line: “%3$s”', 'mcupr' ), $dg['size'], $dg['php'], $dg['head'] ) ) . '</p>';
 		}
@@ -348,10 +454,11 @@ function mcupr_si_page() {
 function mcupr_si_start() {
 	$counts = mcupr_student_counts();
 	echo '<p style="max-width:62rem">' . esc_html__( 'Add or update many students at once from a spreadsheet saved as CSV (in Excel: Save as → CSV UTF-8). The first line names the columns, in Thai or English and in any order. Only the student ID and the name are required.', 'mcupr' ) . '</p>';
+	echo '<p style="max-width:62rem"><strong>' . esc_html__( 'The registrar’s .xls report can be chosen as it is', 'mcupr' ) . '</strong> – ' . esc_html__( 'one file or several at once (the reports of different years of entry). Each programme block gives the faculty, programme, level, year of entry, campus and adviser; the year of study is worked out from the year of entry, and the card code (RFID) is read when the report has one.', 'mcupr' ) . '</p>';
 	echo '<div class="sc"><div><b>' . (int) $counts['all'] . '</b>' . esc_html__( 'students in the database', 'mcupr' ) . '</div><div><b>' . (int) $counts['studying'] . '</b>' . esc_html__( 'studying', 'mcupr' ) . '</div><div><b>' . (int) $counts['accounts'] . '</b>' . esc_html__( 'with a login account', 'mcupr' ) . '</div></div>';
 	echo '<div class="card"><h2>' . esc_html__( '1. Choose the file', 'mcupr' ) . '</h2><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" enctype="multipart/form-data"><input type="hidden" name="action" value="mcupr_si_upload">';
 	wp_nonce_field( 'mcupr_si_upload', 'mcupr_si_nonce' );
-	echo '<p><label for="si-file"><strong>' . esc_html__( 'CSV file', 'mcupr' ) . '</strong></label><br><input id="si-file" type="file" name="file" accept=".csv,.txt,.tsv,text/csv,text/plain" required></p><fieldset><legend><strong>' . esc_html__( 'What to do with students already in the database (same student ID)', 'mcupr' ) . '</strong></legend>';
+	echo '<p><label for="si-file"><strong>' . esc_html__( 'File (CSV, or the registrar\'s .xls report)', 'mcupr' ) . '</strong></label><br><input id="si-file" type="file" name="file[]" multiple accept=".csv,.txt,.tsv,.xls,text/csv,text/plain,application/vnd.ms-excel" required></p><fieldset><legend><strong>' . esc_html__( 'What to do with students already in the database (same student ID)', 'mcupr' ) . '</strong></legend>';
 	foreach ( array( 'add_update' => __( 'Add the new and update the others (cells left empty keep what is there)', 'mcupr' ), 'add_only' => __( 'Add the new only; leave existing students as they are', 'mcupr' ), 'update_only' => __( 'Update existing students only; add nobody', 'mcupr' ) ) as $k => $label ) {
 		echo '<label style="display:block;margin:.25rem 0"><input type="radio" name="mode" value="' . esc_attr( $k ) . '"' . checked( 'add_update' === $k, true, false ) . '> ' . esc_html( $label ) . '</label>';
 	}
@@ -397,8 +504,45 @@ add_action(
 		if ( ! empty( $_POST['sample'] ) ) {
 			$f    = get_theme_file_path( 'starter/mcupr-students-sample.csv' );
 			$text = is_readable( $f ) ? (string) file_get_contents( $f ) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions
-		} elseif ( isset( $_FILES['file']['tmp_name'], $_FILES['file']['size'] ) && is_uploaded_file( $_FILES['file']['tmp_name'] ) && (int) $_FILES['file']['size'] > 0 && (int) $_FILES['file']['size'] <= 5 * MB_IN_BYTES ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-			$text = (string) file_get_contents( $_FILES['file']['tmp_name'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput, WordPress.WP.AlternativeFunctions
+		} else {
+			$parts = array();
+			$total = 0;
+			foreach ( mcupr_si_posted_files() as $pf ) {
+				if ( ! $pf['ok'] || $pf['size'] < 1 || $pf['size'] > 5 * MB_IN_BYTES || ! is_uploaded_file( $pf['tmp'] ) ) {
+					continue;
+				}
+				$total += $pf['size'];
+				$raw    = (string) file_get_contents( $pf['tmp'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+				if ( 0 === strpos( $raw, "\xD0\xCF\x11\xE0" ) ) { // an .xls: the registrar's report or a table
+					$raw = mcupr_si_xls_to_csv( $raw );
+					if ( is_wp_error( $raw ) ) {
+						set_transient( 'mcupr_si_diag_' . get_current_user_id(), array( 'size' => $pf['size'], 'php' => PHP_VERSION, 'head' => $pf['name'], 'why' => (string) $raw->get_error_message() ), 10 * MINUTE_IN_SECONDS );
+						wp_safe_redirect( mcupr_si_url( array( 'err' => 'xls' ) ) );
+						exit;
+					}
+				}
+				$parts[] = array( $pf['name'], $raw );
+			}
+			if ( count( $parts ) > 1 ) { // several files make one import: they must have the same columns
+				$text = '';
+				$h0   = null;
+				foreach ( $parts as $i => $pt ) {
+					$t    = str_replace( array( "\r\n", "\r" ), "\n", mcupr_si_utf8( $pt[1] ) );
+					$nl   = strpos( $t, "\n" );
+					$head = false === $nl ? $t : substr( $t, 0, $nl );
+					if ( 0 === $i ) {
+						$h0 = $head;
+					} elseif ( $head !== $h0 ) {
+						wp_safe_redirect( mcupr_si_url( array( 'err' => 'mixed' ) ) );
+						exit;
+					} else {
+						$t = false === $nl ? '' : substr( $t, $nl + 1 );
+					}
+					$text .= rtrim( $t, "\n" ) . "\n";
+				}
+			} elseif ( $parts ) {
+				$text = $parts[0][1];
+			}
 		}
 		if ( '' === $text ) {
 			wp_safe_redirect( mcupr_si_url( array( 'err' => 'file' ) ) );
