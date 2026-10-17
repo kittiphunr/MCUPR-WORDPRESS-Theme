@@ -94,6 +94,7 @@ get_template_part( 'template-parts/band', null, array( 'title' => esc_html( mcup
 				</form>
 			</section>
 		</div>
+		<?php echo mcupr_sg_portal_html( $mcupr_sid ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		<?php echo mcupr_rq_portal_html(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		<?php $mcupr_items = mcupr_aud_items( 30 ); ?>
 		<section class="stu-sec" aria-labelledby="stu-only-t">
