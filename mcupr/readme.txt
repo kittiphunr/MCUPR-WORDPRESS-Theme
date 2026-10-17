@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.42.0 =
+* Class schedule and grades in the student portal: CSV import per term, weekly schedule, calendar file, GPA/GPAX, print.
+
 = 1.41.0 =
 * E-mail to students in groups: choose who (levels, years, faculties), saved templates, scheduled send, attachment, background sending with an hourly limit, stop-announcements link.
 
