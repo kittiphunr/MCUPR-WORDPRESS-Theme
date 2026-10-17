@@ -2674,6 +2674,82 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await mc.close();
     }
   }
+  // ---------- the central student file: import as it is, codes → names, labels, the student's own details (sensitive ones masked), staff box
+  {
+    const { execSync } = require('child_process');
+    const fsC = require('fs');
+    const wpLoadC = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+    const fxC = require('path').resolve(__dirname, '../fixtures') + '/';
+    const phpC = (code) => { const f = require('os').tmpdir() + '/e2e-cen-' + process.pid + '.php'; fsC.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wpLoadC) + '; ' + code); return execSync('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const cleanC = 'wp_set_current_user(1); foreach(get_posts(array("post_type"=>"mcupr_student","post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_query"=>array("relation"=>"OR",array("key"=>"_mcupr_s_sid","value"=>"99100","compare"=>"LIKE"),array("key"=>"_mcupr_cen_e2e","compare"=>"EXISTS")))) as $x){ $u=(int)get_post_meta($x,"_mcupr_s_user",true); if($u){require_once ABSPATH."wp-admin/includes/user.php"; wp_delete_user($u);} wp_delete_post($x,true);} delete_option("mcupr_sp_codes");';
+    phpC(cleanC + '$r=array("sid"=>"CEN-OLD1","name"=>"นิสิต ไม่อยู่ในไฟล์","name_en"=>"","level"=>"bachelor","year"=>"1","entry"=>"2569","faculty"=>"ก","major"=>"ข","status"=>"studying","email"=>"","phone"=>"","note"=>""); list(,$p)=mcupr_student_upsert($r,"add_update"); update_post_meta($p,"_mcupr_cen_e2e",1);');
+    const cc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const cp = await cc.newPage();
+    const cerr = [];
+    cp.on('pageerror', (e) => cerr.push(e.message));
+    await cp.goto(B + '/wp-login.php');
+    await cp.fill('#user_login', 'e2eadmin'); await cp.fill('#user_pass', 'e2e-Admin-pass-1'); await cp.click('#wp-submit');
+    await cp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    await cp.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
+    await cp.setInputFiles('#si-file', fxC + 'central-sample.csv');
+    await Promise.all([cp.waitForNavigation(), cp.click('.card button.button-primary')]);
+    const pv = await cp.locator('.wrap').innerText();
+    ok(/step=preview/.test(cp.url()) && /\b4\b/.test(pv) && /5010999/.test(pv) && await cp.locator('input[name=mark_missing]').count() === 1, 'central import: the preview knows it is the central file, lists the programme code with no name, offers the "not in the central file" label');
+    ok(phpC('$s=""; foreach(glob(mcupr_si_dir()."/*.json") as $f){ $s.=file_get_contents($f); } echo (strpos($s,"1101700999998")===false&&strpos($s,"MI0000002")===false&&strpos($s,"คริสต์")===false)?"clean":"LEAK";') === 'clean', 'central import: the file kept for the preview holds the sensitive details only encrypted');
+    await Promise.all([cp.waitForNavigation(), cp.click('.wrap form button.button-primary')]);
+    await cp.waitForURL(/step=done/, { timeout: 30000 });
+    const st = phpC('$a=mcupr_student_find("6999100001"); $o=mcupr_student_find("5099100003"); $x=mcupr_student_find("CEN-OLD1"); echo get_the_title($a),"|",get_post_meta($a,"_mcupr_s_major",true),"|",get_post_meta($a,"_mcupr_s_year",true),"|",get_post_meta($o,"_mcupr_s_overdue",true),"|",get_post_meta($o,"_mcupr_s_year",true)===""?"noyear":"year","|",get_post_meta($x,"_mcupr_s_central",true);');
+    ok(/^พระตัวอย่างหนึ่ง ธมฺมสาโร\|พระพุทธศาสนา\|\d+\|1\|noyear\|0$/.test(st), 'central import: 4 students saved with composed name, programme from its code, label for the 2550 student, and “not in the central file” on the older record (' + st + ')');
+    ok(phpC('$m=json_encode(get_post_meta(mcupr_student_find("6999100001")),JSON_UNESCAPED_UNICODE); echo (strpos($m,"1101700999998")===false&&strpos($m,"2005-11-28")===false&&strpos($m,"วัดตัวอย่าง")!==false)?"ok":"plain";') === 'ok', 'central import: in the database the sensitive details are encrypted');
+    // the list shows the labels
+    await cp.goto(B + '/wp-admin/edit.php?post_type=mcupr_student');
+    ok(await cp.locator('td.mcs_labels:has-text("ไม่พบในไฟล์ส่วนกลาง"), td.mcs_labels:has-text("Not in the central file")').count() === 1 && await cp.locator('td.mcs_labels:has-text("เกินกำหนด"), td.mcs_labels:has-text("beyond"), td.mcs_labels:has-text("Beyond")').count() === 1, 'student list: the two labels are shown on the right students');
+    // codes → names
+    await cp.goto(B + '/wp-admin/admin.php?page=mcupr-student-codes');
+    ok(await cp.locator('input[name="program[5010999]"]').count() === 1 && (await cp.inputValue('input[name="program[6515011]"]')) === 'พระพุทธศาสนา', 'codes page: the code with no name is there, the known names are filled in');
+    await cp.fill('input[name="program[5010999]"]', 'สาขาตัวอย่างใหม่');
+    await cp.click('form button.button-primary'); await cp.waitForURL(/applied=/);
+    ok(/applied=1/.test(cp.url()) && phpC('echo get_post_meta(mcupr_student_find("5099100003"),"_mcupr_s_major",true);') === 'สาขาตัวอย่างใหม่', 'codes page: a name given to a code goes onto the student with it (1 student updated)');
+    // staff box on the record
+    const recC = phpC('echo mcupr_student_find("6899100002");');
+    await cp.goto(B + '/wp-admin/post.php?post=' + recC + '&action=edit');
+    const box = await cp.locator('#mcupr_student_sp .inside').innerText();
+    ok(/1234567890123/.test(box) && /MI0000002/.test(box) && /Bade City/.test(box) && !/\t/.test(box), 'staff box: the registrar sees the details in full (ID number, passport) and cleaned values');
+    ok(phpC('$e=get_posts(array("post_type"=>"mcupr_audit","post_status"=>"any","numberposts"=>-1)); $t=array_map(function($p){return $p->post_title;},$e); $m=implode(" ",array_map(function($p){return get_post_meta($p->ID,"_mcupr_a",true);},$e)); echo in_array("profileview",$t,true)&&strpos($m,"1234567890123")===false?"yes":"no";') === 'yes', 'staff box: opening it is in the activity log, without the details');
+    // the student
+    phpC('wp_set_current_user(1); $p=mcupr_student_find("6999100001"); update_post_meta($p,"_mcupr_s_email","cen1@example.org"); update_post_meta($p,"_mcupr_cen_e2e",1); $u=mcupr_student_make_account($p); wp_set_password("Cen-pass-12345",$u);');
+    const sc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    const sp = await sc.newPage();
+    const sperr = [];
+    sp.on('pageerror', (e) => sperr.push(e.message));
+    await sp.goto(B + '/?mcupr_student=1'); await sp.fill('#stu-log', '6999100001'); await sp.fill('#stu-pwd', 'Cen-pass-12345'); await sp.click('.stu-form button[type=submit]'); await sp.waitForSelector('.stu-hello');
+    const mine = await sp.locator('#sp-mine').textContent();
+    ok(await sp.locator('#sp-mine').count() === 1 && /9998/.test(mine) && !/1101700999998/.test(mine) && /•{5,}/.test(mine) && /พุทธ/.test(mine) && /วัดตัวอย่าง/.test(mine), 'student portal: "My details" shows the student’s own details; the ID number only by its last four digits');
+    ok(!/1101700999998/.test(await sp.content()), 'student portal: the full ID number is nowhere in the page');
+    for (const w of [390, 320]) {
+      await sp.setViewportSize({ width: w, height: 800 });
+      await sp.goto(B + '/?mcupr_student=1');
+      ok(await sp.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), 'student portal: "My details" fits a ' + w + ' px screen (no sideways scroll)');
+    }
+    await sp.setViewportSize({ width: 1280, height: 900 });
+    await sp.goto(B + '/?mcupr_student=1');
+    await sp.addScriptTag({ content: axeSource() });
+    const axC = await sp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(axC.violations.length === 0, 'axe (portal with "My details"): ' + (axC.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    for (const mode of ['wb', 'yb', 'by']) {
+      await sp.evaluate((md) => document.documentElement.setAttribute('data-contrast', md), mode);
+      const ok2 = await sp.evaluate(() => { const e = document.querySelector('#sp-mine .sp-g'); const c = getComputedStyle(e); return parseFloat(c.borderTopWidth) >= 1 && c.color !== c.backgroundColor; });
+      ok(ok2, 'student portal: high contrast ' + mode + ': "My details" is readable');
+    }
+    // the codes page itself
+    await cp.goto(B + '/wp-admin/admin.php?page=mcupr-student-codes');
+    await cp.addScriptTag({ content: axeSource() });
+    const axP = await cp.evaluate(() => axe.run(document.getElementById('wpbody-content'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+    ok(axP.violations.filter((v) => v.id !== 'color-contrast').length === 0, 'axe (codes page): ' + (axP.violations.map((v) => v.id + '(' + v.nodes.length + ')').join('; ') || '0 violations'));
+    ok(cerr.length === 0 && sperr.length === 0, 'central import: no script error' + (cerr.concat(sperr).length ? ': ' + cerr.concat(sperr).slice(0, 2).join(' | ') : ''));
+    phpC(cleanC);
+    await cc.close(); await sc.close();
+  }
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
   {
     const { execSync } = require('child_process');

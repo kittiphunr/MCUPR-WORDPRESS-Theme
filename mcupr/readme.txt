@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.47.0 =
+* Student details from the university's central file (86 columns): import as it is, encrypted sensitive fields, codes to names table, labels, the student's own view.
+
 = 1.46.1 =
 * Fix: the mega menu of the section you are on shrank to the width of its capsule when hovered or opened (a filter made the capsule the panel's containing box).
 
