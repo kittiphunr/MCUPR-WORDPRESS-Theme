@@ -2600,6 +2600,62 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     phpK(cleanK);
     await kc.close(); await ac.close();
   }
+  // ---------- student import: the registrar's .xls reports, chosen as they are (two files at once)
+  {
+    const { execSync } = require('child_process');
+    const fsX = require('fs');
+    const osX = require('os');
+    const wpLoadX = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+    const fxX = require('path').resolve(__dirname, '../fixtures') + '/';
+    const phpX = (code) => { const f = osX.tmpdir() + '/e2e-xls-' + process.pid + '.php'; fsX.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wpLoadX) + '; ' + code); return execSync('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const cleanX = 'wp_set_current_user(1); foreach(get_posts(array("post_type"=>"mcupr_student","post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_query"=>array(array("key"=>"_mcupr_s_sid","value"=>"689900","compare"=>"LIKE")))) as $x){wp_delete_post($x,true);} foreach(get_posts(array("post_type"=>"mcupr_student","post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_query"=>array(array("key"=>"_mcupr_s_sid","value"=>"699900","compare"=>"LIKE")))) as $x){wp_delete_post($x,true);}';
+    phpX(cleanX);
+    const xc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const xp = await xc.newPage();
+    const xerr = [];
+    xp.on('pageerror', (e) => xerr.push(e.message));
+    await xp.goto(B + '/wp-login.php');
+    await xp.fill('#user_login', 'e2eadmin'); await xp.fill('#user_pass', 'e2e-Admin-pass-1'); await xp.click('#wp-submit');
+    await xp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    await xp.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
+    ok((await xp.locator('#si-file').getAttribute('multiple')) !== null && /\.xls/.test(await xp.locator('#si-file').getAttribute('accept')), 'xls import: the file box takes .xls and several files');
+    await xp.setInputFiles('#si-file', [fxX + 'registrar-report.xls', fxX + 'registrar-report-2.xls']);
+    await Promise.all([xp.waitForNavigation(), xp.click('.card button.button-primary')]);
+    const xt = await xp.locator('.wrap').innerText();
+    ok(/step=preview/.test(xp.url()) && /\b7\b/.test(xt) && !xp.url().includes('err='), 'xls import: two reports are read together – 7 students are to be added');
+    ok(/พระตัวอย่าง หนึ่ง/.test(xt) && /พระพุทธศาสนา/.test(xt), 'xls import: the preview shows names and programmes from the report');
+    await Promise.all([xp.waitForNavigation(), xp.click('.wrap form button.button-primary')]);
+    await xp.waitForURL(/step=done/, { timeout: 30000 });
+    const have = phpX('$n=0;$c=0; foreach(array("6899000001","6899000002","6899000003","6899000004","6899000005","6999000001","6999000002") as $s){ $p=mcupr_student_find($s); if($p){$n++; if(mcupr_card_state($p)["rfid"]) $c++;} } $p=mcupr_student_find("6899000003"); echo $n,"/",$c,"/",get_the_title($p),"/",get_post_meta($p,"_mcupr_s_faculty",true),"/",get_post_meta($p,"_mcupr_s_major",true),"/",get_post_meta($p,"_mcupr_s_entry",true),"/",get_post_meta($p,"_mcupr_s_level",true);');
+    ok(have.startsWith('7/3/'), 'xls import: 7 students saved, 3 of them with a card code (' + have + ')');
+    ok(/นายตัวอย่าง สาม\/ครุศาสตร์\/สังคมศึกษา\/2568\/bachelor/.test(have), 'xls import: name, faculty, programme, year of entry and level are right');
+    // a file that is not what it says
+    fsX.writeFileSync(osX.tmpdir() + '/broken.xls', Buffer.concat([Buffer.from([0xD0, 0xCF, 0x11, 0xE0]), Buffer.alloc(600, 0x78)]));
+    await xp.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
+    await xp.setInputFiles('#si-file', osX.tmpdir() + '/broken.xls');
+    await Promise.all([xp.waitForNavigation(), xp.click('.card button.button-primary')]);
+    ok(await xp.locator('.notice-error').count() === 1 && /err=xls/.test(xp.url()), 'xls import: a broken .xls gives one clear message, not a blank page');
+    // an .xlsx is still told to be saved as CSV
+    fsX.writeFileSync(osX.tmpdir() + '/x.xlsx', Buffer.concat([Buffer.from('PK\x03\x04'), Buffer.alloc(200, 0)]));
+    await xp.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
+    await xp.setInputFiles('#si-file', osX.tmpdir() + '/x.xlsx');
+    await Promise.all([xp.waitForNavigation(), xp.click('.card button.button-primary')]);
+    ok(/err=excel/.test(xp.url()) && /xlsx/.test(await xp.locator('.notice-error').innerText()), 'xls import: an .xlsx is told to be saved as CSV');
+    // files with different columns
+    fsX.writeFileSync(osX.tmpdir() + '/c1.csv', 'รหัสนิสิต,ชื่อ-สกุล\n7001,ก\n'); fsX.writeFileSync(osX.tmpdir() + '/c2.csv', 'รหัสนิสิต,ชื่อ-สกุล,คณะ\n7002,ข,ค\n');
+    await xp.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
+    await xp.setInputFiles('#si-file', [osX.tmpdir() + '/c1.csv', osX.tmpdir() + '/c2.csv']);
+    await Promise.all([xp.waitForNavigation(), xp.click('.card button.button-primary')]);
+    ok(/err=mixed/.test(xp.url()), 'xls import: files with different columns are not mixed');
+    // the page itself
+    await xp.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
+    await xp.addScriptTag({ content: axeSource() });
+    const axX = await xp.evaluate(() => axe.run(document.getElementById('wpbody-content'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+    ok(axX.violations.filter((v) => v.id !== 'color-contrast').length === 0, 'axe (import page): ' + (axX.violations.map((v) => v.id + '(' + v.nodes.length + ')').join('; ') || '0 violations'));
+    ok(xerr.length === 0, 'xls import: no script error' + (xerr.length ? ': ' + xerr.slice(0, 2).join(' | ') : ''));
+    phpX(cleanX);
+    await xc.close();
+  }
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
   {
     const { execSync } = require('child_process');
