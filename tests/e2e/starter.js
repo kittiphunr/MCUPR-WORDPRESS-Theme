@@ -2807,6 +2807,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     const ids = JSON.parse(phpB(`
       function sd($f){ $t=wp_tempnam($f); copy($f,$t); $i=media_handle_sideload(array("name"=>basename($f),"tmp_name"=>$t),0); return is_wp_error($i)?0:$i; }
       $fx=${JSON.stringify(fxB)};
+      $bo=get_option("mcupr_books_opts",array()); $bo=is_array($bo)?$bo:array(); $bo["fx"]="css3d"; update_option("mcupr_books_opts",$bo,false); // an admin has chosen: the light way of turning, for the tests of the reader
       foreach(get_posts(array("post_type"=>"mcupr_book","post_status"=>"any","numberposts"=>-1,"fields"=>"ids")) as $x){wp_delete_post($x,true);}
       $pdf=sd($fx."book.pdf"); $im=array(); for($i=1;$i<=6;$i++){$im[]=sd($fx."book-page-$i.png");}
       $ep=sd($fx."book.epub"); $vid=sd($fx."book-video.mp4"); $snd=sd($fx."book-sound.wav");
@@ -3006,14 +3007,16 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         return page.evaluate(async ([b64, a, b]) => { const im = new Image(); im.src = 'data:image/png;base64,' + b64; await im.decode(); const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const x = c.getContext('2d'); x.drawImage(im, 0, 0); const d = x.getImageData(Math.floor(im.width * a), Math.floor(im.height * b), 1, 1).data; return [d[0], d[1], d[2]]; }, [buf, fx, fy]);
       };
       const isRed = (c) => c[0] > 150 && c[1] < 110 && c[2] < 110, isBlue = (c) => c[2] > 150 && c[0] < 120, isGreen = (c) => c[1] > 130 && c[0] < 140 && c[2] < 140;
+      const setFx = (bookId, f) => phpB('update_post_meta(' + bookId + ',"_mcupr_bk_fx",' + JSON.stringify(f) + ');'); // how the pages turn is the choice of the admin: here, set on the book
       for (const fx of ['css3d', 'webgl', 'classic']) {
+        setFx(ids[1], fx); setFx(ids[6], fx);
         const fc = await brFx.newContext({ viewport: { width: 1366, height: 1000 } });
         await fc.route('**/www.youtube-nocookie.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<p>player</p>' }));
         const fp = await fc.newPage();
         const ferr = [];
         fp.on('pageerror', (e) => ferr.push(e.message));
         fp.on('console', (m) => { if (m.type() === 'error') { ferr.push(m.text()); } });
-        await fp.addInitScript((f) => { try { if (!sessionStorage.getItem('fxinit')) { sessionStorage.setItem('fxinit', '1'); localStorage.setItem('mcupr_bk_fx', f); localStorage.removeItem('mcupr_bk_pos'); localStorage.setItem('mcupr_bk_sound', '1'); } } catch (e) { /* */ } }, fx);
+        await fp.addInitScript((f) => { try { if (!sessionStorage.getItem('fxinit')) { sessionStorage.setItem('fxinit', '1'); localStorage.removeItem('mcupr_bk_pos'); localStorage.setItem('mcupr_bk_sound', '1'); } } catch (e) { /* */ } }, fx);
         await fp.goto(B + '/?p=' + ids[1]);
         await fp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
         await fp.locator('.bk-reader').scrollIntoViewIfNeeded();
@@ -3090,20 +3093,19 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await fp.locator('.bk-chips button.bk-chip').first().click();
         ok(await fp.locator('.bk-modal').isVisible() && (await fp.locator('.bk-reader').getAttribute('data-page')) === '1', 'e-books: turning "' + fx + '": a button on the page opens the player and does not turn the page');
         await fp.keyboard.press('Escape');
-        // the choice button: the next way, remembered, the page kept
-        await fp.click('.bk-reader [data-act="next"]');
-        await fp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '2', null, { timeout: 8000 }).catch(() => {});
-        const fxBefore = await fp.locator('.bk-reader').getAttribute('data-fx');
-        await Promise.all([fp.waitForNavigation({ waitUntil: 'load' }).catch(() => {}), fp.click('.bk-reader [data-act="fx"]')]);
+        // no button for the way of turning: it is the admin's choice, and what a visitor chose with the old button is ignored
+        ok(await fp.locator('.bk-reader [data-act="fx"]').count() === 0, 'e-books: turning "' + fx + '": there is no effect button for the visitor');
+        await fp.evaluate((o) => { try { localStorage.setItem('mcupr_bk_fx', o); } catch (e) { /* */ } }, fx === 'css3d' ? 'classic' : 'css3d');
+        await fp.reload();
         await fp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
-        ok((await fp.locator('.bk-reader').getAttribute('data-fx')) !== fxBefore && (await fp.locator('.bk-reader').getAttribute('data-page')) === '2', 'e-books: turning "' + fx + '": the effect button switches to another way and the reader stays on the same page');
+        ok((await fp.locator('.bk-reader').getAttribute('data-fx')) === fx || (fx === 'webgl' && (await fp.locator('.bk-reader').getAttribute('data-fx')) === 'css3d'), 'e-books: turning "' + fx + '": an old choice kept in the browser changes nothing');
         await fc.close();
       }
       // a phone: one page at a time, big; and "less motion"
       for (const fx of ['css3d', 'webgl']) {
         const mc = await brFx.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });
         const mp = await mc.newPage();
-        await mp.addInitScript((f) => { try { localStorage.setItem('mcupr_bk_fx', f); localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } }, fx);
+        await mp.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
         await mp.goto(B + '/?p=' + ids[1]);
         await mp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
         await mp.locator('.bk-reader').scrollIntoViewIfNeeded();
@@ -3119,7 +3121,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await mc.close();
         const rc = await brFx.newContext({ viewport: { width: 1366, height: 1000 }, reducedMotion: 'reduce' });
         const rp = await rc.newPage();
-        await rp.addInitScript((f) => { try { localStorage.setItem('mcupr_bk_fx', f); localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } }, fx);
+        await rp.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
         await rp.goto(B + '/?p=' + ids[1]);
         await rp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
         await rp.locator('.bk-reader').scrollIntoViewIfNeeded();
@@ -3132,7 +3134,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       {
         const hc = await brFx.newContext({ viewport: { width: 1366, height: 1000 } });
         const hp = await hc.newPage();
-        await hp.addInitScript(() => { try { localStorage.setItem('mcupr_bk_fx', 'css3d'); localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
+        setFx(ids[1], 'css3d');
+        await hp.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
         await hp.goto(B + '/?p=' + ids[1]);
         await hp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
         await hp.evaluate(() => document.documentElement.setAttribute('data-contrast', 'wb'));
@@ -3158,7 +3161,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
               const lerr = [];
               lp.on('pageerror', (e) => lerr.push(e.message));
               lp.on('console', (m) => { if (m.type() === 'error') { lerr.push(m.text()); } });
-              await lp.addInitScript((f) => { try { localStorage.setItem('mcupr_bk_fx', f); localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } }, fx);
+              setFx(bid, fx);
+              await lp.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
               await lp.goto(B + '/?p=' + bid);
               await lp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
               try { await lp.click('text=รับทราบ', { timeout: 1000 }); } catch (e) { /* no banner */ }
@@ -3197,7 +3201,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     // the look of Real3D Flipbook: a toolbar of icons, zoom, auto-play, the contents, print, a window of its own
     {
       const rc = await br.newContext({ viewport: { width: 1366, height: 900 } });
-      await rc.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); localStorage.setItem('mcupr_bk_fx', 'css3d'); } catch (e) { /* */ } });
+      phpB('update_post_meta(' + ids[7] + ',"_mcupr_bk_fx","css3d");');
+      await rc.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
       const rp = await rc.newPage();
       const rerr = [];
       rp.on('pageerror', (e) => rerr.push(e.message));
