@@ -410,7 +410,9 @@ function mcupr_stu_settings_page() {
 	echo '</tbody></table><p><button class="button button-primary">' . esc_html__( 'Save', 'mcupr' ) . '</button></p></form>';
 	echo '<h2>' . esc_html__( 'Test the e-mail', 'mcupr' ) . '</h2><p style="max-width:56rem">' . esc_html__( 'Students get their link to set a password by e-mail. Send a test message to yourself to be sure the website can send e-mail.', 'mcupr' ) . '</p><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="mcupr_stu_mailtest">';
 	wp_nonce_field( 'mcupr_stu_mailtest', 'mcupr_stu_nonce' );
-	echo '<p><label for="stu-to" class="screen-reader-text">' . esc_html__( 'Send the test to', 'mcupr' ) . '</label><input id="stu-to" name="to" type="email" required class="regular-text" value="' . esc_attr( wp_get_current_user()->user_email ) . '"> <button class="button">' . esc_html__( 'Send a test e-mail', 'mcupr' ) . '</button></p></form></div>';
+	echo '<p><label for="stu-to" class="screen-reader-text">' . esc_html__( 'Send the test to', 'mcupr' ) . '</label><input id="stu-to" name="to" type="email" required class="regular-text" value="' . esc_attr( wp_get_current_user()->user_email ) . '"> <button class="button">' . esc_html__( 'Send a test e-mail', 'mcupr' ) . '</button></p></form>';
+	do_action( 'mcupr_stu_settings_extra' );
+	echo '</div>';
 }
 
 add_action(
