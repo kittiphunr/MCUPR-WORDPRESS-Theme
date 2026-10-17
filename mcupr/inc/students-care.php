@@ -52,6 +52,10 @@ function mcupr_audit_actions() {
 		'link'     => __( 'Showed the link to set a password', 'mcupr' ),
 		'drop'     => __( 'Deleted a login account', 'mcupr' ),
 		'settings' => __( 'Changed the student portal settings', 'mcupr' ),
+		'mail'     => __( 'Started an e-mail to students', 'mcupr' ),
+		'maildone' => __( 'Finished sending an e-mail to students', 'mcupr' ),
+		'unsub'    => __( 'A student stopped receiving announcements', 'mcupr' ),
+		'resub'    => __( 'A student receives announcements again', 'mcupr' ),
 	);
 }
 
@@ -221,13 +225,13 @@ function mcupr_audit_page() {
 /* ================================================================== 2. e-mail: test, last problem, link without e-mail */
 
 /** wp_mail() that remembers why it failed. Returns true / false. */
-function mcupr_stu_mail( $to, $subject, $body ) {
+function mcupr_stu_mail( $to, $subject, $body, $headers = array(), $attachments = array() ) {
 	$why = '';
 	$cb  = static function ( $err ) use ( &$why ) {
 		$why = $err instanceof WP_Error ? $err->get_error_message() : '';
 	};
 	add_action( 'wp_mail_failed', $cb );
-	$ok = wp_mail( $to, $subject, $body );
+	$ok = wp_mail( $to, $subject, $body, $headers, $attachments );
 	remove_action( 'wp_mail_failed', $cb );
 	if ( $ok ) {
 		delete_option( 'mcupr_stu_mail_last' );
