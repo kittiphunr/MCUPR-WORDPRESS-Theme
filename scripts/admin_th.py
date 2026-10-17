@@ -1490,4 +1490,6 @@ TH = {
 "with a card code (tap the card)": "มีรหัสบัตร (แตะบัตร)",
 "with neither (cannot sign in while this is on)": "ไม่มีทั้งสองอย่าง (เข้าสู่ระบบไม่ได้ขณะที่เปิด)",
 "with only a national ID number": "มีแค่เลขบัตรประชาชน",
+"This is a PDF, not a spreadsheet. Choose a .csv file.": "นี่คือไฟล์ PDF ไม่ใช่ตาราง กรุณาเลือกไฟล์ .csv",
+"This is an Excel file (.xls / .xlsx), which cannot be imported as it is. Open it in Excel and choose Save as → CSV UTF-8, then choose that .csv file here.": "นี่คือไฟล์ Excel (.xls / .xlsx) นำเข้าตรงๆ ไม่ได้ ให้เปิดใน Excel แล้วเลือก บันทึกเป็น → CSV UTF-8 จากนั้นเลือกไฟล์ .csv ที่นี่",
 }
