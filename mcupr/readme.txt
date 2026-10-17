@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.46.1 =
+* Fix: the mega menu of the section you are on shrank to the width of its capsule when hovered or opened (a filter made the capsule the panel's containing box).
+
 = 1.46.0 =
 * Import students straight from the registrar's .xls reports (several files at once).
 
