@@ -2490,6 +2490,116 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await new Promise((r) => idp.close(r));
     await oc.close(); await oc2.close(); await ac.close();
   }
+  // ---------- student card (RFID) and national ID number at sign-in
+  {
+    const { execSync } = require('child_process');
+    const fsK = require('fs');
+    const osK = require('os');
+    const wpLoadK = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+    const phpK = (code) => { const f = osK.tmpdir() + '/e2e-card-' + process.pid + '.php'; fsK.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wpLoadK) + '; ' + code); return execSync('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const cleanK = 'wp_set_current_user(1); foreach(get_posts(array("post_type"=>"mcupr_student","post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_key"=>"_mcupr_card_e2e")) as $x){ $u=(int)get_post_meta($x,"_mcupr_s_user",true); if($u){require_once ABSPATH."wp-admin/includes/user.php"; wp_delete_user($u);} wp_delete_post($x,true);} delete_option("mcupr_card"); foreach(glob(mcupr_si_dir()."/*.json") as $f){ unlink($f); }';
+    phpK(cleanK + `
+      $mk=function($sid,$name){ $r=array("sid"=>$sid,"name"=>$name,"name_en"=>"","level"=>"bachelor","year"=>"2","entry"=>"2567","faculty"=>"ก","major"=>"ข","status"=>"studying","email"=>strtolower($sid)."@card-e2e.example.org","phone"=>"","note"=>""); list(,$p)=mcupr_student_upsert($r,"add_update"); update_post_meta($p,"_mcupr_card_e2e",1); $u=mcupr_student_make_account($p); wp_set_password("Card-pass-12345",$u); return $p; };
+      $a=$mk("CARDE2E1","นิสิต การ์ดหนึ่ง"); $b=$mk("CARDE2E2","นิสิต เลขบัตร"); $c=$mk("CARDE2E3","นิสิต ไม่มีอะไร");
+      update_post_meta($a,MCUPR_CARD_RFID,mcupr_card_hash("rfid","4028251661")); update_post_meta($b,MCUPR_CARD_IDC,mcupr_card_hash("idcard","1101700203450"));`);
+    const kc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    const kp = await kc.newPage();
+    const kerr = [];
+    kp.on('pageerror', (e) => kerr.push(e.message));
+    const fillLogin = async (who) => { await kp.goto(B + '/?mcupr_student=1'); await kp.fill('#stu-log', who); await kp.fill('#stu-pwd', 'Card-pass-12345'); };
+    await kp.goto(B + '/?mcupr_student=1');
+    ok(await kp.locator('#stu-rfid').count() === 0, 'card: while the switch is off the login has no card box');
+    // staff: import a CSV with the card columns through the real screen; the saved upload must hold no numbers
+    const ac = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const ap = await ac.newPage();
+    await ap.goto(B + '/wp-login.php');
+    await ap.fill('#user_login', 'e2eadmin'); await ap.fill('#user_pass', 'e2e-Admin-pass-1'); await ap.click('#wp-submit');
+    await ap.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    fsK.writeFileSync(osK.tmpdir() + '/card-import.csv', 'รหัสนิสิต,ชื่อ-สกุล,รหัสบัตร RFID,เลขบัตรประชาชน\nCARDE2E4,นิสิต นำเข้า,5566778899,\nCARDE2E5,นิสิต นำเข้าสอง,12345,1101700203450\nCARDE2E6,นิสิต ซ้ำบัตร,4028251661,\n');
+    await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
+    await ap.setInputFiles('#si-file', osK.tmpdir() + '/card-import.csv');
+    await Promise.all([ap.waitForNavigation(), ap.click('.card button.button-primary')]);
+    const pvk = await ap.locator('.wrap').innerText();
+    ok(/step=preview/.test(ap.url()) && /ซ้ำกับนิสิตคนอื่น|already belongs|belongs to another/.test(pvk), 'card import: the preview refuses a card code that another student already has');
+    ok(phpK('$s=""; foreach(glob(mcupr_si_dir()."/*.json") as $f){ $s.=file_get_contents($f); } echo (strpos($s,"5566778899")===false&&strpos($s,"1101700203450")===false&&strpos($s,"4028251661")===false)?"clean":"LEAK";') === 'clean', 'card import: the file kept for the preview has no card code and no ID number in it');
+    await Promise.all([ap.waitForNavigation(), ap.click('.wrap form button.button-primary')]);
+    await ap.waitForURL(/step=done/, { timeout: 30000 });
+    ok(phpK('$a=mcupr_student_find("CARDE2E4"); $b=mcupr_student_find("CARDE2E5"); $c=mcupr_student_find("CARDE2E6"); $x=mcupr_card_state($a); $y=mcupr_card_state($b); echo ($x["rfid"]&&!$y["rfid"]&&$y["idcard"]&&!$c)?"ok":"bad";') === 'ok', 'card import: card code and ID number saved as hashes, the wrong code dropped (with a warning), the duplicate row not imported');
+    phpK('wp_set_current_user(1); foreach(array("CARDE2E4","CARDE2E5") as $s){ $p=mcupr_student_find($s); if($p){ update_post_meta($p,"_mcupr_card_e2e",1); } }');
+    // staff turn it on in the settings
+    await ap.goto(B + '/wp-admin/admin.php?page=mcupr-student-settings');
+    ok(await ap.locator('input[name=on][type=checkbox]').count() >= 1, 'card settings: the switch is on the student portal settings page');
+    await ap.check('form:has(input[name=mcupr_card_nonce]) input[name=on]');
+    await Promise.all([ap.waitForNavigation(), ap.click('form:has(input[name=mcupr_card_nonce]) button.button-primary')]);
+    ok(phpK('echo mcupr_card_required()?"on":"off";') === 'on', 'card settings: saved');
+    // the login page now
+    await fillLogin('carde2e1');
+    ok(await kp.locator('#stu-rfid[type=password]').count() === 1 && await kp.locator('#stu-idc').count() === 1, 'card login: the page asks for the card (digits hidden) and for the national ID number');
+    // slow typing = by hand: refused
+    await kp.click('#stu-rfid');
+    await kp.keyboard.type('4028251661', { delay: 150 });
+    await kp.keyboard.press('Enter');
+    ok(await kp.inputValue('#stu-rfid') === '' && /ไม่ต้องพิมพ์|do not type/.test(await kp.locator('#stu-rfid-h').innerText()) && !/e=/.test(kp.url()), 'card login: a code typed by hand is refused on the page and the box is emptied');
+    // wrong card, fast
+    await kp.click('#stu-rfid');
+    await kp.keyboard.type('4028251660', { delay: 0 });
+    await Promise.all([kp.waitForNavigation(), kp.keyboard.press('Enter')]);
+    ok(/e=card/.test(kp.url()) && await kp.locator('.stu-hello').count() === 0, 'card login: a wrong card is refused');
+    // right card, fast: submits by itself
+    await fillLogin('carde2e1');
+    await kp.click('#stu-rfid');
+    await kp.keyboard.type('4028251661', { delay: 0 });
+    await Promise.all([kp.waitForNavigation(), kp.keyboard.press('Enter')]);
+    ok(await kp.locator('.stu-hello').count() === 1, 'card login: the right card read by the reader signs in at once (no button pressed)');
+    await kc.clearCookies();
+    // the national ID number for a student with no card code
+    await fillLogin('carde2e2');
+    await kp.fill('#stu-idc', '1101700203450');
+    await Promise.all([kp.waitForNavigation(), kp.click('.stu-form button[type=submit]')]);
+    ok(await kp.locator('.stu-hello').count() === 1, 'card login: with no card code on record the national ID number signs in');
+    await kc.clearCookies();
+    await fillLogin('carde2e2');
+    await kp.fill('#stu-idc', '1101700203459');
+    await Promise.all([kp.waitForNavigation(), kp.click('.stu-form button[type=submit]')]);
+    ok(/e=card/.test(kp.url()) && await kp.locator('.stu-hello').count() === 0, 'card login: a wrong ID number is refused');
+    await fillLogin('carde2e3');
+    await kp.fill('#stu-idc', '1101700203450');
+    await Promise.all([kp.waitForNavigation(), kp.click('.stu-form button[type=submit]')]);
+    ok(/e=cardnone/.test(kp.url()) && /เจ้าหน้าที่|staff/.test(await kp.locator('.stu-note-err').innerText()), 'card login: a record with neither is told to contact the staff');
+    // the ordinary WordPress login page
+    const wl = await kc.newPage();
+    await wl.goto(B + '/wp-login.php');
+    await wl.fill('#user_login', 'carde2e1'); await wl.fill('#user_pass', 'Card-pass-12345'); await wl.click('#wp-submit');
+    ok(await wl.locator('#login_error').count() === 1 && !/wp-admin|student/.test(wl.url().replace('wp-login.php', '')), 'card login: a student cannot go in by the ordinary WordPress login page with the password alone');
+    // typing allowed by staff
+    phpK('update_option("mcupr_card", array("on"=>1,"typing"=>1));');
+    await fillLogin('carde2e1');
+    await kp.click('#stu-rfid');
+    await kp.keyboard.type('4028251661', { delay: 200 });
+    await Promise.all([kp.waitForNavigation(), kp.keyboard.press('Enter')]);
+    ok(await kp.locator('.stu-hello').count() === 1, 'card login: with "typing by hand" allowed by staff, a slowly typed code works');
+    await kc.clearCookies();
+    phpK('update_option("mcupr_card", array("on"=>1,"typing"=>0));');
+    // layout and accessibility of the login page with the card boxes
+    for (const w of [390, 320]) {
+      await kp.setViewportSize({ width: w, height: 900 });
+      await kp.goto(B + '/?mcupr_student=1');
+      const m = await kp.evaluate(() => ({ hs: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, h: Math.min(...[...document.querySelectorAll('#stu-rfid, #stu-idc')].map((e) => e.getBoundingClientRect().height)) }));
+      ok(!m.hs && m.h >= 40, 'card login: fits a ' + w + ' px screen (no sideways scroll, boxes at least 40 px high)');
+    }
+    await kp.setViewportSize({ width: 1280, height: 900 });
+    await kp.goto(B + '/?mcupr_student=1&e=card');
+    await kp.addScriptTag({ content: axeSource() });
+    const axK = await kp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(axK.violations.length === 0, 'axe (login with the card boxes and the message): ' + (axK.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    // staff box on a record
+    const recK = phpK('echo mcupr_student_find("CARDE2E1");');
+    await ap.goto(B + '/wp-admin/post.php?post=' + recK + '&action=edit');
+    ok(await ap.locator('#mcupr_student_card').count() === 1 && /ตั้งแล้ว|set/.test(await ap.locator('#mcupr_student_card .inside').innerText()) && !/4028251661/.test(await ap.content()), 'card staff box: the record shows "set" and never the number');
+    ok(kerr.length === 0, 'card login: no script error' + (kerr.length ? ': ' + kerr.slice(0, 2).join(' | ') : ''));
+    phpK(cleanK);
+    await kc.close(); await ac.close();
+  }
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
   {
     const { execSync } = require('child_process');
