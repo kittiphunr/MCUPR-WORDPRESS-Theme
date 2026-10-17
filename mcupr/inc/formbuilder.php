@@ -69,6 +69,7 @@ function mcupr_fb_types() {
 		'checkbox' => __( 'Several choices', 'mcupr' ),
 		'consent'  => __( 'Agreement (one box)', 'mcupr' ),
 		'rating'   => __( 'Rating 1–5', 'mcupr' ),
+		'file'     => __( 'File upload (PDF, JPG, PNG)', 'mcupr' ),
 		'heading'  => __( 'Section heading', 'mcupr' ),
 		'note'     => __( 'Information text', 'mcupr' ),
 	);
@@ -284,8 +285,8 @@ function mcupr_fb_validate( $fields, $in ) {
 	$errs = array();
 	$in   = is_array( $in ) ? $in : array();
 	foreach ( $fields as $f ) {
-		if ( in_array( $f['type'], array( 'heading', 'note' ), true ) ) {
-			continue;
+		if ( in_array( $f['type'], array( 'heading', 'note', 'file' ), true ) ) {
+			continue; // a file is checked with the upload (mcupr_fb_files)
 		}
 		$id  = $f['id'];
 		$raw = isset( $in[ $id ] ) ? $in[ $id ] : ( 'checkbox' === $f['type'] ? array() : '' );
@@ -347,7 +348,7 @@ function mcupr_fb_value_text( $v ) {
  * Process one submission: all checks, then store and e-mail. $data = the unslashed POST.
  * Returns array( ok, errors (id => key | 'spam' | 'limit' | 'closed' | 'login'), values, entry (id) ).
  */
-function mcupr_fb_submit( $form_id, $data, $now = 0 ) {
+function mcupr_fb_submit( $form_id, $data, $now = 0, $files = null ) {
 	$now    = $now ? $now : time();
 	$form_id = (int) $form_id;
 	$bad    = static function ( $k ) use ( $form_id ) {
@@ -371,8 +372,15 @@ function mcupr_fb_submit( $form_id, $data, $now = 0 ) {
 	if ( 'users' === $state && ! is_user_logged_in() ) {
 		return $bad( 'login' );
 	}
+	$guard = apply_filters( 'mcupr_fb_guard', '', $form_id ); // e.g. a request that only students may send
+	if ( '' !== $guard ) {
+		return $bad( $guard );
+	}
 	$fields           = mcupr_fb_fields( $form_id );
 	list( $vals, $errs ) = mcupr_fb_validate( $fields, isset( $data['f'] ) ? $data['f'] : array() );
+	$files            = null === $files ? ( isset( $_FILES ) && is_array( $_FILES ) ? $_FILES : array() ) : $files; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	$ups              = function_exists( 'mcupr_rq_check_files' ) ? mcupr_rq_check_files( $fields, $files ) : array( array(), array() );
+	$errs             = array_merge( $errs, $ups[1] );
 	if ( $errs ) {
 		return array( 'ok' => false, 'errors' => $errs, 'values' => $vals, 'entry' => 0 );
 	}
@@ -387,6 +395,10 @@ function mcupr_fb_submit( $form_id, $data, $now = 0 ) {
 	$mail = '';
 	foreach ( $fields as $f ) {
 		if ( in_array( $f['type'], array( 'heading', 'note' ), true ) ) {
+			continue;
+		}
+		if ( 'file' === $f['type'] ) {
+			$rows[] = array( $f['label'], isset( $ups[0][ $f['id'] ] ) ? $ups[0][ $f['id'] ]['name'] . ' (' . size_format( $ups[0][ $f['id'] ]['size'] ) . ')' : '' );
 			continue;
 		}
 		$t = mcupr_fb_value_text( $vals[ $f['id'] ] );
@@ -410,6 +422,7 @@ function mcupr_fb_submit( $form_id, $data, $now = 0 ) {
 	}
 	update_post_meta( $id, '_mcupr_fe_form', $form_id );
 	update_post_meta( $id, '_mcupr_fe_rows', $rows ); // what was asked and answered, as it was then
+	do_action( 'mcupr_fb_entry', $id, $form_id, $vals, $fields, $mail, $ups[0] ); // requests: number, status, files, the e-mail to the sender
 	set_transient( $key, (int) get_transient( $key ) + 1, HOUR_IN_SECONDS );
 	$o  = mcupr_fb_opts( $form_id );
 	$to = array_filter( array_map( 'trim', explode( ',', $o['notify'] ) ), 'is_email' );
@@ -433,7 +446,7 @@ function mcupr_fb_handler() {
 	}
 	$r = mcupr_fb_submit( $fid, $data );
 	if ( $r['ok'] ) {
-		wp_safe_redirect( add_query_arg( array( 'fb' => 'ok', 'fbid' => $fid ), $back ) . $anch );
+		wp_safe_redirect( add_query_arg( apply_filters( 'mcupr_fb_ok_args', array( 'fb' => 'ok', 'fbid' => $fid ), $r['entry'], $fid ), $back ) . $anch );
 		exit;
 	}
 	$k = wp_generate_password( 12, false );
@@ -447,7 +460,7 @@ add_action( 'admin_post_mcupr_fb', 'mcupr_fb_handler' );
 /* ------------------------------------------------------------------ the form on the page */
 
 function mcupr_fb_error_text( $key ) {
-	$m = array( 'required' => 'fb_e_req', 'email' => 'form_err_email', 'tel' => 'fb_e_tel', 'number' => 'fb_e_num', 'date' => 'fb_e_date', 'pick' => 'fb_e_pick', 'agree' => 'form_err_consent', 'spam' => 'form_err_spam', 'limit' => 'form_err_limit', 'closed' => 'fb_closed', 'login' => 'fb_login' );
+	$m = array( 'required' => 'fb_e_req', 'email' => 'form_err_email', 'tel' => 'fb_e_tel', 'number' => 'fb_e_num', 'date' => 'fb_e_date', 'pick' => 'fb_e_pick', 'agree' => 'form_err_consent', 'spam' => 'form_err_spam', 'file_type' => 'rq_e_type', 'file_size' => 'rq_e_size', 'file_fail' => 'rq_e_fail', 'student' => 'rq_e_student', 'limit' => 'form_err_limit', 'closed' => 'fb_closed', 'login' => 'fb_login' );
 	return mcupr_t( isset( $m[ $key ] ) ? $m[ $key ] : 'form_err_spam' );
 }
 
@@ -470,12 +483,17 @@ function mcupr_fb_html( $form_id ) {
 	ob_start();
 	echo '<section class="mform fbform" id="' . esc_attr( $wrap ) . '">';
 	if ( 'ok' === $state ) {
-		echo '<div class="mform-ok" role="status" tabindex="-1"><p><b>' . esc_html( '' !== $o['success'] ? $o['success'] : mcupr_t( 'fb_thanks' ) ) . '</b></p></div></section>';
+		echo '<div class="mform-ok" role="status" tabindex="-1"><p><b>' . esc_html( '' !== $o['success'] ? $o['success'] : mcupr_t( 'fb_thanks' ) ) . '</b></p>' . apply_filters( 'mcupr_fb_ok_html', '', $form_id ) . '</div></section>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		return ob_get_clean();
 	}
 	$st = mcupr_fb_state( $form_id );
 	if ( 'closed' === $st ) {
 		echo '<div class="mform-err" role="status"><p><b>' . esc_html( '' !== $o['closed'] ? $o['closed'] : mcupr_t( 'fb_closed' ) ) . '</b></p></div></section>';
+		return ob_get_clean();
+	}
+	$gate = apply_filters( 'mcupr_fb_gate_html', '', $form_id );
+	if ( '' !== $gate ) {
+		echo $gate . '</section>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		return ob_get_clean();
 	}
 	if ( 'users' === $st && ! is_user_logged_in() ) {
@@ -499,9 +517,10 @@ function mcupr_fb_html( $form_id ) {
 		}
 		echo '</ul></div>';
 	}
-	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" novalidate>';
+	$has_file = (bool) array_filter( $fields, static function ( $f ) { return 'file' === $f['type']; } );
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" novalidate' . ( $has_file ? ' enctype="multipart/form-data"' : '' ) . '>';
 	echo '<input type="hidden" name="action" value="mcupr_fb"><input type="hidden" name="fb" value="' . (int) $form_id . '">';
-	echo '<input type="hidden" name="back" value="' . esc_url( remove_query_arg( array( 'fb', 'fbid', 'fbk', 'fbe' ), is_singular() ? get_permalink( get_queried_object_id() ) : home_url( '/' ) ) ) . '">';
+	echo '<input type="hidden" name="back" value="' . esc_url( remove_query_arg( array( 'fb', 'fbid', 'fbk', 'fbe', 'rqc' ), apply_filters( 'mcupr_fb_back', is_singular() ? get_permalink( get_queried_object_id() ) : home_url( '/' ), $form_id ) ) ) . '">';
 	wp_nonce_field( 'mcupr_fb_' . $form_id, '_wpnonce', true, true );
 	echo '<input type="hidden" name="tk" value="' . esc_attr( mcupr_form_token( time() ) ) . '"><div class="mform-trap" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>';
 	if ( '' !== $o['intro'] ) {
@@ -544,6 +563,10 @@ function mcupr_fb_html( $form_id ) {
 				echo '<label class="fb-o" for="' . esc_attr( $oid ) . '"><input id="' . esc_attr( $oid ) . '" type="' . ( 'checkbox' === $f['type'] ? 'checkbox' : 'radio' ) . '" name="' . esc_attr( $name . ( 'checkbox' === $f['type'] ? '[]' : '' ) ) . '" value="' . esc_attr( $op ) . '"' . checked( $chk, true, false ) . ( $req && 'checkbox' !== $f['type'] && 0 === $i ? ' required' : '' ) . '><span>' . esc_html( $op ) . '</span></label>';
 			}
 			echo '</div>' . $tail . '</fieldset>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		} elseif ( 'file' === $f['type'] ) {
+			echo '<label for="' . esc_attr( $fid . '-i' ) . '">' . esc_html( $f['label'] ) . $star . '</label>'; // phpcs:ignore WordPress.Security.EscapeOutput
+			echo '<input id="' . esc_attr( $fid . '-i' ) . '" type="file" name="file_' . esc_attr( $f['id'] ) . '" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"' . $attr . '>'; // phpcs:ignore WordPress.Security.EscapeOutput
+			echo '<span class="fb-help" id="' . esc_attr( $fid . '-f' ) . '">' . esc_html( sprintf( mcupr_t( 'rq_file_hint' ), size_format( function_exists( 'mcupr_rq_max_bytes' ) ? mcupr_rq_max_bytes() : 5 * MB_IN_BYTES ) ) ) . '</span>' . $tail; // phpcs:ignore WordPress.Security.EscapeOutput
 		} elseif ( 'consent' === $f['type'] ) {
 			echo '<p class="mform-consent"><label for="' . esc_attr( $fid . '-c' ) . '"><input id="' . esc_attr( $fid . '-c' ) . '" type="checkbox" name="' . esc_attr( $name ) . '" value="1"' . checked( '1' === $val, true, false ) . $attr . '> <span>' . esc_html( $f['label'] ) . $star . '</span></label></p>' . $tail; // phpcs:ignore WordPress.Security.EscapeOutput
 		} else {
@@ -565,7 +588,7 @@ function mcupr_fb_html( $form_id ) {
 		}
 		echo '</div>';
 	}
-	echo '<p><button type="submit" class="btn">' . esc_html( '' !== $o['submit'] ? $o['submit'] : mcupr_t( 'form_send' ) ) . '</button></p></form></section>';
+	echo '<p><button type="submit" class="btn">' . esc_html( '' !== $o['submit'] ? $o['submit'] : apply_filters( 'mcupr_fb_submit_label', mcupr_t( 'form_send' ), $form_id ) ) . '</button></p></form></section>';
 	return ob_get_clean();
 }
 
@@ -669,11 +692,12 @@ function mcupr_fb_csv( $form_id ) {
 		}
 		$data[ $id ] = $row;
 	}
-	$out = "\xEF\xBB\xBF" . implode( ',', array_map( 'mcupr_csv_cell', array_merge( array( '#', 'Date' ), $cols ) ) ) . "\r\n";
+	$rq  = function_exists( 'mcupr_rq_is_form' ) && mcupr_rq_is_form( $form_id ); // a request has a number, a status and someone to see to it
+	$out = "\xEF\xBB\xBF" . implode( ',', array_map( 'mcupr_csv_cell', array_merge( array( '#', 'Date' ), $rq ? mcupr_rq_csv_head() : array(), $cols ) ) ) . "\r\n";
 	$n   = 0;
 	foreach ( $data as $id => $row ) {
 		$n++;
-		$cells = array( (string) $n, get_the_date( 'Y-m-d H:i', $id ) );
+		$cells = array_merge( array( (string) $n, get_the_date( 'Y-m-d H:i', $id ) ), $rq ? mcupr_rq_csv_cells( $id ) : array() );
 		foreach ( $cols as $c ) {
 			$cells[] = isset( $row[ $c ] ) ? $row[ $c ] : '';
 		}
