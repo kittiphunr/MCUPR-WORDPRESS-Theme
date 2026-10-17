@@ -3135,6 +3135,58 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         ok(/255, 255, 255/.test(bg), 'e-books: high contrast: the pages of the CSS 3D book are plain white');
         await hc.close();
       }
+      // a document with landscape pages (wider than tall): a PDF and a set of pictures, both ways of turning, desktop / tablet / phone
+      {
+        const lb = JSON.parse(phpB(`
+          function sd($f){ $t=wp_tempnam($f); copy($f,$t); $i=media_handle_sideload(array("name"=>basename($f),"tmp_name"=>$t),0); return is_wp_error($i)?0:$i; }
+          $fx=${JSON.stringify(fxB)};
+          $pdf=sd($fx."book-landscape.pdf"); $im=array(); for($i=1;$i<=6;$i++){$im[]=sd($fx."book-landscape-page-$i.png");}
+          $a=wp_insert_post(array("post_type"=>"mcupr_book","post_status"=>"publish","post_title"=>"E2E Landscape PDF")); update_post_meta($a,"_mcupr_bk_src","pdf"); update_post_meta($a,"_mcupr_bk_pdf",$pdf);
+          $b=wp_insert_post(array("post_type"=>"mcupr_book","post_status"=>"publish","post_title"=>"E2E Landscape pictures")); update_post_meta($b,"_mcupr_bk_src","images"); update_post_meta($b,"_mcupr_bk_imgs",$im);
+          echo json_encode(array($a,$b));`));
+        const sizes = [[1366, 900, 'desktop'], [1024, 768, 'tablet'], [390, 800, 'phone']];
+        for (const [kind, bid] of [['PDF', lb[0]], ['pictures', lb[1]]]) {
+          for (const fx of ['css3d', 'webgl']) {
+            for (const [w, h, dev] of sizes) {
+              const lc = await brFx.newContext({ viewport: { width: w, height: h } });
+              const lp = await lc.newPage();
+              const lerr = [];
+              lp.on('pageerror', (e) => lerr.push(e.message));
+              lp.on('console', (m) => { if (m.type() === 'error') { lerr.push(m.text()); } });
+              await lp.addInitScript((f) => { try { localStorage.setItem('mcupr_bk_fx', f); localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } }, fx);
+              await lp.goto(B + '/?p=' + bid);
+              await lp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+              try { await lp.click('text=รับทราบ', { timeout: 1000 }); } catch (e) { /* no banner */ }
+              await lp.locator('.bk-reader').scrollIntoViewIfNeeded();
+              await lp.waitForTimeout(1200);
+              const lrd = lp.locator('.bk-reader'), lst = lp.locator('.bk-stage'), tag = 'e-books: landscape ' + kind + ' (' + fx + ', ' + dev + ')';
+              ok((await lrd.getAttribute('data-fx')) === fx, tag + ': uses the way of turning');
+              const ar1 = await lp.evaluate(() => parseFloat(document.querySelector('.bk-reader').style.getPropertyValue('--bk-ar1')));
+              ok(ar1 > 1.3 && ar1 < 1.5, tag + ': the pages are wider than tall (ratio ' + ar1.toFixed(2) + ')');
+              const box = await lp.locator('.bk-fx').boundingBox(), rb = await lrd.boundingBox();
+              const wide = dev === 'phone' ? ar1 : 2 * ar1;
+              ok(Math.abs(box.width / box.height - wide) < 0.15, tag + ': the book has the shape of ' + (dev === 'phone' ? 'one landscape page' : 'two landscape pages side by side') + ' (' + (box.width / box.height).toFixed(2) + ')');
+              ok(box.width <= rb.width + 1 && box.height <= rb.height + 1 && box.x >= rb.x - 1, tag + ': the book fits in the reader');
+              ok(await lp.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), tag + ': no sideways scroll');
+              ok(isRed(await px(lp, lst, dev === 'phone' ? 0.5 : 0.5, 0.45)), tag + ': the closed book shows the red cover');
+              await lp.click('.bk-reader [data-act="next"]');
+              await lp.waitForFunction(() => +document.querySelector('.bk-reader').dataset.page >= 2, null, { timeout: 8000 }).catch(() => {});
+              await lp.waitForTimeout(700);
+              if (dev === 'phone') {
+                ok(isBlue(await px(lp, lst, 0.5, 0.45)), tag + ': the next page (blue) is shown');
+              } else {
+                ok(isBlue(await px(lp, lst, 0.28, 0.45)) && isGreen(await px(lp, lst, 0.72, 0.45)), tag + ': pages 2 (blue, left) and 3 (green, right) are the right way round');
+              }
+              await lp.focus('.bk-stage');
+              await lp.keyboard.press('ArrowRight');
+              await lp.waitForFunction(() => +document.querySelector('.bk-reader').dataset.page >= 3, null, { timeout: 8000 }).catch(() => {});
+              ok(+(await lrd.getAttribute('data-page')) >= 3, tag + ': the arrow key turns the page');
+              ok(lerr.length === 0, tag + ': no script error' + (lerr.length ? ': ' + lerr.slice(0, 2).join(' | ') : ''));
+              await lc.close();
+            }
+          }
+        }
+      }
       await brFx.close();
     }
     // the look of Real3D Flipbook: a toolbar of icons, zoom, auto-play, the contents, print, a window of its own
