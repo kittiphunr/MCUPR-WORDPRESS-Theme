@@ -2520,7 +2520,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await ap.setInputFiles('#si-file', osK.tmpdir() + '/card-import.csv');
     await Promise.all([ap.waitForNavigation(), ap.click('.card button.button-primary')]);
     const pvk = await ap.locator('.wrap').innerText();
-    ok(/step=preview/.test(ap.url()) && /ซ้ำกับนิสิตคนอื่น|already belongs|belongs to another/.test(pvk), 'card import: the preview refuses a card code that another student already has');
+    ok(/step=preview/.test(ap.url()) && /เป็นของนิสิตคนอื่น|already belongs|belongs to another/.test(pvk), 'card import: the preview refuses a card code that another student already has');
     ok(phpK('$s=""; foreach(glob(mcupr_si_dir()."/*.json") as $f){ $s.=file_get_contents($f); } echo (strpos($s,"5566778899")===false&&strpos($s,"1101700203450")===false&&strpos($s,"4028251661")===false)?"clean":"LEAK";') === 'clean', 'card import: the file kept for the preview has no card code and no ID number in it');
     await Promise.all([ap.waitForNavigation(), ap.click('.wrap form button.button-primary')]);
     await ap.waitForURL(/step=done/, { timeout: 30000 });
