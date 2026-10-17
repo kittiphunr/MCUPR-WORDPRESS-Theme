@@ -37,7 +37,7 @@ function mcupr_admin_sections() {
 		'students'  => array(
 			'label' => __( 'Students', 'mcupr' ),
 			'items' => array(
-				array( 'type' => 'mcupr_student', 'pages' => array( 'mcupr-student-import', 'mcupr-student-settings', 'mcupr-student-log' ), 'icon' => 'dashicons-id-alt', 'desc' => __( 'Student database with bulk import, login accounts and student-only content', 'mcupr' ) ),
+				array( 'type' => 'mcupr_student', 'pages' => array( 'mcupr-student-import', 'mcupr-student-settings', 'mcupr-student-log', 'mcupr-requests' ), 'icon' => 'dashicons-id-alt', 'desc' => __( 'Student database with bulk import, login accounts and student-only content', 'mcupr' ) ),
 			),
 		),
 		'people'    => array(
@@ -98,12 +98,20 @@ function mcupr_admin_group_visible( $key ) {
 	foreach ( $g[ $key ]['sections'] as $sk ) {
 		foreach ( isset( $secs[ $sk ] ) ? $secs[ $sk ]['items'] : array() as $i ) {
 			$o = get_post_type_object( $i['type'] );
-			if ( $o && current_user_can( $o->cap->edit_posts ) ) {
+			if ( $o && mcupr_admin_can_type( $o ) ) {
 				return true;
 			}
 		}
 	}
 	return false;
+}
+
+/** May this person see the card / group of a post type? (The answers of the forms are for people who can edit pages; the registrar sees only the requests, through the "Requests" card of the students.) */
+function mcupr_admin_can_type( $o ) {
+	if ( 'mcupr_fe' === $o->name ) {
+		return current_user_can( 'edit_pages' );
+	}
+	return current_user_can( $o->cap->edit_posts );
 }
 
 /** The group a theme screen belongs to ('' = the overview itself or not ours). */
@@ -463,7 +471,7 @@ function mcupr_admin_overview() {
 		$cards = '';
 		foreach ( $sec['items'] as $i ) {
 			$o = get_post_type_object( $i['type'] );
-			if ( ! $o || ! current_user_can( $o->cap->edit_posts ) ) {
+			if ( ! $o || ! mcupr_admin_can_type( $o ) ) {
 				continue;
 			}
 			$all = null;
