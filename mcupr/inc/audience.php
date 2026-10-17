@@ -253,15 +253,10 @@ foreach ( array( 'save_post_' . MCUPR_STU, 'deleted_post' ) as $mcupr_h ) {
 	add_action( $mcupr_h, static function () { delete_transient( 'mcupr_aud_opts' ); } );
 }
 
-function mcupr_aud_box( $post ) {
-	wp_nonce_field( 'mcupr_aud_save', 'mcupr_aud_nonce' );
-	$on  = 'students' === get_post_meta( $post->ID, MCUPR_AUD, true );
-	$r   = mcupr_aud_rules( $post->ID );
-	$o   = mcupr_aud_options();
-	$nr  = mcupr_aud_rules_norm( $r );
-	echo '<div class="mcupr-aud" data-combos="' . esc_attr( wp_json_encode( $o['combos'] ) ) . '" data-total="' . (int) $o['total'] . '" data-sep="' . esc_attr( MCUPR_AUD_SEP ) . '">';
-	echo '<p><label><input type="radio" name="mcupr_aud" value=""' . checked( ! $on, true, false ) . '> ' . esc_html__( 'Everyone', 'mcupr' ) . '</label><br><label><input type="radio" name="mcupr_aud" value="students"' . checked( $on, true, false ) . '> <strong>' . esc_html__( 'Students only', 'mcupr' ) . '</strong> ' . esc_html__( '(logged in, currently studying)', 'mcupr' ) . '</label></p>';
-	echo '<div class="mcupr-aud-rules"' . ( $on ? '' : ' hidden' ) . '>';
+/** The ticking part of the box (levels, years, faculties / majors with their counts); shared by the content box and the e-mail page. $hidden: folded away until "students only" is chosen. */
+function mcupr_aud_rules_fields( $r, $o, $hidden = false ) {
+	$nr = mcupr_aud_rules_norm( $r );
+	echo '<div class="mcupr-aud-rules"' . ( $hidden ? ' hidden' : '' ) . '>';
 	echo '<fieldset style="margin:0 0 .5rem"><legend class="description">' . esc_html__( 'Only these levels (none ticked = every level):', 'mcupr' ) . '</legend>';
 	foreach ( mcupr_student_levels() as $k => $label ) {
 		echo '<label style="display:block"><input type="checkbox" name="mcupr_aud_levels[]" value="' . esc_attr( $k ) . '" data-k="' . esc_attr( $k ) . '" data-g="level"' . checked( in_array( $k, $r['levels'], true ), true, false ) . '> ' . esc_html( $label ) . '</label>';
@@ -326,6 +321,16 @@ function mcupr_aud_box( $post ) {
 	}
 	echo '</fieldset><p class="mcupr-aud-count" aria-live="polite" hidden style="margin:.5rem 0;padding:6px 8px;background:#f0f6fc;border-left:4px solid #2271b1"></p>';
 	echo '<p class="description">' . esc_html__( 'Inside one group a student needs any one of the ticked boxes; across groups all groups must match. Ticking a faculty means all its majors.', 'mcupr' ) . '</p></div>';
+}
+
+function mcupr_aud_box( $post ) {
+	wp_nonce_field( 'mcupr_aud_save', 'mcupr_aud_nonce' );
+	$on  = 'students' === get_post_meta( $post->ID, MCUPR_AUD, true );
+	$r   = mcupr_aud_rules( $post->ID );
+	$o   = mcupr_aud_options();
+	echo '<div class="mcupr-aud" data-combos="' . esc_attr( wp_json_encode( $o['combos'] ) ) . '" data-total="' . (int) $o['total'] . '" data-sep="' . esc_attr( MCUPR_AUD_SEP ) . '">';
+	echo '<p><label><input type="radio" name="mcupr_aud" value=""' . checked( ! $on, true, false ) . '> ' . esc_html__( 'Everyone', 'mcupr' ) . '</label><br><label><input type="radio" name="mcupr_aud" value="students"' . checked( $on, true, false ) . '> <strong>' . esc_html__( 'Students only', 'mcupr' ) . '</strong> ' . esc_html__( '(logged in, currently studying)', 'mcupr' ) . '</label></p>';
+	mcupr_aud_rules_fields( $r, $o, ! $on );
 	echo '<p class="description">' . esc_html__( 'Content for students only is hidden from everyone else everywhere on the website, and its files can only be downloaded by students.', 'mcupr' ) . '</p></div>';
 }
 
@@ -344,6 +349,33 @@ add_action(
 	}
 );
 
+/** The ticked boxes of the rules chooser as rules (levels, years, fac, maj): checked against what exists. Nonce is checked by the caller. */
+function mcupr_aud_post_rules() {
+	$list = static function ( $key, $allowed = null ) {
+		$in = isset( $_POST[ $key ] ) && is_array( $_POST[ $key ] ) ? wp_unslash( $_POST[ $key ] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+		$out = array();
+		foreach ( array_slice( $in, 0, 400 ) as $v ) {
+			$v = is_string( $v ) ? trim( preg_replace( '/\s+/u', ' ', sanitize_text_field( $v ) ) ) : '';
+			if ( '' !== $v && ( null === $allowed || in_array( $v, $allowed, true ) ) ) {
+				$out[] = $v;
+			}
+		}
+		return array_values( array_unique( $out ) );
+	};
+	$lv  = $list( 'mcupr_aud_levels', array_keys( mcupr_student_levels() ) );
+	$yr  = $list( 'mcupr_aud_years', array_map( 'strval', array_keys( mcupr_aud_years() ) ) ); // (array keys like '1' are integers)
+	$fac = $list( 'mcupr_aud_fac' );
+	$fn  = array_map( 'mcupr_aud_norm', $fac );
+	$maj = array();
+	foreach ( $list( 'mcupr_aud_maj' ) as $m ) { // a major of a ticked faculty is already in
+		$pp = explode( MCUPR_AUD_SEP, $m, 2 );
+		if ( 2 === count( $pp ) && '' !== trim( $pp[0] ) && '' !== trim( $pp[1] ) && ! in_array( mcupr_aud_norm( $pp[0] ), $fn, true ) ) {
+			$maj[] = trim( $pp[0] ) . MCUPR_AUD_SEP . trim( $pp[1] );
+		}
+	}
+	return array( 'levels' => $lv, 'years' => $yr, 'fac' => $fac, 'maj' => $maj );
+}
+
 add_action(
 	'save_post',
 	static function ( $post_id, $post ) {
@@ -355,28 +387,11 @@ add_action(
 		}
 		$on = isset( $_POST['mcupr_aud'] ) && 'students' === $_POST['mcupr_aud'];
 		$on ? update_post_meta( $post_id, MCUPR_AUD, 'students' ) : delete_post_meta( $post_id, MCUPR_AUD );
-		$list = static function ( $key, $allowed = null ) {
-			$in = isset( $_POST[ $key ] ) && is_array( $_POST[ $key ] ) ? wp_unslash( $_POST[ $key ] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
-			$out = array();
-			foreach ( array_slice( $in, 0, 400 ) as $v ) {
-				$v = is_string( $v ) ? trim( preg_replace( '/\s+/u', ' ', sanitize_text_field( $v ) ) ) : '';
-				if ( '' !== $v && ( null === $allowed || in_array( $v, $allowed, true ) ) ) {
-					$out[] = $v;
-				}
-			}
-			return array_values( array_unique( $out ) );
-		};
-		$lv  = $list( 'mcupr_aud_levels', array_keys( mcupr_student_levels() ) );
-		$yr  = $list( 'mcupr_aud_years', array_map( 'strval', array_keys( mcupr_aud_years() ) ) ); // (array keys like '1' are integers)
-		$fac = $list( 'mcupr_aud_fac' );
-		$fn  = array_map( 'mcupr_aud_norm', $fac );
-		$maj = array();
-		foreach ( $list( 'mcupr_aud_maj' ) as $m ) { // a major of a ticked faculty is already in
-			$pp = explode( MCUPR_AUD_SEP, $m, 2 );
-			if ( 2 === count( $pp ) && '' !== trim( $pp[0] ) && '' !== trim( $pp[1] ) && ! in_array( mcupr_aud_norm( $pp[0] ), $fn, true ) ) {
-				$maj[] = trim( $pp[0] ) . MCUPR_AUD_SEP . trim( $pp[1] );
-			}
-		}
+		$rules = mcupr_aud_post_rules();
+		$lv    = $rules['levels'];
+		$yr    = $rules['years'];
+		$fac   = $rules['fac'];
+		$maj   = $rules['maj'];
 		foreach ( array( '_mcupr_aud_levels' => $lv, '_mcupr_aud_years' => $yr, '_mcupr_aud_fac' => $fac, '_mcupr_aud_maj' => $maj ) as $key => $val ) {
 			$on && $val ? update_post_meta( $post_id, $key, $val ) : delete_post_meta( $post_id, $key );
 		}
