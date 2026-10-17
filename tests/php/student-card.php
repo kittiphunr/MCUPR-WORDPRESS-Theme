@@ -149,6 +149,23 @@ t( ! mcupr_card_state( $s2 )['rfid'], 'staff: a card code that belongs to anothe
 $_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_clear_rfid' => '1' );
 do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
 t( ! mcupr_card_state( $s4 )['rfid'] && mcupr_card_state( $s4 )['idcard'], 'staff: the card code removed, the ID number kept' );
+// the box shows the number from the central details and keeps both places in step
+t( '1101700203450' === ( mcupr_sp_get( $s4 )['idcard'] ?? '' ), 'sync: an ID number set in the box is also in the central details' );
+ob_start(); mcupr_card_box( get_post( $s4 ) ); $bx = ob_get_clean();
+t( false !== strpos( $bx, 'value="1101700203450"' ), 'sync: the box shows the number' );
+$_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_idc' => '1234567890123' );
+do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
+t( '1234567890123' === mcupr_sp_get( $s4 )['idcard'] && ! mcupr_card_state( $s4 )['idcard'], 'sync: a number with a wrong check digit is kept centrally but is not a sign-in factor' );
+ob_start(); mcupr_card_box( get_post( $s4 ) ); $bx = ob_get_clean();
+t( false !== strpos( $bx, 'value="1234567890123"' ) && false !== strpos( $bx, esc_html__( 'in the central details, but the check digit is wrong (cannot be used to sign in)', 'mcupr' ) ), 'sync: the box says the check digit is wrong' );
+$_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_idc' => '1101700203450' );
+do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
+t( mcupr_card_state( $s4 )['idcard'] && '1101700203450' === mcupr_sp_get( $s4 )['idcard'], 'sync: a valid number sets both again' );
+$_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_clear_idc' => '1' );
+do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
+t( ! mcupr_card_state( $s4 )['idcard'] && empty( mcupr_sp_get( $s4 )['idcard'] ), 'sync: removing clears both' );
+$_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_idc' => '1101700203450' );
+do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
 $_POST = array( 'mcupr_card_rfid' => '5555555555' );
 do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
 t( ! mcupr_card_state( $s4 )['rfid'], 'staff: without the nonce nothing is saved' );
