@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.41.0 =
+* E-mail to students in groups: choose who (levels, years, faculties), saved templates, scheduled send, attachment, background sending with an hourly limit, stop-announcements link.
+
 = 1.40.0 =
 * Requests: tracking number, status, files, e-mails (2B)
 
