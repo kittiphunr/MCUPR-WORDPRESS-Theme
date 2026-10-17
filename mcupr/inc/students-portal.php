@@ -273,7 +273,22 @@ foreach ( array( 'admin_post_nopriv_mcupr_stu_login', 'admin_post_mcupr_stu_logi
 				wp_safe_redirect( mcupr_student_portal_url( array( 'e' => 'wait' ) ) );
 				exit;
 			}
-			$u = wp_signon( array( 'user_login' => $login, 'user_password' => $pass, 'remember' => ! empty( $_POST['rememberme'] ) ), is_ssl() );
+			mcupr_card_portal_flag( true ); // this form asks for the card itself (below)
+			$u = wp_authenticate( $login, $pass );
+			mcupr_card_portal_flag( false );
+			if ( ! is_wp_error( $u ) && mcupr_card_required() && mcupr_is_student_user( $u->ID ) ) {
+				$sp = (int) get_user_meta( $u->ID, 'mcupr_student_id', true );
+				$cw = $sp ? mcupr_card_verify( $sp, isset( $_POST['rfid'] ) ? (string) wp_unslash( $_POST['rfid'] ) : '', isset( $_POST['idc'] ) ? (string) wp_unslash( $_POST['idc'] ) : '' ) : 'cardnone'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+				if ( '' !== $cw ) {
+					wp_safe_redirect( mcupr_student_portal_url( array( 'e' => $cw ) ) );
+					exit;
+				}
+			}
+			if ( ! is_wp_error( $u ) ) {
+				wp_set_auth_cookie( $u->ID, ! empty( $_POST['rememberme'] ), is_ssl() );
+				wp_set_current_user( $u->ID );
+				do_action( 'wp_login', $u->user_login, $u );
+			}
 			$to = mcupr_student_portal_url();
 			if ( ! is_wp_error( $u ) && ! empty( $_POST['redirect_to'] ) ) {
 				$to = wp_validate_redirect( esc_url_raw( wp_unslash( $_POST['redirect_to'] ) ), $to );
