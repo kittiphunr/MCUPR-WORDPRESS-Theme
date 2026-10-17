@@ -18,28 +18,83 @@
 		if (ctx.state === 'suspended' && ctx.resume) { ctx.resume(); }
 		return ctx;
 	}
-	/* a rustle (filtered noise that rises and fades) and, as the page lands, a soft thud */
-	function turnSound() {
+	/* Pink-ish noise (a little of each octave, like the hiss of paper rather than the hiss of a radio) with a crinkle: the loudness of paper that is
+	   bending flickers a few dozen times a second. Made fresh for every sound, so that no two page turns are the same. */
+	function noise(c, len, crinkle) {
+		var buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0), i, w, b0 = 0, b1 = 0, b2 = 0, g = 0, gt = 0, gs = 0;
+		for (i = 0; i < len; i++) {
+			w = Math.random() * 2 - 1;
+			b0 = 0.99765 * b0 + w * 0.0990460; b1 = 0.96300 * b1 + w * 0.2965164; b2 = 0.57000 * b2 + w * 1.0526913;
+			if (i % 180 === 0) { gt = Math.random(); } // a new target a few hundred times a second
+			gs += (gt - gs) * 0.08;
+			g = crinkle ? 0.35 + 0.65 * gs * gs * 1.6 : 1;
+			d[i] = (b0 + b1 + b2 + w * 0.1848) * 0.14 * Math.min(g, 1.2);
+		}
+		return buf;
+	}
+	function burst(c, at, dur, type, freq, gain, pan, q) {
+		var len = Math.max(32, Math.floor(c.sampleRate * dur)), src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(), node = g;
+		src.buffer = noise(c, len, false);
+		f.type = type; f.frequency.value = freq; if (q) { f.Q.value = q; }
+		g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(gain, at + Math.min(0.006, dur / 4)); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+		src.connect(f); f.connect(g);
+		if (c.createStereoPanner && pan) { var p = c.createStereoPanner(); p.pan.value = pan; g.connect(p); node = p; }
+		node.connect(c.destination); src.start(at);
+	}
+	function thump(c, at, f0, f1, dur, gain, pan) {
+		var o = c.createOscillator(), g = c.createGain(), node = g;
+		o.type = 'sine'; o.frequency.setValueAtTime(f0, at); o.frequency.exponentialRampToValueAtTime(f1, at + dur);
+		g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(gain, at + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+		o.connect(g);
+		if (c.createStereoPanner && pan) { var p = c.createStereoPanner(); p.pan.value = pan; g.connect(p); node = p; }
+		node.connect(c.destination); o.start(at); o.stop(at + dur + 0.02);
+	}
+	/* The landing of a page: a soft slap of paper on paper and a low thump (a hard cover: deeper and longer). opts: { speed 0..1.5, cover, dir } */
+	function landSound(opts) {
 		var c = audio();
 		if (!c) { return false; }
-		var t = c.currentTime, dur = 0.34 + Math.random() * 0.08, len = Math.floor(c.sampleRate * dur);
-		var buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0), i;
-		for (i = 0; i < len; i++) { d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.4); }
-		var src = c.createBufferSource(); src.buffer = buf;
-		var bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.7;
-		bp.frequency.setValueAtTime(800, t); bp.frequency.exponentialRampToValueAtTime(3400, t + dur * 0.6);
-		var hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 350;
-		var g = c.createGain();
-		g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.55, t + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-		src.connect(bp); bp.connect(hp); hp.connect(g); g.connect(c.destination); src.start(t);
-		var o = c.createOscillator(), og = c.createGain(), t2 = t + dur * 0.78;
-		o.type = 'sine'; o.frequency.setValueAtTime(120, t2); o.frequency.exponentialRampToValueAtTime(55, t2 + 0.14);
-		og.gain.setValueAtTime(0.0001, t2); og.gain.exponentialRampToValueAtTime(0.2, t2 + 0.03); og.gain.exponentialRampToValueAtTime(0.0001, t2 + 0.16);
-		o.connect(og); og.connect(c.destination); o.start(t2); o.stop(t2 + 0.18);
+		opts = opts || {};
+		var sp = Math.max(0.15, Math.min(opts.speed === undefined ? 0.8 : opts.speed, 1.5)), t = c.currentTime + 0.005, j = 0.9 + Math.random() * 0.2, pan = (opts.dir > 0 ? -1 : 1) * 0.3;
+		if (opts.cover) {
+			thump(c, t, 95 * j, 38, 0.26, 0.5 * sp, pan);
+			burst(c, t, 0.12, 'lowpass', 700 * j, 0.32 * sp, pan, 0.7);
+			burst(c, t + 0.015, 0.05, 'bandpass', 2200 * j, 0.1 * sp, pan, 1.2);
+		} else {
+			thump(c, t, 130 * j, 60, 0.12, 0.2 * sp, pan);
+			burst(c, t, 0.075, 'bandpass', 1500 * j, 0.3 * sp, pan, 0.8);
+			burst(c, t + 0.004, 0.04, 'highpass', 3600, 0.06 * sp, pan);
+		}
+		return true;
+	}
+	/* The turning of a page: a sharp flick as it lifts, then the rustle of the paper bending (louder and shorter the faster it goes, wandering from
+	   one ear to the other as the page crosses the book), and, unless opts.land === false, the landing. opts: { speed 0..1.5, cover, dir, land } */
+	function turnSound(opts) {
+		var c = audio();
+		if (!c) { return false; }
+		opts = opts || {};
+		var sp = Math.max(0.3, Math.min(opts.speed === undefined ? 1 : opts.speed, 1.5)), cover = !!opts.cover, dir = opts.dir < 0 ? -1 : 1;
+		var t = c.currentTime + 0.005, dur = (cover ? 0.5 : 0.3 + Math.random() * 0.08) / (0.75 + 0.35 * sp), j = 0.88 + Math.random() * 0.24, len = Math.floor(c.sampleRate * dur);
+		var src = c.createBufferSource(); src.buffer = noise(c, len, true);
+		var bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.65;
+		var f0 = (cover ? 380 : 700) * j, f1 = (cover ? 1700 : 3400) * j;
+		bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + dur * 0.65); bp.frequency.exponentialRampToValueAtTime(f0 * 1.5, t + dur);
+		var hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = cover ? 160 : 330;
+		var g = c.createGain(), peak = (cover ? 0.5 : 0.62) * (0.55 + 0.45 * sp) * j;
+		g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + dur * 0.32); g.gain.exponentialRampToValueAtTime(peak * 0.5, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+		src.connect(bp); bp.connect(hp); hp.connect(g);
+		if (c.createStereoPanner) {
+			var p = c.createStereoPanner();
+			p.pan.setValueAtTime(0.32 * dir, t); p.pan.linearRampToValueAtTime(-0.32 * dir, t + dur);
+			g.connect(p); p.connect(c.destination);
+		} else { g.connect(c.destination); }
+		src.start(t);
+		burst(c, t, cover ? 0.06 : 0.03, 'highpass', cover ? 1200 : 2600, (cover ? 0.14 : 0.2) * sp * j, 0.32 * dir, 0.7); // the flick as it lifts
+		if (cover) { thump(c, t, 70, 52, 0.18, 0.16, 0.2 * dir); } // the cover swinging: a low creak of the spine
+		if (opts.land !== false) { var lt = Math.max(0, dur * 0.84); window.setTimeout(function () { landSound({ speed: 0.8 * sp, cover: cover, dir: dir }); }, lt * 1000); }
 		return true;
 	}
 
-	window.mcuprBook = { turnSound: turnSound, audio: audio, reduced: reduced };
+	window.mcuprBook = { turnSound: turnSound, landSound: landSound, audio: audio, reduced: reduced };
 
 	function store(key, val) { try { if (val === undefined) { return window.localStorage.getItem(key); } window.localStorage.setItem(key, val); } catch (e) { /* private mode */ } return null; }
 	function fmt(s, a, b) { return String(s).replace('%1$d', a).replace('%2$d', b); }
@@ -76,7 +131,7 @@
 		}
 		var seq = [], seqOf = {}, media = cfg.media || [], mbar = $('[data-mbar]', el), modal = null, modalFrom = null;
 		var pdf = null, total = 0, pages = [], pf = null, ratio = 1.4, rendered = {}, queue = [], busy = false, lastW = 0;
-		var soundOn = false, flips = 0, userTurn = false;
+		var soundOn = false, flips = 0, lands = 0, userTurn = false;
 		/* how the page turns: light CSS 3D, WebGL (bends, light and shadow) or the classic page-flip library; the visitor's choice is remembered */
 		var fx = store('mcupr_bk_fx');
 		if (FXS.indexOf(fx) === -1) { fx = FXS.indexOf(cfg.fx) !== -1 ? cfg.fx : 'css3d'; }
@@ -554,9 +609,16 @@
 			el.setAttribute('data-fx', fx); fxLabel();
 			range.max = String(total); totalEl.textContent = total;
 			pf.on('flip', onFlip);
+			var meta = {}, ownLand = fx !== 'classic'; // our own engines tell when a page lands; the old library does not (its sound has the landing in it)
+			pf.on('turnmeta', function (e) { meta = e.data || {}; });
+			pf.on('land', function (e) {
+				if (!soundOn) { return; }
+				var d = e.data || {};
+				if (landSound({ speed: d.speed, cover: d.cover, dir: meta.dir })) { lands++; el.setAttribute('data-lands', lands); }
+			});
 			pf.on('changeState', function (e) {
 				if (e.data === 'flipping' || e.data === 'user_fold') { userTurn = userTurn || e.data === 'user_fold'; }
-				if (e.data === 'flipping' && soundOn && turnSound()) { flips++; el.setAttribute('data-flips', flips); }
+				if (e.data === 'flipping' && soundOn && turnSound({ speed: meta.speed, cover: meta.cover, dir: meta.dir, land: !ownLand })) { flips++; el.setAttribute('data-flips', flips); }
 			});
 			if (startAt) { pf.turnToPage(startAt); }
 			lastW = pages[0].clientWidth;
