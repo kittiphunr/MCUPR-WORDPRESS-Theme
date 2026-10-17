@@ -6,3 +6,4 @@ screenshots/
 .composer/
 .site-*/
 .composer-*/
+node_modules
