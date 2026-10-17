@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'MCUPR_MIN_WP', '5.9' );
 define( 'MCUPR_MIN_PHP', '7.0' );
 
-define( 'MCUPR_VERSION', '1.44.0' );
+define( 'MCUPR_VERSION', '1.45.0' );
 define( 'MCUPR_DIR', get_template_directory() );
 define( 'MCUPR_URI', get_template_directory_uri() );
 
@@ -48,6 +48,7 @@ require_once MCUPR_DIR . '/inc/students-care.php';
 require_once MCUPR_DIR . '/inc/students-mail.php';
 require_once MCUPR_DIR . '/inc/students-grades.php';
 require_once MCUPR_DIR . '/inc/students-sso.php';
+require_once MCUPR_DIR . '/inc/students-card.php';
 require_once MCUPR_DIR . '/inc/audience.php';
 require_once MCUPR_DIR . '/inc/books.php';
 require_once MCUPR_DIR . '/inc/plain-links.php';
