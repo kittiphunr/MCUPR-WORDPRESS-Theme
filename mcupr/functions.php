@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'MCUPR_MIN_WP', '5.9' );
 define( 'MCUPR_MIN_PHP', '7.0' );
 
-define( 'MCUPR_VERSION', '1.42.0' );
+define( 'MCUPR_VERSION', '1.43.0' );
 define( 'MCUPR_DIR', get_template_directory() );
 define( 'MCUPR_URI', get_template_directory_uri() );
 
@@ -29,6 +29,7 @@ require_once MCUPR_DIR . '/inc/customizer-extra.php';
 require_once MCUPR_DIR . '/inc/layout-meta.php';
 require_once MCUPR_DIR . '/inc/dates.php';
 require_once MCUPR_DIR . '/inc/template-tags.php';
+require_once MCUPR_DIR . '/inc/query-diet.php';
 require_once MCUPR_DIR . '/inc/menus.php';
 require_once MCUPR_DIR . '/inc/seo.php';
 require_once MCUPR_DIR . '/inc/shortcodes.php';

@@ -69,8 +69,7 @@ function mcupr_blk_figure( $v ) {
 		if ( ! isset( $types[ $m[1] ] ) || ! post_type_exists( $types[ $m[1] ] ) ) {
 			return '';
 		}
-		$c = wp_count_posts( $types[ $m[1] ] );
-		return number_format_i18n( isset( $c->publish ) ? (int) $c->publish : 0 );
+		return number_format_i18n( mcupr_published_count( $types[ $m[1] ] ) );
 	}
 	return esc_html( $v );
 }
