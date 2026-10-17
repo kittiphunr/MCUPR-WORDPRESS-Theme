@@ -2244,6 +2244,127 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     phpM(clean);
     await mc.close(); await sc.close();
   }
+  // ---------- schedule and grades (2C): staff import two CSV files, a student sees only their own
+  {
+    const { execSync } = require('child_process');
+    const fsG = require('fs');
+    const osG = require('os');
+    const wpLoadG = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+    const phpG = (code) => { const f = osG.tmpdir() + '/e2e-sg-' + process.pid + '.php'; fsG.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wpLoadG) + '; ' + code); return execSync('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const cleanG = 'wp_set_current_user(1); foreach(array("SGE2E1","SGE2E2","sge2e1","sge2e2") as $l){ $u=get_user_by("login",$l); if($u){ $s=(int)get_user_meta($u->ID,"mcupr_student_id",true); if($s){wp_delete_post($s,true);} wp_delete_user($u->ID);} } foreach(get_posts(array("post_type"=>"mcupr_student","post_status"=>"any","numberposts"=>-1,"fields"=>"ids","meta_key"=>"_mcupr_sg_e2e")) as $x){wp_delete_post($x,true);} delete_option("mcupr_sg_index"); delete_option("mcupr_sg_terms");';
+    phpG(cleanG + `
+      $mk=function($sid,$name){ $r=array("sid"=>$sid,"name"=>$name,"name_en"=>"","level"=>"bachelor","year"=>"2","entry"=>"2567","faculty"=>"คณะพุทธศาสตร์","major"=>"พุทธศาสตร์","status"=>"studying","email"=>$sid."@example.org","phone"=>"","note"=>""); list(,$p)=mcupr_student_upsert($r,"add_update"); update_post_meta($p,"_mcupr_sg_e2e",1); $u=mcupr_student_make_account($p); wp_set_password("Sg-pass-12345",$u); return $u; };
+      $mk("SGE2E1","นิสิต ตารางหนึ่ง"); $mk("SGE2E2","นิสิต ตารางสอง");`);
+    const tmp = osG.tmpdir();
+    fsG.writeFileSync(tmp + '/sg-sched.csv', 'รหัสนิสิต,ภาคเรียน,รหัสวิชา,ชื่อวิชา,หน่วยกิต,วัน,เวลาเริ่ม,เวลาสิ้นสุด,ห้อง,อาจารย์\n'
+      + 'SGE2E1,1/2567,BUD101,พุทธศาสนาเบื้องต้น,3,จันทร์,09:00,12:00,A-201,อ.หนึ่ง\n'
+      + 'SGE2E1,1/2567,BUD102,ปรัชญา,3,อังคาร,13:00,16:00,B-1,อ.สอง\n'
+      + 'SGE2E1,2/2567,BUD201,ธรรมะ,2,พุธ,10:00,12:00,C-3,อ.สาม\n'
+      + 'SGE2E2,1/2567,ZZZ999,วิชาของคนอื่น,3,ศุกร์,09:00,12:00,Z-9,อ.ลับ\n'
+      + 'NOBODY1,1/2567,BUD101,x,3,จันทร์,09:00,12:00,,\n'
+      + 'SGE2E1,1/2567,BAD1,ผิดเวลา,3,จันทร์,12:00,09:00,,\n');
+    fsG.writeFileSync(tmp + '/sg-grades.csv', 'รหัสนิสิต,ภาคเรียน,รหัสวิชา,ชื่อวิชา,หน่วยกิต,เกรด\n'
+      + 'SGE2E1,1/2567,BUD101,พุทธศาสนาเบื้องต้น,3,A\nSGE2E1,1/2567,BUD102,ปรัชญา,3,B\nSGE2E1,2/2567,BUD201,ธรรมะ,2,F\nSGE2E1,2/2567,BUD202,สมาธิ,1,S\nSGE2E2,1/2567,ZZZ999,วิชาของคนอื่น,3,D\n');
+    const gc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const gp = await gc.newPage();
+    const gerr = [];
+    gp.on('pageerror', (e) => gerr.push(e.message));
+    await gp.goto(B + '/wp-login.php');
+    await gp.fill('#user_login', 'e2eadmin'); await gp.fill('#user_pass', 'e2e-Admin-pass-1'); await gp.click('#wp-submit');
+    await gp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    await gp.goto(B + '/wp-admin/admin.php?page=mcupr-student-grades');
+    await gp.setInputFiles('#sg-file', tmp + '/sg-sched.csv');
+    await Promise.all([gp.waitForNavigation(), gp.click('.card button.button-primary')]);
+    const pv = await gp.locator('.wrap').innerText();
+    ok(/step=preview/.test(gp.url()) && /1\/2567/.test(pv) && /NOBODY1/.test(pv) && /(Line|บรรทัด) 7/.test(pv), 'schedule import: the preview shows the terms, the unknown student ID and the line of the bad row');
+    ok(await gp.locator('button:has-text("Import"), button:has-text("นำเข้า")').count() === 1, 'schedule import: nothing is imported until the button is pressed');
+    ok(phpG('echo count(mcupr_sg_get(mcupr_student_find("SGE2E1"),"sched"));') === '0', 'schedule import: and nothing was stored by the preview');
+    await Promise.all([gp.waitForNavigation(), gp.click('.wrap form button.button-primary')]).catch(() => {});
+    ok(phpG('echo count(mcupr_sg_get(mcupr_student_find("SGE2E1"),"sched"));') === '0', 'schedule import: it is refused without ticking "I have checked"');
+    await gp.goto(gp.url());
+    await gp.check('input[name=ok]');
+    await Promise.all([gp.waitForNavigation(), gp.click('.wrap form button.button-primary')]);
+    ok(await gp.locator('.notice-success').count() === 1 && phpG('echo count(mcupr_sg_get(mcupr_student_find("SGE2E1"),"sched"));') === '3', 'schedule import: after ticking, 3 rows are stored for the student');
+    await gp.setInputFiles('#sg-file', tmp + '/sg-grades.csv');
+    await gp.check('input[name=kind][value=grades]');
+    await Promise.all([gp.waitForNavigation(), gp.click('.card button.button-primary')]);
+    await gp.check('input[name=ok]');
+    await Promise.all([gp.waitForNavigation(), gp.click('.wrap form button.button-primary')]);
+    ok(phpG('echo count(mcupr_sg_get(mcupr_student_find("SGE2E1"),"grades"));') === '4', 'grades import: 4 rows are stored');
+    ok(await gp.locator('table.widefat tbody tr').count() === 4, 'import page: lists the 2 kinds × 2 terms that exist');
+    await gp.fill('#sg-term', '1/2567'); await gp.fill('#sg-ds', '2024-06-03'); await gp.fill('#sg-de', '2024-09-27');
+    await Promise.all([gp.waitForNavigation(), gp.click('#sg-de ~ button')]);
+    ok(/1\/2567: 2024-06-03/.test(await gp.locator('.wrap').innerText()), 'import page: the dates of a term are saved');
+    // the student
+    const sc = await br.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
+    const sp = await sc.newPage();
+    const sperr = [];
+    sp.on('pageerror', (e) => sperr.push(e.message));
+    const loginS = async (pg, who) => { await pg.goto(B + '/?mcupr_student=1'); await pg.fill('#stu-log', who); await pg.fill('#stu-pwd', 'Sg-pass-12345'); await pg.click('.stu-form button[type=submit]'); await pg.waitForSelector('.stu-hello'); };
+    await loginS(sp, 'sge2e1');
+    ok(await sp.locator('#sg-sched').count() === 1 && await sp.locator('#sg-grades').count() === 1, 'student: the portal has the schedule and the grades');
+    const sch = await sp.locator('#sg-sched').innerText();
+    ok(/BUD201/.test(sch) && !/BUD101/.test(sch) && !/ZZZ999/.test(sch), 'student: the schedule shows the latest term (2/2567) and nothing of another student');
+    await sp.selectOption('#sg-term', { label: '1/2567' });
+    await Promise.all([sp.waitForNavigation(), sp.click('.sg-pick button')]);
+    const sch1 = await sp.locator('#sg-sched').innerText();
+    ok(/BUD101/.test(sch1) && /09:00–12:00/.test(sch1) && /A-201/.test(sch1) && !/BUD201/.test(sch1), 'student: choosing the term 1/2567 shows its days, times and rooms');
+    ok(await sp.locator('#sg-sched .sg-day h3').first().innerText() !== '' && (await sp.locator('#sg-sched .sg-day h3').allInnerTexts()).length === 2, 'student: one block per day');
+    const gr = await sp.locator('#sg-grades').innerText();
+    ok(/3\.50/.test(gr) && /2\.63/.test(gr) && /\b7\b/.test(gr) && !/ZZZ999/.test(gr), 'student: term average 3.50, cumulative 2.63, 7 credits earned, nothing of another student');
+    ok(await sp.locator('#sg-grades table').count() === 2 && await sp.locator('#sg-grades table caption').count() === 2 && await sp.locator('#sg-grades th[scope=col]').count() >= 8, 'student: each term is a table with a caption and column headings');
+    const [dl] = await Promise.all([sp.waitForEvent('download'), sp.click('#sg-sched a:has-text(".ics")')]);
+    const icsT = fsG.readFileSync(await dl.path(), 'utf8');
+    ok(/BEGIN:VCALENDAR/.test(icsT) && /RRULE:FREQ=WEEKLY;UNTIL=20240927/.test(icsT) && /BUD101/.test(icsT) && !/ZZZ999/.test(icsT), 'student: the calendar file has the weekly classes of the student only, until the last day of the term');
+    const prAttr = await sp.evaluate(() => { let a = ''; window.print = () => { a = document.body.getAttribute('data-sg-print'); }; document.querySelector('[data-sg-print="sg-grades"]').click(); return a; });
+    await sp.evaluate(() => document.body.setAttribute('data-sg-print', 'sg-grades'));
+    await sp.emulateMedia({ media: 'print' });
+    const prHid = await sp.evaluate(() => ({ sched: getComputedStyle(document.querySelector('#sg-sched')).display, grades: getComputedStyle(document.querySelector('#sg-grades')).display, band: getComputedStyle(document.querySelector('.stu-top')).display }));
+    await sp.emulateMedia({ media: 'screen' });
+    await sp.evaluate(() => document.body.removeAttribute('data-sg-print'));
+    ok(prAttr === 'sg-grades' && prHid.sched === 'none' && prHid.grades !== 'none' && prHid.band === 'none', 'student: "print" on the grades marks the page, and in print only the grades are left (' + prAttr + ' ' + JSON.stringify(prHid) + ')');
+    // another student, a visitor
+    const oc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    const op = await oc.newPage();
+    await loginS(op, 'sge2e2');
+    ok(!/BUD101|BUD201|พุทธศาสนาเบื้องต้น/.test(await op.locator('main, body').first().innerText()) && /ZZZ999/.test(await op.locator('#sg-sched').innerText()), 'other student: sees only their own');
+    const ics2 = await op.request.get(B + '/?mcupr_sg_ics=1%2F2567');
+    const t2 = await ics2.text();
+    ok(/ZZZ999/.test(t2) && !/BUD101/.test(t2), 'other student: the calendar file is their own too');
+    const vc = await br.newContext();
+    const vr = await vc.request.get(B + '/?mcupr_sg_ics=1%2F2567', { maxRedirects: 0 });
+    ok(vr.status() !== 200 || !/BEGIN:VCALENDAR/.test(await vr.text()), 'visitor: gets no calendar file');
+    // staff see it on the record + log
+    const rec = phpG('echo mcupr_student_find("SGE2E1");');
+    await gp.goto(B + '/wp-admin/post.php?post=' + rec + '&action=edit');
+    ok(await gp.locator('#mcupr_student_sg .inside').innerText().then((x) => /BUD201/.test(x) && /BUD101/.test(x)), 'staff: the student record shows the schedule and grades');
+    ok(phpG('$e=get_posts(array("post_type"=>"mcupr_audit","post_status"=>"any","numberposts"=>-1)); $t=array_map(function($p){return $p->post_title;},$e); echo in_array("sgview",$t,true)&&in_array("sgimport",$t,true)?"yes":"no";') === 'yes', 'staff: importing and opening a record are in the activity log');
+    // delete a term
+    await gp.goto(B + '/wp-admin/admin.php?page=mcupr-student-grades');
+    gp.once('dialog', (d) => d.accept());
+    await Promise.all([gp.waitForNavigation(), gp.locator('table.widefat tbody tr:has-text("2/2567") >> nth=0').locator('button').click()]);
+    ok(await gp.locator('table.widefat tbody tr').count() === 3, 'import page: deleting a term removes it from the list');
+    // layout + a11y
+    for (const w of [390, 320]) {
+      await sp.setViewportSize({ width: w, height: 800 });
+      await sp.goto(B + '/?mcupr_student=1&sgt=1%2F2567');
+      const m = await sp.evaluate(() => ({ hs: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, btn: Math.min(...[...document.querySelectorAll('.sg-bar .btn, .sg-pick select')].map((e) => e.getBoundingClientRect().height)) }));
+      ok(!m.hs && m.btn >= 40, 'student: schedule and grades fit a ' + w + ' px screen (no sideways scroll, controls at least 40 px)');
+    }
+    await sp.setViewportSize({ width: 1280, height: 900 });
+    await sp.goto(B + '/?mcupr_student=1');
+    await sp.addScriptTag({ content: axeSource() });
+    const axS = await sp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(axS.violations.length === 0, 'axe (portal with schedule and grades): ' + (axS.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+    for (const mode of ['wb', 'yb', 'by']) {
+      await sp.evaluate((md) => document.documentElement.setAttribute('data-contrast', md), mode);
+      const c = await sp.evaluate(() => { const d = getComputedStyle(document.querySelector('.sg-day')); const t = getComputedStyle(document.querySelector('.sg-tbl')); return { d: parseFloat(d.borderTopWidth), t: parseFloat(t.borderTopWidth) }; });
+      ok(c.d >= 2 && c.t >= 2, 'student: high contrast ' + mode + ': the day blocks and the grade tables have a 2 px outline');
+    }
+    ok(gerr.length === 0 && sperr.length === 0, 'schedule and grades: no script error' + (gerr.concat(sperr).length ? ': ' + gerr.concat(sperr).slice(0, 2).join(' | ') : ''));
+    phpG(cleanG);
+    await gc.close(); await sc.close(); await oc.close(); await vc.close();
+  }
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
   {
     const { execSync } = require('child_process');
