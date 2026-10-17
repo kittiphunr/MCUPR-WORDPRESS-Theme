@@ -233,6 +233,15 @@ function mcupr_si_check( $values, $cols, $map, &$seen, $mode ) {
 }
 
 /** The words for the codes above. */
+/** 'excel' for a real Excel file (.xls / .xlsx), 'pdf' for a PDF, else ''. Such a file is not a CSV and would only look "empty". */
+function mcupr_si_binary_kind( $raw ) {
+	$h = substr( (string) $raw, 0, 8 );
+	if ( "\xD0\xCF\x11\xE0" === substr( $h, 0, 4 ) || 0 === strpos( $h, 'PK' . "\x03\x04" ) ) {
+		return 'excel';
+	}
+	return 0 === strpos( $h, '%PDF' ) ? 'pdf' : '';
+}
+
 function mcupr_si_msg( $code ) {
 	$m = array(
 		'sid'     => __( 'Student ID is missing or not valid (4–20 letters, digits or dashes)', 'mcupr' ),
@@ -315,7 +324,7 @@ function mcupr_si_page() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	if ( isset( $_GET['err'] ) ) {
 		$e = sanitize_key( wp_unslash( $_GET['err'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$t = array( 'file' => __( 'No file was uploaded (or it is bigger than 5 MB).', 'mcupr' ), 'empty' => __( 'The file is empty.', 'mcupr' ), 'columns' => __( 'The first line must name the columns, and there must be a student ID column (รหัสนิสิต) and a name column (ชื่อ-สกุล).', 'mcupr' ), 'big' => __( 'The file has too many rows (20,000 at most). Split it in parts.', 'mcupr' ), 'gone' => __( 'That import has expired. Upload the file again.', 'mcupr' ) );
+		$t = array( 'file' => __( 'No file was uploaded (or it is bigger than 5 MB).', 'mcupr' ), 'empty' => __( 'The file is empty.', 'mcupr' ), 'excel' => __( 'This is an Excel file (.xls / .xlsx), which cannot be imported as it is. Open it in Excel and choose Save as → CSV UTF-8, then choose that .csv file here.', 'mcupr' ), 'pdf' => __( 'This is a PDF, not a spreadsheet. Choose a .csv file.', 'mcupr' ), 'columns' => __( 'The first line must name the columns, and there must be a student ID column (รหัสนิสิต) and a name column (ชื่อ-สกุล).', 'mcupr' ), 'big' => __( 'The file has too many rows (20,000 at most). Split it in parts.', 'mcupr' ), 'gone' => __( 'That import has expired. Upload the file again.', 'mcupr' ) );
 		echo '<div class="notice notice-error"><p>' . esc_html( isset( $t[ $e ] ) ? $t[ $e ] : $e ) . '</p></div>';
 	}
 	if ( 'preview' === $step && $token ) {
@@ -387,6 +396,11 @@ add_action(
 		}
 		if ( '' === $text ) {
 			wp_safe_redirect( mcupr_si_url( array( 'err' => 'file' ) ) );
+			exit;
+		}
+		$kind = mcupr_si_binary_kind( $text );
+		if ( '' !== $kind ) {
+			wp_safe_redirect( mcupr_si_url( array( 'err' => $kind ) ) );
 			exit;
 		}
 		$p = mcupr_si_parse( $text );
