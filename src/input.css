@@ -885,6 +885,9 @@ html[data-contrast] .cal, html[data-contrast] .cal td, html[data-contrast] .ev-r
 	/* the band reaches the top of the frame; the capsule floats on it */
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child,
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: 1.7rem; }
+	/* the content is as wide as the frame (a small gap each side, the same as the header capsule's), and the home hero starts at the top edge of the capsule */
+	html:is([data-menu="side"],[data-menu="hybrid"]) .wrap { width: calc(100% - 1.5rem); max-width: 120rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .hero-wrap { margin-top: calc(.75rem - var(--hdr-h, 5.5rem)); }
 
 	/* ---------- the sidebar: ONE card that is only as tall as its menu ---------- */
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav { left: .75rem; top: .75rem; bottom: auto; width: calc(var(--sbw) - 1.5rem); max-height: calc(100vh - 1.5rem); gap: .25rem; padding: .6rem; background: var(--bg); border-radius: 1.75rem; box-shadow: 0 10px 40px color-mix(in srgb, var(--text) 14%, transparent), 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent); overflow-x: hidden; overflow-y: auto; }
