@@ -90,5 +90,6 @@ t( ! mcupr_check_request( 'f', 'act', 'manage_options' ) && ! mcupr_can_save_box
 $_POST = $post_bak; $_GET = $get_bak;
 wp_delete_post( $pid, true );
 
+t( "+66812345678" === mcupr_csv_unsafe( mcupr_csv_safe( "+66812345678" ) ) && "'abc" === mcupr_csv_unsafe( "'abc" ) && "=1+1" === mcupr_csv_unsafe( mcupr_csv_safe( "=1+1" ) ), 'csv: a protected cell comes back as typed when imported' );
 echo $fails ? "$fails FAILED\n" : "all passed\n";
 exit( $fails ? 1 : 0 );
