@@ -170,7 +170,7 @@ $editor = wp_insert_user( array( 'user_login' => 'mm-edi', 'user_pass' => wp_gen
 $reg    = wp_insert_user( array( 'user_login' => 'mm-reg', 'user_pass' => wp_generate_password(), 'user_email' => 'mm-reg@example.org', 'role' => MCUPR_REGISTRAR_ROLE ) );
 t( ! user_can( $editor, MCUPR_STU_CAP ) && user_can( $reg, MCUPR_STU_CAP ), 'admin: an editor cannot use it, the registrar can' );
 $mf = file_get_contents( __DIR__ . '/../../mcupr/inc/students-mail.php' );
-t( substr_count( $mf, 'wp_verify_nonce' ) >= 1 && substr_count( $mf, 'check_ajax_referer' ) >= 2, 'admin: every handler checks the nonce' );
+t( substr_count( $mf, 'wp_verify_nonce' ) + substr_count( $mf, 'mcupr_check_request' ) >= 1 && substr_count( $mf, 'check_ajax_referer' ) >= 2, 'admin: every handler checks the nonce' );
 
 // ---- the clean-up
 $old = mcupr_mail_create( 'Old', 'x', '', array(), array( $a ), mcupr_mail_keep_att( $file ) );
