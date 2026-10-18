@@ -46,10 +46,7 @@ function mcupr_videos_register() {
 			'rewrite'           => array( 'slug' => 'video-category', 'with_front' => false ),
 		)
 	);
-	if ( get_option( 'mcupr_rewrite_videos' ) !== MCUPR_VERSION ) {
-		flush_rewrite_rules( false );
-		update_option( 'mcupr_rewrite_videos', MCUPR_VERSION );
-	}
+	mcupr_rewrite_wanted( 'mcupr_rewrite_videos', MCUPR_VERSION ); // one flush for all modules, at the end of init (inc/compat.php)
 }
 add_action( 'init', 'mcupr_videos_register' );
 
