@@ -115,6 +115,33 @@ function mcupr_date_text( $ts, $style = 'short' ) {
 	}
 }
 
+/**
+ * A human date (and time) for a wp_date() format such as 'j M Y', 'j F Y H:i', 'D j M' or 'j/n/Y H:i', in the
+ * visitor's language. Thai and English print wp_date( $format ) exactly as before (Thai gets its month and day names
+ * and the Buddhist year from the wp_date filter above). Chinese and Japanese get 2026年10月14日 (mcupr_date_text),
+ * 10月14日 when the format has no year, the weekday (周三 / (水)) when it has one, and the time (mcupr_time_text)
+ * when it has one.
+ */
+function mcupr_date_fmt( $format, $ts = null ) {
+	$ts   = null === $ts ? time() : (int) $ts;
+	$lang = mcupr_ui_lang();
+	if ( 'zh' !== $lang && 'ja' !== $lang ) {
+		return wp_date( $format, $ts );
+	}
+	$plain = preg_replace( '/\\\\./', '', (string) $format ); // escaped characters are text, not tokens
+	$out   = false !== strpbrk( $plain, 'Yyo' ) ? mcupr_date_text( $ts ) : wp_date( 'n月j日', $ts );
+	if ( false !== strpbrk( $plain, 'Dl' ) ) {
+		$w    = (int) wp_date( 'w', $ts );
+		$zh   = array( '日', '一', '二', '三', '四', '五', '六' );
+		$ja   = array( '日', '月', '火', '水', '木', '金', '土' );
+		$out .= 'zh' === $lang ? ' 周' . $zh[ $w ] : '(' . $ja[ $w ] . ')';
+	}
+	if ( false !== strpbrk( $plain, 'GHgh' ) ) {
+		$out .= ' ' . mcupr_time_text( $ts );
+	}
+	return $out;
+}
+
 /** Print a <time> element (datetime attribute stays Gregorian ISO 8601). */
 function mcupr_date( $post = null, $style = 'short' ) {
 	$post = get_post( $post );
