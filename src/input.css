@@ -887,6 +887,7 @@ html[data-contrast] .cal, html[data-contrast] .cal td, html[data-contrast] .ev-r
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: 1.7rem; }
 	/* the content is as wide as the frame (a small gap each side, the same as the header capsule's), and the home hero starts at the top edge of the capsule */
 	html:is([data-menu="side"],[data-menu="hybrid"]) .wrap { width: calc(100% - 1.5rem); max-width: 120rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .site-footer { padding-bottom: .75rem; } /* the footer card is as far from the bottom of the frame as from its sides */
 	html:is([data-menu="side"],[data-menu="hybrid"]) .hero-wrap { margin-top: calc(.75rem - var(--hdr-h, 5.5rem)); }
 
 	/* ---------- the sidebar: ONE card that is only as tall as its menu ---------- */
