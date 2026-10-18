@@ -28,7 +28,7 @@ delete_option( 'mcupr_books_opts' );
 set_current_screen( 'dashboard' );
 ob_start(); do_action( 'admin_notices' ); $nt = ob_get_clean();
 t( false !== strpos( $nt, 'admin.php?page=mcupr-books' ) && false !== strpos( $nt, 'WebGL' ), 'the admin is told to choose how the pages turn (on the dashboard), with a link to the settings' );
-set_current_screen( 'mcupr_page_mcupr-books' );
+set_current_screen( "mcupr_page_mcupr-books" );
 ob_start(); do_action( 'admin_notices' ); $nt2 = ob_get_clean();
 t( false !== strpos( $nt2, 'notice-info' ) && false === strpos( $nt2, esc_html__( 'Choose now', 'mcupr' ) ), 'the settings page says it too, without a link to itself' );
 set_current_screen( 'edit-post' );
