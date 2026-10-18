@@ -81,14 +81,18 @@ function mcupr_plain_cache_key() {
 	return 'mcupr_plain_' . md5( $gen . '|' . home_url( '/' ) . '|' . (string) get_option( 'permalink_structure' ) . '|' . MCUPR_VERSION );
 }
 
+/** This request's view of the kept list: key, map (null = not read yet), new finds, changes seen (n), off (kept list not used any more). */
 function &mcupr_plain_cache_state() {
-	static $st = array( 'key' => '', 'map' => null, 'new' => array() );
+	static $st = array( 'key' => '', 'map' => null, 'new' => array(), 'n' => 0, 'off' => false );
 	return $st;
 }
 
 /** The kept plain address of $rel, or ''. */
 function mcupr_plain_cache_get( $rel ) {
 	$st = &mcupr_plain_cache_state();
+	if ( $st['off'] ) {
+		return '';
+	}
 	if ( null === $st['map'] ) {
 		$st['key'] = mcupr_plain_cache_key();
 		$map       = get_transient( $st['key'] );
@@ -100,6 +104,9 @@ function mcupr_plain_cache_get( $rel ) {
 /** Remember a found address (saved once, at the end of the request). */
 function mcupr_plain_cache_put( $rel, $to ) {
 	$st = &mcupr_plain_cache_state();
+	if ( $st['off'] ) {
+		return;
+	}
 	if ( null === $st['map'] ) {
 		mcupr_plain_cache_get( $rel );
 	}
@@ -109,7 +116,7 @@ function mcupr_plain_cache_put( $rel, $to ) {
 
 function mcupr_plain_cache_save() {
 	$st = &mcupr_plain_cache_state();
-	if ( ! $st['new'] || '' === $st['key'] ) {
+	if ( $st['off'] || ! $st['new'] || '' === $st['key'] ) {
 		return;
 	}
 	$map = get_transient( $st['key'] );
@@ -123,23 +130,25 @@ function mcupr_plain_cache_save() {
 add_action( 'shutdown', 'mcupr_plain_cache_save', 100 ); // after WordPress has sent the page (its output buffers close at priority 1)
 
 /**
- * Start a new generation: everything kept so far is no longer read. The first change of a request starts one at once;
- * further changes in the same request (an import, a bulk edit) start one more at the end of the request, so whatever
- * another request kept in between is not read either – one or two option writes per request instead of one per change.
+ * Start a new generation: everything kept so far is no longer read. The first change of a request starts one at once.
+ * After a second change in the same request (saving a post also saves its revision, an import saves many) this request
+ * stops using the kept list altogether and one more generation starts at the end of the request, so whatever another
+ * request kept in between is not read either – at most two option writes per request instead of one per change.
  */
 function mcupr_plain_cache_clear() {
-	static $n = 0;
 	if ( ! mcupr_plain_mode() ) {
 		return; // nothing is kept or read with pretty permalinks; switching to Plain starts a new generation (below)
 	}
-	$st        = &mcupr_plain_cache_state();
-	$st['map'] = null; // this request looks again too, under the new generation
-	$st['new'] = array();
-	$st['key'] = '';
-	$n++;
-	if ( 1 === $n ) {
+	$st = &mcupr_plain_cache_state();
+	$st['n']++;
+	if ( 1 === $st['n'] ) {
 		mcupr_plain_cache_bump();
-	} elseif ( 2 === $n ) {
+		return;
+	}
+	if ( ! $st['off'] ) {
+		$st['off'] = true;
+		$st['map'] = null;
+		$st['new'] = array();
 		add_action( 'shutdown', 'mcupr_plain_cache_bump', 99 );
 	}
 }
@@ -147,7 +156,7 @@ function mcupr_plain_cache_clear() {
 function mcupr_plain_cache_bump() {
 	update_option( 'mcupr_plain_gen', uniqid( '', true ), true );
 	$st        = &mcupr_plain_cache_state();
-	$st['map'] = null;
+	$st['map'] = null; // read again under the new generation
 	$st['new'] = array();
 	$st['key'] = '';
 }
