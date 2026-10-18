@@ -109,6 +109,17 @@
 	var FXS = ['css3d', 'webgl', 'classic'];
 	/* the name of an icon button: for screen readers (hidden text) and as its tooltip */
 	function lbl(b, text) { if (!b) { return; } var s = b.querySelector('[data-lbl]'); if (s) { s.textContent = text; } b.title = text; }
+	/* helpers of one reader element, shared with book-epub.js (which loads after this file) */
+	function btnIn(el, a) { return $('[data-act="' + a + '"]', el); }
+	function eachIn(el, a, fn) { Array.prototype.forEach.call(el.querySelectorAll('[data-act="' + a + '"]'), fn); }
+	function toastIn(el, text) {
+		Array.prototype.forEach.call(el.querySelectorAll('.bk-toast'), function (x) { x.parentNode.removeChild(x); });
+		var t = document.createElement('p');
+		t.className = 'bk-toast'; t.setAttribute('role', 'status'); t.textContent = text;
+		el.appendChild(t);
+		setTimeout(function () { if (t.parentNode) { t.parentNode.removeChild(t); } }, 2200);
+	}
+	window.mcuprBook.util = { store: store, $: $, lbl: lbl, load: loadScript, btn: btnIn, each: eachIn, toast: toastIn };
 
 	/* ---------------------------------------------------------------- one reader */
 	function init(el) {
@@ -118,17 +129,11 @@
 		var L = cfg.l, stage = $('.bk-stage', el), bookEl = $('.bk-book', el), status = $('.bk-status', el);
 		var range = $('[data-act="range"]', el), curEl = $('[data-cur]', el), totalEl = $('[data-total]', el), textEl = $('[data-text]', el);
 		var thumbs = $('.bk-thumbs', el), thList = $('.bk-th-list', el);
-		var btn = function (a) { return $('[data-act="' + a + '"]', el); };
-		var each = function (a, fn) { Array.prototype.forEach.call(el.querySelectorAll('[data-act="' + a + '"]'), fn); }; // prev and next are on the sides and in the toolbar
+		var btn = function (a) { return btnIn(el, a); };
+		var each = function (a, fn) { eachIn(el, a, fn); }; // prev and next are on the sides and in the toolbar
 		var inLb = el.classList.contains('is-lb');
 		var zoomEl = $('.bk-zoom', el), zoom = 1, panX = 0, panY = 0, autoT = null, outlineBuilt = false;
-		function toast(text) {
-			Array.prototype.forEach.call(el.querySelectorAll('.bk-toast'), function (x) { x.parentNode.removeChild(x); });
-			var t = document.createElement('p');
-			t.className = 'bk-toast'; t.setAttribute('role', 'status'); t.textContent = text;
-			el.appendChild(t);
-			setTimeout(function () { if (t.parentNode) { t.parentNode.removeChild(t); } }, 2200);
-		}
+		function toast(text) { toastIn(el, text); }
 		var seq = [], seqOf = {}, media = cfg.media || [], mbar = $('[data-mbar]', el), modal = null, modalFrom = null;
 		var pdf = null, total = 0, pages = [], pf = null, ratio = 1.4, rendered = {}, queue = [], busy = false, lastW = 0;
 		var soundOn = false, flips = 0, lands = 0, userTurn = false;

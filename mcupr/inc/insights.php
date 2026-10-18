@@ -107,7 +107,7 @@ add_action(
 			exit;
 		}
 		$o = mcupr_ins_opts();
-		if ( empty( $o['log404'] ) || function_exists( 'mcupr_status_is_bot' ) && mcupr_status_is_bot() || preg_match( '#^/(wp-|favicon|apple-touch|robots|\.well-known)|\.(map|png|jpe?g|gif|svg|ico|css|js|woff2?|webp|php)$#', $path ) ) {
+		if ( empty( $o['log404'] ) || mcupr_is_bot() || preg_match( '#^/(wp-|favicon|apple-touch|robots|\.well-known)|\.(map|png|jpe?g|gif|svg|ico|css|js|woff2?|webp|php)$#', $path ) ) {
 			return;
 		}
 		$log = get_option( 'mcupr_404log', array() );
@@ -155,7 +155,7 @@ function mcupr_ins_log_search( $term, $found ) {
 add_action(
 	'template_redirect',
 	static function () {
-		if ( ! is_search() || is_admin() || ! empty( $_GET['mcupr_welcome'] ) || empty( mcupr_ins_opts()['logsearch'] ) || function_exists( 'mcupr_status_is_bot' ) && mcupr_status_is_bot() || is_paged() ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( ! is_search() || is_admin() || ! empty( $_GET['mcupr_welcome'] ) || empty( mcupr_ins_opts()['logsearch'] ) || mcupr_is_bot() || is_paged() ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return;
 		}
 		global $wp_query;
@@ -251,7 +251,7 @@ function mcupr_ins_page() {
 add_action(
 	'admin_post_mcupr_ins',
 	static function () {
-		if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['mcupr_ins_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_ins_nonce'] ) ), 'mcupr_ins' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_ins_nonce', 'mcupr_ins', 'manage_options' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$do  = isset( $_POST['do'] ) ? sanitize_key( wp_unslash( $_POST['do'] ) ) : '';
