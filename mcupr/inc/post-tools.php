@@ -46,11 +46,7 @@ function mcupr_count_view() {
 		// first-party, functional (de-duplicates the counter); expires in 6 hours
 		$value = implode( '.', $seen );
 		$exp   = time() + 6 * HOUR_IN_SECONDS;
-		if ( PHP_VERSION_ID >= 70300 ) {
-			setcookie( 'mcupr_seen', $value, array( 'expires' => $exp, 'path' => COOKIEPATH, 'domain' => COOKIE_DOMAIN, 'secure' => is_ssl(), 'httponly' => true, 'samesite' => 'Lax' ) );
-		} else {
-			setcookie( 'mcupr_seen', $value, $exp, COOKIEPATH . '; samesite=Lax', COOKIE_DOMAIN, is_ssl(), true ); // PHP 7.0 – 7.2 have no options array
-		}
+		mcupr_set_cookie( 'mcupr_seen', $value, $exp, true, COOKIEPATH ? COOKIEPATH : '/' );
 	}
 	global $wpdb;
 	$done = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->postmeta} SET meta_value = meta_value + 1 WHERE post_id = %d AND meta_key = '_mcupr_views'", $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
