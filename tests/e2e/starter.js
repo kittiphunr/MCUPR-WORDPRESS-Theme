@@ -3255,6 +3255,78 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await sc.close();
       }
     }
+    // the WordPress toolbar as a floating icon for signed-in editors (and the classic bar when chosen)
+    {
+      const { execSync: execC } = require('child_process');
+      const phpC = (code) => { const f = require('os').tmpdir() + '/e2e-toolbar-' + process.pid + '.php'; require('fs').writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execC('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+      const cc = await br.newContext({ viewport: { width: 1428, height: 780 } });
+      const cp = await cc.newPage();
+      const cerr = [];
+      cp.on('pageerror', (e) => cerr.push(e.message));
+      // a visitor sees neither the bar nor the icon
+      await cp.addInitScript(() => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', '0'); } catch (e) { /* */ } });
+      await cp.goto(B + '/');
+      await cp.waitForTimeout(600);
+      ok((await cp.locator('.cc-fab').count()) === 0 && (await cp.locator('#wpadminbar').count()) === 0, 'toolbar: a visitor sees no bar and no icon');
+      await cp.goto(B + '/wp-login.php');
+      await cp.fill('#user_login', 'e2eadmin'); await cp.fill('#user_pass', 'e2e-Admin-pass-1'); await cp.click('#wp-submit');
+      await cp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+      await cp.goto(B + '/');
+      await cp.waitForTimeout(900);
+      try { await cp.click('text=รับทราบ', { timeout: 800 }); } catch (e) { /* no banner */ }
+      ok((await cp.locator('#wpadminbar').count()) === 0 && (await cp.evaluate(() => getComputedStyle(document.documentElement).marginTop)) === '0px', 'toolbar: the black bar is not drawn and does not push the page down');
+      const fab = cp.locator('.cc-fab');
+      ok(await fab.isVisible(), 'toolbar: an editor sees the floating icon');
+      const fbx = await fab.boundingBox(), sbx = await cp.locator('.sb-btn').boundingBox();
+      ok(fbx.x > sbx.x + sbx.width - 4 && Math.abs((fbx.y + fbx.height / 2) - (sbx.y + sbx.height / 2)) < 20, 'toolbar: the icon sits next to the "collapse menu" button (' + Math.round(fbx.x) + ', ' + Math.round(fbx.y) + ')');
+      ok((await fab.getAttribute('aria-expanded')) === 'false' && !(await cp.locator('.cc-panel').isVisible()), 'toolbar: closed at first');
+      await fab.click();
+      ok((await fab.getAttribute('aria-expanded')) === 'true' && await cp.locator('.cc-panel').isVisible(), 'toolbar: the icon opens the card');
+      const heads = await cp.locator('.cc-h').allTextContents();
+      ok(heads.length >= 3 && (await cp.locator('.cc-panel a[href*="customize.php"]').count()) === 1 && (await cp.locator('.cc-panel a[href*="wp-login.php?action=logout"]').count()) === 1 && (await cp.locator('.cc-panel a[href*="post-new.php"]').count()) >= 1 && (await cp.locator('.cc-panel a[href*="page=mcupr"]').count()) >= 1, 'toolbar: the card has groups (' + heads.join(' / ') + ') with customize, add new, the control center and log out');
+      const minH = await cp.evaluate(() => Math.min(...[...document.querySelectorAll('.cc-panel a')].map((a) => a.getBoundingClientRect().height)));
+      ok(minH >= 40, 'toolbar: every link is at least 40 px high to touch (' + Math.round(minH) + ')');
+      const pb = await cp.locator('.cc-panel').boundingBox();
+      ok(pb.x >= 0 && pb.y >= 0 && pb.x + pb.width <= 1428 && pb.y + pb.height <= 780, 'toolbar: the card is inside the window');
+      await cp.addScriptTag({ content: axeSource() });
+      const ax = await cp.evaluate(() => axe.run(document.getElementById('mcupr-cc'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+      ok(ax.violations.length === 0, 'toolbar: axe (the icon and the card): ' + (ax.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+      await cp.keyboard.press('Escape');
+      ok(!(await cp.locator('.cc-panel').isVisible()) && (await cp.evaluate(() => document.activeElement && document.activeElement.classList.contains('cc-fab'))), 'toolbar: Escape closes the card and the focus goes back to the icon');
+      await fab.click();
+      await cp.mouse.click(900, 300);
+      ok(!(await cp.locator('.cc-panel').isVisible()), 'toolbar: a click outside closes the card');
+      for (const [m, hc] of [['by', 'by'], ['wb', 'wb']]) {
+        await cp.evaluate((v) => document.documentElement.setAttribute('data-contrast', v), hc);
+        await fab.click();
+        const col = await cp.evaluate(() => { const f = getComputedStyle(document.querySelector('.cc-fab')), p = getComputedStyle(document.querySelector('.cc-panel')); return [f.borderTopWidth, p.borderTopWidth]; });
+        ok(col[0] === '2px' && col[1] === '2px', 'toolbar: high contrast ' + m + ': the icon and the card have a clear outline');
+        await fab.click();
+        await cp.evaluate(() => document.documentElement.removeAttribute('data-contrast'));
+      }
+      // a phone: sidebar mode has its round button, the icon is beside it
+      await cp.setViewportSize({ width: 390, height: 800 });
+      await cp.waitForTimeout(400);
+      const mf = await fab.boundingBox();
+      ok(mf.x >= 0 && mf.x + mf.width <= 390 && mf.y + mf.height <= 800 && mf.width >= 44, 'toolbar: on a phone the icon is on the screen and big enough to touch (' + Math.round(mf.width) + ' px)');
+      await fab.click();
+      const mp2 = await cp.locator('.cc-panel').boundingBox();
+      ok(mp2.x >= 0 && mp2.x + mp2.width <= 390 && mp2.y >= 0, 'toolbar: the card fits a phone');
+      ok(cerr.length === 0, 'toolbar: no script error' + (cerr.length ? ': ' + cerr.slice(0, 2).join(' | ') : ''));
+      await cc.close();
+      // the WordPress bar, when chosen in the Customizer
+      phpC('set_theme_mod( "mcupr_toolbar", "wp" );');
+      const wc = await br.newContext({ viewport: { width: 1428, height: 780 } });
+      const wp = await wc.newPage();
+      await wp.goto(B + '/wp-login.php');
+      await wp.fill('#user_login', 'e2eadmin'); await wp.fill('#user_pass', 'e2e-Admin-pass-1'); await wp.click('#wp-submit');
+      await wp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+      await wp.goto(B + '/');
+      await wp.waitForTimeout(700);
+      ok((await wp.locator('#wpadminbar').isVisible()) && (await wp.locator('.cc-fab').count()) === 0, 'toolbar: when the WordPress bar is chosen it is drawn and there is no icon');
+      await wc.close();
+      phpC('remove_theme_mod( "mcupr_toolbar" );');
+    }
     // the look of Real3D Flipbook: a toolbar of icons, zoom, auto-play, the contents, print, a window of its own
     {
       const rc = await br.newContext({ viewport: { width: 1366, height: 900 } });

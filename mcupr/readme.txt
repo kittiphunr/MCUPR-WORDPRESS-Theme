@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.51.0 =
+* Toolbar for editors: floating icon with a card of the toolbar's links, in groups (or the WordPress bar).
+
 = 1.50.1 =
 * Sidebar mode: the content frame keeps the sidebar's gap on every side, also with the WordPress toolbar.
 
