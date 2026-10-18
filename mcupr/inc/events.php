@@ -139,10 +139,10 @@ function mcupr_ev_fmt( $format, $ts ) {
 function mcupr_ev_names() {
 	return array(
 		'th' => array(
-			'days'   => array( 'อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์' ),
-			'dshort' => array( 'อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.' ),
-			'months' => array( 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม' ),
-			'mshort' => array( 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.' ),
+			'days'   => mcupr_th_days(), // the tables of inc/dates.php (months there start at 1, here at 0)
+			'dshort' => mcupr_th_days( true ),
+			'months' => array_values( mcupr_th_months() ),
+			'mshort' => array_values( mcupr_th_months( true ) ),
 		),
 		'en' => array(
 			'days'   => array( 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ),
@@ -166,20 +166,13 @@ function mcupr_ev_names() {
 }
 
 function mcupr_ev_n( $key ) {
-	$all  = mcupr_ev_names();
-	$lang = mcupr_ui_lang();
-	return isset( $all[ $lang ] ) ? $all[ $lang ][ $key ] : $all['en'][ $key ];
-}
-
-/** Display year: Buddhist era in Thai. */
-function mcupr_ev_year( $y ) {
-	return 'th' === mcupr_ui_lang() ? $y + 543 : $y;
+	return mcupr_pick_lang( mcupr_ev_names() )[ $key ];
 }
 
 /** "ตุลาคม 2569" / "October 2026" / "2026年10月". */
 function mcupr_ev_month_title( $y, $m ) {
 	$lang = mcupr_ui_lang();
-	$yy   = mcupr_ev_year( $y );
+	$yy   = mcupr_year_text( $y );
 	if ( 'zh' === $lang || 'ja' === $lang ) {
 		return $yy . '年' . $m . '月';
 	}
@@ -190,7 +183,7 @@ function mcupr_ev_month_title( $y, $m ) {
 /** "14 ตุลาคม 2569" for a timestamp (own names, independent of the WordPress locale). */
 function mcupr_ev_date( $ts ) {
 	$d = array( (int) mcupr_ev_fmt( 'j', $ts ), (int) mcupr_ev_fmt( 'n', $ts ), (int) mcupr_ev_fmt( 'Y', $ts ) );
-	$y = mcupr_ev_year( $d[2] );
+	$y = mcupr_year_text( $d[2] );
 	switch ( mcupr_ui_lang() ) {
 		case 'zh':
 		case 'ja':
@@ -256,10 +249,7 @@ function mcupr_event_valid_time( $t, $fallback ) {
 }
 
 function mcupr_event_save( $post_id ) {
-	if ( ! isset( $_POST['mcupr_event_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_event_nonce'] ) ), 'mcupr_event_save' ) ) {
-		return;
-	}
-	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) ) {
+	if ( ! mcupr_can_save_box( $post_id, 'mcupr_event_nonce', 'mcupr_event_save' ) ) {
 		return;
 	}
 	$in = isset( $_POST['mcupr_ev'] ) && is_array( $_POST['mcupr_ev'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['mcupr_ev'] ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput

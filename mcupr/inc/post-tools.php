@@ -23,11 +23,6 @@ function mcupr_views( $post_id = 0 ) {
 	return (int) get_post_meta( $post_id, '_mcupr_views', true );
 }
 
-function mcupr_is_bot() {
-	$ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? (string) wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-	return '' === $ua || (bool) preg_match( '/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|lighthouse|pagespeed|headless|preview|monitor|curl|wget|python-requests/i', $ua );
-}
-
 /** Count one view of a singular page: not for editors, bots, prefetch, or the same visitor again within 6 hours. */
 function mcupr_count_view() {
 	if ( ! is_singular( mcupr_tool_types() ) || is_preview() || mcupr_is_bot() ) {
@@ -86,10 +81,7 @@ function mcupr_views_box( $post ) {
 }
 
 function mcupr_views_save( $post_id ) {
-	if ( ! isset( $_POST['mcupr_views_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_views_nonce'] ) ), 'mcupr_views_save' ) ) {
-		return;
-	}
-	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) || ! isset( $_POST['mcupr_views_set'] ) ) {
+	if ( ! mcupr_can_save_box( $post_id, 'mcupr_views_nonce', 'mcupr_views_save' ) || ! isset( $_POST['mcupr_views_set'] ) ) {
 		return;
 	}
 	update_post_meta( $post_id, '_mcupr_views', absint( wp_unslash( $_POST['mcupr_views_set'] ) ) );
@@ -306,10 +298,7 @@ function mcupr_files_box( $post ) {
 }
 
 function mcupr_files_save( $post_id ) {
-	if ( ! isset( $_POST['mcupr_files_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_files_nonce'] ) ), 'mcupr_files_save' ) ) {
-		return;
-	}
-	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) ) {
+	if ( ! mcupr_can_save_box( $post_id, 'mcupr_files_nonce', 'mcupr_files_save' ) ) {
 		return;
 	}
 	$in  = isset( $_POST['mcupr_files'] ) && is_array( $_POST['mcupr_files'] ) ? wp_unslash( $_POST['mcupr_files'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
