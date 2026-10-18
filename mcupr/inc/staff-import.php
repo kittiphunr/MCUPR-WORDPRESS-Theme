@@ -90,11 +90,11 @@ function mcupr_import_read_csv( $path ) {
 	fwrite( $fh, $raw );
 	rewind( $fh );
 	$rows = array();
-	while ( false !== ( $r = fgetcsv( $fh, 0, $delim, '"', '\\' ) ) ) {
+	while ( false !== ( $r = fgetcsv( $fh, 0, $delim, '"', mcupr_csv_escape() ) ) ) {
 		if ( 1 === count( $r ) && null === $r[0] ) {
 			continue;
 		}
-		$rows[] = array_map( 'trim', array_map( 'strval', $r ) );
+		$rows[] = array_map( 'mcupr_csv_unsafe', array_map( 'trim', array_map( 'strval', $r ) ) );
 		if ( count( $rows ) > MCUPR_IMPORT_MAX_ROWS + 1 ) {
 			break;
 		}

@@ -71,6 +71,11 @@ function mcupr_csv_safe( $s ) {
 	return '' !== $s && in_array( $s[0], array( '=', '+', '-', '@', "\t", "\r" ), true ) ? "'" . $s : $s;
 }
 
+/** The way back: a cell that mcupr_csv_safe() prefixed with ' is read as it was typed (so an exported "+66…" phone number imports unchanged). */
+function mcupr_csv_unsafe( $s ) {
+	return preg_replace( "/^'(?=[=+\\-@\\t\\r])/", '', (string) $s );
+}
+
 /** One quoted CSV cell that Excel will not run as a formula. */
 function mcupr_csv_cell( $s ) {
 	return '"' . str_replace( '"', '""', mcupr_csv_safe( $s ) ) . '"';
