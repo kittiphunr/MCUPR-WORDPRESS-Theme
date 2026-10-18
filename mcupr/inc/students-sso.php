@@ -267,7 +267,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_sso_save',
 	static function () {
-		if ( ! current_user_can( MCUPR_STU_CAP ) || ! isset( $_POST['mcupr_sso_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_sso_nonce'] ) ), 'mcupr_sso_save' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_sso_nonce', 'mcupr_sso_save', MCUPR_STU_CAP ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$secret = isset( $_POST['secret'] ) ? trim( (string) wp_unslash( $_POST['secret'] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
