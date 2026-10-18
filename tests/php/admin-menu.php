@@ -30,20 +30,21 @@ t( 'mcupr' === $sub[0], 'MCUPR menu: the overview comes first' );
 $iv = array_search( 'edit.php?post_type=mcupr_video', $sub, true ); $ivc = array_search( 'edit-tags.php?taxonomy=mcupr_video_cat&post_type=mcupr_video', $sub, true );
 t( false !== $ivc && $ivc === $iv + 1, 'MCUPR menu: a section\'s categories follow it' );
 t( (bool) array_filter( $sub, function ( $s ) { return 0 === strpos( $s, 'customize.php' ); } ), 'MCUPR menu: a shortcut to the theme options' );
-// the menu is short: the overview and the main groups are shown, everything else stays registered but is hidden
+// the menu is short: the control center and the groups are shown, everything else stays registered but is hidden
 $shown = array_values( array_filter( $submenu['mcupr'], function ( $it ) { return false === strpos( isset( $it[4] ) ? $it[4] : '', 'mcupr-sub-hidden' ); } ) );
 $shown_slugs = array_map( function ( $it ) { return $it[2]; }, $shown );
-t( 'mcupr' === $shown_slugs[0] && 6 === count( $shown_slugs ), 'MCUPR menu: only the overview and 5 groups are shown (' . count( $shown_slugs ) . ')' );
-foreach ( array( 'content', 'community', 'students', 'people', 'tools' ) as $g ) { t( in_array( 'admin.php?page=mcupr#sec-' . $g, $shown_slugs, true ), 'MCUPR menu: the group "' . $g . '" opens the overview at its heading' ); }
+t( 'mcupr' === $shown_slugs[0] && 9 === count( $shown_slugs ), 'MCUPR menu: only the control center and 8 groups are shown (' . count( $shown_slugs ) . ')' );
+t( 'Control center' === wp_strip_all_tags( $submenu['mcupr'][0][0] ) || 'ศูนย์ควบคุม' === wp_strip_all_tags( $submenu['mcupr'][0][0] ), 'MCUPR menu: the first entry is the control center' );
+foreach ( array( 'start', 'content', 'look', 'visitors', 'students', 'people', 'system', 'help' ) as $g ) { t( in_array( 'admin.php?page=mcupr&cat=' . $g, $shown_slugs, true ), 'MCUPR menu: the group "' . $g . '" has its page' ); }
 t( count( $sub ) > 20 && count( $submenu['mcupr'] ) === count( $sub ), 'MCUPR menu: the pages below the groups are still registered (' . count( $sub ) . ' in all), so they can be opened' );
-t( 'content' === mcupr_admin_group_of( 'mcupr_event', '' ) && 'students' === mcupr_admin_group_of( '', 'mcupr-student-import' ) && 'tools' === mcupr_admin_group_of( '', 'mcupr-speed' ) && 'people' === mcupr_admin_group_of( 'mcupr_office', '' ) && '' === mcupr_admin_group_of( 'post', '' ), 'MCUPR menu: each screen knows its group' );
-// a registrar (no right to edit pages) sees the overview and the students group only
+// a registrar (no right to edit pages) sees the control center, the students group and help
 $rg = wp_insert_user( array( 'user_login' => 'rg' . wp_rand(), 'user_pass' => wp_generate_password(), 'user_email' => 'rg' . wp_rand() . '@example.org', 'role' => MCUPR_REGISTRAR_ROLE ) );
 $prev = get_current_user_id();
 wp_set_current_user( $rg );
-t( mcupr_admin_group_visible( 'students' ) && ! mcupr_admin_group_visible( 'content' ) && ! mcupr_admin_group_visible( 'tools' ) && ! mcupr_admin_group_visible( 'people' ), 'a registrar has the students group and none of the others' );
+t( array( 'students', 'help' ) === array_keys( mcupr_cc_cats() ), 'a registrar has the students group and help, nothing else' );
 wp_set_current_user( $ed2 = wp_insert_user( array( 'user_login' => 'ed2' . wp_rand(), 'user_pass' => wp_generate_password(), 'user_email' => 'ed2' . wp_rand() . '@example.org', 'role' => 'editor' ) ) );
-t( mcupr_admin_group_visible( 'content' ) && ! mcupr_admin_group_visible( 'tools' ), 'an editor has the content group but not the tools (no theme options)' );
+$ec = array_keys( mcupr_cc_cats() );
+t( in_array( 'content', $ec, true ) && ! in_array( 'system', $ec, true ) && ! in_array( 'look', $ec, true ) && ! in_array( 'start', $ec, true ), 'an editor has the content group but not the system or look groups (no theme options)' );
 wp_set_current_user( $prev );
 require_once ABSPATH . 'wp-admin/includes/user.php';
 wp_delete_user( $rg ); wp_delete_user( $ed2 );
