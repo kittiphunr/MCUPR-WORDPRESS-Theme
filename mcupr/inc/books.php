@@ -175,7 +175,7 @@ add_action(
 			return;
 		}
 		$sc = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-		if ( ! $sc || ( 'dashboard' !== $sc->id && false === strpos( (string) $sc->id, 'mcupr' ) && MCUPR_BOOK !== $sc->post_type ) ) {
+		if ( ! $sc || ( 'dashboard' !== $sc->id && false === strpos( (string) $sc->id, 'mcupr-books' ) && MCUPR_BOOK !== $sc->post_type ) ) {
 			return;
 		}
 		if ( false !== strpos( (string) $sc->id, 'mcupr-books' ) ) {
