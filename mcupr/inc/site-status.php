@@ -318,11 +318,6 @@ add_action(
 
 /* ------------------------------------------------------------------ the pages */
 
-function mcupr_status_is_bot() {
-	$ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? (string) $_SERVER['HTTP_USER_AGENT'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-	return '' === $ua || (bool) preg_match( '/bot|crawl|spider|slurp|mediapartners|facebookexternalhit|lighthouse|pagespeed|headless|curl|wget|preview/i', $ua );
-}
-
 function mcupr_welcome_version() {
 	return substr( md5( wp_json_encode( mcupr_status()['welcome'] ) ), 0, 10 );
 }
@@ -338,7 +333,7 @@ function mcupr_welcome_wanted() {
 		return true; // a sample of an occasion (fixed text, nothing from the settings), open to everyone
 	}
 	// phpcs:enable
-	if ( empty( $w['on'] ) || ! mcupr_status_in_dates( $w['from'], $w['to'] ) || mcupr_status_is_bot() || mcupr_status_is_editor() ) {
+	if ( empty( $w['on'] ) || ! mcupr_status_in_dates( $w['from'], $w['to'] ) || mcupr_is_bot() || mcupr_status_is_editor() ) {
 		return false;
 	}
 	if ( 'GET' !== ( isset( $_SERVER['REQUEST_METHOD'] ) ? $_SERVER['REQUEST_METHOD'] : 'GET' ) || (int) get_query_var( 'paged' ) > 1 || isset( $_GET['mcupr_all'] ) ) { // phpcs:ignore
