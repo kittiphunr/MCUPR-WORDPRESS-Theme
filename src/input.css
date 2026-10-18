@@ -91,9 +91,9 @@
 	}
 	/* High-contrast modes override light/dark */
 	:root[data-contrast] { --shadow-soft: none; --edge: var(--border); }
-	:root[data-contrast="wb"] { --canvas:#000; --tint: #000; --bg:#000; --surface:#000; --text:#fff; --text-2:#fff; --muted:#fff; --border:#fff; --control:#fff; --link:#fff; --primary:#000; --on-primary:#fff; --accent:#fff; --bar-bg:#000; --bar-fg:#fff; --focus:#ffea00; --shadow-card:none; color-scheme: dark; }
-	:root[data-contrast="yb"] { --canvas:#000; --tint: #000; --bg:#000; --surface:#000; --text:#ffea00; --text-2:#ffea00; --muted:#ffea00; --border:#ffea00; --control:#ffea00; --link:#ffea00; --primary:#000; --on-primary:#ffea00; --accent:#ffea00; --bar-bg:#000; --bar-fg:#ffea00; --focus:#fff; --shadow-card:none; color-scheme: dark; }
-	:root[data-contrast="by"] { --canvas:#ffea00; --tint: #ffea00; --bg:#ffea00; --surface:#ffea00; --text:#000; --text-2:#000; --muted:#000; --border:#000; --control:#000; --link:#000; --primary:#ffea00; --on-primary:#000; --accent:#000; --bar-bg:#000; --bar-fg:#ffea00; --focus:#000; --shadow-card:none; color-scheme: light; }
+	:root[data-contrast="wb"] { --brand-2:#000; --canvas:#000; --tint: #000; --bg:#000; --surface:#000; --text:#fff; --text-2:#fff; --muted:#fff; --border:#fff; --control:#fff; --link:#fff; --primary:#000; --on-primary:#fff; --accent:#fff; --bar-bg:#000; --bar-fg:#fff; --focus:#ffea00; --shadow-card:none; color-scheme: dark; }
+	:root[data-contrast="yb"] { --brand-2:#000; --canvas:#000; --tint: #000; --bg:#000; --surface:#000; --text:#ffea00; --text-2:#ffea00; --muted:#ffea00; --border:#ffea00; --control:#ffea00; --link:#ffea00; --primary:#000; --on-primary:#ffea00; --accent:#ffea00; --bar-bg:#000; --bar-fg:#ffea00; --focus:#fff; --shadow-card:none; color-scheme: dark; }
+	:root[data-contrast="by"] { --brand-2:#ffea00; --canvas:#ffea00; --tint: #ffea00; --bg:#ffea00; --surface:#ffea00; --text:#000; --text-2:#000; --muted:#000; --border:#000; --control:#000; --link:#000; --primary:#ffea00; --on-primary:#000; --accent:#000; --bar-bg:#000; --bar-fg:#ffea00; --focus:#000; --shadow-card:none; color-scheme: light; }
 
 	*, ::before, ::after, ::file-selector-button { border-color: var(--border); }
 
@@ -1008,6 +1008,7 @@ html[data-contrast] .hero-btn-1 { background: var(--bg); color: var(--text); bor
 .org-ph { flex: none; width: 3rem; height: 3rem; border-radius: 9999px; object-fit: cover; }
 .org-d1 > .org-node { background: var(--primary); border-color: var(--primary); }
 .org-d1 > .org-node .org-name, .org-d1 > .org-node .org-person, .org-d1 > .org-node .org-role, .org-d1 > .org-node a { color: var(--on-primary); }
+html[data-contrast] .org-d1 > .org-node { border-color: var(--text); }
 .org-d3 > .org-node, .org-d4 > .org-node { border-width: 1px; border-color: var(--edge, var(--border)); background: var(--surface); padding: .45rem .8rem; }
 .org-d3 .org-name, .org-d4 .org-name { font-size: .95rem; font-weight: 700; }
 /* default (small screens, and every level below the second): an indented list with a line on the left */
@@ -1283,6 +1284,7 @@ html[data-contrast] .fb-views button[aria-checked="true"] { border: 2px solid va
 .opt-b:hover { background: var(--tint); border-color: var(--primary); }
 .opt input:checked + .opt-b { border-color: var(--primary); background: var(--primary); color: var(--on-primary); }
 .opt input:checked + .opt-b:hover { background: var(--primary); }
+html[data-contrast] .opt input:checked + .opt-b, html[data-contrast] .opt input:checked + .opt-b:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
 .opt-tip { position: absolute; z-index: 5; left: 50%; bottom: calc(100% + .35rem); transform: translateX(calc(-50% + var(--tx, 0px))); width: max-content; max-width: min(14rem, 80vw); padding: .35rem .7rem; border-radius: .6rem; background: var(--text); color: var(--bg); font-size: .85rem; font-weight: 600; line-height: 1.35; text-align: center; opacity: 0; pointer-events: none; transition: opacity .12s; }
 .opt-tip.is-below { bottom: auto; top: calc(100% + .35rem); }
 .opt:hover .opt-tip, .opt:has(input:focus-visible) .opt-tip { opacity: 1; }
@@ -1555,6 +1557,8 @@ html.lb-open { overflow: hidden; }
 .poll-o { display: flex; align-items: center; gap: .6rem; padding: .7rem .9rem; border: 1px solid var(--border); border-radius: .9rem; cursor: pointer; font-weight: 500; }
 .poll-o:hover, .poll-o:has(input:checked) { border-color: var(--primary); background: var(--tint); }
 .poll-o:has(input:focus-visible) { outline: 3px solid var(--primary); outline-offset: 2px; }
+html[data-contrast] .poll-o:has(input:checked) { background: var(--text); color: var(--bg); border-color: var(--text); }
+html[data-contrast] .poll-o:has(input:focus-visible) { outline-color: var(--focus); }
 .poll-o input { width: 1.2rem; height: 1.2rem; flex: none; }
 .poll-res { display: grid; gap: .8rem; margin: 0; padding: 0; list-style: none; }
 .poll-rl { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .25rem; }
