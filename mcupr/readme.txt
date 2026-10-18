@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.52.0 =
+* Control center: the admin home as a Windows-style control panel (8 groups, explanations, guides, start checklist, search, Feather icons).
+
 = 1.51.1 =
 * Header tools capsule: same space all round, same button height and gap, round all-menu button.
 
