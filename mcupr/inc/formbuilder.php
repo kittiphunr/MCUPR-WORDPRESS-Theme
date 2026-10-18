@@ -678,6 +678,10 @@ function mcupr_fb_csv( $form_id ) {
 			$cols[] = $f['label'];
 		}
 	}
+	if ( $ids ) {
+		_prime_post_caches( $ids, false, false ); // fields => ids loads neither the posts nor their meta: one query each for all rows
+		update_meta_cache( 'post', $ids );
+	}
 	$data = array();
 	foreach ( $ids as $id ) {
 		$row = array();
@@ -690,6 +694,13 @@ function mcupr_fb_csv( $form_id ) {
 		$data[ $id ] = $row;
 	}
 	$rq  = function_exists( 'mcupr_rq_is_form' ) && mcupr_rq_is_form( $form_id ); // a request has a number, a status and someone to see to it
+	if ( $rq && $ids ) {
+		$owners = array();
+		foreach ( $ids as $id ) {
+			$owners[] = (int) get_post_meta( $id, '_mcupr_rq_owner', true );
+		}
+		cache_users( array_unique( array_filter( $owners ) ) ); // the names of the people who see to them, in one query
+	}
 	$out = "\xEF\xBB\xBF" . implode( ',', array_map( 'mcupr_csv_cell', array_merge( array( '#', 'Date' ), $rq ? mcupr_rq_csv_head() : array(), $cols ) ) ) . "\r\n";
 	$n   = 0;
 	foreach ( $data as $id => $row ) {
