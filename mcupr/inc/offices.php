@@ -250,7 +250,7 @@ function mcupr_office_url( $office_id, $section = '', $page = 1 ) {
 	if ( '' === $section ) {
 		return $base;
 	}
-	if ( ! get_option( 'permalink_structure' ) ) {
+	if ( mcupr_plain_mode() ) {
 		return add_query_arg( array_filter( array( 'mcupr_osec' => $section, 'mcupr_opage' => $page > 1 ? (int) $page : 0 ) ), $base );
 	}
 	return trailingslashit( $base ) . $section . '/' . ( $page > 1 ? 'page/' . (int) $page . '/' : '' );
@@ -419,10 +419,7 @@ function mcupr_office_settings_box( $post ) {
 add_action(
 	'save_post_mcupr_office',
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_office_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_office_nonce'] ) ), 'mcupr_office_save' ) ) {
-			return;
-		}
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! mcupr_can_save_box( $post_id, 'mcupr_office_nonce', 'mcupr_office_save' ) ) {
 			return;
 		}
 		$in = isset( $_POST['mcupr_of'] ) && is_array( $_POST['mcupr_of'] ) ? wp_unslash( $_POST['mcupr_of'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
@@ -497,7 +494,7 @@ add_action(
 		if ( null !== $mine && ! $mine ) {
 			return; // nothing to give
 		}
-		$posted = isset( $_POST['mcupr_office_member_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_office_member_nonce'] ) ), 'mcupr_office_member' ) && isset( $_POST['mcupr_office_sel'] );
+		$posted = mcupr_check_request( 'mcupr_office_member_nonce', 'mcupr_office_member' ) && isset( $_POST['mcupr_office_sel'] );
 		$want   = $posted ? absint( wp_unslash( $_POST['mcupr_office_sel'] ) ) : mcupr_office_of( $post_id );
 		if ( null !== $mine ) {
 			if ( ! in_array( $want, $mine, true ) ) {
@@ -677,7 +674,7 @@ add_action( 'show_user_profile', 'mcupr_office_profile_fields' );
 add_action( 'edit_user_profile', 'mcupr_office_profile_fields' );
 
 function mcupr_office_profile_save( $user_id ) {
-	if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['mcupr_user_offices_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_user_offices_nonce'] ) ), 'mcupr_user_offices' ) ) {
+	if ( ! mcupr_check_request( 'mcupr_user_offices_nonce', 'mcupr_user_offices', 'manage_options' ) ) {
 		return;
 	}
 	$ids = isset( $_POST['mcupr_user_offices'] ) && is_array( $_POST['mcupr_user_offices'] ) ? array_values( array_filter( array_map( 'absint', wp_unslash( $_POST['mcupr_user_offices'] ) ) ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput

@@ -156,7 +156,7 @@ function mcupr_print_box( $post ) {
 add_action(
 	'save_post',
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_print_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_print_nonce'] ) ), 'mcupr_print' ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! mcupr_check_request( 'mcupr_print_nonce', 'mcupr_print' ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
 		if ( ! empty( $_POST['mcupr_print_off'] ) ) {
