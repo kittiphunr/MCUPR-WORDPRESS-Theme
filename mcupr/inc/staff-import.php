@@ -516,16 +516,9 @@ function mcupr_import_apply( $plan, $opts = array() ) {
 
 /* ------------------------------------------------------------------ files out: template and export */
 
+/** One CSV line, every cell quoted and guarded against formulas (mcupr_csv_cell). */
 function mcupr_import_csv_line( $cells ) {
-	$out = array();
-	foreach ( $cells as $c ) {
-		$c = (string) $c;
-		if ( preg_match( '/^[=+\-@]/', $c ) && ! is_numeric( $c ) ) {
-			$c = "'" . $c; // spreadsheets would run it as a formula
-		}
-		$out[] = '"' . str_replace( '"', '""', $c ) . '"';
-	}
-	return implode( ',', $out ) . "\r\n";
+	return implode( ',', array_map( 'mcupr_csv_cell', $cells ) ) . "\r\n";
 }
 
 function mcupr_import_send_csv( $filename, $lines ) {
