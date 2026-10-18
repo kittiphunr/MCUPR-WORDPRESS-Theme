@@ -5,8 +5,9 @@ $_SERVER['REMOTE_ADDR'] = '198.51.100.24';
 require rtrim( $site, '/' ) . '/wp-load.php';
 $fails = 0;
 function t( $ok, $label ) { global $fails; echo ( $ok ? 'PASS ' : 'FAIL ' ) . $label . "\n"; if ( ! $ok ) { $fails++; } }
-$keep = array( get_option( 'mcupr_redirects' ), get_option( 'mcupr_404log' ), get_option( 'mcupr_searchlog' ), get_option( 'mcupr_ins' ) );
-delete_option( 'mcupr_redirects' ); delete_option( 'mcupr_404log' ); delete_option( 'mcupr_searchlog' ); delete_option( 'mcupr_ins' );
+$opts = array( 'mcupr_redirects', 'mcupr_404log', 'mcupr_searchlog', 'mcupr_ins', 'mcupr_redirect_hits', 'mcupr_404log_buf', 'mcupr_searchlog_buf' );
+$keep = array_map( 'get_option', $opts );
+foreach ( $opts as $opt ) { delete_option( $opt ); }
 
 // ---- paths
 t( '/news/old-title' === mcupr_ins_norm_path( '/News/Old-Title/?utm=1#x' ), 'path: query, case and trailing slash ignored' );
@@ -47,7 +48,7 @@ t( null === mcupr_ins_match( '/secret', $rules ), 'match: /sec/* does not match 
 // ---- searches
 t( true === mcupr_ins_log_search( '  ทุน   การศึกษา ', 0 ), 'search: a normal term is kept' );
 mcupr_ins_log_search( 'ทุน การศึกษา', 3 );
-$sl = get_option( 'mcupr_searchlog' );
+$sl = mcupr_ins_log( 'mcupr_searchlog' ); // saved + buffered, as the admin screen reads it
 t( 1 === count( $sl ) && 2 === reset( $sl )['n'] && ! empty( reset( $sl )['f'] ), 'search: the same term is counted, not repeated' );
 t( false === mcupr_ins_log_search( 'someone@example.org', 0 ), 'search: an e-mail address is never kept' );
 t( false === mcupr_ins_log_search( '1234567890123', 0 ), 'search: a long number is never kept' );
@@ -55,9 +56,9 @@ t( false === mcupr_ins_log_search( 'https://x.test', 0 ), 'search: an address is
 t( false === mcupr_ins_log_search( str_repeat( 'ก', 61 ), 0 ), 'search: very long text is never kept' );
 t( false === mcupr_ins_log_search( '   ', 0 ), 'search: empty is not kept' );
 for ( $i = 0; $i < 320; $i++ ) { mcupr_ins_log_search( 'term ' . $i, 0 ); }
-t( count( get_option( 'mcupr_searchlog' ) ) <= 300, 'search: the list is capped at 300' );
+t( count( mcupr_ins_log( 'mcupr_searchlog' ) ) <= 300 && count( (array) get_option( 'mcupr_searchlog' ) ) <= 300, 'search: the list is capped at 300' );
 
 // ---- put back what was there (the admin handler ends with exit, so it is checked in the browser test)
-foreach ( array( 'mcupr_redirects', 'mcupr_404log', 'mcupr_searchlog', 'mcupr_ins' ) as $n => $opt ) { if ( false === $keep[ $n ] ) { delete_option( $opt ); } else { update_option( $opt, $keep[ $n ], false ); } }
+foreach ( $opts as $n => $opt ) { if ( false === $keep[ $n ] ) { delete_option( $opt ); } else { update_option( $opt, $keep[ $n ], false ); } }
 echo $fails ? "\n$fails FAILED\n" : "\nall passed\n";
 exit( $fails ? 1 : 0 );
