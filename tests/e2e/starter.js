@@ -3320,6 +3320,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       ok(g && Math.abs(g.top) <= 1, tag + ': the hero starts at the top edge of the tools capsule (' + (g ? g.top.toFixed(1) : '?') + ' px apart)');
       ok(g && Math.abs(g.right) <= 1 && Math.abs(g.left - g.rgap) <= 1 && g.left >= 10 && g.left <= 16, tag + ': the hero ends where the capsule ends (' + (g ? g.right.toFixed(1) : '?') + ' px) and is the same ' + (g ? g.left.toFixed(1) : '?') + ' px inside the frame on both sides (' + (g ? g.rgap.toFixed(1) : '?') + ')');
       ok(g && g.wl <= 1 && g.wr <= 1 && g.sw <= 0, tag + ': the other blocks are as wide as the hero, and nothing scrolls sideways');
+      const fg = await fp.evaluate(() => { window.scrollTo(0, document.body.scrollHeight); const f = document.querySelector('.site-page').getBoundingClientRect(), c = document.querySelector('#colophon > .wrap').getBoundingClientRect(); return { bottom: f.bottom - c.bottom, side: f.right - c.right, left: c.left - f.left }; });
+      ok(Math.abs(fg.bottom - fg.side) <= 1 && Math.abs(fg.left - fg.side) <= 1, tag + ': the footer card is as far from the bottom of the frame (' + fg.bottom.toFixed(1) + ' px) as from its sides (' + fg.left.toFixed(1) + ' / ' + fg.side.toFixed(1) + ' px)');
       await fc.close();
     }
     // the WordPress toolbar as a floating icon for signed-in editors (and the classic bar when chosen)
