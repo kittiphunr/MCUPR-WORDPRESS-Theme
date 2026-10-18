@@ -76,6 +76,7 @@ get_post( $t1 );
 t( 0 === queries_of( static function () use ( $t1 ) { mcupr_topic_replies( $t1 ); } ), 'forum: counting the replies of a loaded topic costs no query' );
 wp_set_comment_status( $c_wait, 'approve' );
 t( 3 === mcupr_topic_replies( $t1 ), 'forum: approving a reply adds it to the count at once' );
+mcupr_topic_touch( $t1, time() - 100 ); // approving the reply counted as activity on topic one; put it back before comparing
 mcupr_forum_board_last_clear();
 t( $t2 === mcupr_forum_board_last( $bid ), 'forum: the newest topic of a board is the one with the latest activity' );
 t( is_array( get_transient( 'mcupr_forum_board_last' ) ) && 0 === queries_of( static function () use ( $bid ) { mcupr_forum_board_last( $bid ); } ), 'forum: the newest topic per board is kept (no query the second time)' );
