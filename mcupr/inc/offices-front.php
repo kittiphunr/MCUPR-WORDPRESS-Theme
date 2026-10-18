@@ -341,11 +341,13 @@ add_action(
 );
 add_action(
 	'deleted_post',
-	static function ( $id ) {
-		if ( in_array( get_post_type( $id ), array_merge( mcupr_office_types(), array( 'mcupr_office' ) ), true ) ) {
+	static function ( $id, $post = null ) {
+		if ( in_array( $post instanceof WP_Post ? $post->post_type : get_post_type( $id ), array_merge( mcupr_office_types(), array( 'mcupr_office' ) ), true ) ) {
 			mcupr_office_counts_clear();
 		}
-	}
+	},
+	10,
+	2
 );
 add_action(
 	'set_object_terms',

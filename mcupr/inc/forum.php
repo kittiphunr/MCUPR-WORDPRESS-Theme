@@ -188,11 +188,13 @@ add_action(
 );
 add_action(
 	'deleted_post',
-	static function ( $id ) {
-		if ( 'mcupr_topic' === get_post_type( $id ) ) {
+	static function ( $id, $post = null ) {
+		if ( 'mcupr_topic' === ( $post instanceof WP_Post ? $post->post_type : get_post_type( $id ) ) ) {
 			mcupr_forum_board_last_clear();
 		}
-	}
+	},
+	10,
+	2
 );
 add_action(
 	'set_object_terms',
