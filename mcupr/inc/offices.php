@@ -72,10 +72,7 @@ function mcupr_offices_register() {
 	);
 	// /office/<slug>/<section>/ and /office/<slug>/<section>/page/N/
 	add_rewrite_rule( '^office/([^/]+)/(news|events|people|albums|videos|contact)(?:/page/([0-9]+))?/?$', 'index.php?mcupr_office=$matches[1]&mcupr_osec=$matches[2]&mcupr_opage=$matches[3]', 'top' );
-	if ( get_option( 'mcupr_rewrite_offices' ) !== MCUPR_VERSION ) {
-		flush_rewrite_rules( false );
-		update_option( 'mcupr_rewrite_offices', MCUPR_VERSION );
-	}
+	mcupr_rewrite_wanted( 'mcupr_rewrite_offices', MCUPR_VERSION ); // one flush for all modules, at the end of init (inc/compat.php)
 }
 add_action( 'init', 'mcupr_offices_register', 6 ); // before the other types, so the mark can be attached to them all
 
