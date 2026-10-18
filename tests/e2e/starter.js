@@ -3236,6 +3236,25 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       }
       await brFx.close();
     }
+    // sidebar mode: the content frame keeps the same gap as the sidebar card on every side – also with the WordPress toolbar, and with the sidebar folded
+    {
+      for (const [sbmin, w] of [[false, 1428], [true, 1428], [false, 1100], [true, 1920]]) {
+        const sc = await br.newContext({ viewport: { width: w, height: 780 } });
+        const sp = await sc.newPage();
+        await sp.goto(B + '/wp-login.php');
+        await sp.fill('#user_login', 'e2eadmin'); await sp.fill('#user_pass', 'e2e-Admin-pass-1'); await sp.click('#wp-submit');
+        await sp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+        await sp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', m ? '1' : '0'); } catch (e) { /* */ } }, sbmin);
+        await sp.goto(B + '/');
+        await sp.waitForTimeout(900);
+        const g = await sp.evaluate(() => { const f = document.querySelector('.site-page').getBoundingClientRect(), n = document.querySelector('.site-nav').getBoundingClientRect(), bar = document.getElementById('wpadminbar'), de = document.documentElement; return { right: de.clientWidth - f.right, nl: n.left, ntop: n.top - (bar ? bar.getBoundingClientRect().bottom : 0), ftop: f.top - (bar ? bar.getBoundingClientRect().bottom : 0), gap: f.left - n.right, sw: de.scrollWidth - de.clientWidth, bar: !!bar }; });
+        const tag = 'sidebar mode (' + w + ' px, ' + (sbmin ? 'folded' : 'open') + ', with the toolbar)';
+        ok(g.bar && g.right >= 11 && g.right <= 18, tag + ': the frame is ' + Math.round(g.right) + ' px from the right edge of the window (the same gap as the sidebar on the left: ' + Math.round(g.nl) + ' px)');
+        ok(g.ntop >= 11 && g.ntop <= 18 && g.ftop >= 11 && g.ftop <= 18, tag + ': the sidebar card (' + Math.round(g.ntop) + ' px) and the frame (' + Math.round(g.ftop) + ' px) start below the toolbar with the same gap');
+        ok(g.gap >= 0 && g.gap <= 18 && g.sw <= 0, tag + ': the gap between the sidebar and the frame is small and there is no sideways scroll');
+        await sc.close();
+      }
+    }
     // the look of Real3D Flipbook: a toolbar of icons, zoom, auto-play, the contents, print, a window of its own
     {
       const rc = await br.newContext({ viewport: { width: 1366, height: 900 } });
