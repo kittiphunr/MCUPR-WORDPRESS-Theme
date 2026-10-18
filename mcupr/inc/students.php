@@ -446,9 +446,9 @@ add_action(
 				if ( ! $d['user'] || ! get_userdata( $d['user'] ) ) {
 					echo '—';
 				} elseif ( get_user_meta( $d['user'], 'mcupr_activated', true ) ) {
-					echo '<span style="color:#15803d;font-weight:600">✓ ' . esc_html__( 'Active', 'mcupr' ) . '</span>';
+					echo '<span style="color:#15803d;font-weight:600">' . mcupr_feather_i( 'check', 14 ) . ' ' . esc_html__( 'Active', 'mcupr' ) . '</span>';
 				} else {
-					echo '<span style="color:#b45309">✉ ' . esc_html( get_user_meta( $d['user'], 'mcupr_activation_sent', true ) ? __( 'Invited', 'mcupr' ) : __( 'Account made', 'mcupr' ) ) . '</span>';
+					echo '<span style="color:#b45309">' . mcupr_feather_i( 'mail', 14 ) . ' ' . esc_html( get_user_meta( $d['user'], 'mcupr_activation_sent', true ) ? __( 'Invited', 'mcupr' ) : __( 'Account made', 'mcupr' ) ) . '</span>';
 				}
 				break;
 		}

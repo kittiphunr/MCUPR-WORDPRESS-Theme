@@ -19,7 +19,7 @@
 		if (e.key === 'Enter') {
 			e.preventDefault();
 			if (/^\d{10}$/.test(box.value) && !slow && (now - started) <= MAXTOTAL) {
-				say(form.getAttribute('data-card-read') || '✓');
+				say(form.getAttribute('data-card-read') || '');
 				if (form.checkValidity()) { form.requestSubmit ? form.requestSubmit() : form.submit(); } else { form.reportValidity(); }
 			} else {
 				reset();
