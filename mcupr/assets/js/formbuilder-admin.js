@@ -30,10 +30,11 @@
 		var head = el('div', { style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px' });
 		head.appendChild(el('strong', { text: (i + 1) + '. ' + T[f.type] }));
 		var tools = el('span', { style: 'margin-left:auto;display:inline-flex;gap:4px' });
-		[['up', '↑', function () { if (i > 0) { fields.splice(i - 1, 0, fields.splice(i, 1)[0]); draw(); } }],
-		 ['down', '↓', function () { if (i < fields.length - 1) { fields.splice(i + 1, 0, fields.splice(i, 1)[0]); draw(); } }],
-		 ['del', '✕', function () { if (window.confirm(L.ok)) { fields.splice(i, 1); draw(); } }]].forEach(function (b) {
-			var btn = el('button', { type: 'button', 'class': 'button', 'aria-label': L[b[0]] + ' (' + (i + 1) + ')', title: L[b[0]], text: b[1] });
+		[['up', 'M12 19V5M5 12l7-7 7 7', function () { if (i > 0) { fields.splice(i - 1, 0, fields.splice(i, 1)[0]); draw(); } }],
+		 ['down', 'M12 5v14M19 12l-7 7-7-7', function () { if (i < fields.length - 1) { fields.splice(i + 1, 0, fields.splice(i, 1)[0]); draw(); } }],
+		 ['del', 'M18 6L6 18M6 6l12 12', function () { if (window.confirm(L.ok)) { fields.splice(i, 1); draw(); } }]].forEach(function (b) {
+			var btn = el('button', { type: 'button', 'class': 'button', 'aria-label': L[b[0]] + ' (' + (i + 1) + ')', title: L[b[0]] });
+			btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="vertical-align:-.15em"><path d="' + b[1] + '"/></svg>';
 			btn.addEventListener('click', b[2]);
 			tools.appendChild(btn);
 		});

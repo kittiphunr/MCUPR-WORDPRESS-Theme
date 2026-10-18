@@ -70,7 +70,7 @@ foreach ( $extra as $e ) {
 				<?php endfor; ?>
 			</ul>
 			<button type="button" class="hero-arrow" data-hero-next aria-label="<?php echo esc_attr( mcupr_t( 'next' ) ); ?>"><span aria-hidden="true">›</span></button>
-			<button type="button" class="hero-arrow hero-pause" data-hero-pause hidden aria-pressed="false" aria-label="<?php echo esc_attr( mcupr_t( 'hero_pause' ) ); ?>"><span aria-hidden="true">❚❚</span></button>
+			<button type="button" class="hero-arrow hero-pause" data-hero-pause hidden aria-pressed="false" aria-label="<?php echo esc_attr( mcupr_t( 'hero_pause' ) ); ?>"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg></button>
 		</div>
 	<?php endif; ?>
 

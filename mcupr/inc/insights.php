@@ -233,7 +233,7 @@ function mcupr_ins_page() {
 		$none = array_filter( $sl, static function ( $e ) { return empty( $e['f'] ); } );
 		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Search', 'mcupr' ) . '</th><th>' . esc_html__( 'Times', 'mcupr' ) . '</th><th>' . esc_html__( 'Found something?', 'mcupr' ) . '</th><th>' . esc_html__( 'Last', 'mcupr' ) . '</th></tr></thead><tbody>';
 		foreach ( array_slice( $sl, 0, 40, true ) as $e ) {
-			echo '<tr><td>' . esc_html( $e['q'] ) . '</td><td>' . (int) $e['n'] . '</td><td>' . ( ! empty( $e['f'] ) ? '✓' : '<strong style="color:#b32d2e">' . esc_html__( 'No – write about this', 'mcupr' ) . '</strong>' ) . '</td><td>' . esc_html( wp_date( 'j M Y', $e['t'] ) ) . '</td></tr>';
+			echo '<tr><td>' . esc_html( $e['q'] ) . '</td><td>' . (int) $e['n'] . '</td><td>' . ( ! empty( $e['f'] ) ? mcupr_feather_i( 'check', 14 ) . '<span class="screen-reader-text">' . esc_html__( 'Yes', 'mcupr' ) . '</span>' : '<strong style="color:#b32d2e">' . esc_html__( 'No – write about this', 'mcupr' ) . '</strong>' ) . '</td><td>' . esc_html( wp_date( 'j M Y', $e['t'] ) ) . '</td></tr>';
 		}
 		echo '</tbody></table><p>' . esc_html( sprintf( /* translators: %d: terms */ __( '%d of the searches found nothing.', 'mcupr' ), count( $none ) ) ) . ' ';
 		$form( 'clearsearch', '', __( 'Clear the list', 'mcupr' ) );

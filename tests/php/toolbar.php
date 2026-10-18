@@ -33,7 +33,7 @@ foreach ( array(
 	node( 'site-name', 'My site', '/', '' ),
 	node( 'dashboard', 'Dashboard', '/wp-admin/', 'site-name' ),
 	node( 'customize', 'Customize', '/customize', '' ),
-	node( 'mcupr-maint', '🔧 Maintenance mode is ON', '/status', '' ),
+	node( 'mcupr-maint', 'Maintenance mode is ON', '/status', '' ),
 	node( 'new-content', 'New', '/new', '' ),
 	node( 'new-post', 'Post', '/new-post', 'new-content' ),
 	node( 'new-page', 'Page', '/new-page', 'new-content' ),
@@ -54,7 +54,7 @@ t( array( __( 'This page', 'mcupr' ), __( 'Add new', 'mcupr' ), __( 'The website
 t( array( 'Edit Page' ) === $flat[ __( 'This page', 'mcupr' ) ], 'this page: editing it' );
 t( array( 'Post', 'Page' ) === $flat[ __( 'Add new', 'mcupr' ) ], 'add new: what the toolbar offers to add' );
 $site_list = $flat[ __( 'The website', 'mcupr' ) ];
-t( in_array( __( 'MCUPR control center', 'mcupr' ), $site_list, true ) && in_array( 'Dashboard', $site_list, true ) && in_array( 'Customize', $site_list, true ) && in_array( '🔧 Maintenance mode is ON', $site_list, true ), 'the website: the control center, the dashboard, customize and the maintenance notice' );
+t( in_array( __( 'MCUPR control center', 'mcupr' ), $site_list, true ) && in_array( 'Dashboard', $site_list, true ) && in_array( 'Customize', $site_list, true ) && in_array( 'Maintenance mode is ON', $site_list, true ), 'the website: the control center, the dashboard, customize and the maintenance notice' );
 t( array( 'Plugin thing' ) === $flat[ __( 'More', 'mcupr' ) ], 'more: what another plugin put in the bar' );
 t( array( 'Edit Profile', 'Log Out' ) === $flat[ __( 'My account', 'mcupr' ) ], 'my account: profile and log out' );
 $all = wp_json_encode( $g );
