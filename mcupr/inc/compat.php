@@ -102,6 +102,12 @@ function mcupr_throttle( $key, $max, $ttl ) {
 	return true;
 }
 
+/** A robot, a link preview or a script rather than a person (no user agent at all counts as a robot): views, the welcome page, insights. */
+function mcupr_is_bot() {
+	$ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? (string) wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	return '' === $ua || (bool) preg_match( '/bot|crawl|spider|slurp|bingpreview|mediapartners|facebookexternalhit|lighthouse|pagespeed|headless|preview|monitor|curl|wget|python-requests/i', $ua );
+}
+
 /** setcookie() for every PHP version the theme supports (7.0 – 7.2 have no options array): first-party, SameSite=Lax, path / unless one is given. */
 function mcupr_set_cookie( $name, $value, $expires, $httponly = true, $path = '/' ) {
 	if ( headers_sent() ) {
