@@ -33,7 +33,7 @@ foreach ( array(
 	node( 'site-name', 'My site', '/', '' ),
 	node( 'dashboard', 'Dashboard', '/wp-admin/', 'site-name' ),
 	node( 'customize', 'Customize', '/customize', '' ),
-	node( 'mcupr-maint', '🔧 Maintenance mode is ON', '/status', '' ),
+	node( 'mcupr-maint', 'Maintenance mode is ON', '/status', '' ),
 	node( 'new-content', 'New', '/new', '' ),
 	node( 'new-post', 'Post', '/new-post', 'new-content' ),
 	node( 'new-page', 'Page', '/new-page', 'new-content' ),

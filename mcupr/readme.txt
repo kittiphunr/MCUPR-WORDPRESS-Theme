@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.52.1 =
+* Update.
+
 = 1.52.0 =
 * Control center: the admin home as a Windows-style control panel (8 groups, explanations, guides, start checklist, search, Feather icons).
 

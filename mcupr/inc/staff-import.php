@@ -230,7 +230,7 @@ function mcupr_import_rows_to_records( $rows ) {
 /* ------------------------------------------------------------------ interpreting cells */
 
 function mcupr_import_bool( $v ) {
-	return in_array( strtolower( trim( (string) $v ) ), array( '1', 'y', 'yes', 'true', 'x', '✓', '✔', 'ใช่', 'จริง', 'หัวหน้า', 'ซ่อน' ), true );
+	return in_array( strtolower( trim( (string) $v ) ), array( '1', 'y', 'yes', 'true', 'x', "\u{2713}", "\u{2714}", 'ใช่', 'จริง', 'หัวหน้า', 'ซ่อน' ), true );
 }
 
 function mcupr_import_hide_keys( $v ) {

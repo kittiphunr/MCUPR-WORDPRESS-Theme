@@ -515,7 +515,7 @@ add_action(
 function mcupr_sp_box( $post ) {
 	$labels = mcupr_sp_labels( $post->ID );
 	foreach ( $labels as $l ) {
-		echo '<p style="margin:.25rem 0"><strong style="color:#614200">⚑ ' . esc_html( $l ) . '</strong></p>';
+		echo '<p style="margin:.25rem 0"><strong style="color:#614200">' . mcupr_feather_i( 'flag', 14 ) . ' ' . esc_html( $l ) . '</strong></p>';
 	}
 	$html = mcupr_sp_html( $post->ID, 'staff', 'th' === substr( determine_locale(), 0, 2 ) ? 'th' : 'en' );
 	if ( '' === $html ) {
