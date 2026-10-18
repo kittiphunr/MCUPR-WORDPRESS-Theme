@@ -392,7 +392,7 @@ function mcupr_sg_back( $args ) {
 	exit;
 }
 function mcupr_sg_guard( $action ) {
-	if ( ! current_user_can( MCUPR_STU_CAP ) || ! isset( $_POST['mcupr_sg_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_sg_nonce'] ) ), $action ) ) {
+	if ( ! mcupr_check_request( 'mcupr_sg_nonce', $action, MCUPR_STU_CAP ) ) {
 		wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 	}
 }
@@ -508,7 +508,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_sg_template',
 	static function () {
-		if ( ! current_user_can( MCUPR_STU_CAP ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'mcupr_sg_template' ) ) {
+		if ( ! mcupr_check_request( '_wpnonce', 'mcupr_sg_template', MCUPR_STU_CAP, 'get' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$kind = isset( $_GET['kind'] ) && 'grades' === $_GET['kind'] ? 'grades' : 'sched';
