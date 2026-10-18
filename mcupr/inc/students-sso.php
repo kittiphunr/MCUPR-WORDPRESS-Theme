@@ -91,7 +91,7 @@ function mcupr_sso_check_claims( $c, $nonce ) {
 	if ( substr( $mail, -strlen( '@' . $o['domain'] ) ) !== '@' . $o['domain'] ) {
 		return 'domain';
 	}
-	if ( isset( $c['hd'] ) && strtolower( (string) $c['hd'] ) !== $o['domain'] ) {
+	if ( empty( $c['hd'] ) || strtolower( (string) $c['hd'] ) !== $o['domain'] ) { // a personal account that merely uses a university address has no 'hd'
 		return 'domain';
 	}
 	return '';
