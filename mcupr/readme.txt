@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.50.1 =
+* Sidebar mode: the content frame keeps the sidebar's gap on every side, also with the WordPress toolbar.
+
 = 1.50.0 =
 * E-book (WebGL): the page is held by a corner and rolled over a slanting fold.
 
