@@ -3238,6 +3238,9 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     }
     // sidebar mode: the content frame keeps the same gap as the sidebar card on every side – also with the WordPress toolbar, and with the sidebar folded
     {
+      const { execSync: execD } = require('child_process');
+      const phpD = (code) => { const f = require('os').tmpdir() + '/e2e-sidegap-' + process.pid + '.php'; require('fs').writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execD('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+      phpD('set_theme_mod( "mcupr_toolbar", "wp" );'); // the WordPress bar across the top is what these checks are about
       for (const [sbmin, w] of [[false, 1428], [true, 1428], [false, 1100], [true, 1920]]) {
         const sc = await br.newContext({ viewport: { width: w, height: 780 } });
         const sp = await sc.newPage();
@@ -3254,6 +3257,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         ok(g.gap >= 0 && g.gap <= 18 && g.sw <= 0, tag + ': the gap between the sidebar and the frame is small and there is no sideways scroll');
         await sc.close();
       }
+      phpD('remove_theme_mod( "mcupr_toolbar" );');
     }
     // the WordPress toolbar as a floating icon for signed-in editors (and the classic bar when chosen)
     {
