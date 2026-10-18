@@ -737,7 +737,7 @@
 			});
 			return box;
 		};
-		var fsFocusable = function () { return $$('a[href], button:not([disabled])', fsBox).filter(function (n) { return n.offsetParent !== null; }); };
+		var fsFocusable = function () { return $$('a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled])', fsBox).filter(function (n) { return n.offsetParent !== null; }); };
 		var openFs = function () {
 			fsBox = fsBox || buildFs();
 			if (!fsBox) { return; }

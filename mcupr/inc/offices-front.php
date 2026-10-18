@@ -266,9 +266,10 @@ function mcupr_office_pager( $oid, $section, $current, $total ) {
 	if ( $total < 2 ) {
 		return '';
 	}
+	$first = mcupr_office_url( $oid, $section );
 	$links = paginate_links(
 		array(
-			'base'      => trailingslashit( mcupr_office_url( $oid, $section ) ) . 'page/%#%/',
+			'base'      => mcupr_plain_mode() ? $first . ( false !== strpos( $first, '?' ) ? '&' : '?' ) . 'mcupr_opage=%#%' : trailingslashit( $first ) . 'page/%#%/',
 			'format'    => '',
 			'current'   => $current,
 			'total'     => $total,
@@ -278,7 +279,7 @@ function mcupr_office_pager( $oid, $section, $current, $total ) {
 			'next_text' => esc_html( mcupr_t( 'next' ) ) . ' <span aria-hidden="true">›</span>',
 		)
 	);
-	$links = preg_replace( '#/page/1/(["\'])#', '/$1', (string) $links );
+	$links = preg_replace( array( '#/page/1/(["\'])#', '#(?:&amp;|&|\?)mcupr_opage=1(["\'])#' ), array( '/$1', '$1' ), (string) $links );
 	return '<nav class="navigation pagination" aria-label="' . esc_attr( mcupr_t( 'pagination' ) ) . '"><div class="nav-links">' . $links . '</div></nav>'; // phpcs:ignore WordPress.Security.EscapeOutput
 }
 
