@@ -65,6 +65,18 @@ function mcupr_csv_escape() {
 	return "\0";
 }
 
+/** The visitor's network for rate limits: the address, with an IPv6 address cut to its /64 (one household or one rented block has a whole /64 to rotate in). */
+function mcupr_client_net() {
+	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	if ( false !== strpos( $ip, ':' ) && function_exists( 'inet_pton' ) ) {
+		$bin = @inet_pton( $ip ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+		if ( false !== $bin && 16 === strlen( $bin ) ) {
+			return bin2hex( substr( $bin, 0, 8 ) ) . '::/64';
+		}
+	}
+	return $ip;
+}
+
 /** setcookie() for every PHP version the theme supports (7.0 – 7.2 have no options array): first-party, path /, SameSite=Lax. */
 function mcupr_set_cookie( $name, $value, $expires, $httponly = true ) {
 	if ( headers_sent() ) {
