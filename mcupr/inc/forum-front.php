@@ -100,8 +100,8 @@ function mcupr_forum_row( $p, $pinned = false ) {
 	if ( mcupr_topic_locked( $id ) ) {
 		$o .= ' <span class="forum-badge forum-badge-l">' . esc_html( mcupr_t( 'fm_locked' ) ) . '</span>';
 	}
-	$o .= '</h3><p class="forum-m">' . esc_html( mcupr_t( 'fm_by' ) . ' ' . $name ) . ( $board && ! is_wp_error( $board ) ? ' · <a href="' . esc_url( add_query_arg( 'fb', $board[0]->slug, mcupr_forum_page_url() ) ) . '">' . esc_html( $board[0]->name ) . '</a>' : '' ) . ' · ' . esc_html( wp_date( 'j M Y', (int) get_post_time( 'U', true, $id ) ) ) . '</p></div>';
-	$o .= '<div class="forum-c"><b>' . (int) $n . '</b><span>' . esc_html( mcupr_t( 'fm_replies' ) ) . '</span></div><div class="forum-l"><span>' . esc_html( mcupr_t( 'fm_last' ) ) . '</span><time datetime="' . esc_attr( gmdate( 'c', $last ) ) . '">' . esc_html( wp_date( 'j M Y H:i', $last ) ) . '</time></div></li>';
+	$o .= '</h3><p class="forum-m">' . esc_html( mcupr_t( 'fm_by' ) . ' ' . $name ) . ( $board && ! is_wp_error( $board ) ? ' · <a href="' . esc_url( add_query_arg( 'fb', $board[0]->slug, mcupr_forum_page_url() ) ) . '">' . esc_html( $board[0]->name ) . '</a>' : '' ) . ' · ' . esc_html( mcupr_date_fmt( 'j M Y', (int) get_post_time( 'U', true, $id ) ) ) . '</p></div>';
+	$o .= '<div class="forum-c"><b>' . (int) $n . '</b><span>' . esc_html( mcupr_t( 'fm_replies' ) ) . '</span></div><div class="forum-l"><span>' . esc_html( mcupr_t( 'fm_last' ) ) . '</span><time datetime="' . esc_attr( gmdate( 'c', $last ) ) . '">' . esc_html( mcupr_date_fmt( 'j M Y H:i', $last ) ) . '</time></div></li>';
 	return $o;
 }
 
@@ -197,7 +197,7 @@ function mcupr_forum_replies_html( $topic_id ) {
 	$o    = '<ol class="forum-replies">';
 	foreach ( $cs as $c ) {
 		$staff = $c->user_id && user_can( (int) $c->user_id, 'edit_pages' );
-		$o    .= '<li class="forum-reply' . ( $staff ? ' is-staff' : '' ) . '" id="reply-' . (int) $c->comment_ID . '"><span class="forum-av" aria-hidden="true">' . esc_html( mcupr_forum_initial( $c->comment_author ) ) . '</span><div class="forum-rb"><p class="forum-rh"><b>' . esc_html( $c->comment_author ) . '</b>' . ( $staff ? ' <span class="forum-badge">' . esc_html( mcupr_t( 'fm_staff' ) ) . '</span>' : '' ) . ' <time datetime="' . esc_attr( mysql2date( 'c', $c->comment_date_gmt ) ) . '">' . esc_html( mysql2date( 'j M Y H:i', get_date_from_gmt( $c->comment_date_gmt ) ) ) . '</time></p><div class="forum-tx">' . mcupr_forum_text( $c->comment_content ) . '</div>' . mcupr_forum_report_button( 'reply', $c->comment_ID, $back ) . '</div></li>';
+		$o    .= '<li class="forum-reply' . ( $staff ? ' is-staff' : '' ) . '" id="reply-' . (int) $c->comment_ID . '"><span class="forum-av" aria-hidden="true">' . esc_html( mcupr_forum_initial( $c->comment_author ) ) . '</span><div class="forum-rb"><p class="forum-rh"><b>' . esc_html( $c->comment_author ) . '</b>' . ( $staff ? ' <span class="forum-badge">' . esc_html( mcupr_t( 'fm_staff' ) ) . '</span>' : '' ) . ' <time datetime="' . esc_attr( mysql2date( 'c', $c->comment_date_gmt ) ) . '">' . esc_html( mcupr_date_fmt( 'j M Y H:i', (int) strtotime( $c->comment_date_gmt . ' +0000' ) ) ) . '</time></p><div class="forum-tx">' . mcupr_forum_text( $c->comment_content ) . '</div>' . mcupr_forum_report_button( 'reply', $c->comment_ID, $back ) . '</div></li>';
 	}
 	return $o . '</ol>';
 }
