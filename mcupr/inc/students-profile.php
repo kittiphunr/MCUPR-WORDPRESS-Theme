@@ -476,7 +476,10 @@ add_action(
 
 /* ------------------------------------------------------------------ showing the details */
 
-/** Details by group as an HTML list. $for 'staff' = everything; 'student' = their own, the ID number and the passport number by the last four characters. */
+/**
+ * Details by group as an HTML list. $for 'staff' = everything; 'student' = their own, the ID number and the passport number by the last four characters.
+ * $lang: th | en | zh | ja (the labels in Chinese and Japanese come from inc/strings.php, spf_* and spg_*).
+ */
 function mcupr_sp_html( $post_id, $for = 'staff', $lang = 'en' ) {
 	$vals   = mcupr_sp_get( $post_id );
 	$groups = mcupr_sp_groups();
@@ -495,10 +498,11 @@ function mcupr_sp_html( $post_id, $for = 'staff', $lang = 'en' ) {
 			if ( 'date' === $f[3] && preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $v, $m ) ) {
 				$v = 'th' === $lang ? (int) $m[3] . '/' . (int) $m[2] . '/' . ( (int) $m[1] + 543 ) : $v;
 			}
-			$rows .= '<div><dt>' . esc_html( 'th' === $lang ? $f[5] : $f[0] ) . '</dt><dd>' . esc_html( $v ) . '</dd></div>';
+			$label = 'th' === $lang ? $f[5] : ( 'zh' === $lang || 'ja' === $lang ? mcupr_t( 'spf_' . $k, $lang ) : $f[0] );
+			$rows .= '<div><dt>' . esc_html( $label ) . '</dt><dd>' . esc_html( $v ) . '</dd></div>';
 		}
 		if ( '' !== $rows ) {
-			$h .= '<details class="sp-g"' . ( 'names' === $g || 'personal' === $g ? ' open' : '' ) . '><summary>' . esc_html( 'th' === $lang ? $th[ $g ] : $glabel ) . '</summary><dl class="stu-dl sp-dl">' . $rows . '</dl></details>';
+			$h .= '<details class="sp-g"' . ( 'names' === $g || 'personal' === $g ? ' open' : '' ) . '><summary>' . esc_html( 'th' === $lang ? $th[ $g ] : ( 'zh' === $lang || 'ja' === $lang ? mcupr_t( 'spg_' . $g, $lang ) : $glabel ) ) . '</summary><dl class="stu-dl sp-dl">' . $rows . '</dl></details>';
 		}
 	}
 	return $h;
@@ -528,8 +532,8 @@ function mcupr_sp_box( $post ) {
 
 /** The student's own details in the portal. */
 function mcupr_sp_portal_html( $post_id ) {
-	$lang = function_exists( 'mcupr_lang' ) ? mcupr_lang() : 'th';
-	$html = mcupr_sp_html( $post_id, 'student', 'th' === $lang ? 'th' : 'en' );
+	$lang = function_exists( 'mcupr_ui_lang' ) ? mcupr_ui_lang() : 'th';
+	$html = mcupr_sp_html( $post_id, 'student', in_array( $lang, array( 'th', 'zh', 'ja' ), true ) ? $lang : 'en' );
 	if ( '' === $html ) {
 		return '';
 	}
