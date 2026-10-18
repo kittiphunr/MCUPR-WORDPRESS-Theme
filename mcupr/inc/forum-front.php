@@ -128,12 +128,14 @@ function mcupr_forum_html() {
 		$boards = get_terms( array( 'taxonomy' => 'mcupr_board', 'hide_empty' => false ) );
 		echo '<h2 class="forum-h">' . esc_html( mcupr_t( 'fm_boards' ) ) . '</h2><ul class="forum-boards">';
 		foreach ( is_wp_error( $boards ) ? array() : $boards as $b ) {
-			$last = get_posts( array( 'post_type' => 'mcupr_topic', 'post_status' => 'publish', 'posts_per_page' => 1, 'no_found_rows' => true, 'meta_key' => '_mcupr_topic_last', 'orderby' => 'meta_value_num', 'order' => 'DESC', 'tax_query' => array( array( 'taxonomy' => 'mcupr_board', 'terms' => $b->term_id ) ) ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+			$last = mcupr_forum_board_last( $b->term_id );
+			$last = $last ? array( $last ) : array();
 			echo '<li class="forum-board"><a class="forum-bn" href="' . esc_url( add_query_arg( 'fb', $b->slug, $base ) ) . '">' . mcupr_icon( 'chat', 26 ) . '<span><b>' . esc_html( $b->name ) . '</b>' . ( $b->description ? '<small>' . esc_html( $b->description ) . '</small>' : '' ) . '</span></a><div class="forum-bs"><span><b>' . (int) $b->count . '</b> ' . esc_html( mcupr_t( 'fm_topics' ) ) . '</span>' . ( $last ? '<a href="' . esc_url( get_permalink( $last[0] ) ) . '">' . esc_html( wp_trim_words( get_the_title( $last[0] ), 8, '…' ) ) . '</a>' : '' ) . '</div></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		}
 		echo '</ul>';
 		$latest = get_posts( array( 'post_type' => 'mcupr_topic', 'post_status' => 'publish', 'posts_per_page' => 8, 'no_found_rows' => true, 'meta_key' => '_mcupr_topic_last', 'orderby' => 'meta_value_num', 'order' => 'DESC' ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
 		if ( $latest ) {
+			cache_users( array_filter( array_map( 'intval', wp_list_pluck( $latest, 'post_author' ) ) ) ); // one query for the names of all rows
 			echo '<h2 class="forum-h">' . esc_html( mcupr_t( 'fm_last' ) ) . '</h2><ul class="forum-list">';
 			foreach ( $latest as $p ) {
 				echo mcupr_forum_row( $p, (bool) get_post_meta( $p->ID, '_mcupr_topic_sticky', true ) ); // phpcs:ignore WordPress.Security.EscapeOutput
@@ -164,6 +166,7 @@ function mcupr_forum_html() {
 		}
 		$args['post__not_in'] = $pinned_ids;
 		$qq = new WP_Query( $args );
+		cache_users( array_filter( array_map( 'intval', array_merge( wp_list_pluck( $pin, 'post_author' ), wp_list_pluck( $qq->posts, 'post_author' ) ) ) ) );
 		echo '<ul class="forum-list">';
 		foreach ( $pin as $p ) {
 			echo mcupr_forum_row( $p, true ); // phpcs:ignore WordPress.Security.EscapeOutput
