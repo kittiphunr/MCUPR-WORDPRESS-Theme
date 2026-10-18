@@ -77,14 +77,26 @@ function mcupr_client_net() {
 	return $ip;
 }
 
-/** setcookie() for every PHP version the theme supports (7.0 – 7.2 have no options array): first-party, path /, SameSite=Lax. */
-function mcupr_set_cookie( $name, $value, $expires, $httponly = true ) {
+/** setcookie() for every PHP version the theme supports (7.0 – 7.2 have no options array): first-party, SameSite=Lax, path / unless one is given. */
+function mcupr_set_cookie( $name, $value, $expires, $httponly = true, $path = '/' ) {
 	if ( headers_sent() ) {
 		return;
 	}
 	if ( PHP_VERSION_ID >= 70300 ) {
-		setcookie( $name, $value, array( 'expires' => $expires, 'path' => '/', 'secure' => is_ssl(), 'httponly' => $httponly, 'samesite' => 'Lax' ) );
+		setcookie( $name, $value, array( 'expires' => $expires, 'path' => $path, 'secure' => is_ssl(), 'httponly' => $httponly, 'samesite' => 'Lax' ) );
 	} else {
-		setcookie( $name, $value, $expires, '/; samesite=Lax', '', is_ssl(), $httponly );
+		// PHP < 7.3 has no options array (and rejects ';' in the path), so send the header ourselves.
+		header(
+			sprintf(
+				'Set-Cookie: %s=%s%s; Path=%s; %sSameSite=Lax%s',
+				$name,
+				rawurlencode( (string) $value ),
+				$expires > 0 ? '; Expires=' . gmdate( 'D, d M Y H:i:s \G\M\T', $expires ) . '; Max-Age=' . max( 0, $expires - time() ) : '',
+				$path,
+				$httponly ? 'HttpOnly; ' : '',
+				is_ssl() ? '; Secure' : ''
+			),
+			false
+		);
 	}
 }

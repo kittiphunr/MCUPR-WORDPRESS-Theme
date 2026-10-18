@@ -296,7 +296,7 @@ add_action(
 		if ( isset( $_GET['mcupr_preview'] ) && ! is_admin() && ! headers_sent() ) {
 			$m = mcupr_status()['maint'];
 			if ( ! empty( $m['key'] ) && hash_equals( (string) $m['key'], (string) sanitize_text_field( wp_unslash( $_GET['mcupr_preview'] ) ) ) ) {
-				setcookie( 'mcupr_maint_ok', mcupr_maint_cookie_value( $m ), array( 'expires' => time() + 12 * HOUR_IN_SECONDS, 'path' => COOKIEPATH ? COOKIEPATH : '/', 'httponly' => true, 'samesite' => 'Lax' ) );
+				mcupr_set_cookie( 'mcupr_maint_ok', mcupr_maint_cookie_value( $m ), time() + 12 * HOUR_IN_SECONDS, true, COOKIEPATH ? COOKIEPATH : '/' );
 				wp_safe_redirect( home_url( '/' ) );
 				exit;
 			}
@@ -306,7 +306,7 @@ add_action(
 			$w    = mcupr_status()['welcome'];
 			$days = max( 0, (int) $w['days'] );
 			// 0 days = every visit: a session cookie, so it is not shown again until the browser has been closed
-			setcookie( 'mcupr_welcome', mcupr_welcome_version(), array( 'expires' => $days > 0 ? time() + $days * DAY_IN_SECONDS : 0, 'path' => COOKIEPATH ? COOKIEPATH : '/', 'samesite' => 'Lax' ) );
+			mcupr_set_cookie( 'mcupr_welcome', mcupr_welcome_version(), $days > 0 ? time() + $days * DAY_IN_SECONDS : 0, false, COOKIEPATH ? COOKIEPATH : '/' );
 			$to = '' !== $w['url'] ? wp_validate_redirect( $w['url'], home_url( '/' ) ) : home_url( '/' );
 			wp_safe_redirect( $to );
 			exit;
