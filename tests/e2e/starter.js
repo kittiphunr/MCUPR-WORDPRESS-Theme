@@ -2566,7 +2566,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await kp.click('#stu-rfid');
     await kp.keyboard.type('4028251660', { delay: 0 });
     await Promise.all([kp.waitForNavigation(), kp.keyboard.press('Enter')]);
-    ok(/e=card/.test(kp.url()) && await kp.locator('.stu-hello').count() === 0, 'card login: a wrong card is refused');
+    ok(/e=login/.test(kp.url()) && await kp.locator('.stu-hello').count() === 0, 'card login: a wrong card is refused');
     // right card, fast: submits by itself
     await fillLogin('carde2e1');
     await kp.click('#stu-rfid');
@@ -2583,11 +2583,11 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await fillLogin('carde2e2');
     await kp.fill('#stu-idc', '1101700203459');
     await Promise.all([kp.waitForNavigation(), kp.click('.stu-form button[type=submit]')]);
-    ok(/e=card/.test(kp.url()) && await kp.locator('.stu-hello').count() === 0, 'card login: a wrong ID number is refused');
+    ok(/e=login/.test(kp.url()) && await kp.locator('.stu-hello').count() === 0, 'card login: a wrong ID number is refused');
     await fillLogin('carde2e3');
     await kp.fill('#stu-idc', '1101700203450');
     await Promise.all([kp.waitForNavigation(), kp.click('.stu-form button[type=submit]')]);
-    ok(/e=cardnone/.test(kp.url()) && /เจ้าหน้าที่|staff/.test(await kp.locator('.stu-note-err').innerText()), 'card login: a record with neither is told to contact the staff');
+    ok(/e=login/.test(kp.url()) && /เจ้าหน้าที่|staff/.test(await kp.locator('.stu-note-err').innerText()), 'card login: a record with neither is told to contact the staff');
     // the ordinary WordPress login page
     const wl = await kc.newPage();
     await wl.goto(B + '/wp-login.php');

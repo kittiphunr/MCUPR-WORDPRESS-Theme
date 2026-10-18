@@ -32,6 +32,12 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.52.2 =
+* Update.
+
+= 1.53.0 =
+* Update.
+
 = 1.52.1 =
 * Update.
 
