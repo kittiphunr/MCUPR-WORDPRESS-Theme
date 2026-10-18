@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.50.0 =
+* E-book (WebGL): the page is held by a corner and rolled over a slanting fold.
+
 = 1.49.0 =
 * E-book: the admin chooses how the pages turn (site and per book); the visitor's effect button is gone.
 
