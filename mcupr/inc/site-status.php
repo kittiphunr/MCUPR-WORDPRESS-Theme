@@ -60,7 +60,7 @@ function mcupr_status_in_dates( $from, $to ) {
 /** The text of a per-language field in the visitor's language, else Thai, else English. */
 function mcupr_status_text( $arr, $fallback = '' ) {
 	$arr = is_array( $arr ) ? $arr : array();
-	foreach ( array( mcupr_ui_lang(), 'th', 'en' ) as $l ) {
+	foreach ( array( mcupr_ui_lang(), 'en', 'th' ) as $l ) { // zh / ja visitors read English before Thai
 		if ( isset( $arr[ $l ] ) && '' !== trim( $arr[ $l ] ) ) {
 			return $arr[ $l ];
 		}
