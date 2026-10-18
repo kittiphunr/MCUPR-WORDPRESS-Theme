@@ -189,7 +189,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_books_settings',
 	static function () {
-		if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['mcupr_books_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_books_nonce'] ) ), 'mcupr_books_settings' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_books_nonce', 'mcupr_books_settings', 'manage_options' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$st  = isset( $_POST['style'] ) ? sanitize_key( wp_unslash( $_POST['style'] ) ) : 'wood';
@@ -561,10 +561,7 @@ function mcupr_book_box( $post ) {
 add_action(
 	'save_post_' . MCUPR_BOOK,
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_book_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_book_nonce'] ) ), 'mcupr_book_save' ) ) {
-			return;
-		}
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! mcupr_can_save_box( $post_id, 'mcupr_book_nonce', 'mcupr_book_save' ) ) {
 			return;
 		}
 		$src = isset( $_POST['mcupr_bk_src'] ) && in_array( $_POST['mcupr_bk_src'], array( 'images', 'epub' ), true ) ? sanitize_key( wp_unslash( $_POST['mcupr_bk_src'] ) ) : 'pdf';

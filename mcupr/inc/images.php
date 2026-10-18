@@ -170,7 +170,7 @@ function mcupr_img_page() {
 add_action(
 	'admin_post_mcupr_img',
 	static function () {
-		if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['mcupr_img_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_img_nonce'] ) ), 'mcupr_img' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_img_nonce', 'mcupr_img', 'manage_options' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		update_option(

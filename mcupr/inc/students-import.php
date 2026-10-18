@@ -525,7 +525,7 @@ function mcupr_si_start() {
 add_action(
 	'admin_post_mcupr_si_upload',
 	static function () {
-		if ( ! current_user_can( MCUPR_STU_CAP ) || ! isset( $_POST['mcupr_si_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_si_nonce'] ) ), 'mcupr_si_upload' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_si_nonce', 'mcupr_si_upload', MCUPR_STU_CAP ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$text = '';
@@ -688,7 +688,7 @@ add_action(
 	'admin_post_mcupr_si_start',
 	static function () {
 		$token = isset( $_POST['t'] ) ? sanitize_key( wp_unslash( $_POST['t'] ) ) : '';
-		if ( ! current_user_can( MCUPR_STU_CAP ) || ! $token || ! isset( $_POST['mcupr_si_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_si_nonce'] ) ), 'mcupr_si_start' . $token ) ) {
+		if ( ! current_user_can( MCUPR_STU_CAP ) || ! $token || ! mcupr_check_request( 'mcupr_si_nonce', 'mcupr_si_start' . $token ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$d = mcupr_si_load( $token );
@@ -825,10 +825,9 @@ function mcupr_si_report() {
 
 /* ------------------------------------------------------------------ downloads */
 
-/** A cell safe to open in a spreadsheet (a leading = + - @ would run as a formula). */
+/** A cell safe to open in a spreadsheet (kept for older callers: see mcupr_csv_safe()). */
 function mcupr_si_cell( $v ) {
-	$v = (string) $v;
-	return '' !== $v && in_array( $v[0], array( '=', '+', '-', '@', "\t", "\r" ), true ) ? "'" . $v : $v;
+	return mcupr_csv_safe( $v );
 }
 
 function mcupr_si_csv_out( $filename, $rows ) {
@@ -838,7 +837,7 @@ function mcupr_si_csv_out( $filename, $rows ) {
 	echo "\xEF\xBB\xBF"; // so that Excel reads Thai
 	$out = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	foreach ( $rows as $r ) {
-		fputcsv( $out, array_map( 'mcupr_si_cell', $r ), ',', '"', mcupr_csv_escape() ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		fputcsv( $out, array_map( 'mcupr_csv_safe', $r ), ',', '"', mcupr_csv_escape() ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	}
 	fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	exit;
