@@ -152,7 +152,7 @@ add_action(
 /* ------------------------------------------------------------------ voting */
 
 function mcupr_poll_voter_key( $id ) {
-	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	$ip = mcupr_client_net();
 	return 'mcupr_pv_' . (int) $id . '_' . substr( hash_hmac( 'sha256', $ip . '|' . (int) $id, wp_salt( 'auth' ) ), 0, 16 );
 }
 
