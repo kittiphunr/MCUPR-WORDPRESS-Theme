@@ -245,13 +245,7 @@ add_filter(
 
 /** A few tries per person and per address, so the login cannot be guessed at. Returns false when too many. */
 function mcupr_stu_throttle( $key, $max, $window ) {
-	$k = 'mcupr_thr_' . md5( $key );
-	$n = (int) get_transient( $k );
-	if ( $n >= $max ) {
-		return false;
-	}
-	set_transient( $k, $n + 1, $window );
-	return true;
+	return mcupr_throttle( $key, $max, $window );
 }
 
 function mcupr_stu_ip() {
