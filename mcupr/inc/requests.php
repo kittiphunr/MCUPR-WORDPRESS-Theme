@@ -635,6 +635,7 @@ add_action(
 function mcupr_rq_csv_head() {
 	return array( 'Number', 'Status', 'Person who sees to it', 'Last change' );
 }
+/** One request's cells (mcupr_fb_csv() loads the meta and the users of all rows before it asks). */
 function mcupr_rq_csv_cells( $id ) {
 	$s   = (string) get_post_meta( $id, '_mcupr_rq_status', true );
 	$u   = get_userdata( (int) get_post_meta( $id, '_mcupr_rq_owner', true ) );
