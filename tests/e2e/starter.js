@@ -3103,6 +3103,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       }
       // a phone: one page at a time, big; and "less motion"
       for (const fx of ['css3d', 'webgl']) {
+        setFx(ids[1], fx);
         const mc = await brFx.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });
         const mp = await mc.newPage();
         await mp.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
