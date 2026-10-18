@@ -72,10 +72,7 @@ function mcupr_offices_register() {
 	);
 	// /office/<slug>/<section>/ and /office/<slug>/<section>/page/N/
 	add_rewrite_rule( '^office/([^/]+)/(news|events|people|albums|videos|contact)(?:/page/([0-9]+))?/?$', 'index.php?mcupr_office=$matches[1]&mcupr_osec=$matches[2]&mcupr_opage=$matches[3]', 'top' );
-	if ( get_option( 'mcupr_rewrite_offices' ) !== MCUPR_VERSION ) {
-		flush_rewrite_rules( false );
-		update_option( 'mcupr_rewrite_offices', MCUPR_VERSION );
-	}
+	mcupr_rewrite_wanted( 'mcupr_rewrite_offices', MCUPR_VERSION ); // one flush for all modules, at the end of init (inc/compat.php)
 }
 add_action( 'init', 'mcupr_offices_register', 6 ); // before the other types, so the mark can be attached to them all
 
@@ -203,12 +200,12 @@ function mcupr_office_of( $post_id ) {
 	if ( ! in_array( get_post_type( $post_id ), mcupr_office_types(), true ) ) {
 		return 0;
 	}
-	$slugs = wp_get_object_terms( $post_id, MCUPR_OFFICE_TAX, array( 'fields' => 'slugs' ) );
-	if ( is_wp_error( $slugs ) ) {
+	$terms = get_the_terms( $post_id, MCUPR_OFFICE_TAX ); // the term cache: no query when the post's terms are already loaded
+	if ( ! $terms || is_wp_error( $terms ) ) {
 		return 0;
 	}
-	foreach ( $slugs as $s ) {
-		if ( preg_match( '/^office-(\d+)$/', $s, $m ) && 'mcupr_office' === get_post_type( (int) $m[1] ) ) {
+	foreach ( $terms as $t ) {
+		if ( preg_match( '/^office-(\d+)$/', $t->slug, $m ) && 'mcupr_office' === get_post_type( (int) $m[1] ) ) {
 			return (int) $m[1];
 		}
 	}

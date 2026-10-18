@@ -41,12 +41,12 @@ t( substr_count( $h, '<li>' ) === 2 && strpos( $h, 'aria-label="Facebook' ) !== 
 foreach ( array( 'mcupr_social_facebook', 'mcupr_social_line', 'mcupr_social_x' ) as $m ) { remove_theme_mod( $m ); }
 
 // ================================================================= statistics
-delete_option( 'mcupr_daily_views' );
+delete_option( 'mcupr_daily_views' ); delete_option( 'mcupr_daily_views_buf' );
 mcupr_stats_hit(); mcupr_stats_hit();
 $s = mcupr_stats_series( 7 );
 t( 7 === count( $s ) && 2 === end( $s ) && 0 === reset( $s ), 'stats: views per day counted, empty days are zeros' );
 $old = array( gmdate( 'Y-m-d', time() - 200 * DAY_IN_SECONDS ) => 5 );
-update_option( 'mcupr_daily_views', $old + (array) get_option( 'mcupr_daily_views' ) ); mcupr_stats_hit();
+mcupr_stats_flush(); update_option( 'mcupr_daily_views', $old + (array) get_option( 'mcupr_daily_views' ) ); mcupr_stats_hit(); mcupr_stats_flush(); // views are buffered; the flush writes the list
 t( count( get_option( 'mcupr_daily_views' ) ) <= 120 && ! isset( get_option( 'mcupr_daily_views' )[ key( $old ) ] ), 'stats: only the last 120 days are kept' );
 $pp = wp_insert_post( array( 'post_title' => 'Popular', 'post_status' => 'publish' ) ); update_post_meta( $pp, '_mcupr_views', 99999 );
 t( mcupr_stats_top_posts( 3 )[0]->ID === $pp && mcupr_stats_total_views() >= 99999, 'stats: the most viewed page is first; the total adds up' );
