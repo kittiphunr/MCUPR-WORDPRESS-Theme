@@ -3101,6 +3101,43 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         ok((await fp.locator('.bk-reader').getAttribute('data-fx')) === fx || (fx === 'webgl' && (await fp.locator('.bk-reader').getAttribute('data-fx')) === 'css3d'), 'e-books: turning "' + fx + '": an old choice kept in the browser changes nothing');
         await fc.close();
       }
+      // WebGL: a page held by its corner is rolled over a slanting fold and the back of the page shows (the way AnyFlip and a real book do it)
+      {
+        setFx(ids[1], 'webgl');
+        const cc = await brFx.newContext({ viewport: { width: 1366, height: 1000 } });
+        const cp = await cc.newPage();
+        const cerr = [];
+        cp.on('pageerror', (e) => cerr.push(e.message));
+        await cp.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
+        await cp.goto(B + '/?p=' + ids[1]);
+        await cp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
+        try { await cp.click('text=รับทราบ', { timeout: 1000 }); } catch (e) { /* no banner */ }
+        await cp.locator('.bk-reader').scrollIntoViewIfNeeded();
+        await cp.waitForTimeout(800);
+        if ((await cp.locator('.bk-reader').getAttribute('data-fx')) === 'webgl') {
+          await cp.click('.bk-reader [data-act="next"]');
+          await cp.waitForFunction(() => document.querySelector('.bk-reader').dataset.page === '2', null, { timeout: 8000 }).catch(() => {});
+          await cp.waitForTimeout(900);
+          const fb = await cp.locator('.bk-fx').boundingBox();
+          await cp.mouse.move(fb.x + fb.width * 0.95, fb.y + fb.height * 0.5);
+          await cp.mouse.move(fb.x + fb.width * 0.96, fb.y + fb.height * 0.88);
+          await cp.mouse.down();
+          await cp.mouse.move(fb.x + fb.width * 0.8, fb.y + fb.height * 0.84, { steps: 3 });
+          await cp.mouse.move(fb.x + fb.width * 0.62, fb.y + fb.height * 0.7, { steps: 4 });
+          await cp.waitForTimeout(500);
+          const gold = (c) => c[0] > 190 && c[1] > 140 && c[2] < 110;
+          const isRight = (c) => c[1] > 130 && c[0] < 140 && c[2] < 140; // the green page 3 that is being turned (its front)
+          ok(gold(await px(cp, cp.locator('.bk-fx'), 0.8, 0.7)) && gold(await px(cp, cp.locator('.bk-fx'), 0.68, 0.8)), 'e-books: turning "webgl": a page held by its corner shows its back (page 4, gold) beyond a slanting fold');
+          ok(isGreen(await px(cp, cp.locator('.bk-fx'), 0.56, 0.5)) && isBlue(await px(cp, cp.locator('.bk-fx'), 0.25, 0.3)), 'e-books: turning "webgl": the rest of the page stays where it was (green) and the page on the left is untouched (blue)');
+          await cp.mouse.move(fb.x + fb.width * 0.35, fb.y + fb.height * 0.6, { steps: 4 });
+          await cp.waitForTimeout(300);
+          await cp.mouse.up();
+          await cp.waitForFunction(() => +document.querySelector('.bk-reader').dataset.page >= 4, null, { timeout: 8000 }).catch(() => {});
+          ok(+(await cp.locator('.bk-reader').getAttribute('data-page')) >= 4, 'e-books: turning "webgl": letting go beyond the middle carries the page over');
+        } else { ok(true, 'e-books: turning "webgl": (WebGL did not start here – skipped)'); }
+        ok(cerr.length === 0, 'e-books: turning "webgl": the held page: no script error' + (cerr.length ? ': ' + cerr.slice(0, 2).join(' | ') : ''));
+        await cc.close();
+      }
       // a phone: one page at a time, big; and "less motion"
       for (const fx of ['css3d', 'webgl']) {
         setFx(ids[1], fx);
