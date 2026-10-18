@@ -44,9 +44,13 @@ function mcupr_plain_url( $url ) {
 	if ( '' === $rel || 0 === strpos( $rel, 'index.php' ) || preg_match( '#^wp-(admin|content|includes|json|login|cron|sitemap)|\.[a-z0-9]{2,5}$#i', $rel ) ) {
 		return $url;
 	}
-	$to = mcupr_plain_target( $rel );
-	if ( ! $to ) {
-		return $url;
+	$to = mcupr_plain_cache_get( $rel );
+	if ( '' === $to ) {
+		$to = mcupr_plain_target( $rel );
+		if ( ! $to ) {
+			return $url; // a miss is never kept: a page made a moment later works at once
+		}
+		mcupr_plain_cache_put( $rel, $to );
 	}
 	// what the link carried on top (language, search…) stays
 	if ( ! empty( $p['query'] ) ) {
@@ -58,6 +62,101 @@ function mcupr_plain_url( $url ) {
 	}
 	$memo[ $url ] = $to;
 	return $to;
+}
+
+/*
+ * What a pretty path resolves to is kept between requests (a transient, 12 hours), so a page full of pretty links does
+ * not look every one of them up again on every view. Only links that were found are kept. The kept list belongs to a
+ * "generation" (option mcupr_plain_gen): any change to a post, a term, the permalink settings, the home address or the
+ * plugins starts a new generation, so nothing kept before the change is read again. A request that was already running
+ * during a change saves under the old generation, which nobody reads any more.
+ */
+function mcupr_plain_cache_key() {
+	$gen = get_option( 'mcupr_plain_gen' );
+	if ( false === $gen ) {
+		$gen = '1';
+		add_option( 'mcupr_plain_gen', $gen, '', 'yes' ); // autoloaded: reading it costs no query
+	}
+	$gen = (string) $gen;
+	return 'mcupr_plain_' . md5( $gen . '|' . home_url( '/' ) . '|' . (string) get_option( 'permalink_structure' ) . '|' . MCUPR_VERSION );
+}
+
+function &mcupr_plain_cache_state() {
+	static $st = array( 'key' => '', 'map' => null, 'new' => array() );
+	return $st;
+}
+
+/** The kept plain address of $rel, or ''. */
+function mcupr_plain_cache_get( $rel ) {
+	$st = &mcupr_plain_cache_state();
+	if ( null === $st['map'] ) {
+		$st['key'] = mcupr_plain_cache_key();
+		$map       = get_transient( $st['key'] );
+		$st['map'] = is_array( $map ) ? $map : array();
+	}
+	return isset( $st['map'][ $rel ] ) && is_string( $st['map'][ $rel ] ) ? $st['map'][ $rel ] : '';
+}
+
+/** Remember a found address (saved once, at the end of the request). */
+function mcupr_plain_cache_put( $rel, $to ) {
+	$st = &mcupr_plain_cache_state();
+	if ( null === $st['map'] ) {
+		mcupr_plain_cache_get( $rel );
+	}
+	$st['map'][ $rel ] = (string) $to;
+	$st['new'][ $rel ] = (string) $to;
+}
+
+function mcupr_plain_cache_save() {
+	$st = &mcupr_plain_cache_state();
+	if ( ! $st['new'] || '' === $st['key'] ) {
+		return;
+	}
+	$map = get_transient( $st['key'] );
+	$map = array_merge( is_array( $map ) ? $map : array(), $st['new'] );
+	if ( count( $map ) > 1000 ) {
+		$map = array_slice( $map, -1000, null, true );
+	}
+	set_transient( $st['key'], $map, 12 * HOUR_IN_SECONDS );
+	$st['new'] = array();
+}
+add_action( 'shutdown', 'mcupr_plain_cache_save', 100 ); // after WordPress has sent the page (its output buffers close at priority 1)
+
+/**
+ * Start a new generation: everything kept so far is no longer read. The first change of a request starts one at once;
+ * further changes in the same request (an import, a bulk edit) start one more at the end of the request, so whatever
+ * another request kept in between is not read either – one or two option writes per request instead of one per change.
+ */
+function mcupr_plain_cache_clear() {
+	static $n = 0;
+	if ( ! mcupr_plain_mode() ) {
+		return; // nothing is kept or read with pretty permalinks; switching to Plain starts a new generation (below)
+	}
+	$st        = &mcupr_plain_cache_state();
+	$st['map'] = null; // this request looks again too, under the new generation
+	$st['new'] = array();
+	$st['key'] = '';
+	$n++;
+	if ( 1 === $n ) {
+		mcupr_plain_cache_bump();
+	} elseif ( 2 === $n ) {
+		add_action( 'shutdown', 'mcupr_plain_cache_bump', 99 );
+	}
+}
+
+function mcupr_plain_cache_bump() {
+	update_option( 'mcupr_plain_gen', uniqid( '', true ), true );
+	$st        = &mcupr_plain_cache_state();
+	$st['map'] = null;
+	$st['new'] = array();
+	$st['key'] = '';
+}
+foreach ( array( 'clean_post_cache', 'deleted_post', 'clean_term_cache', 'created_term', 'edited_term', 'delete_term', 'activated_plugin', 'deactivated_plugin', 'switch_theme' ) as $mcupr_h ) {
+	add_action( $mcupr_h, 'mcupr_plain_cache_clear' );
+}
+foreach ( array( 'permalink_structure', 'category_base', 'tag_base', 'home', 'siteurl', 'show_on_front', 'page_on_front', 'page_for_posts' ) as $mcupr_o ) {
+	add_action( 'update_option_' . $mcupr_o, 'mcupr_plain_cache_bump' );
+	add_action( 'add_option_' . $mcupr_o, 'mcupr_plain_cache_bump' );
 }
 
 /** The plain address of what lives at a pretty path (relative to the site, no slashes at the ends), or ''. */
