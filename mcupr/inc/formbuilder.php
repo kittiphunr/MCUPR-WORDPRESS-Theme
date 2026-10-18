@@ -669,14 +669,7 @@ add_action(
 	}
 );
 
-/** One CSV cell that Excel will not run as a formula. */
-function mcupr_csv_cell( $s ) {
-	$s = (string) $s;
-	if ( '' !== $s && in_array( $s[0], array( '=', '+', '-', '@', "\t", "\r" ), true ) ) {
-		$s = "'" . $s;
-	}
-	return '"' . str_replace( '"', '""', $s ) . '"';
-}
+/* mcupr_csv_cell() lives in inc/compat.php (every CSV export guards formulas the same way). */
 
 /** The CSV text of a form's answers (columns = the questions that were asked, in order of first appearance). */
 function mcupr_fb_csv( $form_id ) {

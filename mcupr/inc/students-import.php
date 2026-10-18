@@ -825,10 +825,9 @@ function mcupr_si_report() {
 
 /* ------------------------------------------------------------------ downloads */
 
-/** A cell safe to open in a spreadsheet (a leading = + - @ would run as a formula). */
+/** A cell safe to open in a spreadsheet (kept for older callers: see mcupr_csv_safe()). */
 function mcupr_si_cell( $v ) {
-	$v = (string) $v;
-	return '' !== $v && in_array( $v[0], array( '=', '+', '-', '@', "\t", "\r" ), true ) ? "'" . $v : $v;
+	return mcupr_csv_safe( $v );
 }
 
 function mcupr_si_csv_out( $filename, $rows ) {
@@ -838,7 +837,7 @@ function mcupr_si_csv_out( $filename, $rows ) {
 	echo "\xEF\xBB\xBF"; // so that Excel reads Thai
 	$out = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	foreach ( $rows as $r ) {
-		fputcsv( $out, array_map( 'mcupr_si_cell', $r ), ',', '"', mcupr_csv_escape() ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		fputcsv( $out, array_map( 'mcupr_csv_safe', $r ), ',', '"', mcupr_csv_escape() ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	}
 	fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	exit;
