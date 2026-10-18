@@ -242,7 +242,7 @@ function mcupr_blk_weather( $lat, $lon, $place = '' ) {
 		$bits[] = esc_html( mcupr_t( 'wx_rain_today' ) . ' ' . mcupr_wx_num( $w['today']['rain'] ) . ' ' . mcupr_t( 'wx_mm' ) );
 	}
 	if ( $w['tomorrow'] ) {
-		$bits[] = esc_html( wp_date( 'D j M', strtotime( $w['tomorrow']['date'] . ' 12:00' ) ) . ': ' . mcupr_wx_word( $w['tomorrow']['code'] ) . ' · ' . mcupr_wx_num( $w['tomorrow']['min'] ) . '–' . mcupr_wx_num( $w['tomorrow']['max'] ) . '°C · ' . mcupr_t( 'wx_rain_short' ) . ' ' . mcupr_wx_num( $w['tomorrow']['rain'] ) . ' ' . mcupr_t( 'wx_mm' ) );
+		$bits[] = esc_html( mcupr_date_fmt( 'D j M', strtotime( $w['tomorrow']['date'] . ' 12:00' ) ) . ': ' . mcupr_wx_word( $w['tomorrow']['code'] ) . ' · ' . mcupr_wx_num( $w['tomorrow']['min'] ) . '–' . mcupr_wx_num( $w['tomorrow']['max'] ) . '°C · ' . mcupr_t( 'wx_rain_short' ) . ' ' . mcupr_wx_num( $w['tomorrow']['rain'] ) . ' ' . mcupr_t( 'wx_mm' ) );
 	}
 	$list  = '<ul class="wx-list">' . implode( '', array_map( static function ( $b ) { return '<li>' . $b . '</li>'; }, $bits ) ) . '</ul>';
 	$latf  = round( (float) $lat, 3 );
@@ -253,7 +253,7 @@ function mcupr_blk_weather( $lat, $lon, $place = '' ) {
 		. '<div class="wx-view" role="group" aria-label="' . esc_attr( mcupr_t( 'wx_label' ) ) . '"><div class="wx-track">' . $list . '<div class="wx-copy" aria-hidden="true">' . $list . '</div></div></div>'
 		. '<button type="button" class="wx-pause" data-wx-pause aria-pressed="false" aria-label="' . esc_attr( mcupr_t( 'wx_pause' ) ) . '" data-l-pause="' . esc_attr( mcupr_t( 'wx_pause' ) ) . '" data-l-play="' . esc_attr( mcupr_t( 'wx_play' ) ) . '"><span class="wx-i-pause" aria-hidden="true"></span></button>'
 		. '<a class="wx-windy" href="' . esc_url( $windy ) . '" target="_blank" rel="noopener">' . mcupr_icon( 'external', 16 ) . ' Windy<span class="sr-only"> (' . esc_html( mcupr_t( 'blk_new_tab' ) ) . ')</span></a></div>'
-		. '<p class="wx-src">' . esc_html( mcupr_t( 'wx_source' ) ) . ' · ' . esc_html( mcupr_t( 'wx_updated' ) ) . ' ' . esc_html( wp_date( 'j/n/Y H:i', $w['time'] ) ) . ' · <a href="' . esc_url( $windy ) . '" target="_blank" rel="noopener">' . esc_html( mcupr_t( 'wx_map' ) ) . '</a></p></div>';
+		. '<p class="wx-src">' . esc_html( mcupr_t( 'wx_source' ) ) . ' · ' . esc_html( mcupr_t( 'wx_updated' ) ) . ' ' . esc_html( mcupr_date_fmt( 'j/n/Y H:i', $w['time'] ) ) . ' · <a href="' . esc_url( $windy ) . '" target="_blank" rel="noopener">' . esc_html( mcupr_t( 'wx_map' ) ) . '</a></p></div>';
 }
 
 /* ------------------------------------------------------------------ shortcodes */
