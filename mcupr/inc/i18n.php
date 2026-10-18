@@ -71,34 +71,7 @@ function mcupr_remember_lang() {
 	if ( is_admin() || empty( $_GET['lang'] ) || headers_sent() ) {
 		return;
 	}
-	$expires = time() + YEAR_IN_SECONDS;
-	$path    = COOKIEPATH ? COOKIEPATH : '/';
-	if ( version_compare( PHP_VERSION, '7.3.0', '>=' ) ) {
-		setcookie(
-			'mcupr_lang',
-			mcupr_lang(),
-			array(
-				'expires'  => $expires,
-				'path'     => $path,
-				'secure'   => is_ssl(),
-				'httponly' => true,
-				'samesite' => 'Lax',
-			)
-		);
-	} else {
-		// PHP < 7.3 has no options array (and rejects ';' in the path), so send the header ourselves.
-		header(
-			sprintf(
-				'Set-Cookie: mcupr_lang=%s; Expires=%s; Max-Age=%d; Path=%s; HttpOnly; SameSite=Lax%s',
-				rawurlencode( mcupr_lang() ),
-				gmdate( 'D, d M Y H:i:s \G\M\T', $expires ),
-				YEAR_IN_SECONDS,
-				$path,
-				is_ssl() ? '; Secure' : ''
-			),
-			false
-		);
-	}
+	mcupr_set_cookie( 'mcupr_lang', mcupr_lang(), time() + YEAR_IN_SECONDS, true, COOKIEPATH ? COOKIEPATH : '/' );
 }
 add_action( 'init', 'mcupr_remember_lang' );
 
