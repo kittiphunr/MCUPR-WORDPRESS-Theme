@@ -255,7 +255,7 @@ function mcupr_stu_throttle( $key, $max, $window ) {
 }
 
 function mcupr_stu_ip() {
-	return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	return mcupr_client_net();
 }
 
 /** Login form (no JavaScript needed). */
@@ -269,18 +269,21 @@ foreach ( array( 'admin_post_nopriv_mcupr_stu_login', 'admin_post_mcupr_stu_logi
 			}
 			$login = isset( $_POST['log'] ) ? sanitize_text_field( wp_unslash( $_POST['log'] ) ) : '';
 			$pass  = isset( $_POST['pwd'] ) ? (string) wp_unslash( $_POST['pwd'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-			if ( ! mcupr_stu_throttle( mcupr_stu_ip() . '|' . strtolower( $login ), 8, 15 * MINUTE_IN_SECONDS ) ) {
+			if ( ! mcupr_stu_throttle( mcupr_stu_ip() . '|' . strtolower( $login ), 8, 15 * MINUTE_IN_SECONDS ) || ! mcupr_stu_throttle( 'acct|' . strtolower( $login ), 20, 15 * MINUTE_IN_SECONDS ) || ! mcupr_stu_throttle( 'net|' . mcupr_stu_ip(), 40, 15 * MINUTE_IN_SECONDS ) ) { // per person and address, per account from anywhere, per network
 				wp_safe_redirect( mcupr_student_portal_url( array( 'e' => 'wait' ) ) );
 				exit;
 			}
 			mcupr_card_portal_flag( true ); // this form asks for the card itself (below)
 			$u = wp_authenticate( $login, $pass );
 			mcupr_card_portal_flag( false );
-			if ( ! is_wp_error( $u ) && mcupr_card_required() && mcupr_is_student_user( $u->ID ) ) {
+			if ( ! is_wp_error( $u ) && ! mcupr_is_student_user( $u->ID ) ) { // staff sign in on the ordinary login page; this form is for students
+				$u = new WP_Error( 'mcupr_not_student' );
+			}
+			if ( ! is_wp_error( $u ) && mcupr_card_required() ) {
 				$sp = (int) get_user_meta( $u->ID, 'mcupr_student_id', true );
 				$cw = $sp ? mcupr_card_verify( $sp, isset( $_POST['rfid'] ) ? (string) wp_unslash( $_POST['rfid'] ) : '', isset( $_POST['idc'] ) ? (string) wp_unslash( $_POST['idc'] ) : '' ) : 'cardnone'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-				if ( '' !== $cw ) {
-					wp_safe_redirect( mcupr_student_portal_url( array( 'e' => $cw ) ) );
+				if ( '' !== $cw ) { // the same answer as a wrong password: the page must not tell that the password was right
+					wp_safe_redirect( mcupr_student_portal_url( array( 'e' => 'login' ) ) );
 					exit;
 				}
 			}
@@ -310,10 +313,10 @@ foreach ( array( 'admin_post_nopriv_mcupr_stu_forgot', 'admin_post_mcupr_stu_for
 				exit;
 			}
 			list( $sid ) = mcupr_student_clean( 'sid', isset( $_POST['sid'] ) ? sanitize_text_field( wp_unslash( $_POST['sid'] ) ) : '' );
-			if ( '' !== $sid && mcupr_stu_throttle( 'ip|' . mcupr_stu_ip(), 6, HOUR_IN_SECONDS ) && mcupr_stu_throttle( 'sid|' . $sid, 1, 10 * MINUTE_IN_SECONDS ) ) {
+			if ( '' !== $sid && mcupr_stu_throttle( 'ip|' . mcupr_stu_ip(), 6, HOUR_IN_SECONDS ) && mcupr_stu_throttle( 'sid|' . $sid, 1, 10 * MINUTE_IN_SECONDS ) && mcupr_stu_throttle( 'sidday|' . $sid, 4, DAY_IN_SECONDS ) ) {
 				$id = mcupr_student_find( $sid );
 				if ( $id && 'studying' === get_post_meta( $id, '_mcupr_s_status', true ) ) {
-					$r = mcupr_student_make_account( $id ); // makes it when the record has an e-mail and the setting allows
+					$r = mcupr_stu_opts()['self'] || (int) get_post_meta( $id, '_mcupr_s_user', true ) ? mcupr_student_make_account( $id ) : new WP_Error( 'mcupr_self_off' ); // makes it when the record has an e-mail and the setting allows
 					if ( ! is_wp_error( $r ) && ( mcupr_stu_opts()['self'] || get_user_meta( $r, 'mcupr_activation_sent', true ) || get_user_meta( $r, 'mcupr_activated', true ) ) ) {
 						mcupr_student_send_activation( $id );
 					}

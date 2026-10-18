@@ -208,7 +208,7 @@ function mcupr_forum_initial( $name ) {
 /* ================================================================== posting (topic or reply) */
 
 function mcupr_forum_visitor_key( $what ) {
-	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	$ip = mcupr_client_net();
 	return 'mcupr_fm_' . $what . '_' . substr( hash_hmac( 'sha256', $ip, wp_salt( 'auth' ) ), 0, 16 ); // a hash, kept for an hour
 }
 
@@ -445,7 +445,8 @@ function mcupr_forum_report( $type, $id ) {
 			wp_mail( $to, '[' . wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . '] ' . __( 'Forum: a post was reported', 'mcupr' ), ( 'topic' === $type ? get_permalink( $id ) : get_comment_link( $id ) ) . "\n" . admin_url( 'admin.php?page=mcupr-forum' ) );
 		}
 	}
-	if ( $n >= 3 ) {
+	$by = 'topic' === $type ? (int) get_post_field( 'post_author', $id ) : (int) $c->user_id;
+	if ( $n >= 3 && ! ( $by && user_can( $by, 'edit_pages' ) ) ) { // three anonymous reports must not take down a post of the staff: they go to the moderator's mail instead
 		if ( 'topic' === $type ) {
 			wp_update_post( array( 'ID' => $id, 'post_status' => 'pending' ) );
 		} else {
