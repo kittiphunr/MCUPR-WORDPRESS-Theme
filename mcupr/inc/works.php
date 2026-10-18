@@ -78,7 +78,7 @@ function mcupr_work_info( $id = 0 ) {
 
 /** Year as shown: พ.ศ. in Thai. */
 function mcupr_work_year_text( $year ) {
-	return $year ? (string) ( 'th' === mcupr_ui_lang() ? $year + 543 : $year ) : '';
+	return mcupr_year_text( $year );
 }
 
 /* ------------------------------------------------------------------ admin box */
