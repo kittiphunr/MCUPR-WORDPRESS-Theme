@@ -2009,7 +2009,7 @@ html[data-contrast] .of-sec-t { border-left-color: var(--text); }
 .of-soc { display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0 1rem; border: 2px solid var(--of); border-radius: 9999px; color: var(--text); font-weight: 600; text-decoration: none; }
 .of-soc:hover, .of-soc:focus-visible { background: var(--of); color: var(--of-on); }
 html[data-contrast] .of-soc { border-color: var(--border); }
-.office-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(19rem, 100%), 1fr)); gap: 1.5rem; }
+.office-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, max(19rem, calc((100% - 3rem) / 3))), 1fr)); gap: 1.5rem; } /* at most three across, and the cards fill the whole width (no empty column at the right) */
 .office-card { --of: #0f766e; --of-on: #ffffff; position: relative; display: flex; flex-direction: column; overflow: hidden; padding: 0; }
 .office-card .oc-top { padding: 1.1rem 1.25rem; background: var(--of); }
 .office-card .of-badge { width: 3rem; height: 3rem; font-size: 1.3rem; }
