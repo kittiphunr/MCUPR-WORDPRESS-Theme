@@ -285,15 +285,81 @@ function mcupr_office_pager( $oid, $section, $current, $total ) {
 
 /** How much an office has, for the tiles on its home: array of array( section, label, count ), empty ones left out. */
 function mcupr_office_counts( $oid ) {
+	$oid = (int) $oid;
+	// The numbers are kept (mcupr_office_counts_clear() forgets them when content changes). What restricted
+	// content this visitor may not see is part of the key, so nobody sees a number that counts it.
+	$hide = function_exists( 'mcupr_aud_hidden_ids' ) ? mcupr_aud_hidden_ids() : array();
+	sort( $hide );
+	$k   = md5( implode( ',', $hide ) );
+	$all = get_transient( 'mcupr_office_counts' );
+	$all = is_array( $all ) ? $all : array();
+	if ( isset( $all[ $oid ][ $k ] ) && is_array( $all[ $oid ][ $k ] ) ) {
+		$nums = $all[ $oid ][ $k ];
+	} else {
+		$nums = array();
+		foreach ( array( 'news', 'events', 'people', 'albums', 'videos' ) as $sec ) {
+			$q            = new WP_Query( mcupr_office_query_args( $oid, mcupr_office_section_type( $sec ), array( 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => false ) ) );
+			$nums[ $sec ] = (int) $q->found_posts;
+		}
+		$keep = isset( $all[ $oid ] ) && is_array( $all[ $oid ] ) ? array_slice( $all[ $oid ], -19, null, true ) : array();
+		$keep[ $k ]  = $nums;
+		$all[ $oid ] = $keep;
+		set_transient( 'mcupr_office_counts', $all, 12 * HOUR_IN_SECONDS );
+	}
 	$out = array();
 	foreach ( array( 'news' => 'of_news', 'events' => 'of_events', 'people' => 'of_people', 'albums' => 'of_albums', 'videos' => 'of_videos' ) as $sec => $label ) {
-		$q = new WP_Query( mcupr_office_query_args( $oid, mcupr_office_section_type( $sec ), array( 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => false ) ) );
-		if ( (int) $q->found_posts ) {
-			$out[] = array( $sec, mcupr_t( $label ), (int) $q->found_posts );
+		if ( ! empty( $nums[ $sec ] ) ) {
+			$out[] = array( $sec, mcupr_t( $label ), (int) $nums[ $sec ] );
 		}
 	}
 	return $out;
 }
+
+/** Forget the kept office numbers (any change to content an office can own, or to which office owns it). */
+function mcupr_office_counts_clear() {
+	delete_transient( 'mcupr_office_counts' );
+}
+add_action(
+	'save_post',
+	static function ( $id, $post ) {
+		if ( $post && in_array( $post->post_type, array_merge( mcupr_office_types(), array( 'mcupr_office' ) ), true ) ) {
+			mcupr_office_counts_clear();
+		}
+	},
+	10,
+	2
+);
+add_action(
+	'transition_post_status',
+	static function ( $new, $old, $post ) {
+		if ( $new !== $old && $post && in_array( $post->post_type, array_merge( mcupr_office_types(), array( 'mcupr_office' ) ), true ) ) {
+			mcupr_office_counts_clear();
+		}
+	},
+	10,
+	3
+);
+add_action(
+	'deleted_post',
+	static function ( $id, $post = null ) {
+		if ( in_array( $post instanceof WP_Post ? $post->post_type : get_post_type( $id ), array_merge( mcupr_office_types(), array( 'mcupr_office' ) ), true ) ) {
+			mcupr_office_counts_clear();
+		}
+	},
+	10,
+	2
+);
+add_action(
+	'set_object_terms',
+	static function ( $object_id, $terms, $tt_ids, $taxonomy ) {
+		if ( MCUPR_OFFICE_TAX === $taxonomy ) {
+			mcupr_office_counts_clear();
+		}
+	},
+	10,
+	4
+);
+add_action( 'delete_' . MCUPR_OFFICE_TAX, 'mcupr_office_counts_clear' );
 
 /** Print the body of an office page for a section ('' = the office home). */
 function mcupr_office_render( $oid, $section ) {

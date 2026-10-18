@@ -39,11 +39,8 @@ function mcupr_events_register() {
 			'show_in_rest'  => true,
 		)
 	);
-	// flush the rewrite rules once per theme version (the /events/ URLs exist from the first load after an upload)
-	if ( get_option( 'mcupr_rewrite_ver' ) !== MCUPR_VERSION ) {
-		flush_rewrite_rules( false );
-		update_option( 'mcupr_rewrite_ver', MCUPR_VERSION );
-	}
+	// the rewrite rules are flushed once per theme version (the /events/ URLs exist from the first load after an upload)
+	mcupr_rewrite_wanted( 'mcupr_rewrite_ver', MCUPR_VERSION ); // one flush for all modules, at the end of init (inc/compat.php)
 }
 add_action( 'init', 'mcupr_events_register' );
 

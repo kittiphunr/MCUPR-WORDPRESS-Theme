@@ -635,6 +635,7 @@ add_action(
 function mcupr_rq_csv_head() {
 	return array( 'Number', 'Status', 'Person who sees to it', 'Last change' );
 }
+/** One request's cells (mcupr_fb_csv() loads the meta and the users of all rows before it asks). */
 function mcupr_rq_csv_cells( $id ) {
 	$s   = (string) get_post_meta( $id, '_mcupr_rq_status', true );
 	$u   = get_userdata( (int) get_post_meta( $id, '_mcupr_rq_owner', true ) );
@@ -768,10 +769,7 @@ add_action(
 	'init',
 	static function () {
 		add_rewrite_rule( '^request/?$', 'index.php?mcupr_request=1', 'top' );
-		if ( get_option( 'mcupr_rewrite_requests' ) !== MCUPR_VERSION ) {
-			flush_rewrite_rules( false );
-			update_option( 'mcupr_rewrite_requests', MCUPR_VERSION );
-		}
+		mcupr_rewrite_wanted( 'mcupr_rewrite_requests', MCUPR_VERSION ); // one flush for all modules, at the end of init (inc/compat.php)
 	},
 	7
 );

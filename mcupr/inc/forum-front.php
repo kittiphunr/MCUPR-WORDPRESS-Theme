@@ -100,8 +100,8 @@ function mcupr_forum_row( $p, $pinned = false ) {
 	if ( mcupr_topic_locked( $id ) ) {
 		$o .= ' <span class="forum-badge forum-badge-l">' . esc_html( mcupr_t( 'fm_locked' ) ) . '</span>';
 	}
-	$o .= '</h3><p class="forum-m">' . esc_html( mcupr_t( 'fm_by' ) . ' ' . $name ) . ( $board && ! is_wp_error( $board ) ? ' · <a href="' . esc_url( add_query_arg( 'fb', $board[0]->slug, mcupr_forum_page_url() ) ) . '">' . esc_html( $board[0]->name ) . '</a>' : '' ) . ' · ' . esc_html( wp_date( 'j M Y', (int) get_post_time( 'U', true, $id ) ) ) . '</p></div>';
-	$o .= '<div class="forum-c"><b>' . (int) $n . '</b><span>' . esc_html( mcupr_t( 'fm_replies' ) ) . '</span></div><div class="forum-l"><span>' . esc_html( mcupr_t( 'fm_last' ) ) . '</span><time datetime="' . esc_attr( gmdate( 'c', $last ) ) . '">' . esc_html( wp_date( 'j M Y H:i', $last ) ) . '</time></div></li>';
+	$o .= '</h3><p class="forum-m">' . esc_html( mcupr_t( 'fm_by' ) . ' ' . $name ) . ( $board && ! is_wp_error( $board ) ? ' · <a href="' . esc_url( add_query_arg( 'fb', $board[0]->slug, mcupr_forum_page_url() ) ) . '">' . esc_html( $board[0]->name ) . '</a>' : '' ) . ' · ' . esc_html( mcupr_date_fmt( 'j M Y', (int) get_post_time( 'U', true, $id ) ) ) . '</p></div>';
+	$o .= '<div class="forum-c"><b>' . (int) $n . '</b><span>' . esc_html( mcupr_t( 'fm_replies' ) ) . '</span></div><div class="forum-l"><span>' . esc_html( mcupr_t( 'fm_last' ) ) . '</span><time datetime="' . esc_attr( gmdate( 'c', $last ) ) . '">' . esc_html( mcupr_date_fmt( 'j M Y H:i', $last ) ) . '</time></div></li>';
 	return $o;
 }
 
@@ -128,12 +128,14 @@ function mcupr_forum_html() {
 		$boards = get_terms( array( 'taxonomy' => 'mcupr_board', 'hide_empty' => false ) );
 		echo '<h2 class="forum-h">' . esc_html( mcupr_t( 'fm_boards' ) ) . '</h2><ul class="forum-boards">';
 		foreach ( is_wp_error( $boards ) ? array() : $boards as $b ) {
-			$last = get_posts( array( 'post_type' => 'mcupr_topic', 'post_status' => 'publish', 'posts_per_page' => 1, 'no_found_rows' => true, 'meta_key' => '_mcupr_topic_last', 'orderby' => 'meta_value_num', 'order' => 'DESC', 'tax_query' => array( array( 'taxonomy' => 'mcupr_board', 'terms' => $b->term_id ) ) ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+			$last = mcupr_forum_board_last( $b->term_id );
+			$last = $last ? array( $last ) : array();
 			echo '<li class="forum-board"><a class="forum-bn" href="' . esc_url( add_query_arg( 'fb', $b->slug, $base ) ) . '">' . mcupr_icon( 'chat', 26 ) . '<span><b>' . esc_html( $b->name ) . '</b>' . ( $b->description ? '<small>' . esc_html( $b->description ) . '</small>' : '' ) . '</span></a><div class="forum-bs"><span><b>' . (int) $b->count . '</b> ' . esc_html( mcupr_t( 'fm_topics' ) ) . '</span>' . ( $last ? '<a href="' . esc_url( get_permalink( $last[0] ) ) . '">' . esc_html( wp_trim_words( get_the_title( $last[0] ), 8, '…' ) ) . '</a>' : '' ) . '</div></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		}
 		echo '</ul>';
 		$latest = get_posts( array( 'post_type' => 'mcupr_topic', 'post_status' => 'publish', 'posts_per_page' => 8, 'no_found_rows' => true, 'meta_key' => '_mcupr_topic_last', 'orderby' => 'meta_value_num', 'order' => 'DESC' ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
 		if ( $latest ) {
+			cache_users( array_filter( array_map( 'intval', wp_list_pluck( $latest, 'post_author' ) ) ) ); // one query for the names of all rows
 			echo '<h2 class="forum-h">' . esc_html( mcupr_t( 'fm_last' ) ) . '</h2><ul class="forum-list">';
 			foreach ( $latest as $p ) {
 				echo mcupr_forum_row( $p, (bool) get_post_meta( $p->ID, '_mcupr_topic_sticky', true ) ); // phpcs:ignore WordPress.Security.EscapeOutput
@@ -164,6 +166,7 @@ function mcupr_forum_html() {
 		}
 		$args['post__not_in'] = $pinned_ids;
 		$qq = new WP_Query( $args );
+		cache_users( array_filter( array_map( 'intval', array_merge( wp_list_pluck( $pin, 'post_author' ), wp_list_pluck( $qq->posts, 'post_author' ) ) ) ) );
 		echo '<ul class="forum-list">';
 		foreach ( $pin as $p ) {
 			echo mcupr_forum_row( $p, true ); // phpcs:ignore WordPress.Security.EscapeOutput
@@ -194,7 +197,7 @@ function mcupr_forum_replies_html( $topic_id ) {
 	$o    = '<ol class="forum-replies">';
 	foreach ( $cs as $c ) {
 		$staff = $c->user_id && user_can( (int) $c->user_id, 'edit_pages' );
-		$o    .= '<li class="forum-reply' . ( $staff ? ' is-staff' : '' ) . '" id="reply-' . (int) $c->comment_ID . '"><span class="forum-av" aria-hidden="true">' . esc_html( mcupr_forum_initial( $c->comment_author ) ) . '</span><div class="forum-rb"><p class="forum-rh"><b>' . esc_html( $c->comment_author ) . '</b>' . ( $staff ? ' <span class="forum-badge">' . esc_html( mcupr_t( 'fm_staff' ) ) . '</span>' : '' ) . ' <time datetime="' . esc_attr( mysql2date( 'c', $c->comment_date_gmt ) ) . '">' . esc_html( mysql2date( 'j M Y H:i', get_date_from_gmt( $c->comment_date_gmt ) ) ) . '</time></p><div class="forum-tx">' . mcupr_forum_text( $c->comment_content ) . '</div>' . mcupr_forum_report_button( 'reply', $c->comment_ID, $back ) . '</div></li>';
+		$o    .= '<li class="forum-reply' . ( $staff ? ' is-staff' : '' ) . '" id="reply-' . (int) $c->comment_ID . '"><span class="forum-av" aria-hidden="true">' . esc_html( mcupr_forum_initial( $c->comment_author ) ) . '</span><div class="forum-rb"><p class="forum-rh"><b>' . esc_html( $c->comment_author ) . '</b>' . ( $staff ? ' <span class="forum-badge">' . esc_html( mcupr_t( 'fm_staff' ) ) . '</span>' : '' ) . ' <time datetime="' . esc_attr( mysql2date( 'c', $c->comment_date_gmt ) ) . '">' . esc_html( mcupr_date_fmt( 'j M Y H:i', (int) strtotime( $c->comment_date_gmt . ' +0000' ) ) ) . '</time></p><div class="forum-tx">' . mcupr_forum_text( $c->comment_content ) . '</div>' . mcupr_forum_report_button( 'reply', $c->comment_ID, $back ) . '</div></li>';
 	}
 	return $o . '</ol>';
 }

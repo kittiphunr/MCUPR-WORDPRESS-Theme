@@ -143,7 +143,15 @@ function mcupr_honors( $only_on = false ) {
 
 /** Name of a decoration in the visitor's language. */
 function mcupr_honor_name( $h ) {
-	$en = 'th' !== mcupr_ui_lang() && '' !== $h['en'];
+	$lang = mcupr_ui_lang();
+	if ( ( 'zh' === $lang || 'ja' === $lang ) && isset( $h['key'] ) ) {
+		// a standard decoration whose Thai name was not changed has a Chinese / Japanese name (inc/strings.php, hon_*)
+		$k = 'hon_' . $h['key'];
+		if ( $k !== mcupr_t( $k, 'th' ) && mcupr_t( $k, 'th' ) === $h['th'] ) {
+			return mcupr_t( $k, $lang );
+		}
+	}
+	$en = 'th' !== $lang && '' !== $h['en'];
 	return $en ? $h['en'] : $h['th'];
 }
 
@@ -741,10 +749,7 @@ add_action(
 
 /** Profile URLs exist from the first load after an update. */
 function mcupr_staff_flush_once() {
-	if ( get_option( 'mcupr_rewrite_staff' ) !== MCUPR_VERSION ) {
-		flush_rewrite_rules( false );
-		update_option( 'mcupr_rewrite_staff', MCUPR_VERSION );
-	}
+	mcupr_rewrite_wanted( 'mcupr_rewrite_staff', MCUPR_VERSION ); // one flush for all modules, at the end of init (inc/compat.php)
 }
 
 /** [mcupr_honors]: roll of honour – each decoration with the people who received it. */
