@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.53.1 =
+* Update.
+
 = 1.53.0 =
 * Speed (fewer queries and option writes per page) and Chinese / Japanese dates, welcome texts and portal labels.
 
