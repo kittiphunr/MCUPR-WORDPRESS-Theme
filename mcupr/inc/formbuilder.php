@@ -223,7 +223,7 @@ function mcupr_fb_side_box( $post ) {
 add_action(
 	'save_post_mcupr_fb',
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_fb_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_fb_nonce'] ) ), 'mcupr_fb_save' ) || ! current_user_can( 'edit_post', $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
+		if ( ! mcupr_can_save_box( $post_id, 'mcupr_fb_nonce', 'mcupr_fb_save' ) ) {
 			return;
 		}
 		$json = isset( $_POST['mcupr_fb_json'] ) ? wp_unslash( $_POST['mcupr_fb_json'] ) : '[]'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
@@ -706,7 +706,7 @@ function mcupr_fb_csv( $form_id ) {
 add_action(
 	'admin_post_mcupr_fb_export',
 	static function () {
-		if ( ! current_user_can( 'edit_pages' ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'mcupr_fb_export' ) ) {
+		if ( ! mcupr_check_request( '_wpnonce', 'mcupr_fb_export', 'edit_pages', 'get' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$fid = isset( $_GET['form'] ) ? (int) $_GET['form'] : 0;

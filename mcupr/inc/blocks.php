@@ -532,7 +532,7 @@ function mcupr_blk_page() {
 add_action(
 	'admin_post_mcupr_blk_samples',
 	static function () {
-		if ( ! current_user_can( 'edit_theme_options' ) || ! isset( $_POST['mcupr_blk_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_blk_nonce'] ) ), 'mcupr_blk_samples' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_blk_nonce', 'mcupr_blk_samples', 'edit_theme_options' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		wp_safe_redirect( add_query_arg( 'filled', count( mcupr_blk_install_samples() ), admin_url( 'admin.php?page=mcupr-blocks' ) ) );

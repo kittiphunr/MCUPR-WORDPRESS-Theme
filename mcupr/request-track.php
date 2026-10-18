@@ -18,7 +18,7 @@ $mcupr_who   = $mcupr_post && isset( $_POST['who'] ) ? sanitize_text_field( wp_u
 $mcupr_err   = '';
 $mcupr_found = 0;
 if ( $mcupr_post ) {
-	if ( ! isset( $_POST['mcupr_rq_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_rq_nonce'] ) ), 'mcupr_rq_track' ) ) {
+	if ( ! mcupr_check_request( 'mcupr_rq_nonce', 'mcupr_rq_track' ) ) {
 		$mcupr_err = 'rq_track_bad';
 	} elseif ( ! mcupr_stu_throttle( 'rqt|' . mcupr_stu_ip(), 20, 15 * MINUTE_IN_SECONDS ) || ! mcupr_stu_throttle( 'rqc|' . strtoupper( $mcupr_code ), 8, 15 * MINUTE_IN_SECONDS ) ) {
 		$mcupr_err = 'rq_track_wait';
