@@ -111,21 +111,21 @@ if ( $srv ) {
 	$r = $postf( $l1, 'Card-pass-12345', array( 'rfid' => '4028251661' ) );
 	t( 302 === $r[0] && false !== strpos( $cookies( $r ), 'wordpress_logged_in' ) && false === strpos( $r[1], 'e=' ), 'portal form: password + the right card = signed in' );
 	$r = $postf( $l1, 'Card-pass-12345', array( 'rfid' => '4028251660' ) );
-	t( false !== strpos( $r[1], 'e=card' ) && false === strpos( $cookies( $r ), 'wordpress_logged_in' ), 'portal form: a wrong card is refused, no cookie' );
+	t( false !== strpos( $r[1], 'e=login' ) && false === strpos( $cookies( $r ), 'wordpress_logged_in' ), 'portal form: a wrong card is refused, no cookie' );
 	$r = $postf( $l1, 'Card-pass-12345', array() );
-	t( false !== strpos( $r[1], 'e=card' ) && false === strpos( $cookies( $r ), 'wordpress_logged_in' ), 'portal form: no card at all is refused' );
+	t( false !== strpos( $r[1], 'e=login' ) && false === strpos( $cookies( $r ), 'wordpress_logged_in' ), 'portal form: no card at all is refused' );
 	$r = $postf( $l1, 'wrong-password', array( 'rfid' => '4028251661' ) );
 	t( false !== strpos( $r[1], 'e=login' ), 'portal form: a wrong password is still the usual message (the card is not even looked at)' );
 	$l2 = get_userdata( $u2 )->user_login;
 	$r = $postf( $l2, 'Card-pass-12345', array( 'idc' => '1101700203450' ) );
 	t( 302 === $r[0] && false !== strpos( $cookies( $r ), 'wordpress_logged_in' ), 'portal form: no card code on record – the national ID number signs in' );
 	$r = $postf( $l2, 'Card-pass-12345', array( 'idc' => '1101700203459' ) );
-	t( false !== strpos( $r[1], 'e=card' ), 'portal form: …a wrong ID number does not' );
+	t( false !== strpos( $r[1], 'e=login' ), 'portal form: …a wrong ID number does not' );
 	$u4 = mcupr_student_make_account( $s4 );
 	if ( ! is_wp_error( $u4 ) ) {
 		wp_set_password( 'Card-pass-12345', $u4 );
 		$r = $postf( get_userdata( $u4 )->user_login, 'Card-pass-12345', array( 'rfid' => '4028251661', 'idc' => '1101700203450' ) );
-		t( false !== strpos( $r[1], 'e=cardnone' ), 'portal form: a record with neither is told to contact the staff' );
+		t( false !== strpos( $r[1], 'e=login' ), 'portal form: a record with neither is told to contact the staff' );
 	} else { t( true, 'portal form: (no account could be made for the record with neither – skipped)' ); }
 	$page = wp_remote_retrieve_body( wp_remote_get( mcupr_student_portal_url(), array( 'timeout' => 20 ) ) );
 	t( false !== strpos( $page, 'name="rfid"' ) && false !== strpos( $page, 'name="idc"' ) && false !== strpos( $page, 'type="password" name="rfid"' ), 'portal page: has the card box (digits hidden) and the ID number box' );

@@ -245,7 +245,7 @@ function mcupr_speed_page() {
 add_action(
 	'admin_post_mcupr_speed_run',
 	static function () {
-		if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['mcupr_speed_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_speed_nonce'] ) ), 'mcupr_speed_run' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_speed_nonce', 'mcupr_speed_run', 'manage_options' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		update_option( 'mcupr_speed_last', mcupr_speed_run(), false );

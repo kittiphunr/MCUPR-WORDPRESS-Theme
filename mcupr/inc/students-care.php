@@ -278,7 +278,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_stu_mailtest',
 	static function () {
-		if ( ! current_user_can( MCUPR_STU_CAP ) || ! isset( $_POST['mcupr_stu_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_stu_nonce'] ) ), 'mcupr_stu_mailtest' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_stu_nonce', 'mcupr_stu_mailtest', MCUPR_STU_CAP ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$to = isset( $_POST['to'] ) ? sanitize_email( wp_unslash( $_POST['to'] ) ) : '';
@@ -339,7 +339,7 @@ add_action(
  * rules were never saved: /student/ would be a 404) or 'ok'.
  */
 function mcupr_rewrite_status() {
-	if ( ! get_option( 'permalink_structure' ) ) {
+	if ( mcupr_plain_mode() ) {
 		return 'plain';
 	}
 	$rules = get_option( 'rewrite_rules' );
