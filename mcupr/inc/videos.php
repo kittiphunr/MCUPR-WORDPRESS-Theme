@@ -149,7 +149,7 @@ function mcupr_video_box( $post ) {
 	echo '<p><label><strong>' . esc_html__( 'Video address', 'mcupr' ) . '</strong><br><input type="url" class="widefat" name="mcupr_video_url" value="' . esc_attr( $url ) . '" placeholder="https://www.youtube.com/watch?v=…"></label></p>';
 	if ( $url ) {
 		$v = mcupr_video_parse( $url );
-		echo '<p>' . ( $v ? '<span style="color:#15803d">✓ ' . esc_html( sprintf( /* translators: %s: provider */ __( 'Recognised: %s', 'mcupr' ), 'file' === $v['provider'] ? 'MP4' : ucfirst( $v['provider'] ) ) ) . '</span>' : '<span style="color:#b91c1c">✗ ' . esc_html__( 'This address is not recognised (use YouTube, Vimeo or a link to an .mp4 file).', 'mcupr' ) . '</span>' ) . '</p>';
+		echo '<p>' . ( $v ? '<span style="color:#15803d">' . mcupr_feather_i( 'check', 14 ) . ' ' . esc_html( sprintf( /* translators: %s: provider */ __( 'Recognised: %s', 'mcupr' ), 'file' === $v['provider'] ? 'MP4' : ucfirst( $v['provider'] ) ) ) . '</span>' : '<span style="color:#b91c1c">' . mcupr_feather_i( 'x', 14 ) . ' ' . esc_html__( 'This address is not recognised (use YouTube, Vimeo or a link to an .mp4 file).', 'mcupr' ) . '</span>' ) . '</p>';
 	}
 	if ( 'mcupr_video' === $post->post_type ) {
 		echo '<p class="description">' . esc_html__( 'The cover is the featured image. Without one, the picture YouTube provides is used (fetched once, when you save).', 'mcupr' ) . '</p>';

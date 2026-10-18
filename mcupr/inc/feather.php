@@ -17,6 +17,11 @@ function mcupr_feather_set() {
 	return $set;
 }
 
+/** An icon that sits in a line of text (a status mark, a label): same icon, aligned to the letters. */
+function mcupr_feather_i( $name, $size = 14, $color = '' ) {
+	return str_replace( '<svg class="fi', '<svg style="display:inline-block;vertical-align:-.15em' . ( '' !== $color ? ';color:' . esc_attr( $color ) : '' ) . '" class="fi', mcupr_feather( $name, $size ) );
+}
+
 /** An icon as inline SVG (decorative: hidden from screen readers; the text next to it names the thing). Unknown names give a plain circle. */
 function mcupr_feather( $name, $size = 24, $class = '' ) {
 	$set   = mcupr_feather_set();

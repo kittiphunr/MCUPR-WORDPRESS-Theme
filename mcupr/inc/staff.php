@@ -490,7 +490,7 @@ add_action(
 	static function ( $col, $id ) {
 		if ( 'mcupr_unit' === $col ) {
 			$u = (int) get_post_meta( $id, '_mcupr_person_unit', true );
-			echo $u ? esc_html( get_the_title( $u ) ) . ( get_post_meta( $id, '_mcupr_person_head', true ) ? ' ★' : '' ) : '—';
+			echo $u ? esc_html( get_the_title( $u ) ) . ( get_post_meta( $id, '_mcupr_person_head', true ) ? ' ' . mcupr_feather_i( 'star', 13 ) : '' ) : '—';
 		}
 		if ( 'mcupr_honors' === $col ) {
 			$n = count( mcupr_person_rows( $id, 'honors' ) );
@@ -516,9 +516,9 @@ add_action(
 				}
 				echo '<ul>';
 				foreach ( $list as $p ) {
-					echo '<li><a href="' . esc_url( get_edit_post_link( $p->ID ) ) . '">' . esc_html( get_the_title( $p ) ) . '</a>' . ( get_post_meta( $p->ID, '_mcupr_person_head', true ) ? ' ★' : '' ) . '</li>';
+					echo '<li><a href="' . esc_url( get_edit_post_link( $p->ID ) ) . '">' . esc_html( get_the_title( $p ) ) . '</a>' . ( get_post_meta( $p->ID, '_mcupr_person_head', true ) ? ' ' . mcupr_feather_i( 'star', 13 ) : '' ) . '</li>';
 				}
-				echo '</ul><p class="description">' . esc_html__( '★ = head of the unit (shown in the chart box).', 'mcupr' ) . '</p>';
+				echo '</ul><p class="description">' . esc_html__( 'Starred = head of the unit (shown in the chart box).', 'mcupr' ) . '</p>';
 			},
 			'mcupr_unit',
 			'side'
@@ -647,7 +647,7 @@ function mcupr_staff_hub_page() {
 	$act = admin_url( 'admin-post.php' );
 	$list = static function ( $items, $edit = true ) {
 		if ( ! $items ) {
-			echo '<p>✔ ' . esc_html__( 'Nothing to fix.', 'mcupr' ) . '</p>';
+			echo '<p>' . mcupr_feather_i( 'check', 14 ) . ' ' . esc_html__( 'Nothing to fix.', 'mcupr' ) . '</p>';
 			return;
 		}
 		echo '<ul style="columns:2;margin:4px 0 0 18px;list-style:disc">';
