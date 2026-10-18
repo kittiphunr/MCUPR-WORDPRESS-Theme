@@ -441,7 +441,7 @@ add_action(
 						if ( ! mcupr_aud_is_restricted( $id ) ) {
 							echo '—';
 						} else {
-							echo '<span style="display:inline-block;padding:1px 10px;border-radius:999px;background:#1d4ed8;color:#fff;font-size:12px;font-weight:600">🔒 ' . esc_html__( 'Students', 'mcupr' ) . '</span>';
+							echo '<span style="display:inline-block;padding:1px 10px;border-radius:999px;background:#1d4ed8;color:#fff;font-size:12px;font-weight:600">' . mcupr_feather_i( 'lock', 12 ) . ' ' . esc_html__( 'Students', 'mcupr' ) . '</span>';
 							$sum = mcupr_aud_summary( mcupr_aud_rules( $id ) );
 							if ( '' !== $sum ) {
 								echo '<br><small>' . esc_html( $sum ) . '</small>';

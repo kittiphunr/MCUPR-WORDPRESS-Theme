@@ -167,7 +167,7 @@ function mcupr_toolbar_render() {
 	foreach ( $groups as $head => $list ) {
 		echo '<section class="cc-g' . ( count( $list ) > 6 ? ' cc-chips' : '' ) . '"><h2 class="cc-h">' . esc_html( $head ) . '</h2><ul>';
 		foreach ( $list as $it ) {
-			echo '<li><a href="' . esc_url( $it[1] ) . '"' . ( $it[3] ? ' target="' . esc_attr( $it[3] ) . '" rel="noopener"' : '' ) . '>' . esc_html( $it[0] ) . '</a></li>';
+			echo '<li><a href="' . esc_url( $it[1] ) . '"' . ( $it[3] ? ' target="' . esc_attr( $it[3] ) . '" rel="noopener"' : '' ) . '>' . ( false !== strpos( $it[2], 'cc-maint' ) ? mcupr_feather_i( 'tool', 16 ) . ' ' : '' ) . esc_html( $it[0] ) . '</a></li>';
 		}
 		echo '</ul></section>';
 	}
