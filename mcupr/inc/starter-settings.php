@@ -368,7 +368,7 @@ function mcupr_ss_page() {
 add_action(
 	'admin_post_mcupr_ss',
 	static function () {
-		if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['mcupr_ss_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_ss_nonce'] ) ), 'mcupr_ss' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_ss_nonce', 'mcupr_ss', 'manage_options' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$do  = isset( $_POST['do'] ) ? sanitize_key( wp_unslash( $_POST['do'] ) ) : '';

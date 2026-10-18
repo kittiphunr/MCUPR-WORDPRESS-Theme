@@ -139,7 +139,10 @@ function mcupr_forum_page_url() {
 		}
 		update_option( 'mcupr_forum_page', $id, false );
 	}
-	return $id ? get_permalink( $id ) : home_url( '/forum/' );
+	if ( $id ) {
+		return get_permalink( $id );
+	}
+	return home_url( mcupr_plain_mode() ? '/' : '/forum/' ); // Plain permalinks have no /forum/ address: the home page rather than a 404
 }
 
 /* ================================================================== a topic's facts */
@@ -471,7 +474,7 @@ add_action(
 );
 function mcupr_forum_report_handler() {
 	$back = isset( $_POST['back'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_POST['back'] ) ), mcupr_forum_page_url() ) : mcupr_forum_page_url(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-	if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'mcupr_forum' ) ) {
+	if ( ! mcupr_check_request( '_wpnonce', 'mcupr_forum' ) ) {
 		mcupr_forum_back( $back, array( 'fm' => 'err', 'fme' => 'spam' ) );
 	}
 	$type = isset( $_POST['rtype'] ) && 'topic' === $_POST['rtype'] ? 'topic' : 'reply';
@@ -512,7 +515,7 @@ add_action(
 add_action(
 	'save_post_mcupr_topic',
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_topic_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_topic_nonce'] ) ), 'mcupr_topic_opts' ) || ! current_user_can( 'edit_post', $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
+		if ( ! mcupr_can_save_box( $post_id, 'mcupr_topic_nonce', 'mcupr_topic_opts' ) ) {
 			return;
 		}
 		$in = isset( $_POST['mcupr_topic'] ) && is_array( $_POST['mcupr_topic'] ) ? wp_unslash( $_POST['mcupr_topic'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
@@ -570,7 +573,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_forum_settings',
 	static function () {
-		if ( ! current_user_can( 'edit_pages' ) || ! isset( $_POST['mcupr_forum_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_forum_nonce'] ) ), 'mcupr_forum_settings' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_forum_nonce', 'mcupr_forum_settings', 'edit_pages' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), '', array( 'response' => 403 ) );
 		}
 		$p = static function ( $k ) {

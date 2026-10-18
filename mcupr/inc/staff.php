@@ -75,10 +75,6 @@ function mcupr_year_norm( $y ) {
 }
 
 /** Year as shown: พ.ศ. in Thai, ค.ศ. otherwise. */
-function mcupr_year_text( $y ) {
-	return $y ? (string) ( 'th' === mcupr_ui_lang() ? $y + 543 : $y ) : '';
-}
-
 /* ================================================================== royal decorations catalogue */
 
 function mcupr_honor_defaults() {
@@ -432,10 +428,7 @@ function mcupr_staff_box_privacy( $post ) {
 }
 
 function mcupr_staff_save( $post_id ) {
-	if ( ! isset( $_POST['mcupr_staff_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_staff_nonce'] ) ), 'mcupr_staff_save' ) ) {
-		return;
-	}
-	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) ) {
+	if ( ! mcupr_can_save_box( $post_id, 'mcupr_staff_nonce', 'mcupr_staff_save' ) ) {
 		return;
 	}
 	$in = isset( $_POST['mcupr_staff'] ) && is_array( $_POST['mcupr_staff'] ) ? wp_unslash( $_POST['mcupr_staff'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
@@ -534,7 +527,7 @@ function mcupr_staff_hub_menu() {
 add_action( 'admin_menu', 'mcupr_staff_hub_menu' );
 
 function mcupr_staff_hub_save() {
-	if ( ! current_user_can( 'edit_pages' ) || ! isset( $_POST['mcupr_hub_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_hub_nonce'] ) ), 'mcupr_hub' ) ) {
+	if ( ! mcupr_check_request( 'mcupr_hub_nonce', 'mcupr_hub', 'edit_pages' ) ) {
 		wp_die( esc_html__( 'Not allowed.', 'mcupr' ), '', array( 'response' => 403 ) );
 	}
 	$what = isset( $_POST['hub_form'] ) ? sanitize_key( wp_unslash( $_POST['hub_form'] ) ) : '';

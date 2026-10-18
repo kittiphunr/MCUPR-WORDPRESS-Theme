@@ -606,7 +606,7 @@ function mcupr_mail_page() {
 }
 
 function mcupr_mail_guard( $action ) {
-	if ( ! current_user_can( MCUPR_STU_CAP ) || ! isset( $_POST['mcupr_mail_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_mail_nonce'] ) ), $action ) ) {
+	if ( ! mcupr_check_request( 'mcupr_mail_nonce', $action, MCUPR_STU_CAP ) ) {
 		wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 	}
 }

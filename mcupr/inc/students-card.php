@@ -123,7 +123,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_card_save',
 	static function () {
-		if ( ! current_user_can( MCUPR_STU_CAP ) || ! isset( $_POST['mcupr_card_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_card_nonce'] ) ), 'mcupr_card_save' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_card_nonce', 'mcupr_card_save', MCUPR_STU_CAP ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		update_option( 'mcupr_card', array( 'on' => ! empty( $_POST['on'] ) ? 1 : 0, 'typing' => ! empty( $_POST['typing'] ) ? 1 : 0 ), false );
@@ -166,7 +166,7 @@ function mcupr_card_box( $post ) {
 add_action(
 	'save_post_mcupr_student',
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_card_box_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_card_box_nonce'] ) ), 'mcupr_card_box' ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( MCUPR_STU_CAP ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! mcupr_can_save_box( $post_id, 'mcupr_card_box_nonce', 'mcupr_card_box' ) || ! current_user_can( MCUPR_STU_CAP ) ) {
 			return;
 		}
 		$changed = array();
