@@ -3324,6 +3324,22 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       ok(Math.abs(fg.bottom - fg.side) <= 1 && Math.abs(fg.left - fg.side) <= 1, tag + ': the footer card is as far from the bottom of the frame (' + fg.bottom.toFixed(1) + ' px) as from its sides (' + fg.left.toFixed(1) + ' / ' + fg.side.toFixed(1) + ' px)');
       await fc.close();
     }
+    // the offices page: three cards across that fill the width, no empty column at the right
+    const { execSync: execO } = require('child_process');
+    const phpO = (code) => { const f = require('os').tmpdir() + '/e2e-offices-' + process.pid + '.php'; require('fs').writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execO('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const officeIds = phpO('$o=array(); foreach(array("One","Two","Three") as $n){ $o[]=wp_insert_post(array("post_type"=>"mcupr_office","post_status"=>"publish","post_title"=>"Grid office ".$n,"post_content"=>"x")); } echo implode(",",$o);').split(',');
+    for (const [w, menu] of [[1428, 'side'], [1920, 'side'], [1180, 'top']]) {
+      const oc = await br.newContext({ viewport: { width: w, height: 800 } });
+      const op = await oc.newPage();
+      await op.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); localStorage.setItem('mcupr_sbmin', '0'); } catch (e) { /* */ } }, menu);
+      await op.goto(B + '/offices/');
+      await op.waitForTimeout(600);
+      const og = await op.evaluate(() => { const gr = document.querySelector('.office-grid'); if (!gr) { return null; } const g = gr.getBoundingClientRect(); const cs = [...gr.children].map((e) => e.getBoundingClientRect()); return { n: cs.length, rows: new Set(cs.map((c) => Math.round(c.top))).size, gap: g.right - Math.max.apply(null, cs.map((c) => c.right)), sw: document.documentElement.scrollWidth - innerWidth }; });
+      const otag = 'offices page (' + w + ' px, ' + menu + ' menu)';
+      ok(og && og.n >= 3 && og.rows === Math.ceil(og.n / 3) && Math.abs(og.gap) <= 1 && og.sw <= 0, otag + ': at most three cards across and they fill the width' + (og ? ' (' + og.n + ' cards in ' + og.rows + ' row(s), ' + og.gap.toFixed(1) + ' px empty at the right)' : ' (no grid)'));
+      await oc.close();
+    }
+    phpO('foreach(array(' + officeIds.join(',') + ') as $i){ wp_delete_post($i,true); }');
     // the WordPress toolbar as a floating icon for signed-in editors (and the classic bar when chosen)
     {
       const { execSync: execC } = require('child_process');
