@@ -518,11 +518,11 @@ add_action(
 		echo "\xEF\xBB\xBF"; // phpcs:ignore WordPress.Security.EscapeOutput
 		$out = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		if ( 'sched' === $kind ) {
-			fputcsv( $out, array( 'รหัสนิสิต', 'ภาคเรียน', 'รหัสวิชา', 'ชื่อวิชา', 'หน่วยกิต', 'วัน', 'เวลาเริ่ม', 'เวลาสิ้นสุด', 'ห้อง', 'อาจารย์' ), ',', '"', mcupr_csv_escape() );
-			fputcsv( $out, array( '6401001', '1/2567', 'BUD101', 'พุทธศาสนาเบื้องต้น', '3', 'จันทร์', '09:00', '12:00', 'A-201', 'อ.ตัวอย่าง ใจดี' ), ',', '"', mcupr_csv_escape() );
+			fputcsv( $out, array_map( 'mcupr_csv_safe', array( 'รหัสนิสิต', 'ภาคเรียน', 'รหัสวิชา', 'ชื่อวิชา', 'หน่วยกิต', 'วัน', 'เวลาเริ่ม', 'เวลาสิ้นสุด', 'ห้อง', 'อาจารย์' ) ), ',', '"', mcupr_csv_escape() );
+			fputcsv( $out, array_map( 'mcupr_csv_safe', array( '6401001', '1/2567', 'BUD101', 'พุทธศาสนาเบื้องต้น', '3', 'จันทร์', '09:00', '12:00', 'A-201', 'อ.ตัวอย่าง ใจดี' ) ), ',', '"', mcupr_csv_escape() );
 		} else {
-			fputcsv( $out, array( 'รหัสนิสิต', 'ภาคเรียน', 'รหัสวิชา', 'ชื่อวิชา', 'หน่วยกิต', 'เกรด' ), ',', '"', mcupr_csv_escape() );
-			fputcsv( $out, array( '6401001', '1/2567', 'BUD101', 'พุทธศาสนาเบื้องต้น', '3', 'A' ), ',', '"', mcupr_csv_escape() );
+			fputcsv( $out, array_map( 'mcupr_csv_safe', array( 'รหัสนิสิต', 'ภาคเรียน', 'รหัสวิชา', 'ชื่อวิชา', 'หน่วยกิต', 'เกรด' ) ), ',', '"', mcupr_csv_escape() );
+			fputcsv( $out, array_map( 'mcupr_csv_safe', array( '6401001', '1/2567', 'BUD101', 'พุทธศาสนาเบื้องต้น', '3', 'A' ) ), ',', '"', mcupr_csv_escape() );
 		}
 		fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		exit;
