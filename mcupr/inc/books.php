@@ -638,6 +638,70 @@ add_action(
 	}
 );
 
+/** Every file a book uses (PDF, EPUB, page pictures, media of pages, cover): attachment ids. */
+function mcupr_book_att_ids( $id ) {
+	$ids = array( mcupr_book_pdf_id( $id ), (int) get_post_meta( $id, '_mcupr_bk_epub', true ), (int) get_post_thumbnail_id( $id ) );
+	$ids = array_merge( $ids, mcupr_book_image_ids( $id ) );
+	$rows = get_post_meta( $id, '_mcupr_bk_media', true );
+	foreach ( is_array( $rows ) ? $rows : array() as $r ) {
+		if ( is_array( $r ) && ! empty( $r['att'] ) ) {
+			$ids[] = (int) $r['att'];
+		}
+	}
+	return array_values( array_unique( array_filter( array_map( 'intval', $ids ) ) ) );
+}
+
+/** Files of the books that are for students only: attachment id => book id (the Media Library address stays public, so the REST list must not hand it out). */
+function mcupr_book_locked_files() {
+	if ( ! function_exists( 'mcupr_aud_index' ) ) {
+		return array();
+	}
+	$out = array();
+	foreach ( array_keys( mcupr_aud_index() ) as $bid ) {
+		if ( MCUPR_BOOK === get_post_type( $bid ) ) {
+			foreach ( mcupr_book_att_ids( $bid ) as $a ) {
+				$out[ $a ] = (int) $bid;
+			}
+		}
+	}
+	return $out;
+}
+
+add_filter(
+	'rest_attachment_query',
+	static function ( $args ) {
+		$hide = array();
+		foreach ( mcupr_book_locked_files() as $a => $bid ) {
+			if ( ! mcupr_aud_can_view( $bid ) ) {
+				$hide[] = $a;
+			}
+		}
+		if ( $hide ) {
+			$args['post__not_in'] = array_merge( isset( $args['post__not_in'] ) ? (array) $args['post__not_in'] : array(), $hide );
+		}
+		return $args;
+	}
+);
+
+add_filter(
+	'rest_prepare_attachment',
+	static function ( $response, $post ) {
+		$locked = mcupr_book_locked_files();
+		if ( $post && isset( $locked[ $post->ID ] ) && ! mcupr_aud_can_view( $locked[ $post->ID ] ) ) {
+			$d = $response->get_data();
+			foreach ( array( 'source_url', 'link' ) as $k ) {
+				$d[ $k ] = '';
+			}
+			$d['media_details'] = array();
+			$d['guid']          = array( 'rendered' => '' );
+			$response->set_data( $d );
+		}
+		return $response;
+	},
+	10,
+	2
+);
+
 /** The address of the PDF of a book, for the editor's cover maker (same-origin, Range-capable): only for people who can edit the book. */
 add_action(
 	'wp_ajax_mcupr_book_pdf_url',
@@ -647,7 +711,7 @@ add_action(
 			wp_send_json_error( 'denied', 403 );
 		}
 		$att = isset( $_POST['att'] ) ? absint( $_POST['att'] ) : mcupr_book_pdf_id( $id ); // the one just chosen, even before the book is saved
-		if ( ! $att || ! in_array( get_post_mime_type( $att ), array( 'application/pdf', 'application/epub+zip' ), true ) || ! current_user_can( 'upload_files' ) ) {
+		if ( ! $att || ! in_array( get_post_mime_type( $att ), array( 'application/pdf', 'application/epub+zip' ), true ) || ! current_user_can( 'upload_files' ) || ! current_user_can( 'edit_post', $att ) ) { // only a file the person may edit (their own upload, or this book's)
 			wp_send_json_error( 'no file', 404 );
 		}
 		wp_send_json_success( array( 'url' => (string) wp_get_attachment_url( $att ) ) );
@@ -1058,7 +1122,7 @@ add_shortcode(
 	static function ( $atts ) {
 		$a  = shortcode_atts( array( 'id' => 0, 'mode' => '' ), $atts, 'mcupr_book' );
 		$id = (int) $a['id'];
-		if ( ! $id || MCUPR_BOOK !== get_post_type( $id ) || 'publish' !== get_post_status( $id ) || ( function_exists( 'mcupr_aud_can_view' ) && ! mcupr_aud_can_view( $id ) ) ) {
+		if ( ! $id || MCUPR_BOOK !== get_post_type( $id ) || 'publish' !== get_post_status( $id ) || ( function_exists( 'mcupr_aud_can_view' ) && ! mcupr_aud_can_view( $id ) ) || post_password_required( $id ) ) {
 			return '';
 		}
 		return mcupr_book_reader( $id, array( 'mode' => sanitize_key( $a['mode'] ) ) );

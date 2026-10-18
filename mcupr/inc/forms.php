@@ -45,7 +45,7 @@ function mcupr_form_token( $ts ) {
 }
 
 function mcupr_form_visitor_key() {
-	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	$ip = mcupr_client_net();
 	return 'mcupr_f_' . substr( hash_hmac( 'sha256', $ip, wp_salt( 'auth' ) ), 0, 16 ); // only a hash is kept, for one hour
 }
 
