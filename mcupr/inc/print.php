@@ -76,7 +76,7 @@ function mcupr_print_markup() {
 		echo '<div class="print-rule"></div><p class="print-ft">' . nl2br( esc_html( $txt ) ) . '</p>';
 	}
 	if ( $o['source'] ) {
-		echo '<p class="print-src">' . esc_html( mcupr_t( 'print_from' ) . ' ' . get_permalink() . ' · ' . wp_date( 'j M Y' ) ) . '</p>';
+		echo '<p class="print-src">' . esc_html( mcupr_t( 'print_from' ) . ' ' . get_permalink() . ' · ' . mcupr_date_fmt( 'j M Y' ) ) . '</p>';
 	}
 	echo '</div></div>';
 }
