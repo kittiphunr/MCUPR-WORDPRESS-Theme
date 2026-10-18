@@ -250,7 +250,7 @@ function mcupr_office_url( $office_id, $section = '', $page = 1 ) {
 	if ( '' === $section ) {
 		return $base;
 	}
-	if ( ! get_option( 'permalink_structure' ) ) {
+	if ( mcupr_plain_mode() ) {
 		return add_query_arg( array_filter( array( 'mcupr_osec' => $section, 'mcupr_opage' => $page > 1 ? (int) $page : 0 ) ), $base );
 	}
 	return trailingslashit( $base ) . $section . '/' . ( $page > 1 ? 'page/' . (int) $page . '/' : '' );

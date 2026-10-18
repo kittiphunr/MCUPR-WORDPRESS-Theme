@@ -740,7 +740,7 @@ function mcupr_rq_portal_html() {
 /* ------------------------------------------------------------------ following a request (anyone, with the number and the e-mail / student ID) */
 
 function mcupr_rq_track_url( $args = array() ) {
-	if ( ! get_option( 'permalink_structure' ) ) {
+	if ( mcupr_plain_mode() ) {
 		return add_query_arg( array_merge( array( 'mcupr_request' => 1 ), $args ), home_url( '/' ) );
 	}
 	return add_query_arg( $args, home_url( '/request/' ) );
