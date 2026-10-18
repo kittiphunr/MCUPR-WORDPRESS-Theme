@@ -9,22 +9,67 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/*
+ * Views per day are counted in a small buffer (option mcupr_daily_views_buf, not autoloaded, never expires) and
+ * added to mcupr_daily_views at most about once a minute, or after 50 views – so a busy site does not rewrite the
+ * 120-day list on every view. Readers (mcupr_stats_days) add the buffer, so no view is ever missing from the numbers.
+ */
+const MCUPR_STATS_FLUSH_SECONDS = 60;
+const MCUPR_STATS_FLUSH_VIEWS   = 50;
+
+function mcupr_stats_buffer() {
+	$b = get_option( 'mcupr_daily_views_buf', array() );
+	$b = is_array( $b ) ? $b : array();
+	return array(
+		't' => isset( $b['t'] ) ? (int) $b['t'] : 0,
+		'd' => isset( $b['d'] ) && is_array( $b['d'] ) ? $b['d'] : array(),
+	);
+}
+
+/** Pure: the saved days with the buffered ones added, the last 120 days only (as saved before the buffer existed). */
+function mcupr_stats_merge( $days, $buffered, $min ) {
+	$days = is_array( $days ) ? $days : array();
+	foreach ( (array) $buffered as $d => $n ) {
+		$days[ (string) $d ] = ( isset( $days[ $d ] ) ? (int) $days[ $d ] : 0 ) + (int) $n;
+	}
+	krsort( $days );
+	return array_filter( $days, static function ( $k ) use ( $min ) { return (string) $k >= $min; }, ARRAY_FILTER_USE_KEY );
+}
+
+/** Move the buffered views (or the buffer $b given) into mcupr_daily_views. */
+function mcupr_stats_flush( $b = null ) {
+	$b = is_array( $b ) ? $b : mcupr_stats_buffer();
+	if ( $b['d'] ) {
+		$min = (string) wp_date( 'Y-m-d', time() - 120 * DAY_IN_SECONDS );
+		update_option( 'mcupr_daily_views', mcupr_stats_merge( get_option( 'mcupr_daily_views', array() ), $b['d'], $min ), false );
+	}
+	update_option( 'mcupr_daily_views_buf', array( 't' => 0, 'd' => array() ), false );
+}
+
 /** One more view today (called by the view counter). */
 function mcupr_stats_hit() {
-	$days  = get_option( 'mcupr_daily_views', array() );
-	$days  = is_array( $days ) ? $days : array();
+	$b     = mcupr_stats_buffer();
 	$today = (string) wp_date( 'Y-m-d' );
-	$days[ $today ] = ( isset( $days[ $today ] ) ? (int) $days[ $today ] : 0 ) + 1;
-	krsort( $days );
-	$min  = (string) wp_date( 'Y-m-d', time() - 120 * DAY_IN_SECONDS );
-	$days = array_filter( $days, static function ( $k ) use ( $min ) { return $k >= $min; }, ARRAY_FILTER_USE_KEY );
-	update_option( 'mcupr_daily_views', $days, false );
+	$b['d'][ $today ] = ( isset( $b['d'][ $today ] ) ? (int) $b['d'][ $today ] : 0 ) + 1;
+	if ( ! $b['t'] ) {
+		$b['t'] = time();
+	}
+	if ( time() - $b['t'] >= MCUPR_STATS_FLUSH_SECONDS || array_sum( $b['d'] ) >= MCUPR_STATS_FLUSH_VIEWS ) {
+		mcupr_stats_flush( $b );
+	} else {
+		update_option( 'mcupr_daily_views_buf', $b, false );
+	}
+}
+
+/** array( date => views ): what is saved plus what is still in the buffer. */
+function mcupr_stats_days() {
+	$min = (string) wp_date( 'Y-m-d', time() - 120 * DAY_IN_SECONDS );
+	return mcupr_stats_merge( get_option( 'mcupr_daily_views', array() ), mcupr_stats_buffer()['d'], $min );
 }
 
 /** array( date => views ) for the last $n days (oldest first), zeros included. */
 function mcupr_stats_series( $n = 30 ) {
-	$days = get_option( 'mcupr_daily_views', array() );
-	$days = is_array( $days ) ? $days : array();
+	$days = mcupr_stats_days();
 	$out  = array();
 	for ( $i = $n - 1; $i >= 0; $i-- ) {
 		$d         = (string) wp_date( 'Y-m-d', time() - $i * DAY_IN_SECONDS );

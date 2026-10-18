@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 
 /** Options read on (nearly) every page that are not autoloaded. Filterable. */
 function mcupr_diet_options() {
-	return apply_filters( 'mcupr_diet_options', array( 'mcupr_staff', 'mcupr_ics_feeds', 'mcupr_daily_views', 'site_logo' ) );
+	return apply_filters( 'mcupr_diet_options', array( 'mcupr_staff', 'mcupr_ics_feeds', 'mcupr_daily_views', 'mcupr_daily_views_buf', 'site_logo' ) );
 }
 add_action(
 	'after_setup_theme',

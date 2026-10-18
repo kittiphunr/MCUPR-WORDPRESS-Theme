@@ -32,9 +32,145 @@ function mcupr_ins_norm_path( $uri ) {
 	return mb_strtolower( mb_substr( $p, 0, 200 ) );
 }
 
+/** The rules as saved (what changes them reads and writes this; the use counts are kept apart, see below). */
 function mcupr_redirects() {
 	$r = get_option( 'mcupr_redirects', array() );
 	return is_array( $r ) ? $r : array();
+}
+
+/*
+ * How often each rule was used is kept in its own small option (mcupr_redirect_hits: "from" => array( hits, last ),
+ * not autoloaded), so a redirect does not rewrite the list of up to 500 rules. Rules saved by older versions carry
+ * their own hits / last; the two are added up for the admin screen.
+ */
+function mcupr_redirect_hits() {
+	$h = get_option( 'mcupr_redirect_hits', array() );
+	return is_array( $h ) ? $h : array();
+}
+
+/** One more use of the rule that starts at $from. */
+function mcupr_redirect_hit( $from ) {
+	$h          = mcupr_redirect_hits();
+	$from       = (string) $from;
+	$h[ $from ] = array( 'hits' => ( isset( $h[ $from ]['hits'] ) ? (int) $h[ $from ]['hits'] : 0 ) + 1, 'last' => time() );
+	update_option( 'mcupr_redirect_hits', $h, false );
+}
+
+/** Forget the counts of $from (a rule made again starts at 0), and of rules that no longer exist. */
+function mcupr_redirect_hits_prune( $rules, $from = null ) {
+	$h    = mcupr_redirect_hits();
+	$have = array_flip( wp_list_pluck( $rules, 'from' ) );
+	$new  = array();
+	foreach ( $h as $f => $v ) {
+		if ( isset( $have[ $f ] ) && ( null === $from || (string) $from !== (string) $f ) ) {
+			$new[ $f ] = $v;
+		}
+	}
+	if ( $new !== $h ) {
+		update_option( 'mcupr_redirect_hits', $new, false );
+	}
+}
+
+/** Pure: the rules with the counts kept apart added in (hits summed, the later "last"). */
+function mcupr_redirects_merge_hits( $rules, $hits ) {
+	foreach ( (array) $rules as $i => $r ) {
+		$f = isset( $r['from'] ) ? (string) $r['from'] : '';
+		if ( '' !== $f && isset( $hits[ $f ] ) ) {
+			$rules[ $i ]['hits'] = ( isset( $r['hits'] ) ? (int) $r['hits'] : 0 ) + (int) $hits[ $f ]['hits'];
+			$rules[ $i ]['last'] = max( isset( $r['last'] ) ? (int) $r['last'] : 0, (int) $hits[ $f ]['last'] );
+		}
+	}
+	return $rules;
+}
+
+/** The rules with how often each was used (for showing). */
+function mcupr_redirects_with_hits() {
+	return mcupr_redirects_merge_hits( mcupr_redirects(), mcupr_redirect_hits() );
+}
+
+/*
+ * The 404 and search logs: each visit adds to a small buffer (options mcupr_404log_buf / mcupr_searchlog_buf, not
+ * autoloaded, never expiring), which is added to the saved log at most about once a minute or when it holds 20
+ * entries – the saved logs (up to 300 entries each) keep the format they always had. Readers add the buffer in.
+ */
+const MCUPR_INS_FLUSH_SECONDS = 60;
+const MCUPR_INS_FLUSH_ITEMS   = 20;
+
+function mcupr_ins_sort( $a, $b ) {
+	return $b['n'] <=> $a['n'] ?: $b['t'] <=> $a['t'];
+}
+
+/** Pure: a log with buffered entries added (counts summed, the later time; 'f' from the newer one), then capped at 300. */
+function mcupr_ins_merge_log( $log, $buf ) {
+	$log = is_array( $log ) ? $log : array();
+	foreach ( (array) $buf as $k => $e ) {
+		if ( ! is_array( $e ) || ! isset( $e['n'], $e['t'] ) ) {
+			continue;
+		}
+		if ( isset( $log[ $k ] ) && is_array( $log[ $k ] ) ) {
+			$log[ $k ]['n'] = (int) $log[ $k ]['n'] + (int) $e['n'];
+			if ( (int) $e['t'] >= (int) $log[ $k ]['t'] ) {
+				$log[ $k ]['t'] = (int) $e['t'];
+				if ( isset( $e['f'] ) ) {
+					$log[ $k ]['f'] = (int) $e['f'];
+				}
+			}
+		} else {
+			$log[ $k ] = $e;
+		}
+	}
+	if ( count( $log ) > 300 ) { // keep the 300 most asked for
+		uasort( $log, 'mcupr_ins_sort' );
+		$log = array_slice( $log, 0, 300, true );
+	}
+	return $log;
+}
+
+function mcupr_ins_buffer( $name ) {
+	$b = get_option( $name . '_buf', array() );
+	$b = is_array( $b ) ? $b : array();
+	return array(
+		't' => isset( $b['t'] ) ? (int) $b['t'] : 0,
+		'e' => isset( $b['e'] ) && is_array( $b['e'] ) ? $b['e'] : array(),
+	);
+}
+
+/** Add the buffer of log $name (mcupr_404log | mcupr_searchlog), or the buffer $b given, to the saved log. */
+function mcupr_ins_flush( $name, $b = null ) {
+	$b = is_array( $b ) ? $b : mcupr_ins_buffer( $name );
+	if ( $b['e'] ) {
+		update_option( $name, mcupr_ins_merge_log( get_option( $name, array() ), $b['e'] ), false );
+	}
+	if ( $b['e'] || $b['t'] ) {
+		update_option( $name . '_buf', array( 't' => 0, 'e' => array() ), false );
+	}
+}
+
+/** Count one entry of log $name: $k its key, $new the entry when it is new ('n' 1, 't' now, …), $extra fields to set each time. */
+function mcupr_ins_add( $name, $k, $new, $extra = array() ) {
+	$b = mcupr_ins_buffer( $name );
+	if ( isset( $b['e'][ $k ] ) ) {
+		$b['e'][ $k ]['n'] = (int) $b['e'][ $k ]['n'] + 1;
+		$b['e'][ $k ]['t'] = time();
+		foreach ( $extra as $f => $v ) {
+			$b['e'][ $k ][ $f ] = $v;
+		}
+	} else {
+		$b['e'][ $k ] = array_merge( $new, $extra );
+	}
+	if ( ! $b['t'] ) {
+		$b['t'] = time();
+	}
+	if ( time() - $b['t'] >= MCUPR_INS_FLUSH_SECONDS || count( $b['e'] ) >= MCUPR_INS_FLUSH_ITEMS ) {
+		mcupr_ins_flush( $name, $b );
+	} else {
+		update_option( $name . '_buf', $b, false );
+	}
+}
+
+/** A log as the admin screen shows it: saved + buffered. */
+function mcupr_ins_log( $name ) {
+	return mcupr_ins_merge_log( get_option( $name, array() ), mcupr_ins_buffer( $name )['e'] );
 }
 
 /** Find the redirect for a path: exact first, then the longest "prefix*". Returns array( index, rule ) or null. */
@@ -95,10 +231,7 @@ add_action(
 		$path = mcupr_ins_norm_path( $uri );
 		$m    = mcupr_ins_match( $path, mcupr_redirects() );
 		if ( $m ) {
-			$rules                    = mcupr_redirects();
-			$rules[ $m[0] ]['hits']   = (int) $rules[ $m[0] ]['hits'] + 1;
-			$rules[ $m[0] ]['last']   = time();
-			update_option( 'mcupr_redirects', $rules, false );
+			mcupr_redirect_hit( $m[1]['from'] ); // a small option of its own: the rules are not rewritten
 			$to = $m[1]['to'];
 			if ( '*' === substr( $m[1]['from'], -1 ) && false !== strpos( $to, '{rest}' ) ) {
 				$to = str_replace( '{rest}', ltrim( substr( $path, strlen( rtrim( substr( $m[1]['from'], 0, -1 ), '/' ) ) ), '/' ), $to );
@@ -110,20 +243,7 @@ add_action(
 		if ( empty( $o['log404'] ) || mcupr_is_bot() || preg_match( '#^/(wp-|favicon|apple-touch|robots|\.well-known)|\.(map|png|jpe?g|gif|svg|ico|css|js|woff2?|webp|php)$#', $path ) ) {
 			return;
 		}
-		$log = get_option( 'mcupr_404log', array() );
-		$log = is_array( $log ) ? $log : array();
-		$k   = md5( $path );
-		if ( isset( $log[ $k ] ) ) {
-			$log[ $k ]['n']++;
-			$log[ $k ]['t'] = time();
-		} else {
-			$log[ $k ] = array( 'p' => $path, 'n' => 1, 't' => time() );
-		}
-		if ( count( $log ) > 300 ) { // keep the 300 most asked for
-			uasort( $log, static function ( $a, $b ) { return $b['n'] <=> $a['n'] ?: $b['t'] <=> $a['t']; } );
-			$log = array_slice( $log, 0, 300, true );
-		}
-		update_option( 'mcupr_404log', $log, false );
+		mcupr_ins_add( 'mcupr_404log', md5( $path ), array( 'p' => $path, 'n' => 1, 't' => time() ) );
 	},
 	2
 );
@@ -134,21 +254,7 @@ function mcupr_ins_log_search( $term, $found ) {
 	if ( '' === $term || mb_strlen( $term ) > 60 || false !== strpos( $term, '@' ) || preg_match( '/\d{6,}/', str_replace( array( ' ', '-' ), '', $term ) ) || preg_match( '#https?://#', $term ) ) {
 		return false;
 	}
-	$log = get_option( 'mcupr_searchlog', array() );
-	$log = is_array( $log ) ? $log : array();
-	$k   = md5( $term );
-	if ( isset( $log[ $k ] ) ) {
-		$log[ $k ]['n']++;
-		$log[ $k ]['t'] = time();
-		$log[ $k ]['f'] = (int) $found;
-	} else {
-		$log[ $k ] = array( 'q' => $term, 'n' => 1, 't' => time(), 'f' => (int) $found );
-	}
-	if ( count( $log ) > 300 ) {
-		uasort( $log, static function ( $a, $b ) { return $b['n'] <=> $a['n'] ?: $b['t'] <=> $a['t']; } );
-		$log = array_slice( $log, 0, 300, true );
-	}
-	update_option( 'mcupr_searchlog', $log, false );
+	mcupr_ins_add( 'mcupr_searchlog', md5( $term ), array( 'q' => $term, 'n' => 1, 't' => time() ), array( 'f' => (int) $found ) );
 	return true;
 }
 
@@ -178,7 +284,7 @@ function mcupr_ins_page() {
 		return;
 	}
 	$o     = mcupr_ins_opts();
-	$rules = mcupr_redirects();
+	$rules = mcupr_redirects_with_hits();
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended
 	$pre_from = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : '';
 	$msg      = isset( $_GET['msg'] ) ? sanitize_text_field( rawurldecode( wp_unslash( $_GET['msg'] ) ) ) : '';
@@ -208,9 +314,8 @@ function mcupr_ins_page() {
 	}
 	echo '</div>';
 	// ---- 404
-	$log = get_option( 'mcupr_404log', array() );
-	$log = is_array( $log ) ? $log : array();
-	uasort( $log, static function ( $a, $b ) { return $b['n'] <=> $a['n'] ?: $b['t'] <=> $a['t']; } );
+	$log = mcupr_ins_log( 'mcupr_404log' );
+	uasort( $log, 'mcupr_ins_sort' );
 	echo '<div class="card" style="max-width:none"><h2>' . esc_html__( '2. Pages that were asked for but do not exist (404)', 'mcupr' ) . '</h2>';
 	if ( $log ) {
 		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Address', 'mcupr' ) . '</th><th>' . esc_html__( 'Times', 'mcupr' ) . '</th><th>' . esc_html__( 'Last', 'mcupr' ) . '</th><th></th></tr></thead><tbody>';
@@ -225,9 +330,8 @@ function mcupr_ins_page() {
 	}
 	echo '</div>';
 	// ---- searches
-	$sl = get_option( 'mcupr_searchlog', array() );
-	$sl = is_array( $sl ) ? $sl : array();
-	uasort( $sl, static function ( $a, $b ) { return $b['n'] <=> $a['n'] ?: $b['t'] <=> $a['t']; } );
+	$sl = mcupr_ins_log( 'mcupr_searchlog' );
+	uasort( $sl, 'mcupr_ins_sort' );
 	echo '<div class="card" style="max-width:none"><h2>' . esc_html__( '3. What visitors search for', 'mcupr' ) . '</h2>';
 	if ( $sl ) {
 		$none = array_filter( $sl, static function ( $e ) { return empty( $e['f'] ); } );
@@ -261,7 +365,10 @@ add_action(
 			if ( $rule ) {
 				$rules = array_values( array_filter( mcupr_redirects(), static function ( $r ) use ( $rule ) { return $r['from'] !== $rule['from']; } ) );
 				array_unshift( $rules, $rule );
-				update_option( 'mcupr_redirects', array_slice( $rules, 0, 500 ), false );
+				$rules = array_slice( $rules, 0, 500 );
+				update_option( 'mcupr_redirects', $rules, false );
+				mcupr_redirect_hits_prune( $rules, $rule['from'] ); // the new rule starts at 0, as before
+				mcupr_ins_flush( 'mcupr_404log' ); // so the address is taken out of the buffered visits too
 				$log = get_option( 'mcupr_404log', array() );
 				unset( $log[ md5( $rule['from'] ) ] );
 				update_option( 'mcupr_404log', is_array( $log ) ? $log : array(), false );
@@ -273,12 +380,15 @@ add_action(
 			$rules = mcupr_redirects();
 			unset( $rules[ isset( $_POST['i'] ) ? (int) $_POST['i'] : -1 ] );
 			update_option( 'mcupr_redirects', array_values( $rules ), false );
+			mcupr_redirect_hits_prune( $rules );
 			$msg = __( 'Deleted.', 'mcupr' );
 		} elseif ( 'clear404' === $do ) {
 			delete_option( 'mcupr_404log' );
+			delete_option( 'mcupr_404log_buf' );
 			$msg = __( 'Cleared.', 'mcupr' );
 		} elseif ( 'clearsearch' === $do ) {
 			delete_option( 'mcupr_searchlog' );
+			delete_option( 'mcupr_searchlog_buf' );
 			$msg = __( 'Cleared.', 'mcupr' );
 		} elseif ( 'opts' === $do ) {
 			update_option( 'mcupr_ins', array( 'log404' => ! empty( $_POST['log404'] ) ? 1 : 0, 'logsearch' => ! empty( $_POST['logsearch'] ) ? 1 : 0 ), false );
