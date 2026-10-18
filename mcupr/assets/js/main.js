@@ -32,6 +32,13 @@
 
 	function $(sel, ctx) { return (ctx || document).querySelector(sel); }
 	function $$(sel, ctx) { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); }
+	/* keep Tab / Shift+Tab inside a dialog: from the last of its focusable elements back to the first, and the other way */
+	function trapTab(e, f) {
+		if (!f.length) { return; }
+		var first = f[0], last = f[f.length - 1];
+		if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+		else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+	}
 
 	function save() {
 		try { localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) { /* storage blocked */ }
@@ -769,13 +776,7 @@
 		document.addEventListener('keydown', function (e) {
 			if (!fsBox || fsBox.hidden) { return; }
 			if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeFs(); return; }
-			if (e.key === 'Tab') {
-				var f = fsFocusable();
-				if (!f.length) { return; }
-				var first = f[0], last = f[f.length - 1];
-				if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-				else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-			}
+			if (e.key === 'Tab') { trapTab(e, fsFocusable()); }
 		}, true);
 		if (desktopMq.addEventListener) { desktopMq.addEventListener('change', function () { closeFs(false); }); }
 	}
@@ -1398,12 +1399,7 @@
 				if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); lbClose(); }
 				else if (e.key === 'ArrowLeft') { lbShow(lbIndex - 1); }
 				else if (e.key === 'ArrowRight') { lbShow(lbIndex + 1); }
-				else if (e.key === 'Tab') {
-					var f = $$('button', lbBox).filter(function (b) { return !b.hidden; });
-					var first = f[0], last = f[f.length - 1];
-					if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-					else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-				}
+				else if (e.key === 'Tab') { trapTab(e, $$('button', lbBox).filter(function (b) { return !b.hidden; })); }
 			}, true);
 		}
 		lbLinks = links; lbFrom = from;

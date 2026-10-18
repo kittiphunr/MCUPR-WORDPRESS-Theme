@@ -594,7 +594,7 @@ function mcupr_sp_codes_page() {
 add_action(
 	'admin_post_mcupr_sp_codes',
 	static function () {
-		if ( ! current_user_can( MCUPR_STU_CAP ) || ! isset( $_POST['mcupr_sp_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_sp_nonce'] ) ), 'mcupr_sp_codes' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_sp_nonce', 'mcupr_sp_codes', MCUPR_STU_CAP ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$new = array( 'faculty' => array(), 'program' => array() );

@@ -3,18 +3,8 @@
 (function () {
 	'use strict';
 	var B = window.mcuprBook;
-	if (!B) { return; }
-
-	function store(key, val) { try { if (val === undefined) { return window.localStorage.getItem(key); } window.localStorage.setItem(key, val); } catch (e) { /* private mode */ } return null; }
-	function $(sel, el) { return (el || document).querySelector(sel); }
-	function lbl(b, text) { if (!b) { return; } var s = b.querySelector('[data-lbl]'); if (s) { s.textContent = text; } b.title = text; }
-	function load(src) {
-		return new Promise(function (res, rej) {
-			var s = document.createElement('script');
-			s.src = src; s.onload = res; s.onerror = rej;
-			document.head.appendChild(s);
-		});
-	}
+	if (!B || !B.util) { return; }
+	var U = B.util, store = U.store, $ = U.$, lbl = U.lbl, load = U.load; // the helpers of book-reader.js
 
 	function init(el) {
 		var cfg;
@@ -22,16 +12,10 @@
 		if (cfg.src !== 'epub') { return; }
 		var L = cfg.l, stage = $('.bk-stage', el), paper = $('.bk-ep-paper', el), view = $('.bk-ep-view', el), status = $('.bk-status', el);
 		var range = $('[data-act="range"]', el), count = $('.bk-count', el), thumbs = $('.bk-thumbs', el), thList = $('.bk-th-list', el);
-		var btn = function (a) { return $('[data-act="' + a + '"]', el); };
-		var each = function (a, fn) { Array.prototype.forEach.call(el.querySelectorAll('[data-act="' + a + '"]'), fn); };
+		var btn = function (a) { return U.btn(el, a); };
+		var each = function (a, fn) { U.each(el, a, fn); };
 		var inLb = el.classList.contains('is-lb');
-		function toast(text) {
-			Array.prototype.forEach.call(el.querySelectorAll('.bk-toast'), function (x) { x.parentNode.removeChild(x); });
-			var t = document.createElement('p');
-			t.className = 'bk-toast'; t.setAttribute('role', 'status'); t.textContent = text;
-			el.appendChild(t);
-			setTimeout(function () { if (t.parentNode) { t.parentNode.removeChild(t); } }, 2200);
-		}
+		function toast(text) { U.toast(el, text); }
 		if (btn('close')) { btn('close').addEventListener('click', function () { if (window.mcuprBook && window.mcuprBook.closeLb) { window.mcuprBook.closeLb(el); } }); }
 		var book = null, rendition = null, soundOn = false, flips = 0, turning = false, located = false, fontPct = 100;
 		var posKey = 'mcupr_bk_cfi_' + cfg.id, sizeKey = 'mcupr_bk_epfs';
