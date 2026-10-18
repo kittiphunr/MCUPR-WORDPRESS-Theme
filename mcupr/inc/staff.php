@@ -75,10 +75,6 @@ function mcupr_year_norm( $y ) {
 }
 
 /** Year as shown: พ.ศ. in Thai, ค.ศ. otherwise. */
-function mcupr_year_text( $y ) {
-	return $y ? (string) ( 'th' === mcupr_ui_lang() ? $y + 543 : $y ) : '';
-}
-
 /* ================================================================== royal decorations catalogue */
 
 function mcupr_honor_defaults() {

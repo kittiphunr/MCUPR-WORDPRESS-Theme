@@ -25,6 +25,11 @@ function mcupr_th_days( $short = false ) {
 		: array( 'อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์' );
 }
 
+/** A Gregorian year as shown: the Buddhist Era year (+543) when the page is Thai, otherwise as it is; '' for none. */
+function mcupr_year_text( $y ) {
+	return $y ? (string) ( 'th' === mcupr_ui_lang() ? $y + 543 : $y ) : '';
+}
+
 /** Escape literal text for DateTime::format(). */
 function mcupr_date_literal( $text ) {
 	return preg_replace( '/(.)/u', '\\\\$1', $text );
