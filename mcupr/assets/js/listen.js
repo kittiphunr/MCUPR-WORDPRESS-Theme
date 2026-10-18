@@ -55,7 +55,7 @@
 	var MAX = 180;
 	function chunks(text) {
 		var out = [];
-		var parts = text.replace(/\s+/g, ' ').trim().split(/(?<=[.!?。！？ฯ])\s+/);
+		var parts = text.replace(/\s+/g, ' ').trim().replace(/([.!?。！？ฯ])\s+/g, '$1\u0001').split('\u0001'); // (no lookbehind: old Safari and TV browsers fail to parse the whole file with it)
 		parts.forEach(function (p) {
 			while (p.length > MAX) {
 				var cut = p.lastIndexOf(' ', MAX);

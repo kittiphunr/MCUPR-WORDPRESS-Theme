@@ -209,7 +209,7 @@ function mcupr_poll_handler() {
 		$r  = mcupr_poll_vote( $id, $ch, array( 'tk' => isset( $_POST['tk'] ) ? sanitize_text_field( wp_unslash( $_POST['tk'] ) ) : '', 'website' => isset( $_POST['website'] ) ? sanitize_text_field( wp_unslash( $_POST['website'] ) ) : '' ) );
 	}
 	if ( 'ok' === $r ) {
-		setcookie( 'mcupr_pv_' . $id, '1', array( 'expires' => time() + 30 * DAY_IN_SECONDS, 'path' => COOKIEPATH ? COOKIEPATH : '/', 'samesite' => 'Lax' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+		mcupr_set_cookie( 'mcupr_pv_' . $id, '1', time() + 30 * DAY_IN_SECONDS, false, COOKIEPATH ? COOKIEPATH : '/' );
 	}
 	wp_safe_redirect( add_query_arg( array( 'pv' => $r, 'pid' => $id ), remove_query_arg( array( 'pv', 'pid' ), $back ) ) . '#poll-' . $id );
 	exit;
