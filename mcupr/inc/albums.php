@@ -31,10 +31,7 @@ function mcupr_albums_register() {
 			'show_in_rest'  => true,
 		)
 	);
-	if ( get_option( 'mcupr_rewrite_albums' ) !== MCUPR_VERSION ) {
-		flush_rewrite_rules( false );
-		update_option( 'mcupr_rewrite_albums', MCUPR_VERSION );
-	}
+	mcupr_rewrite_wanted( 'mcupr_rewrite_albums', MCUPR_VERSION ); // one flush for all modules, at the end of init (inc/compat.php)
 }
 add_action( 'init', 'mcupr_albums_register' );
 

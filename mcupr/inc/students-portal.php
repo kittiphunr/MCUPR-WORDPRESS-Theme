@@ -184,10 +184,7 @@ add_action(
 	'init',
 	static function () {
 		add_rewrite_rule( '^student/?$', 'index.php?mcupr_student=1', 'top' );
-		if ( get_option( 'mcupr_rewrite_students' ) !== MCUPR_VERSION ) {
-			flush_rewrite_rules( false );
-			update_option( 'mcupr_rewrite_students', MCUPR_VERSION );
-		}
+		mcupr_rewrite_wanted( 'mcupr_rewrite_students', MCUPR_VERSION ); // one flush for all modules, at the end of init (inc/compat.php)
 	},
 	7
 );
