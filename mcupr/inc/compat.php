@@ -88,6 +88,20 @@ function mcupr_client_net() {
 	return $ip;
 }
 
+/**
+ * A simple rate limit: true and one more counted while fewer than $max were counted for $key in the last $ttl seconds
+ * (the window starts again with each counted try), false once the limit is reached (nothing is counted then).
+ */
+function mcupr_throttle( $key, $max, $ttl ) {
+	$k = 'mcupr_thr_' . md5( $key );
+	$n = (int) get_transient( $k );
+	if ( $n >= $max ) {
+		return false;
+	}
+	set_transient( $k, $n + 1, $ttl );
+	return true;
+}
+
 /** setcookie() for every PHP version the theme supports (7.0 – 7.2 have no options array): first-party, SameSite=Lax, path / unless one is given. */
 function mcupr_set_cookie( $name, $value, $expires, $httponly = true, $path = '/' ) {
 	if ( headers_sent() ) {
