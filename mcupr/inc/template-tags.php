@@ -120,11 +120,6 @@ function mcupr_first_category() {
 	return $cats ? $cats[0]->name : '';
 }
 
-/** Home page shows the hero, so the header floats over it. */
-function mcupr_header_over_hero() {
-	return is_front_page() && ! is_paged();
-}
-
 /** Hero background image (attachment id): Customizer image, else the newest post's thumbnail. */
 function mcupr_hero_image_id( $fallback_post_id = 0 ) {
 	$id = (int) get_theme_mod( 'mcupr_hero_image', 0 );
@@ -132,18 +127,6 @@ function mcupr_hero_image_id( $fallback_post_id = 0 ) {
 		return $id;
 	}
 	return $fallback_post_id ? (int) get_post_thumbnail_id( $fallback_post_id ) : 0;
-}
-
-/** Hero background image URL: Customizer image, else the newest post thumbnail. */
-function mcupr_hero_image_url( $fallback_post_id = 0 ) {
-	$id = (int) get_theme_mod( 'mcupr_hero_image', 0 );
-	if ( $id ) {
-		$url = wp_get_attachment_image_url( $id, 'full' );
-		if ( $url ) {
-			return $url;
-		}
-	}
-	return $fallback_post_id ? (string) get_the_post_thumbnail_url( $fallback_post_id, 'full' ) : '';
 }
 
 /** The inline SVG icon set (24x24, stroke, Feather style): name => inner markup. */

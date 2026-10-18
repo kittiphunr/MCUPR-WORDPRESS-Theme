@@ -223,7 +223,7 @@ function mcupr_fb_side_box( $post ) {
 add_action(
 	'save_post_mcupr_fb',
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_fb_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_fb_nonce'] ) ), 'mcupr_fb_save' ) || ! current_user_can( 'edit_post', $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
+		if ( ! mcupr_can_save_box( $post_id, 'mcupr_fb_nonce', 'mcupr_fb_save' ) ) {
 			return;
 		}
 		$json = isset( $_POST['mcupr_fb_json'] ) ? wp_unslash( $_POST['mcupr_fb_json'] ) : '[]'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
@@ -432,9 +432,7 @@ function mcupr_fb_submit( $form_id, $data, $now = 0, $files = null ) {
 	if ( ! empty( $o['copy'] ) && $mail ) {
 		$thanks = '' !== $o['success'] ? $o['success'] : __( 'Thank you. Your answers were received.', 'mcupr' );
 		$own    = is_user_logged_in() && 0 === strcasecmp( (string) wp_get_current_user()->user_email, $mail ); // the full answers only to the address of the person who is signed in
-		$ck     = 'mcupr_fb_copies';
-		if ( (int) get_transient( $ck ) < 60 ) { // and never more than 60 such mails an hour from the whole site
-			set_transient( $ck, (int) get_transient( $ck ) + 1, HOUR_IN_SECONDS );
+		if ( mcupr_throttle( 'fb_copies', 60, HOUR_IN_SECONDS ) ) { // and never more than 60 such mails an hour from the whole site
 			wp_mail( $mail, wp_specialchars_decode( get_the_title( $form_id ), ENT_QUOTES ), $own ? $thanks . "\n\n" . $body : $thanks ); // anyone else: only the thanks, never what was typed
 		}
 	}
@@ -669,14 +667,7 @@ add_action(
 	}
 );
 
-/** One CSV cell that Excel will not run as a formula. */
-function mcupr_csv_cell( $s ) {
-	$s = (string) $s;
-	if ( '' !== $s && in_array( $s[0], array( '=', '+', '-', '@', "\t", "\r" ), true ) ) {
-		$s = "'" . $s;
-	}
-	return '"' . str_replace( '"', '""', $s ) . '"';
-}
+/* mcupr_csv_cell() lives in inc/compat.php (every CSV export guards formulas the same way). */
 
 /** The CSV text of a form's answers (columns = the questions that were asked, in order of first appearance). */
 function mcupr_fb_csv( $form_id ) {
@@ -715,7 +706,7 @@ function mcupr_fb_csv( $form_id ) {
 add_action(
 	'admin_post_mcupr_fb_export',
 	static function () {
-		if ( ! current_user_can( 'edit_pages' ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'mcupr_fb_export' ) ) {
+		if ( ! mcupr_check_request( '_wpnonce', 'mcupr_fb_export', 'edit_pages', 'get' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$fid = isset( $_GET['form'] ) ? (int) $_GET['form'] : 0;

@@ -159,7 +159,7 @@ function mcupr_rq_form_box( $post ) {
 add_action(
 	'save_post_mcupr_fb',
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_fb_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_fb_nonce'] ) ), 'mcupr_fb_save' ) || ! current_user_can( 'edit_post', $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
+		if ( ! mcupr_can_save_box( $post_id, 'mcupr_fb_nonce', 'mcupr_fb_save' ) ) {
 			return;
 		}
 		$in = isset( $_POST['mcupr_rq'] ) && is_array( $_POST['mcupr_rq'] ) ? wp_unslash( $_POST['mcupr_rq'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
@@ -548,7 +548,7 @@ function mcupr_rq_hist_box( $post ) {
 add_action(
 	'save_post_mcupr_fe',
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_rq_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_rq_nonce'] ) ), 'mcupr_rq_save' ) || ! current_user_can( 'edit_post', $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! mcupr_rq_is_entry( $post_id ) ) {
+		if ( ! mcupr_can_save_box( $post_id, 'mcupr_rq_nonce', 'mcupr_rq_save' ) || ! mcupr_rq_is_entry( $post_id ) ) {
 			return;
 		}
 		$owner = isset( $_POST['mcupr_rq_owner'] ) ? absint( $_POST['mcupr_rq_owner'] ) : 0;
@@ -740,7 +740,7 @@ function mcupr_rq_portal_html() {
 /* ------------------------------------------------------------------ following a request (anyone, with the number and the e-mail / student ID) */
 
 function mcupr_rq_track_url( $args = array() ) {
-	if ( ! get_option( 'permalink_structure' ) ) {
+	if ( mcupr_plain_mode() ) {
 		return add_query_arg( array_merge( array( 'mcupr_request' => 1 ), $args ), home_url( '/' ) );
 	}
 	return add_query_arg( $args, home_url( '/request/' ) );
