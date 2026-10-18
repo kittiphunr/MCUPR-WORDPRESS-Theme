@@ -239,26 +239,22 @@ set_current_screen( 'dashboard' );
 $GLOBALS['menu'] = $GLOBALS['submenu'] = array();
 do_action( 'admin_menu' );
 global $submenu;
-$page = function () { ob_start(); mcupr_admin_overview(); return preg_replace( '#<style>.*?</style>#s', '', ob_get_clean() ); };
-$h = $page();
+$page = function ( $cat = '' ) { $_GET = array( 'page' => 'mcupr' ) + ( '' !== $cat ? array( 'cat' => $cat ) : array() ); ob_start(); mcupr_admin_overview(); $o = ob_get_clean(); $_GET = array(); return preg_replace( '#<style>.*?</style>#s', '', $o ); };
+$h = $page(); foreach ( array_keys( mcupr_cc_cats() ) as $k ) { $h .= $page( $k ); }
 $miss = array();
 foreach ( isset( $submenu['mcupr'] ) ? $submenu['mcupr'] : array() as $it ) {
 	$slug = $it[2];
-	if ( 'mcupr' === $slug || false !== strpos( $slug, 'post-new.php' ) ) { continue; }
-	if ( false !== strpos( $slug, '#sec-' ) ) { // a group of the menu: it opens this page at that heading, so the heading must be here
-		if ( false === strpos( $h, 'id="' . substr( $slug, strpos( $slug, '#' ) + 1 ) . '"' ) ) { $miss[] = $slug; }
-		continue;
-	}
+	if ( 'mcupr' === $slug || false !== strpos( $slug, 'post-new.php' ) || 0 === strpos( $slug, 'admin.php?page=mcupr&cat=' ) ) { continue; }
 	$url = false !== strpos( $slug, '.php' ) ? admin_url( $slug ) : admin_url( 'admin.php?page=' . $slug );
 	if ( false === strpos( $h, esc_url( $url ) ) && false === strpos( $h, str_replace( '&', '&#038;', $url ) ) && false === strpos( $h, $url ) ) { $miss[] = $slug; }
 }
-t( ! $miss && count( $submenu['mcupr'] ) > 20, 'the control page reaches every entry of the MCUPR menu (' . count( $submenu['mcupr'] ) . ' entries; missing: ' . implode( ', ', $miss ) . ')' );
-t( false !== strpos( $h, 'post_type=mcupr_student' ) && false !== strpos( $h, 'mcupr-student-import' ) && false !== strpos( $h, 'mcupr-student-settings' ), 'the Students card has the list, the import and the settings' );
+t( ! $miss && count( $submenu['mcupr'] ) > 20, 'the control center reaches every entry of the MCUPR menu (' . count( $submenu['mcupr'] ) . ' entries; missing: ' . implode( ', ', $miss ) . ')' );
+t( false !== strpos( $h, 'post_type=mcupr_student' ) && false !== strpos( $h, 'mcupr-student-import' ) && false !== strpos( $h, 'mcupr-student-settings' ), 'the Students group has the list, the import and the settings' );
 wp_set_current_user( $reg );
 $GLOBALS['menu'] = $GLOBALS['submenu'] = array();
 do_action( 'admin_menu' );
-$hr = $page();
-t( false !== strpos( $hr, 'post_type=mcupr_student' ) && false === strpos( $hr, 'mcupr-speed' ) && false === strpos( $hr, 'post_type=mcupr_event' ), 'a registrar sees the Students card and none of the rest' );
+$hr = $page( 'students' );
+t( false !== strpos( $hr, 'post_type=mcupr_student' ) && false === strpos( $hr, 'mcupr-speed' ) && false === strpos( $hr, 'post_type=mcupr_event' ) && array( 'students', 'help' ) === array_keys( mcupr_cc_cats() ), 'a registrar sees the Students group and none of the others' );
 wp_set_current_user( $ub );
 t( '' === $page(), 'a student gets nothing from the control page' );
 
