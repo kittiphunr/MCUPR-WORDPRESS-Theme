@@ -203,12 +203,12 @@ function mcupr_office_of( $post_id ) {
 	if ( ! in_array( get_post_type( $post_id ), mcupr_office_types(), true ) ) {
 		return 0;
 	}
-	$slugs = wp_get_object_terms( $post_id, MCUPR_OFFICE_TAX, array( 'fields' => 'slugs' ) );
-	if ( is_wp_error( $slugs ) ) {
+	$terms = get_the_terms( $post_id, MCUPR_OFFICE_TAX ); // the term cache: no query when the post's terms are already loaded
+	if ( ! $terms || is_wp_error( $terms ) ) {
 		return 0;
 	}
-	foreach ( $slugs as $s ) {
-		if ( preg_match( '/^office-(\d+)$/', $s, $m ) && 'mcupr_office' === get_post_type( (int) $m[1] ) ) {
+	foreach ( $terms as $t ) {
+		if ( preg_match( '/^office-(\d+)$/', $t->slug, $m ) && 'mcupr_office' === get_post_type( (int) $m[1] ) ) {
 			return (int) $m[1];
 		}
 	}
