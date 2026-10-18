@@ -247,6 +247,16 @@ add_filter(
 	99
 );
 
+/** A student account makes no application passwords: they are checked outside the login filter above and would skip the card. */
+add_filter(
+	'wp_is_application_passwords_available_for_user',
+	static function ( $available, $user ) {
+		return $available && ! ( $user instanceof WP_User && function_exists( 'mcupr_is_student_user' ) && mcupr_is_student_user( $user->ID ) );
+	},
+	10,
+	2
+);
+
 add_action(
 	'wp_enqueue_scripts',
 	static function () {
