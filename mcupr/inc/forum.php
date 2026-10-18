@@ -103,10 +103,7 @@ add_action(
 			}
 			update_option( 'mcupr_forum_boards_seeded', 1 );
 		}
-		if ( get_option( 'mcupr_rewrite_forum' ) !== MCUPR_VERSION ) {
-			flush_rewrite_rules( false );
-			update_option( 'mcupr_rewrite_forum', MCUPR_VERSION );
-		}
+		mcupr_rewrite_wanted( 'mcupr_rewrite_forum', MCUPR_VERSION ); // one flush for all modules, at the end of init (inc/compat.php)
 	},
 	99
 );
@@ -152,8 +149,77 @@ function mcupr_topic_name( $id ) {
 	return '' !== $n ? $n : (string) get_the_author_meta( 'display_name', (int) get_post_field( 'post_author', $id ) );
 }
 
+/** Approved replies: WordPress keeps this number in comment_count, so no extra query per row. */
 function mcupr_topic_replies( $id ) {
-	return (int) get_comments( array( 'post_id' => $id, 'status' => 'approve', 'count' => true ) );
+	$p = get_post( $id );
+	return $p ? (int) $p->comment_count : 0;
+}
+
+/**
+ * The newest topic of each board, as board id => topic id (0 = none).
+ * Worked out once and kept until a topic, its board or its last-activity time changes.
+ */
+function mcupr_forum_board_last( $term_id ) {
+	$map = get_transient( 'mcupr_forum_board_last' );
+	if ( ! is_array( $map ) ) {
+		$map = array();
+	}
+	$term_id = (int) $term_id;
+	if ( ! array_key_exists( $term_id, $map ) ) {
+		$last = get_posts( array( 'post_type' => 'mcupr_topic', 'post_status' => 'publish', 'posts_per_page' => 1, 'no_found_rows' => true, 'fields' => 'ids', 'meta_key' => '_mcupr_topic_last', 'orderby' => 'meta_value_num', 'order' => 'DESC', 'tax_query' => array( array( 'taxonomy' => 'mcupr_board', 'terms' => $term_id ) ) ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+		$map[ $term_id ] = $last ? (int) $last[0] : 0;
+		set_transient( 'mcupr_forum_board_last', $map, DAY_IN_SECONDS );
+	}
+	return $map[ $term_id ];
+}
+
+function mcupr_forum_board_last_clear() {
+	delete_transient( 'mcupr_forum_board_last' );
+}
+add_action(
+	'transition_post_status',
+	static function ( $new, $old, $post ) {
+		if ( $post && 'mcupr_topic' === $post->post_type ) {
+			mcupr_forum_board_last_clear();
+		}
+	},
+	10,
+	3
+);
+add_action(
+	'deleted_post',
+	static function ( $id, $post = null ) {
+		if ( 'mcupr_topic' === ( $post instanceof WP_Post ? $post->post_type : get_post_type( $id ) ) ) {
+			mcupr_forum_board_last_clear();
+		}
+	},
+	10,
+	2
+);
+add_action(
+	'set_object_terms',
+	static function ( $object_id, $terms, $tt_ids, $taxonomy ) {
+		if ( 'mcupr_board' === $taxonomy ) {
+			mcupr_forum_board_last_clear();
+		}
+	},
+	10,
+	4
+);
+foreach ( array( 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ) as $mcupr_h ) {
+	add_action(
+		$mcupr_h,
+		static function ( $mid, $object_id, $key ) {
+			if ( '_mcupr_topic_last' === $key ) {
+				mcupr_forum_board_last_clear();
+			}
+		},
+		10,
+		3
+	);
+}
+foreach ( array( 'created_mcupr_board', 'edited_mcupr_board', 'delete_mcupr_board' ) as $mcupr_h ) {
+	add_action( $mcupr_h, 'mcupr_forum_board_last_clear' );
 }
 
 function mcupr_topic_last( $id ) {

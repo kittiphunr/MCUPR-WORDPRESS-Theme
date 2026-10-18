@@ -57,6 +57,66 @@ add_action(
 	}
 );
 
+/*
+ * Link rules: every module registers its rules on init as before and says which version of them it wants with
+ * mcupr_rewrite_wanted(). One flush runs at the end of init (priority 999), and only when a wanted version differs
+ * from the one stored – so an update costs one flush instead of one per module, and an unchanged site none.
+ * The key of each module is the name of the option it used to keep its own version in, so a site that was
+ * already flushed by an older theme version is not flushed again for nothing.
+ */
+function mcupr_rewrite_wanted( $key, $version ) {
+	$GLOBALS['mcupr_rewrite_wanted'][ (string) $key ] = (string) $version;
+}
+
+/** Pure: true when any wanted version is missing from $stored or different there. */
+function mcupr_rewrite_needs_flush( array $wanted, $stored ) {
+	$stored = is_array( $stored ) ? $stored : array();
+	foreach ( $wanted as $k => $v ) {
+		if ( ! isset( $stored[ $k ] ) || (string) $stored[ $k ] !== (string) $v ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/** Pure: what to store after a check – the stored versions with the wanted ones over them. */
+function mcupr_rewrite_merge( array $wanted, $stored ) {
+	$stored = is_array( $stored ) ? $stored : array();
+	foreach ( $wanted as $k => $v ) {
+		$stored[ (string) $k ] = (string) $v;
+	}
+	return $stored;
+}
+
+/** The single flush (true when it flushed). */
+function mcupr_rewrite_flush_if_wanted() {
+	$wanted = isset( $GLOBALS['mcupr_rewrite_wanted'] ) && is_array( $GLOBALS['mcupr_rewrite_wanted'] ) ? $GLOBALS['mcupr_rewrite_wanted'] : array();
+	if ( ! $wanted ) {
+		return false;
+	}
+	$stored = get_option( 'mcupr_rewrite_versions' );
+	$fresh  = ! is_array( $stored );
+	if ( $fresh ) {
+		// first run of this mechanism: the versions the modules stored themselves until now
+		$stored = array();
+		foreach ( array_keys( $wanted ) as $k ) {
+			$old = get_option( $k );
+			if ( false !== $old && '' !== (string) $old ) {
+				$stored[ $k ] = (string) $old;
+			}
+		}
+	}
+	$flush = mcupr_rewrite_needs_flush( $wanted, $stored );
+	if ( $flush ) {
+		flush_rewrite_rules( false );
+	}
+	if ( $flush || $fresh ) {
+		update_option( 'mcupr_rewrite_versions', mcupr_rewrite_merge( $wanted, $stored ), true );
+	}
+	return $flush;
+}
+add_action( 'init', 'mcupr_rewrite_flush_if_wanted', 999 );
+
 /**
  * The "escape" character for fgetcsv() / fputcsv(). PHP 7.4 and later accept '' (no escape character), but PHP 7.0 – 7.3 want exactly
  * one character and otherwise warn and return false – which made a good file look "empty". NUL never occurs in a CSV, so it is safe everywhere.
