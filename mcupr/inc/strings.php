@@ -490,6 +490,7 @@ return array(
 	'mt_m' => array( 'นาที', 'min', '分钟', '分' ),
 	'stu_portal' => array( 'พอร์ทัลนิสิต', 'Student portal', '学生门户', '学生ポータル' ),
 	'stu_bad' => array( 'รหัสนิสิตหรือรหัสผ่านไม่ถูกต้อง', 'Wrong student ID or password.', '学号或密码错误。', '学籍番号またはパスワードが違います。' ),
+	'stu_bad_card' => array( 'รหัสนิสิต รหัสผ่าน หรือบัตรไม่ถูกต้อง ลองใหม่อีกครั้ง หากยังไม่ได้ให้ติดต่อเจ้าหน้าที่', 'Wrong student ID, password or card. Try again; if it keeps failing, contact the staff.', '学号、密码或学生证错误。请重试；如仍失败，请联系工作人员。', '学籍番号・パスワード・学生証のいずれかが違います。もう一度お試しください。解決しない場合は職員にご連絡ください。' ),
 	'stu_wait' => array( 'ลองผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่', 'Too many attempts. Please wait a few minutes and try again.', '尝试次数过多，请稍等几分钟后再试。', '試行回数が多すぎます。しばらくしてからもう一度お試しください。' ),
 	'stu_need' => array( 'เนื้อหานี้สำหรับนิสิตเท่านั้น กรุณาเข้าสู่ระบบก่อน', 'This content is for students only. Please log in first.', '此内容仅限学生查看，请先登录。', 'このコンテンツは学生専用です。先にログインしてください。' ),
 	'stu_pw_cur_bad' => array( 'รหัสผ่านปัจจุบันไม่ถูกต้อง', 'The current password is not right.', '当前密码不正确。', '現在のパスワードが違います。' ),
