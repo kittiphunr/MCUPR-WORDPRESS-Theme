@@ -108,6 +108,15 @@ function mcupr_is_bot() {
 	return '' === $ua || (bool) preg_match( '/bot|crawl|spider|slurp|bingpreview|mediapartners|facebookexternalhit|lighthouse|pagespeed|headless|preview|monitor|curl|wget|python-requests/i', $ua );
 }
 
+/** The value for the visitor's language from array( 'th' => …, 'en' => … ), else the English one, else $fallback (a key that is set counts, even when empty). */
+function mcupr_pick_lang( array $by_lang, $fallback = '' ) {
+	$lang = mcupr_ui_lang();
+	if ( isset( $by_lang[ $lang ] ) ) {
+		return $by_lang[ $lang ];
+	}
+	return isset( $by_lang['en'] ) ? $by_lang['en'] : $fallback;
+}
+
 /** setcookie() for every PHP version the theme supports (7.0 – 7.2 have no options array): first-party, SameSite=Lax, path / unless one is given. */
 function mcupr_set_cookie( $name, $value, $expires, $httponly = true, $path = '/' ) {
 	if ( headers_sent() ) {

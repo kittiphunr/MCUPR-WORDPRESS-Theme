@@ -166,9 +166,7 @@ function mcupr_ev_names() {
 }
 
 function mcupr_ev_n( $key ) {
-	$all  = mcupr_ev_names();
-	$lang = mcupr_ui_lang();
-	return isset( $all[ $lang ] ) ? $all[ $lang ][ $key ] : $all['en'][ $key ];
+	return mcupr_pick_lang( mcupr_ev_names() )[ $key ];
 }
 
 /** "ตุลาคม 2569" / "October 2026" / "2026年10月". */

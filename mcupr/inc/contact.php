@@ -31,20 +31,16 @@ function mcupr_contact_defaults() {
 
 /** Current-language contact details (Customizer values, else the defaults). */
 function mcupr_contact() {
-	$d    = mcupr_contact_defaults();
-	$lang = mcupr_ui_lang();
-	$pick = static function ( $row ) use ( $lang ) {
-		return isset( $row[ $lang ] ) ? $row[ $lang ] : ( isset( $row['en'] ) ? $row['en'] : '' );
-	};
+	$d     = mcupr_contact_defaults();
 	$addr  = (string) mcupr_text_mod( 'mcupr_address' );
 	$tel   = (string) get_theme_mod( 'mcupr_org_tel', '' );
 	$hours = (string) mcupr_text_mod( 'mcupr_hours' );
 	$map   = trim( (string) get_theme_mod( 'mcupr_map_query', '' ) );
 	return array(
-		'address' => '' !== trim( $addr ) ? $addr : $pick( $d['address'] ),
+		'address' => '' !== trim( $addr ) ? $addr : mcupr_pick_lang( (array) $d['address'] ),
 		'tel'     => '' !== trim( $tel ) ? $tel : $d['tel'],
 		'email'   => (string) get_theme_mod( 'mcupr_org_email', '' ),
-		'hours'   => '' !== trim( $hours ) ? $hours : $pick( $d['hours'] ),
+		'hours'   => '' !== trim( $hours ) ? $hours : mcupr_pick_lang( (array) $d['hours'] ),
 		'map_q'   => '' !== $map ? $map : $d['map'],
 		'map_on'  => (bool) get_theme_mod( 'mcupr_map_on', true ),
 	);
