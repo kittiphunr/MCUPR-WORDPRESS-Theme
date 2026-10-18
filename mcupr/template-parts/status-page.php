@@ -16,10 +16,9 @@ $mcupr_pre  = mcupr_welcome_presets();
 if ( 'welcome' === $mcupr_kind ) {
 	$mcupr_w   = $mcupr_s['welcome'];
 	$mcupr_pr  = isset( $mcupr_pre[ $mcupr_w['preset'] ] ) ? $mcupr_pre[ $mcupr_w['preset'] ] : $mcupr_pre['custom'];
-	$mcupr_pth = 'th' === $mcupr_lang;
-	$mcupr_h1  = mcupr_status_text( $mcupr_w['title'], $mcupr_pth ? $mcupr_pr[3] : $mcupr_pr[5] );
+	$mcupr_h1  = mcupr_status_text( $mcupr_w['title'], mcupr_welcome_preset_text( $mcupr_pr, 'title' ) );
 	$mcupr_h1  = '' !== $mcupr_h1 ? $mcupr_h1 : $mcupr_name;
-	$mcupr_msg = mcupr_status_text( $mcupr_w['msg'], $mcupr_pth ? $mcupr_pr[4] : $mcupr_pr[6] );
+	$mcupr_msg = mcupr_status_text( $mcupr_w['msg'], mcupr_welcome_preset_text( $mcupr_pr, 'msg' ) );
 	$mcupr_btn = mcupr_status_text( $mcupr_w['btn'], mcupr_t( 'ws_enter' ) );
 	$mcupr_c1  = $mcupr_pr[1];
 	$mcupr_c2  = $mcupr_pr[2];
@@ -27,8 +26,8 @@ if ( 'welcome' === $mcupr_kind ) {
 	$mcupr_go  = add_query_arg( 'mcupr_enter', '1', home_url( '/' ) );
 	if ( ! empty( $GLOBALS['mcupr_status_sample'] ) && isset( $mcupr_pre[ $GLOBALS['mcupr_status_sample'] ] ) ) { // a sample: the preset's own text, no picture, the button just goes home
 		$mcupr_pr  = $mcupr_pre[ $GLOBALS['mcupr_status_sample'] ];
-		$mcupr_h1  = $mcupr_pth ? $mcupr_pr[3] : $mcupr_pr[5];
-		$mcupr_msg = $mcupr_pth ? $mcupr_pr[4] : $mcupr_pr[6];
+		$mcupr_h1  = mcupr_welcome_preset_text( $mcupr_pr, 'title' );
+		$mcupr_msg = mcupr_welcome_preset_text( $mcupr_pr, 'msg' );
 		$mcupr_btn = mcupr_t( 'ws_enter' );
 		$mcupr_c1  = $mcupr_pr[1];
 		$mcupr_c2  = $mcupr_pr[2];
@@ -79,7 +78,7 @@ $mcupr_style = '--s1:' . $mcupr_c1 . ';--s2:' . $mcupr_c2 . ( $mcupr_img ? ';--s
 	<?php else : ?>
 		<div class="status-bar" aria-hidden="true"><i></i></div>
 		<?php if ( $mcupr_ts ) : ?>
-			<p class="status-back"><?php mcupr_e( 'mt_back' ); ?>: <b><?php echo esc_html( wp_date( 'j F Y H:i', $mcupr_ts ) ); ?></b></p>
+			<p class="status-back"><?php mcupr_e( 'mt_back' ); ?>: <b><?php echo esc_html( mcupr_date_fmt( 'j F Y H:i', $mcupr_ts ) ); ?></b></p>
 			<?php if ( $mcupr_ts > time() ) : ?>
 				<ul class="status-cd" aria-hidden="true" data-ts="<?php echo (int) $mcupr_ts; ?>">
 					<li><b data-u="d">0</b><span><?php mcupr_e( 'mt_d' ); ?></span></li>

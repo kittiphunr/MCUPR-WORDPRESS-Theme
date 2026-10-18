@@ -35,17 +35,33 @@ function mcupr_status() {
 	return $s;
 }
 
-/** Occasion presets: colours (all dark enough for white text) and a starting text in Thai and English. */
+/**
+ * Occasion presets: colours (all dark enough for white text) and a starting text in four languages:
+ * 0 name, 1-2 colours, 3-4 Thai title / message, 5-6 English, 7-8 Chinese, 9-10 Japanese.
+ */
 function mcupr_welcome_presets() {
 	return array(
-		'custom'      => array( __( 'My own', 'mcupr' ), '#1e293b', '#334155', '', '' , '', '' ),
-		'royal'       => array( __( 'Royal occasion (birthday, anniversary)', 'mcupr' ), '#0b1d4d', '#1c3a8a', 'ขอเดชะ ขอถวายพระพรชัยมงคล', 'ด้วยเกล้าด้วยกระหม่อม ขอพระองค์ทรงพระเจริญ [ระบุพระนามและวโรกาส]', 'Long may [name] live', 'On the auspicious occasion of [occasion].' ),
-		'newyear'     => array( __( 'New Year', 'mcupr' ), '#1f1147', '#6a1b9a', 'สวัสดีปีใหม่', 'ขอให้ทุกท่านมีความสุข สุขภาพแข็งแรง ตลอดปีใหม่นี้', 'Happy New Year', 'Wishing you good health and happiness throughout the year.' ),
-		'songkran'    => array( __( 'Songkran', 'mcupr' ), '#043b6b', '#0369a1', 'สุขสันต์วันสงกรานต์', 'ขอให้ทุกท่านมีความสุข เดินทางปลอดภัย', 'Happy Songkran', 'Wishing you joy and a safe journey.' ),
-		'anniversary' => array( __( 'University anniversary', 'mcupr' ), '#3b0a1e', '#9f1239', 'ครบรอบวันก่อตั้ง', 'ร่วมเฉลิมฉลองวันคล้ายวันก่อตั้ง [ระบุปีที่ครบรอบ]', 'Founding anniversary', 'Join us in celebrating our anniversary.' ),
-		'graduation'  => array( __( 'Graduation', 'mcupr' ), '#3a2a05', '#92400e', 'ขอแสดงความยินดีกับบัณฑิตใหม่', 'ขอแสดงความยินดีกับบัณฑิตทุกท่าน', 'Congratulations, graduates', 'Warmest congratulations to all our graduates.' ),
-		'mourning'    => array( __( 'Mourning', 'mcupr' ), '#000000', '#262626', 'ร่วมน้อมแสดงความอาลัย', 'ขอน้อมแสดงความอาลัยต่อการสูญเสียครั้งนี้ [ระบุรายละเอียด]', 'In mourning', 'We express our deepest condolences.' ),
+		'custom'      => array( __( 'My own', 'mcupr' ), '#1e293b', '#334155', '', '', '', '', '', '', '', '' ),
+		'royal'       => array( __( 'Royal occasion (birthday, anniversary)', 'mcupr' ), '#0b1d4d', '#1c3a8a', 'ขอเดชะ ขอถวายพระพรชัยมงคล', 'ด้วยเกล้าด้วยกระหม่อม ขอพระองค์ทรงพระเจริญ [ระบุพระนามและวโรกาส]', 'Long may [name] live', 'On the auspicious occasion of [occasion].', '恭祝[尊号]万寿无疆', '值此[庆典]吉庆之际，谨致最崇高的敬意与祝福。', '[御名]の弥栄をお祈り申し上げます', '[記念日]の佳き日にあたり、謹んでお祝い申し上げます。' ),
+		'newyear'     => array( __( 'New Year', 'mcupr' ), '#1f1147', '#6a1b9a', 'สวัสดีปีใหม่', 'ขอให้ทุกท่านมีความสุข สุขภาพแข็งแรง ตลอดปีใหม่นี้', 'Happy New Year', 'Wishing you good health and happiness throughout the year.', '新年快乐', '祝愿大家在新的一年里身体健康、幸福快乐。', '新年あけましておめでとうございます', '皆さまにとって健康で幸せな一年となりますよう、心よりお祈り申し上げます。' ),
+		'songkran'    => array( __( 'Songkran', 'mcupr' ), '#043b6b', '#0369a1', 'สุขสันต์วันสงกรานต์', 'ขอให้ทุกท่านมีความสุข เดินทางปลอดภัย', 'Happy Songkran', 'Wishing you joy and a safe journey.', '宋干节快乐', '祝大家节日快乐，旅途平安。', 'ソンクラーンおめでとうございます', '皆さまが楽しく、安全に休暇を過ごされますように。' ),
+		'anniversary' => array( __( 'University anniversary', 'mcupr' ), '#3b0a1e', '#9f1239', 'ครบรอบวันก่อตั้ง', 'ร่วมเฉลิมฉลองวันคล้ายวันก่อตั้ง [ระบุปีที่ครบรอบ]', 'Founding anniversary', 'Join us in celebrating our anniversary.', '建校纪念日', '诚邀您与我们共同庆祝建校纪念日。', '創立記念日', '創立記念日を皆さまとともにお祝いいたします。' ),
+		'graduation'  => array( __( 'Graduation', 'mcupr' ), '#3a2a05', '#92400e', 'ขอแสดงความยินดีกับบัณฑิตใหม่', 'ขอแสดงความยินดีกับบัณฑิตทุกท่าน', 'Congratulations, graduates', 'Warmest congratulations to all our graduates.', '恭喜各位毕业生', '向全体毕业生致以最热烈的祝贺。', 'ご卒業おめでとうございます', '卒業生の皆さまに心よりお祝い申し上げます。' ),
+		'mourning'    => array( __( 'Mourning', 'mcupr' ), '#000000', '#262626', 'ร่วมน้อมแสดงความอาลัย', 'ขอน้อมแสดงความอาลัยต่อการสูญเสียครั้งนี้ [ระบุรายละเอียด]', 'In mourning', 'We express our deepest condolences.', '沉痛哀悼', '谨此致以最深切的哀悼。', '謹んで哀悼の意を表します', '心よりお悔やみ申し上げます。' ),
 	);
+}
+
+/** A preset's starting title ('title') or message ('msg') in the visitor's language (or $lang), else English, else Thai. */
+function mcupr_welcome_preset_text( $preset, $what, $lang = '' ) {
+	$cols = array( 'th' => array( 3, 4 ), 'en' => array( 5, 6 ), 'zh' => array( 7, 8 ), 'ja' => array( 9, 10 ) );
+	$i    = 'msg' === $what ? 1 : 0;
+	$lang = '' !== $lang ? $lang : mcupr_ui_lang();
+	foreach ( array( $lang, 'en', 'th' ) as $l ) {
+		if ( isset( $cols[ $l ] ) && isset( $preset[ $cols[ $l ][ $i ] ] ) && '' !== $preset[ $cols[ $l ][ $i ] ] ) {
+			return $preset[ $cols[ $l ][ $i ] ];
+		}
+	}
+	return '';
 }
 
 function mcupr_status_today() {
@@ -57,7 +73,7 @@ function mcupr_status_in_dates( $from, $to ) {
 	return ( '' === $from || $t >= $from ) && ( '' === $to || $t <= $to );
 }
 
-/** The text of a per-language field in the visitor's language, else Thai, else English. */
+/** The text of a per-language field in the visitor's language, else English, else Thai. */
 function mcupr_status_text( $arr, $fallback = '' ) {
 	$arr = is_array( $arr ) ? $arr : array();
 	foreach ( array( mcupr_ui_lang(), 'en', 'th' ) as $l ) { // zh / ja visitors read English before Thai
