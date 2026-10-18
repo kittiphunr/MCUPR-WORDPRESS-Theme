@@ -65,6 +65,17 @@ function mcupr_csv_escape() {
 	return "\0";
 }
 
+/** A CSV value that a spreadsheet will not run as a formula: a leading = + - @ tab or CR gets a ' in front. Unquoted (for fputcsv). */
+function mcupr_csv_safe( $s ) {
+	$s = (string) $s;
+	return '' !== $s && in_array( $s[0], array( '=', '+', '-', '@', "\t", "\r" ), true ) ? "'" . $s : $s;
+}
+
+/** One quoted CSV cell that Excel will not run as a formula. */
+function mcupr_csv_cell( $s ) {
+	return '"' . str_replace( '"', '""', mcupr_csv_safe( $s ) ) . '"';
+}
+
 /** The visitor's network for rate limits: the address, with an IPv6 address cut to its /64 (one household or one rented block has a whole /64 to rotate in). */
 function mcupr_client_net() {
 	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
