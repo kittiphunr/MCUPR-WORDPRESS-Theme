@@ -419,7 +419,7 @@ add_action(
 	'admin_bar_menu',
 	static function ( $bar ) {
 		if ( ! empty( mcupr_status()['maint']['on'] ) ) {
-			$bar->add_node( array( 'id' => 'mcupr-maint', 'title' => '🔧 ' . esc_html__( 'Maintenance mode is ON', 'mcupr' ), 'href' => admin_url( 'admin.php?page=mcupr-status' ) ) );
+			$bar->add_node( array( 'id' => 'mcupr-maint', 'title' => mcupr_feather_i( 'tool', 16 ) . ' ' . esc_html__( 'Maintenance mode is ON', 'mcupr' ), 'href' => admin_url( 'admin.php?page=mcupr-status' ), 'meta' => array( 'class' => 'cc-maint' ) ) );
 		}
 	},
 	100
