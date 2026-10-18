@@ -23,11 +23,6 @@ function mcupr_views( $post_id = 0 ) {
 	return (int) get_post_meta( $post_id, '_mcupr_views', true );
 }
 
-function mcupr_is_bot() {
-	$ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? (string) wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-	return '' === $ua || (bool) preg_match( '/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|lighthouse|pagespeed|headless|preview|monitor|curl|wget|python-requests/i', $ua );
-}
-
 /** Count one view of a singular page: not for editors, bots, prefetch, or the same visitor again within 6 hours. */
 function mcupr_count_view() {
 	if ( ! is_singular( mcupr_tool_types() ) || is_preview() || mcupr_is_bot() ) {
