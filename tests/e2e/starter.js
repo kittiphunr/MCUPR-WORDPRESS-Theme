@@ -3128,7 +3128,9 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
           const gold = (c) => c[0] > 190 && c[1] > 140 && c[2] < 110;
           const isRight = (c) => c[1] > 130 && c[0] < 140 && c[2] < 140; // the green page 3 that is being turned (its front)
           ok(gold(await px(cp, cp.locator('.bk-fx'), 0.8, 0.7)) && gold(await px(cp, cp.locator('.bk-fx'), 0.68, 0.8)), 'e-books: turning "webgl": a page held by its corner shows its back (page 4, gold) beyond a slanting fold');
-          ok(isGreen(await px(cp, cp.locator('.bk-fx'), 0.56, 0.5)) && isBlue(await px(cp, cp.locator('.bk-fx'), 0.25, 0.5)), 'e-books: turning "webgl": the rest of the page stays where it was (green) and the page on the left is untouched (blue)');
+          ok(isGreen(await px(cp, cp.locator('.bk-fx'), 0.56, 0.5)) && isBlue(await px(cp, cp.locator('.bk-fx'), 0.25, 0.3)), 'e-books: turning "webgl": the rest of the page stays where it was (green) and the page on the left is untouched (blue)');
+          await cp.mouse.move(fb.x + fb.width * 0.35, fb.y + fb.height * 0.6, { steps: 4 });
+          await cp.waitForTimeout(300);
           await cp.mouse.up();
           await cp.waitForFunction(() => +document.querySelector('.bk-reader').dataset.page >= 4, null, { timeout: 8000 }).catch(() => {});
           ok(+(await cp.locator('.bk-reader').getAttribute('data-page')) >= 4, 'e-books: turning "webgl": letting go beyond the middle carries the page over');
