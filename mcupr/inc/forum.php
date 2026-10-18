@@ -139,7 +139,10 @@ function mcupr_forum_page_url() {
 		}
 		update_option( 'mcupr_forum_page', $id, false );
 	}
-	return $id ? get_permalink( $id ) : home_url( '/forum/' );
+	if ( $id ) {
+		return get_permalink( $id );
+	}
+	return home_url( mcupr_plain_mode() ? '/' : '/forum/' ); // Plain permalinks have no /forum/ address: the home page rather than a 404
 }
 
 /* ================================================================== a topic's facts */
