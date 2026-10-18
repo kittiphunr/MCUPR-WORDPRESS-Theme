@@ -515,7 +515,7 @@ function mcupr_ics_back( $msg ) {
 add_action(
 	'admin_post_mcupr_ics_upload',
 	static function () {
-		if ( ! current_user_can( 'edit_pages' ) || ! isset( $_POST['mcupr_ics_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_ics_nonce'] ) ), 'mcupr_ics_upload' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_ics_nonce', 'mcupr_ics_upload', 'edit_pages' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$f = isset( $_FILES['ics'] ) ? $_FILES['ics'] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
@@ -531,7 +531,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_ics_feed',
 	static function () {
-		if ( ! current_user_can( 'edit_pages' ) || ! isset( $_POST['mcupr_ics_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_ics_nonce'] ) ), 'mcupr_ics_feed' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_ics_nonce', 'mcupr_ics_feed', 'edit_pages' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$do    = isset( $_POST['do'] ) ? sanitize_key( wp_unslash( $_POST['do'] ) ) : '';
@@ -586,7 +586,7 @@ function mcupr_ics_lock_box( $post ) {
 add_action(
 	'save_post_mcupr_event',
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_ics_lock_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_ics_lock_nonce'] ) ), 'mcupr_ics_lock' ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! mcupr_check_request( 'mcupr_ics_lock_nonce', 'mcupr_ics_lock' ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
 		if ( ! empty( $_POST['mcupr_ics_lock'] ) ) {

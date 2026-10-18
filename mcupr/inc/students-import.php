@@ -525,7 +525,7 @@ function mcupr_si_start() {
 add_action(
 	'admin_post_mcupr_si_upload',
 	static function () {
-		if ( ! current_user_can( MCUPR_STU_CAP ) || ! isset( $_POST['mcupr_si_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_si_nonce'] ) ), 'mcupr_si_upload' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_si_nonce', 'mcupr_si_upload', MCUPR_STU_CAP ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$text = '';
@@ -688,7 +688,7 @@ add_action(
 	'admin_post_mcupr_si_start',
 	static function () {
 		$token = isset( $_POST['t'] ) ? sanitize_key( wp_unslash( $_POST['t'] ) ) : '';
-		if ( ! current_user_can( MCUPR_STU_CAP ) || ! $token || ! isset( $_POST['mcupr_si_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_si_nonce'] ) ), 'mcupr_si_start' . $token ) ) {
+		if ( ! current_user_can( MCUPR_STU_CAP ) || ! $token || ! mcupr_check_request( 'mcupr_si_nonce', 'mcupr_si_start' . $token ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$d = mcupr_si_load( $token );

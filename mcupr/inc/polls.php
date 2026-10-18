@@ -109,7 +109,7 @@ function mcupr_poll_results_box( $post ) {
 add_action(
 	'save_post_mcupr_poll',
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_poll_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_poll_nonce'] ) ), 'mcupr_poll_save' ) || ! current_user_can( 'edit_post', $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
+		if ( ! mcupr_can_save_box( $post_id, 'mcupr_poll_nonce', 'mcupr_poll_save' ) ) {
 			return;
 		}
 		$in   = isset( $_POST['mcupr_poll'] ) && is_array( $_POST['mcupr_poll'] ) ? wp_unslash( $_POST['mcupr_poll'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
@@ -202,7 +202,7 @@ function mcupr_poll_vote( $id, $choices, $data = array(), $now = 0 ) {
 function mcupr_poll_handler() {
 	$id   = isset( $_POST['poll'] ) ? (int) $_POST['poll'] : 0; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 	$back = isset( $_POST['back'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_POST['back'] ) ), home_url( '/' ) ) : home_url( '/' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-	if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'mcupr_poll' ) ) {
+	if ( ! mcupr_check_request( '_wpnonce', 'mcupr_poll' ) ) {
 		$r = 'spam';
 	} else {
 		$ch = isset( $_POST['choice'] ) ? (array) wp_unslash( $_POST['choice'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput

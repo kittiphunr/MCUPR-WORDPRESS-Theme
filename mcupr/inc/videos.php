@@ -186,7 +186,7 @@ function mcupr_video_fetch_cover( $post_id, $v ) {
 add_action(
 	'save_post',
 	static function ( $post_id, $post ) {
-		if ( ! in_array( $post->post_type, array( 'mcupr_video', 'post' ), true ) || ! isset( $_POST['mcupr_video_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_video_nonce'] ) ), 'mcupr_video_save' ) || ! current_user_can( 'edit_post', $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
+		if ( ! in_array( $post->post_type, array( 'mcupr_video', 'post' ), true ) || ! mcupr_can_save_box( $post_id, 'mcupr_video_nonce', 'mcupr_video_save' ) ) {
 			return;
 		}
 		$url = isset( $_POST['mcupr_video_url'] ) ? esc_url_raw( trim( wp_unslash( $_POST['mcupr_video_url'] ) ), array( 'http', 'https' ) ) : '';

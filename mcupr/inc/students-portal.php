@@ -257,7 +257,7 @@ foreach ( array( 'admin_post_nopriv_mcupr_stu_login', 'admin_post_mcupr_stu_logi
 	add_action(
 		$mcupr_h,
 		static function () {
-			if ( ! isset( $_POST['mcupr_stu_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_stu_nonce'] ) ), 'mcupr_stu_login' ) ) {
+			if ( ! mcupr_check_request( 'mcupr_stu_nonce', 'mcupr_stu_login' ) ) {
 				wp_safe_redirect( mcupr_student_portal_url( array( 'e' => 'login' ) ) );
 				exit;
 			}
@@ -302,7 +302,7 @@ foreach ( array( 'admin_post_nopriv_mcupr_stu_forgot', 'admin_post_mcupr_stu_for
 		$mcupr_h,
 		static function () {
 			$back = mcupr_student_portal_url( array( 'sent' => 1 ) );
-			if ( ! isset( $_POST['mcupr_stu_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_stu_nonce'] ) ), 'mcupr_stu_forgot' ) || ! mcupr_stu_opts()['portal'] ) {
+			if ( ! mcupr_check_request( 'mcupr_stu_nonce', 'mcupr_stu_forgot' ) || ! mcupr_stu_opts()['portal'] ) {
 				wp_safe_redirect( $back );
 				exit;
 			}
@@ -327,7 +327,7 @@ add_action(
 	'admin_post_mcupr_stu_pw',
 	static function () {
 		$to = mcupr_student_portal_url();
-		if ( ! is_user_logged_in() || ! isset( $_POST['mcupr_stu_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_stu_nonce'] ) ), 'mcupr_stu_pw' ) ) {
+		if ( ! is_user_logged_in() || ! mcupr_check_request( 'mcupr_stu_nonce', 'mcupr_stu_pw' ) ) {
 			wp_safe_redirect( $to );
 			exit;
 		}
@@ -430,7 +430,7 @@ function mcupr_stu_settings_page() {
 add_action(
 	'admin_post_mcupr_stu_settings',
 	static function () {
-		if ( ! current_user_can( MCUPR_STU_CAP ) || ! isset( $_POST['mcupr_stu_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_stu_nonce'] ) ), 'mcupr_stu_settings' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_stu_nonce', 'mcupr_stu_settings', MCUPR_STU_CAP ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		update_option(
