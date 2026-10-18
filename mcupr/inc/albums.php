@@ -88,7 +88,7 @@ function mcupr_album_box( $post ) {
 add_action(
 	'save_post_mcupr_album',
 	static function ( $post_id ) {
-		if ( ! isset( $_POST['mcupr_album_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_album_nonce'] ) ), 'mcupr_album_save' ) || ! current_user_can( 'edit_post', $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
+		if ( ! mcupr_can_save_box( $post_id, 'mcupr_album_nonce', 'mcupr_album_save' ) ) {
 			return;
 		}
 		$ids = isset( $_POST['mcupr_album'] ) && is_array( $_POST['mcupr_album'] ) ? array_map( 'absint', wp_unslash( $_POST['mcupr_album'] ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput

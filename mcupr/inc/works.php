@@ -104,10 +104,7 @@ function mcupr_work_box( $post ) {
 }
 
 function mcupr_work_save( $post_id ) {
-	if ( ! isset( $_POST['mcupr_work_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_work_nonce'] ) ), 'mcupr_work_save' ) ) {
-		return;
-	}
-	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) ) {
+	if ( ! mcupr_can_save_box( $post_id, 'mcupr_work_nonce', 'mcupr_work_save' ) ) {
 		return;
 	}
 	$in   = isset( $_POST['mcupr_work'] ) && is_array( $_POST['mcupr_work'] ) ? wp_unslash( $_POST['mcupr_work'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput

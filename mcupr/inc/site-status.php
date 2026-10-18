@@ -181,7 +181,7 @@ function mcupr_status_page() {
 add_action(
 	'admin_post_mcupr_status_save',
 	static function () {
-		if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['mcupr_status_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_status_nonce'] ) ), 'mcupr_status_save' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_status_nonce', 'mcupr_status_save', 'manage_options' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$p = wp_unslash( $_POST ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
