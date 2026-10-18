@@ -87,10 +87,14 @@ function mcupr_book_styles() {
 	);
 }
 
-/** The settings with their defaults: style, custom (attachment id of the picture), view (shelf|grid), sound (1/0), download (1/0). */
+/**
+ * The settings with their defaults: style, custom (attachment id of the picture), view (shelf|grid), sound (1/0), download (1/0), fx (how the pages turn),
+ * fx_set (1 once an admin has saved the settings: until then WebGL is used and the admin is asked to choose).
+ */
 function mcupr_books_opts() {
-	$o = get_option( 'mcupr_books_opts', array() );
-	$o = array_merge( array( 'style' => 'wood', 'custom' => 0, 'view' => 'shelf', 'sound' => 1, 'download' => 1, 'fx' => 'css3d', 'mode' => 'embed', 'bg' => '#1f2430' ), is_array( $o ) ? $o : array() );
+	$raw = get_option( 'mcupr_books_opts', array() );
+	$raw = is_array( $raw ) ? $raw : array();
+	$o   = array_merge( array( 'style' => 'wood', 'custom' => 0, 'view' => 'shelf', 'sound' => 1, 'download' => 1, 'fx' => 'webgl', 'mode' => 'embed', 'bg' => '#1f2430' ), $raw );
 	return array(
 		'style'    => isset( mcupr_book_styles()[ $o['style'] ] ) ? $o['style'] : 'wood',
 		'custom'   => (int) $o['custom'],
@@ -98,9 +102,16 @@ function mcupr_books_opts() {
 		'sound'    => ! empty( $o['sound'] ) ? 1 : 0,
 		'download' => ! empty( $o['download'] ) ? 1 : 0,
 		'fx'       => isset( mcupr_book_fx_list()[ $o['fx'] ] ) ? $o['fx'] : 'css3d',
+		'fx_set'   => isset( $raw['fx'] ) ? 1 : 0,
 		'mode'     => 'lightbox' === $o['mode'] ? 'lightbox' : 'embed',
 		'bg'       => preg_match( '/^#[0-9a-f]{6}$/i', (string) $o['bg'] ) ? $o['bg'] : '#1f2430',
 	);
+}
+
+/** How the pages of one book turn: its own choice, else the setting of the site (visitors cannot change it). */
+function mcupr_book_fx( $id ) {
+	$own = (string) get_post_meta( (int) $id, '_mcupr_bk_fx', true );
+	return isset( mcupr_book_fx_list()[ $own ] ) ? $own : mcupr_books_opts()['fx'];
 }
 
 /** How the pages turn (key => label): CSS 3D is the lightest; WebGL bends the page with light and shadow; Classic is the page-flip library. */
@@ -148,13 +159,32 @@ function mcupr_books_settings_page() {
 	foreach ( mcupr_book_fx_list() as $k => $l ) {
 		echo '<label style="display:block;margin:0 0 .35rem"><input type="radio" name="fx" value="' . esc_attr( $k ) . '"' . checked( $o['fx'], $k, false ) . '> ' . esc_html( $l ) . '</label>';
 	}
-	echo '</fieldset><p class="description">' . esc_html__( 'The reader has a button to change this for the visitor (the choice is remembered). WebGL falls back to CSS 3D when the device cannot do it. People who asked their device for less motion get no turning animation.', 'mcupr' ) . '</p></td></tr>';
+	echo '</fieldset><p class="description">' . esc_html__( 'This is the choice for the whole site; visitors cannot change it, and each e-book can have its own on its edit screen. WebGL falls back to CSS 3D when the device cannot do it. People who asked their device for less motion get no turning animation.', 'mcupr' ) . '</p></td></tr>';
 	echo '<tr><th scope="row">' . esc_html__( 'Page-turn sound', 'mcupr' ) . '</th><td><label><input type="checkbox" name="sound" value="1"' . checked( $o['sound'], 1, false ) . '> ' . esc_html__( 'On at first (the reader has a button to switch it off, and the choice is remembered)', 'mcupr' ) . '</label></td></tr>';
 	echo '<tr><th scope="row">' . esc_html__( 'Download button', 'mcupr' ) . '</th><td><label><input type="checkbox" name="download" value="1"' . checked( $o['download'], 1, false ) . '> ' . esc_html__( 'Show “Download” in the reader (each e-book can turn it off)', 'mcupr' ) . '</label></td></tr>';
 	echo '</tbody></table><p><button class="button button-primary">' . esc_html__( 'Save', 'mcupr' ) . '</button></p></form>';
 	echo '<script>(function(){var f=null,id=document.getElementById("mcupr-shelf-img"),pv=document.getElementById("mcupr-shelf-prev");document.getElementById("mcupr-shelf-pick").addEventListener("click",function(){if(!window.wp||!wp.media){return;}if(!f){f=wp.media({title:' . wp_json_encode( __( 'Choose a picture', 'mcupr' ) ) . ',multiple:false,library:{type:"image"}});f.on("select",function(){var a=f.state().get("selection").first().toJSON();id.value=a.id;pv.src=(a.sizes&&a.sizes.medium?a.sizes.medium.url:a.url);pv.style.display="";});}f.open();});document.getElementById("mcupr-shelf-clear").addEventListener("click",function(){id.value="0";pv.style.display="none";});})();</script>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	echo '<style>' . mcupr_book_shelf_css( true ) . '</style></div>';
 }
+
+/** Until an admin has saved the e-book settings the pages turn with WebGL: ask them to choose. */
+add_action(
+	'admin_notices',
+	static function () {
+		if ( ! current_user_can( 'manage_options' ) || mcupr_books_opts()['fx_set'] ) {
+			return;
+		}
+		$sc = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $sc || ( 'dashboard' !== $sc->id && false === strpos( (string) $sc->id, 'mcupr-books' ) && MCUPR_BOOK !== $sc->post_type ) ) {
+			return;
+		}
+		if ( false !== strpos( (string) $sc->id, 'mcupr-books' ) ) {
+			echo '<div class="notice notice-info"><p><strong>' . esc_html__( 'E-books: choose how the pages turn', 'mcupr' ) . '</strong> – ' . esc_html__( 'Until you save this page, the books use WebGL (the most realistic).', 'mcupr' ) . '</p></div>';
+			return;
+		}
+		echo '<div class="notice notice-info"><p><strong>' . esc_html__( 'E-books: choose how the pages turn', 'mcupr' ) . '</strong> – ' . esc_html__( 'Until you choose, the books use WebGL (the most realistic).', 'mcupr' ) . ' <a href="' . esc_url( admin_url( 'admin.php?page=mcupr-books' ) ) . '">' . esc_html__( 'Choose now', 'mcupr' ) . '</a></p></div>';
+	}
+);
 
 add_action(
 	'admin_post_mcupr_books_settings',
@@ -489,6 +519,7 @@ function mcupr_book_box( $post ) {
 	$epub = mcupr_book_epub_id( $post->ID );
 	$dl   = get_post_meta( $post->ID, '_mcupr_bk_dl', true );
 	$dl   = '' === $dl ? 1 : (int) $dl;
+	$bfx  = (string) get_post_meta( $post->ID, '_mcupr_bk_fx', true );
 	echo '<p class="description" style="max-width:52rem">' . esc_html__( 'Choose where the pages come from. The reader turns the pages like a real book, with a page-turn sound the visitor can switch off.', 'mcupr' ) . '</p>';
 	echo '<fieldset style="margin:.5rem 0 1rem"><legend class="screen-reader-text">' . esc_html__( 'Pages from', 'mcupr' ) . '</legend>';
 	echo '<label style="margin-right:1.5rem"><input type="radio" name="mcupr_bk_src" value="pdf"' . checked( $src, 'pdf', false ) . '> <strong>' . esc_html__( 'A PDF file', 'mcupr' ) . '</strong></label>';
@@ -518,6 +549,11 @@ function mcupr_book_box( $post ) {
 	echo '<tr><th scope="row"><label for="mcupr-bk-color">' . esc_html__( 'Colour of the cover when there is no picture', 'mcupr' ) . '</label></th><td><input type="color" id="mcupr-bk-color" name="mcupr_bk_color" value="' . esc_attr( mcupr_book_color( $post->ID ) ) . '"></td></tr>';
 	$bm = (string) get_post_meta( $post->ID, '_mcupr_bk_mode', true );
 	echo '<tr><th scope="row"><label for="mcupr-bk-mode">' . esc_html__( 'When placed in a page', 'mcupr' ) . '</label></th><td><select name="mcupr_bk_mode" id="mcupr-bk-mode"><option value="">' . esc_html__( 'Same as the settings', 'mcupr' ) . '</option><option value="embed"' . selected( $bm, 'embed', false ) . '>' . esc_html__( 'Inside the page (embedded)', 'mcupr' ) . '</option><option value="lightbox"' . selected( $bm, 'lightbox', false ) . '>' . esc_html__( 'In a full-screen window (lightbox)', 'mcupr' ) . '</option></select></td></tr>';
+	echo '<tr><th scope="row"><label for="mcupr-bk-fx">' . esc_html__( 'How the pages turn', 'mcupr' ) . '</label></th><td><select name="mcupr_bk_fx" id="mcupr-bk-fx"><option value="">' . esc_html__( 'Same as the settings', 'mcupr' ) . ' (' . esc_html( mcupr_book_fx_list()[ mcupr_books_opts()['fx'] ] ) . ')</option>';
+	foreach ( mcupr_book_fx_list() as $fk => $fl ) {
+		echo '<option value="' . esc_attr( $fk ) . '"' . selected( $bfx, $fk, false ) . '>' . esc_html( $fl ) . '</option>';
+	}
+	echo '</select><p class="description">' . esc_html__( 'Visitors cannot change this; WebGL falls back to CSS 3D on a device that cannot do it.', 'mcupr' ) . '</p></td></tr>';
 	echo '<tr><th scope="row">' . esc_html__( 'Download', 'mcupr' ) . '</th><td><label><input type="checkbox" name="mcupr_bk_dl" value="1"' . checked( $dl, 1, false ) . '> ' . esc_html__( 'Readers can download the file (needs the setting “Download button” to be on)', 'mcupr' ) . '</label><p class="description">' . esc_html__( 'Anything shown on a web page can be saved by a determined reader; this only hides the button.', 'mcupr' ) . '</p></td></tr>';
 	echo '</tbody></table>';
 }
@@ -567,6 +603,8 @@ add_action(
 		$col = isset( $_POST['mcupr_bk_color'] ) ? sanitize_text_field( wp_unslash( $_POST['mcupr_bk_color'] ) ) : '';
 		preg_match( '/^#[0-9a-f]{6}$/i', $col ) ? update_post_meta( $post_id, '_mcupr_bk_color', $col ) : delete_post_meta( $post_id, '_mcupr_bk_color' );
 		update_post_meta( $post_id, '_mcupr_bk_dl', ! empty( $_POST['mcupr_bk_dl'] ) ? 1 : 0 );
+		$bf = isset( $_POST['mcupr_bk_fx'] ) ? sanitize_key( wp_unslash( $_POST['mcupr_bk_fx'] ) ) : '';
+		isset( mcupr_book_fx_list()[ $bf ] ) ? update_post_meta( $post_id, '_mcupr_bk_fx', $bf ) : delete_post_meta( $post_id, '_mcupr_bk_fx' );
 		$bm = isset( $_POST['mcupr_bk_mode'] ) ? sanitize_key( wp_unslash( $_POST['mcupr_bk_mode'] ) ) : '';
 		in_array( $bm, array( 'embed', 'lightbox' ), true ) ? update_post_meta( $post_id, '_mcupr_bk_mode', $bm ) : delete_post_meta( $post_id, '_mcupr_bk_mode' );
 	}
@@ -711,7 +749,7 @@ function mcupr_book_stream( $real, $mime ) {
 
 /** The words the reader's script needs, in the language of the page. */
 function mcupr_book_labels() {
-	$k = array( 'bk_prev', 'bk_next', 'bk_page', 'bk_of', 'bk_sound_on', 'bk_sound_off', 'bk_thumbs', 'bk_fullscreen', 'bk_exit_fs', 'bk_download', 'bk_share', 'bk_loading', 'bk_error', 'bk_copied', 'bk_cover', 'bk_back_cover', 'bk_goto', 'bk_close', 'bk_text', 'bk_spread', 'bk_keys', 'bk_first', 'bk_last', 'bk_zoom_in', 'bk_zoom_out', 'bk_print', 'bk_autoplay', 'bk_autoplay_off', 'bk_pages', 'bk_contents', 'bk_open', 'bk_panel', 'bk_toolbar', 'bk_zoom_reset', 'bk_fx', 'bk_fx_css3d', 'bk_fx_webgl', 'bk_fx_classic', 'bk_m_play', 'bk_m_close', 'bk_m_open', 'bk_m_youtube', 'bk_m_video', 'bk_m_audio', 'bk_m_link', 'bk_m_here', 'bk_m_page', 'bk_ep_toc', 'bk_ep_bigger', 'bk_ep_smaller', 'bk_ep_progress' );
+	$k = array( 'bk_prev', 'bk_next', 'bk_page', 'bk_of', 'bk_sound_on', 'bk_sound_off', 'bk_thumbs', 'bk_fullscreen', 'bk_exit_fs', 'bk_download', 'bk_share', 'bk_loading', 'bk_error', 'bk_copied', 'bk_cover', 'bk_back_cover', 'bk_goto', 'bk_close', 'bk_text', 'bk_spread', 'bk_keys', 'bk_first', 'bk_last', 'bk_zoom_in', 'bk_zoom_out', 'bk_print', 'bk_autoplay', 'bk_autoplay_off', 'bk_pages', 'bk_contents', 'bk_open', 'bk_panel', 'bk_toolbar', 'bk_zoom_reset', 'bk_m_play', 'bk_m_close', 'bk_m_open', 'bk_m_youtube', 'bk_m_video', 'bk_m_audio', 'bk_m_link', 'bk_m_here', 'bk_m_page', 'bk_ep_toc', 'bk_ep_bigger', 'bk_ep_smaller', 'bk_ep_progress' );
 	$o = array();
 	foreach ( $k as $key ) {
 		$o[ str_replace( 'bk_', '', $key ) ] = mcupr_t( $key );
@@ -739,7 +777,6 @@ function mcupr_book_icon( $n ) {
 		'share'    => 'M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1',
 		'expand'   => 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
 		'shrink'   => 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5',
-		'fx'       => 'M4 7h10M18 7h2M4 17h2M10 17h10M14 5v4M6 15v4',
 		'close'    => 'M6 6l12 12M18 6L6 18',
 	);
 	$fill = in_array( $n, array( 'play' ), true ) ? 'currentColor' : 'none';
@@ -766,7 +803,7 @@ function mcupr_book_reader( $id, $args = array() ) {
 		'src'   => $src,
 		'title' => get_the_title( $id ),
 		'sound' => (int) $o['sound'],
-		'fx'    => $o['fx'],
+		'fx'    => mcupr_book_fx( $id ),
 		'pageflip' => get_theme_file_uri( 'assets/vendor/pageflip/page-flip.browser.js' ),
 		'rm'    => 0,
 		'l'     => mcupr_book_labels(),
@@ -873,9 +910,6 @@ function mcupr_book_reader( $id, $args = array() ) {
 			<?php echo mcupr_book_tb( 'auto', 'play', $l['autoplay'], 'pause', ' aria-pressed="false"' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		<?php endif; ?>
 		<?php echo mcupr_book_tb( 'sound', 'mute', $l['sound_off'], 'sound', ' aria-pressed="false"' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-		<?php if ( 'epub' !== $src ) : ?>
-			<?php echo mcupr_book_tb( 'fx', 'fx', $l['fx'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-		<?php endif; ?>
 		<?php echo mcupr_book_tb( 'thumbs', 'epub' === $src ? 'list' : 'grid', 'epub' === $src ? $l['ep_toc'] : $l['thumbs'], '', ' aria-expanded="false" aria-controls="bk-th-' . esc_attr( $hash ) . '"' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		<?php if ( $cfg['print'] ) : ?>
 			<?php echo mcupr_book_tb( 'print', 'print', $l['print'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
