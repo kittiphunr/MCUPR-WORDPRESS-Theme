@@ -143,7 +143,15 @@ function mcupr_honors( $only_on = false ) {
 
 /** Name of a decoration in the visitor's language. */
 function mcupr_honor_name( $h ) {
-	$en = 'th' !== mcupr_ui_lang() && '' !== $h['en'];
+	$lang = mcupr_ui_lang();
+	if ( ( 'zh' === $lang || 'ja' === $lang ) && isset( $h['key'] ) ) {
+		// a standard decoration whose Thai name was not changed has a Chinese / Japanese name (inc/strings.php, hon_*)
+		$k = 'hon_' . $h['key'];
+		if ( $k !== mcupr_t( $k, 'th' ) && mcupr_t( $k, 'th' ) === $h['th'] ) {
+			return mcupr_t( $k, $lang );
+		}
+	}
+	$en = 'th' !== $lang && '' !== $h['en'];
 	return $en ? $h['en'] : $h['th'];
 }
 
