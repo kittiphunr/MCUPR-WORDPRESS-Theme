@@ -3236,6 +3236,33 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       }
       await brFx.close();
     }
+    // the tools capsule at the top right: the same distance all round, one height for every button, one gap between them
+    {
+      for (const [menu, w] of [['side', 1428], ['top', 1428], ['side', 1920], ['top', 1180]]) {
+        const kc = await br.newContext({ viewport: { width: w, height: 700 } });
+        const kp = await kc.newPage();
+        await kp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        await kp.goto(B + '/');
+        await kp.waitForTimeout(900);
+        const m = await kp.evaluate((menuMode) => {
+          const cap = menuMode === 'top' ? document.querySelector('#masthead > .wrap > div') : document.querySelector('.site-header');
+          const cb = cap.getBoundingClientRect();
+          const ctl = [...cap.querySelectorAll('.util-btn, .fs-open, #search-toggle, #lang-toggle, #a11y-toggle, #about-toggle')].filter((e) => e.getBoundingClientRect().width > 0).map((e) => e.getBoundingClientRect());
+          ctl.sort((a, b) => a.left - b.left);
+          const gaps = []; for (let i = 1; i < ctl.length; i++) { gaps.push(ctl[i].left - ctl[i - 1].right); }
+          const fs = document.querySelector('.fs-open').getBoundingClientRect();
+          return { padL: ctl[0].left - cb.left, padR: cb.right - ctl[ctl.length - 1].right, padT: ctl[0].top - cb.top, padB: cb.bottom - ctl[0].bottom, hs: ctl.map((r) => Math.round(r.height)), gaps: gaps.map((g) => Math.round(g * 10) / 10), fsW: fs.width, fsH: fs.height, n: ctl.length, rem: parseFloat(getComputedStyle(document.documentElement).fontSize) };
+        }, menu);
+        const tag = 'tools capsule (' + menu + ' menu, ' + w + ' px)';
+        ok(m.n >= 5 && Math.abs(m.padL - m.padR) <= 1.5, tag + ': the space at the left end (' + m.padL.toFixed(1) + ' px) is the same as at the right end (' + m.padR.toFixed(1) + ' px)');
+        if (menu === 'side') { ok(Math.abs(m.padT - m.padL) <= 1.5 && Math.abs(m.padB - m.padL) <= 1.5, tag + ': the same space on all four sides (' + m.padT.toFixed(1) + ' / ' + m.padB.toFixed(1) + ' px)'); } else { ok(Math.abs(m.padT - m.padB) <= 1.5, tag + ': the buttons are in the middle of the capsule (' + m.padT.toFixed(1) + ' / ' + m.padB.toFixed(1) + ' px)'); }
+        ok(new Set(m.hs).size === 1, tag + ': every button is as high as the others (' + m.hs.join(', ') + ' px)');
+        const small = m.gaps.slice(0, 1).concat(m.gaps.slice(2));
+        ok(Math.max(...small) - Math.min(...small) <= 1.5, tag + ': the gap between buttons is the same (' + m.gaps.join(', ') + ' px; the third is the divider)');
+        if (w < 1600) { ok(Math.abs(m.fsW - m.fsH) <= 0.5, tag + ': the "all menu" button is a circle like the others (' + Math.round(m.fsW) + '×' + Math.round(m.fsH) + ')'); }
+        await kc.close();
+      }
+    }
     // sidebar mode: the content frame keeps the same gap as the sidebar card on every side – also with the WordPress toolbar, and with the sidebar folded
     {
       const { execSync: execD } = require('child_process');
