@@ -339,7 +339,7 @@ add_action(
  * rules were never saved: /student/ would be a 404) or 'ok'.
  */
 function mcupr_rewrite_status() {
-	if ( ! get_option( 'permalink_structure' ) ) {
+	if ( mcupr_plain_mode() ) {
 		return 'plain';
 	}
 	$rules = get_option( 'rewrite_rules' );
