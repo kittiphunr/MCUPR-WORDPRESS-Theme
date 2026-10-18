@@ -1210,6 +1210,7 @@ return array(
 	'Staff hub' => 'ศูนย์บุคลากร',
 	'Staff profiles, honours and the staff hub' => 'โปรไฟล์บุคลากร เครื่องราชฯ และศูนย์บุคลากร',
 	'Staff type' => 'ประเภทบุคลากร',
+	'Starred = head of the unit (shown in the chart box).' => 'ดาว = หัวหน้าหน่วยงาน (แสดงในกล่องของผังการบริหาร)',
 	'Start again' => 'เริ่มใหม่',
 	'Start from a template' => 'เริ่มจากแม่แบบ',
 	'Start from samples' => 'เริ่มจากตัวอย่าง',
@@ -1546,6 +1547,7 @@ return array(
 	'Year of study' => 'ชั้นปี',
 	'Year of study is not a number from 1 to 12, left empty' => 'ชั้นปี',
 	'Year received' => 'ปีที่ได้รับ',
+	'Yes' => 'ใช่',
 	'Yes – give each answer a number, a status and a history' => 'ใช่ – ให้คำตอบแต่ละรายการมีเลขที่ สถานะ และประวัติ',
 	'You are here' => 'คุณอยู่ที่นี่',
 	'YouTube link' => 'ลิงก์ YouTube',
@@ -1650,5 +1652,4 @@ return array(
 	'“See all” text' => 'ข้อความ “ดูทั้งหมด”',
 	'… and %d more.' => '… และอีก %d รายการ',
 	'…and %d more.' => '…และอีก %d รายการ',
-	'★ = head of the unit (shown in the chart box).' => '★ = หัวหน้าหน่วยงาน (แสดงในกล่องของผังการบริหาร)',
 );

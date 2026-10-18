@@ -67,7 +67,7 @@ function mcupr_count_view() {
 }
 add_action( 'template_redirect', 'mcupr_count_view', 20 );
 
-/** "👁 1,234 views" for article meta lines. */
+/** An eye icon and "1,234 views" for article meta lines. */
 function mcupr_views_html( $post_id = 0 ) {
 	if ( ! get_theme_mod( 'mcupr_show_views', true ) ) {
 		return '';
