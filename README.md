@@ -1148,3 +1148,10 @@ MCUPR → นำเข้า/ส่งออกตั้งค่า → ส่�
 - **ลบของที่ไม่ได้ใช้**: `mcupr_header_over_hero()`, `mcupr_hero_image_url()`, ข้อความ UI 20 คีย์ที่ไม่มีที่ใช้ (font_dec, font_reset, font_inc, theme_toggle, a11y_btn, a11y_title, contrast_def, reduce_motion, st_roll, st_profile, st_people_in, album_more, cookie_label, a11y_helper, lang_now, reset_site_default, org_level, bk_pages_n, bk_shelves, stu_card_read), คีย์ `quickLinks` ที่ซ้ำ และ `ok` ใน `mcuprI18n` ที่ไม่มีสคริปต์อ่าน
 - คงไว้ตามเดิม: `mcupr_office_on_color()` (เกณฑ์ต่างจาก `mcupr_on_color()` ผลไม่ตรงกันบนสีเทากลาง เช่น #767676–#797979)
 - เทสต์: `tests/php/dedupe.php`
+
+## v1.52.5 – โหมด sidebar: เนื้อหากว้างเต็มกรอบ และ hero เริ่มที่ขอบบนของแคปซูลเมนู
+
+- เนื้อหาทุกส่วน (`.wrap`) กว้างเท่ากรอบหน้าเว็บ เหลือช่องว่างข้างละ 12px (เท่ากับขอบขวาของแคปซูลเมนูด้านบน) สูงสุด 120rem; บทความ (`.narrow`) ยังแคบเพื่อให้อ่านง่าย
+- hero หน้าแรกเริ่มที่ขอบบนเดียวกับแคปซูลและสิ้นสุดที่ขอบขวาเดียวกัน (แคปซูลลอยทับ hero)
+- มีผลเฉพาะโหมด sidebar/hybrid; โหมดเมนูบนเหมือนเดิม
+- เทสต์ e2e: วัดตำแหน่งที่ 1428/1920(พับ)/1180 px
