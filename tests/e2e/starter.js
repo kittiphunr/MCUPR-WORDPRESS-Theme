@@ -929,7 +929,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await ap.click('#wp-submit');
       await ap.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' }).catch(async (e) => { console.log('DEBUG login at ' + w + 'px stuck on ' + ap.url() + ' :: ' + (await ap.content().catch(() => '')).replace(/\s+/g, ' ').slice(0, 700)); throw e; });
       await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
-      const cardsInfo = await ap.evaluate(() => ({ cards: document.querySelectorAll('.mcupr-ov .ov-card').length, hero: !!document.querySelector('.mcupr-ov .ov-hero h1'), chips: document.querySelectorAll('.mcupr-ov .ov-chip').length, acts: document.querySelectorAll('.mcupr-ov .ov-act').length, tools: document.querySelectorAll('.mcupr-ov h2').length, hscroll: document.documentElement.scrollWidth > innerWidth + 1 }));
+      const cardsInfo = await ap.evaluate(() => ({ cards: document.querySelectorAll('.mcc .mcc-card').length, hero: !!document.querySelector('.mcc .mcc-hero h1'), chips: document.querySelectorAll('.mcc .mcc-chip').length, acts: document.querySelectorAll('.mcc .mcc-act').length, tools: document.querySelectorAll('.mcc h2').length, hscroll: document.documentElement.scrollWidth > innerWidth + 1 }));
       if (w < 783) { await ap.click('#wp-admin-bar-menu-toggle a'); await ap.waitForTimeout(300); }
       const m = await ap.evaluate(() => {
         const tops = [...document.querySelectorAll('#adminmenu > li.menu-top')].map((l) => (l.querySelector('.wp-menu-name') || {}).textContent.trim());
@@ -940,30 +940,52 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       m.cards = cardsInfo.cards; m.hscroll = cardsInfo.hscroll; m.info = cardsInfo;
       ok(m.tops.filter((t) => /MCUPR/.test(t)).length === 1 && m.subs.length >= 18 && m.open, 'admin ' + w + 'px: one MCUPR menu, open on its overview, with ' + m.subs.length + ' entries');
       const vis = await ap.evaluate(() => [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li')].filter((l) => l.offsetParent !== null).map((l) => l.textContent.trim()));
-      ok(vis.length >= 5 && vis.length <= 6 && !vis.some((t) => /หมวดหมู่ผลงาน|ตั้งค่ากระดาน|นำเข้านิสิต|ผังการบริหาร|Theme options/.test(t)), 'admin ' + w + 'px: the MCUPR menu shows only the overview and the main groups (' + vis.length + ': ' + vis.join(' | ') + ')');
+      ok(vis.length === 9 && !vis.some((t) => /หมวดหมู่ผลงาน|ตั้งค่ากระดาน|นำเข้านิสิต|ผังการบริหาร|Theme options/.test(t)), 'admin ' + w + 'px: the MCUPR menu shows only the control center and the eight groups (' + vis.length + ': ' + vis.join(' | ') + ')');
       ok(!m.tops.some((t) => /กระดาน|วิดีโอ|อัลบั้ม|กิจกรรม|ผลงาน|บุคลากร|Forum|Video|Album|Event|Work|Staff|Polls|FAQ|Form messages/i.test(t)), 'admin ' + w + 'px: none of the theme sections is scattered in the main menu (' + m.tops.join(' | ') + ')');
-      ok(m.cards >= 12 && !m.hscroll, 'admin ' + w + 'px: the overview shows ' + m.cards + ' cards without sideways scroll');
-      ok(m.info.hero && m.info.chips >= 3 && m.info.acts >= 4 && m.info.tools >= 5, 'admin ' + w + 'px: the control page has the banner, the status chips (' + m.info.chips + '), the quick actions (' + m.info.acts + ') and its sections');
+      ok(m.cards === 8 && !m.hscroll, 'admin ' + w + 'px: the control center shows ' + m.cards + ' group cards without sideways scroll');
+      ok(m.info.hero && m.info.chips >= 3 && m.info.acts >= 4 && m.info.tools >= 4, 'admin ' + w + 'px: the control center has the title, the search, the status chips (' + m.info.chips + '), the shortcuts (' + m.info.acts + ') and its groups');
       if (w === 1366) {
         for (const u of ['edit.php?post_type=mcupr_video', 'edit-tags.php?taxonomy=mcupr_video_cat&post_type=mcupr_video', 'post-new.php?post_type=mcupr_faq', 'admin.php?page=mcupr-forum', 'admin.php?page=mcupr-staff-hub', 'admin.php?page=mcupr-status', 'edit.php?post_type=mcupr_unit']) {
           const r = await ap.goto(B + '/wp-admin/' + u);
           const open = await ap.evaluate(() => !!document.querySelector('#adminmenu > li.toplevel_page_mcupr.wp-has-current-submenu'));
           ok(r.status() === 200 && open && !(await ap.locator('.wp-die-message').count()), 'admin: ' + u + ' opens and keeps the MCUPR menu open');
         }
-        // the menu's groups open the control page at that group; the group lights up; the pages below show a way back
+        // the menu's groups open their own page; the group lights up; the pages below show a way back and a help button
         await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
         await ap.click('#adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("นิสิต"), #adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("Students")');
-        await ap.waitForFunction(() => /#sec-students/.test(location.hash));
-        const grp = await ap.evaluate(() => ({ lit: [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li.current')].map((l) => l.textContent.trim()), top: Math.round(document.getElementById('sec-students').getBoundingClientRect().top) }));
-        ok(grp.lit.length === 1 && /นิสิต|Students/.test(grp.lit[0]) && grp.top >= 0 && grp.top < 400, 'admin menu: "Students" opens the control page at the students group and is the one lit (' + grp.lit.join(',') + ', heading at ' + grp.top + 'px)');
+        await ap.waitForURL(/cat=students/);
+        const grp = await ap.evaluate(() => ({ lit: [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li.current')].map((l) => l.textContent.trim()), h1: (document.querySelector('.mcc-ph h1') || {}).textContent || '', rows: document.querySelectorAll('.mcc-row').length, side: document.querySelectorAll('.mcc-side a').length }));
+        ok(grp.lit.length === 1 && /นิสิต|Students/.test(grp.lit[0]) && /นิสิต|Students/.test(grp.h1) && grp.rows >= 7 && grp.side === 9, 'admin menu: "Students" opens the page of the group, lights up, lists its menus (' + grp.rows + ') and the side list of groups (' + grp.lit.join(',') + ')');
         await ap.goto(B + '/wp-admin/edit.php?post_type=mcupr_event');
-        const crumb = await ap.evaluate(() => ({ text: (document.querySelector('.mcupr-crumb') || {}).textContent || '', lit: [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li.current')].map((l) => l.textContent.trim()), overlap: (() => { const c = document.querySelector('.mcupr-crumb'); const o = document.getElementById('screen-options-link-wrap'); if (!c || !o) { return false; } const a = c.getBoundingClientRect(), b = o.getBoundingClientRect(); return a.right > b.left && a.bottom > b.top && a.left < b.right && a.top < b.bottom; })() }));
-        ok(/MCUPR|ภาพรวม/.test(crumb.text) && crumb.lit.length === 1 && /เนื้อหา|Content/.test(crumb.lit[0]) && !crumb.overlap, 'admin menu: a page below the groups (events) shows "‹ overview › group", lights its group, and the bar does not cover Screen Options (' + crumb.lit.join(',') + ')');
+        const crumb = await ap.evaluate(() => ({ text: (document.querySelector('.mcc-topbar .mcc-crumbs') || {}).textContent || '', lit: [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li.current')].map((l) => l.textContent.trim()), btn: !!document.querySelector('[data-mcc-help]'), overlap: (() => { const c = document.querySelector('.mcc-topbar'); const o = document.getElementById('screen-options-link-wrap'); if (!c || !o) { return false; } const cr = [...c.querySelectorAll('.mcc-crumbs, .mcc-helpbtn')].map((e) => e.getBoundingClientRect()), b = o.getBoundingClientRect(); return cr.some((a) => a.right > b.left && a.bottom > b.top && a.left < b.right && a.top < b.bottom); })() }));
+        ok(/ศูนย์ควบคุม|Control center/.test(crumb.text) && crumb.lit.length === 1 && /เนื้อหา|Content/.test(crumb.lit[0]) && crumb.btn && !crumb.overlap, 'admin menu: a page below the groups (events) shows "Control center › group › menu", a help button, lights its group, and the bar does not cover Screen Options (' + crumb.lit.join(',') + ')');
+        await ap.click('[data-mcc-help]');
+        ok(await ap.locator('.mcc-dialog').isVisible() && (await ap.locator('.mcc-dialog li').count()) >= 3, 'the help button opens a window that says what the page is for and how to use it');
+        await ap.keyboard.press('Escape');
+        ok(!(await ap.locator('.mcc-dialog').isVisible()), 'Escape closes the help window');
         await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
         await ap.addScriptTag({ content: axeSource() });
-        const axo = await ap.evaluate(() => axe.run(document.querySelector('.mcupr-ov'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
-        ok(axo.violations.length === 0, 'axe (the control page): ' + (axo.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
-        ok(await ap.evaluate(() => { const r = {}; document.querySelectorAll('.ov-grid').forEach((g) => { [...g.children].forEach((c) => { const t = Math.round(c.getBoundingClientRect().top); (r[t] = r[t] || new Set()).add(Math.round(c.getBoundingClientRect().height)); }); }); return Object.values(r).every((x) => x.size === 1); }), 'the control page: the cards of a row are the same height');
+        const axo = await ap.evaluate(() => axe.run(document.querySelector('.mcc'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+        ok(axo.violations.length === 0, 'axe (the control center home): ' + (axo.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        ok(await ap.evaluate(() => { const r = {}; document.querySelectorAll('.mcc-grid').forEach((g) => { [...g.children].forEach((c) => { const t = Math.round(c.getBoundingClientRect().top); (r[t] = r[t] || new Set()).add(Math.round(c.getBoundingClientRect().height)); }); }); return Object.values(r).every((x) => x.size === 1); }), 'the control center: the cards of a row are the same height');
+        // search: typing finds a menu and a guide, the arrow keys and Enter open one
+        await ap.fill('#mcc-q', 'ข่าว');
+        const sres = await ap.evaluate(() => ({ shown: !document.getElementById('mcc-res').hidden, n: document.querySelectorAll('#mcc-res a').length }));
+        ok(sres.shown && sres.n >= 2, 'search: typing "ข่าว" lists what matches (' + sres.n + ')');
+        await ap.fill('#mcc-q', 'zzzzqq');
+        ok((await ap.locator('#mcc-res .mcc-none').count()) === 1, 'search: nothing found says so');
+        await ap.fill('#mcc-q', 'โลโก้');
+        await ap.keyboard.press('ArrowDown');
+        await Promise.all([ap.waitForURL(/customize\.php/, { timeout: 20000 }).catch(() => {}), ap.keyboard.press('Enter')]);
+        ok(/customize\.php/.test(ap.url()), 'search: the arrow key and Enter open the first result, the Customizer for "โลโก้" (' + ap.url().slice(-50) + ')');
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr&cat=content');
+        await ap.addScriptTag({ content: axeSource() });
+        const axg = await ap.evaluate(() => axe.run(document.querySelector('.mcc'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+        ok(axg.violations.length === 0, 'axe (a group page): ' + (axg.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr&cat=start');
+        ok((await ap.locator('.mcc-step').count()) === 10, 'the start page lists ten steps');
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr&cat=help&guide=add-news');
+        ok((await ap.locator('.mcc-step').count()) >= 4 && (await ap.locator('.mcc-step a.button').count()) >= 2, 'a guide shows its steps with buttons that go to the right place');
         await ap.screenshot({ path: shot('admin-mcupr.png') });
         // import an .ics file through the admin page
         const fs = require('fs'); const os = require('os'); const path = require('path');
@@ -1613,8 +1635,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await rpg.fill('#user_login', 'e2e_reg'); await rpg.fill('#user_pass', 'e2e-Reg-pass-1'); await rpg.click('#wp-submit');
       await rpg.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
       await rpg.goto(B + '/wp-admin/admin.php?page=mcupr', { waitUntil: 'domcontentloaded' });
-      const rm = await rpg.evaluate(() => ({ menu: !!document.querySelector('#adminmenu .toplevel_page_mcupr'), cards: [...document.querySelectorAll('.mcupr-ov .ov-card .ov-t')].map((e) => e.textContent), denied: !!document.querySelector('.wp-die-message') }));
-      ok(rm.menu && !rm.denied && rm.cards.length === 1, 'registrar: sees the MCUPR menu and one card, Students (' + rm.cards.join(', ') + ')');
+      const rm = await rpg.evaluate(() => ({ menu: !!document.querySelector('#adminmenu .toplevel_page_mcupr'), cards: [...document.querySelectorAll('.mcc .mcc-card .mcc-card-h b')].map((e) => e.textContent), denied: !!document.querySelector('.wp-die-message') }));
+      ok(rm.menu && !rm.denied && rm.cards.length === 2, 'registrar: sees the MCUPR menu and two cards, Students and Help (' + rm.cards.join(', ') + ')');
       const rl = await rpg.goto(B + '/wp-admin/edit.php?post_type=mcupr_student');
       ok(rl.status() === 200 && (await rpg.locator('#the-list tr.iedit').count()) >= 20, 'registrar: opens the list of students');
       const rimp = await rpg.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
