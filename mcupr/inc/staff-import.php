@@ -532,7 +532,7 @@ function mcupr_import_send_csv( $filename, $lines ) {
 add_action(
 	'admin_post_mcupr_staff_template',
 	static function () {
-		if ( ! current_user_can( 'edit_pages' ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'mcupr_staff_file' ) ) {
+		if ( ! mcupr_check_request( '_wpnonce', 'mcupr_staff_file', 'edit_pages', 'get' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), '', array( 'response' => 403 ) );
 		}
 		$cols  = mcupr_import_columns();
@@ -551,7 +551,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_staff_export',
 	static function () {
-		if ( ! current_user_can( 'edit_pages' ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'mcupr_staff_file' ) ) {
+		if ( ! mcupr_check_request( '_wpnonce', 'mcupr_staff_file', 'edit_pages', 'get' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), '', array( 'response' => 403 ) );
 		}
 		$cols   = mcupr_import_columns();
@@ -594,7 +594,7 @@ function mcupr_import_back( $args = array() ) {
 add_action(
 	'admin_post_mcupr_staff_import',
 	static function () {
-		if ( ! current_user_can( 'edit_pages' ) || ! isset( $_POST['mcupr_imp_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_imp_nonce'] ) ), 'mcupr_import' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_imp_nonce', 'mcupr_import', 'edit_pages' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), '', array( 'response' => 403 ) );
 		}
 		$uid  = get_current_user_id();

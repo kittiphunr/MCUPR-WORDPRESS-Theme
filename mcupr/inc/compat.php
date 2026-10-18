@@ -117,6 +117,23 @@ function mcupr_pick_lang( array $by_lang, $fallback = '' ) {
 	return isset( $by_lang['en'] ) ? $by_lang['en'] : $fallback;
 }
 
+/**
+ * A form or link sent by this site and allowed for this user: the capability (when one is given), then the nonce in
+ * $_POST[ $field ] ($src 'post') or $_GET[ $field ] ($src 'get') checked against $action.
+ */
+function mcupr_check_request( $field, $action, $cap = '', $src = 'post' ) {
+	if ( '' !== $cap && ! current_user_can( $cap ) ) {
+		return false;
+	}
+	$in = 'get' === $src ? $_GET : $_POST; // phpcs:ignore WordPress.Security.NonceVerification -- this is the nonce check
+	return isset( $in[ $field ] ) && false !== wp_verify_nonce( sanitize_text_field( wp_unslash( $in[ $field ] ) ), $action );
+}
+
+/** A meta box may be saved: its nonce is good, this is not an autosave, and the user may edit the post. */
+function mcupr_can_save_box( $post_id, $field, $action ) {
+	return mcupr_check_request( $field, $action ) && ! ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) && current_user_can( 'edit_post', $post_id );
+}
+
 /** setcookie() for every PHP version the theme supports (7.0 – 7.2 have no options array): first-party, SameSite=Lax, path / unless one is given. */
 function mcupr_set_cookie( $name, $value, $expires, $httponly = true, $path = '/' ) {
 	if ( headers_sent() ) {

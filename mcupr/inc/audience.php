@@ -379,7 +379,7 @@ function mcupr_aud_post_rules() {
 add_action(
 	'save_post',
 	static function ( $post_id, $post ) {
-		if ( ! isset( $_POST['mcupr_aud_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mcupr_aud_nonce'] ) ), 'mcupr_aud_save' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_aud_nonce', 'mcupr_aud_save' ) ) {
 			return;
 		}
 		if ( wp_is_post_revision( $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) || ! in_array( $post->post_type, mcupr_aud_types(), true ) ) {
