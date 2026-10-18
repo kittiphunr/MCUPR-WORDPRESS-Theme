@@ -304,7 +304,7 @@
 	var VS = [
 		'attribute vec2 aPos;',
 		'uniform vec2 uM, uN;', // the fold: a point on it, and the unit normal that points to the corner that is held
-		'uniform float uOn, uR, uH, uViewW, uCx, uD, uZoff, uSc, uPad;',
+		'uniform float uOn, uR, uH, uViewW, uCx, uD, uZoff, uSc, uPad, uDx;',
 		'varying vec2 vUv; varying vec3 vN; varying float vX, vY;',
 		'void main() {',
 		'  vec2 q = vec2(aPos.x, aPos.y * uH);',
@@ -318,6 +318,7 @@
 		'    else { p = vec3(F - uN * (d - pr), 2.0 * uR); nrm = vec3(0.0, 0.0, -1.0); }',
 		'  }',
 		'  p.xy *= uSc;',
+		'  p.x += uDx;',
 		'  p.z += uZoff;',
 		'  vX = p.x; vY = p.y; vN = nrm;',
 		'  vUv = vec2(aPos.x, 0.5 - aPos.y);',
@@ -399,7 +400,7 @@
 
 	function GlRenderer(host, core) {
 		this.peel = true; // a corner lifts at the mouse, and the page is rolled over a fold that follows the pointer
-		var cv = null, gl = null, prog = null, prog2 = null, ov = null, buf = null, ibuf = null, buf2 = null, nIdx = 0, loc = {}, loc2 = {}, texs = {}, paper = null, N = 72, M = 48, dirty = false, raf = 0;
+		var cv = null, gl = null, prog = null, prog2 = null, ov = null, buf = null, ibuf = null, buf2 = null, nIdx = 0, loc = {}, loc2 = {}, texs = {}, paper = null, N = 128, M = 64, dirty = false, raf = 0;
 		var pages = [], model = null, opts = null, ratio = 1.4;
 
 		function sh(type, src) {
@@ -420,7 +421,7 @@
 			gl = cv.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: true }) || cv.getContext('experimental-webgl');
 			prog = link(VS, FS); prog2 = link(VS2, FS2);
 			gl.useProgram(prog);
-			['uM', 'uN', 'uOn', 'uR', 'uH', 'uViewW', 'uCx', 'uD', 'uZoff', 'uSc', 'uPad', 'uFront', 'uBack', 'uHasBack', 'uShade', 'uShM', 'uShN', 'uShI', 'uPaperCol', 'uCovF', 'uCovB', 'uInF', 'uInB', 'uOver'].forEach(function (n) { loc[n] = gl.getUniformLocation(prog, n); });
+			['uM', 'uN', 'uOn', 'uR', 'uH', 'uViewW', 'uCx', 'uD', 'uZoff', 'uSc', 'uPad', 'uDx', 'uFront', 'uBack', 'uHasBack', 'uShade', 'uShM', 'uShN', 'uShI', 'uPaperCol', 'uCovF', 'uCovB', 'uInF', 'uInB', 'uOver'].forEach(function (n) { loc[n] = gl.getUniformLocation(prog, n); });
 			['uH', 'uViewW', 'uCx', 'uPad', 'uCol', 'uAxis'].forEach(function (n) { loc2[n] = gl.getUniformLocation(prog2, n); });
 			var v = [], idx = [], i, r;
 			for (r = 0; r <= M; r++) { for (i = 0; i <= N; i++) { v.push(i / N, 0.5 - r / M); } } // a grid, so that the top and the bottom of a page can turn by different angles
@@ -524,8 +525,9 @@
 			gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, tb || paper); gl.uniform1i(loc.uBack, 1);
 			gl.uniform1f(loc.uHasBack, tb ? 1 : 0);
 			if (!fold) { gl.uniform1f(loc.uOn, 0); gl.uniform1f(loc.uR, 0.0001); gl.uniform2f(loc.uM, 0, 0); gl.uniform2f(loc.uN, 1, 0); }
-			else if (fold === 'flip') { gl.uniform1f(loc.uOn, 1); gl.uniform1f(loc.uR, 0.0001); gl.uniform2f(loc.uM, 0, 0); gl.uniform2f(loc.uN, 1, 0); } // the fold is the spine: the page lies mirrored on the other side
+			else if (fold === 'flip') { gl.uniform1f(loc.uOn, 1); gl.uniform1f(loc.uR, 0.0001); gl.uniform2f(loc.uM, -0.0005, 0); gl.uniform2f(loc.uN, 1, 0); } // the fold is the spine: the page lies mirrored on the other side
 			else { gl.uniform1f(loc.uOn, 1); gl.uniform1f(loc.uR, fold.R); gl.uniform2f(loc.uM, fold.M[0], fold.M[1]); gl.uniform2f(loc.uN, fold.N[0], fold.N[1]); }
+			gl.uniform1f(loc.uDx, fold === 'flip' ? 0.004 : 0); // every point of a page that is turned over is behind the fold, so that none of its triangles is half flat; it is moved a little over the spine so that no gap shows
 			gl.uniform1f(loc.uZoff, zoff);
 			gl.uniform1f(loc.uSc, cover ? OVER : 1);
 			gl.uniform1f(loc.uCovF, j === 0 || (!land && last) ? 1 : 0); gl.uniform1f(loc.uCovB, land && last ? 1 : 0);
@@ -535,13 +537,13 @@
 			gl.drawElements(gl.TRIANGLES, nIdx, gl.UNSIGNED_SHORT, 0);
 		}
 		/* The fold of the page that is held by the corner (1, m.cy) and taken to (m.px, m.py): half way between the two, square to the way the corner went;
-		   the paper is rolled over a cylinder (the radius grows as the corner leaves its place and shrinks to nothing as the page lands flat on the other side,
+		   the paper is rolled over a cylinder (the radius grows as the corner leaves its place and shrinks to the least the mesh can show as the page lands flat on the other side,
 		   is bigger for a faster swing and for a hard cover, which does not roll tightly). The fold is moved by half the roll so that the corner arrives exactly at the pointer. */
 		function foldOf(m) {
 			var cx = 1, cyy = m.cy, dx = cx - m.px, dy = cyy - m.py, dist = Math.sqrt(dx * dx + dy * dy);
 			if (dist < 0.0005) { return null; }
 			var nx = dx / dist, ny = dy / dist;
-			var rad = 0.1 * clamp(dist / 0.3, 0, 1) * clamp((2 - dist) / 0.3, 0, 1) * (m.cover ? 1.7 : 1) * (1 + 0.3 * Math.min(Math.abs(m.v) / 3, 1)) + 0.0001;
+			var rad = 0.1 * clamp(dist / 0.3, 0, 1) * clamp((2 - dist) / 0.3, 0, 1) * (m.cover ? 1.7 : 1) * (1 + 0.3 * Math.min(Math.abs(m.v) / 3, 1)) + 0.008; // never tighter than the mesh can show
 			var mx = (cx + m.px) / 2 - nx * Math.PI * rad / 2, my = (cyy + m.py) / 2 - ny * Math.PI * rad / 2;
 			return { M: [mx, my], N: [nx, ny], R: rad, I: 0.5 * clamp(dist / 0.3, 0, 1) * clamp((2 - dist) / 0.4, 0, 1) };
 		}
