@@ -1,8 +1,8 @@
 /* Page-turning engines for the e-book reader that need no library:
      css3d  – leaves of paper turned with CSS 3D (the lightest: no canvas, no script per frame except one leaf)
-     webgl  – one canvas; the page bends as it turns, with light, a glossy sheen and a shadow on the page underneath, a corner
-              that lifts as the mouse nears it and follows the pointer, a paper that swings and bounces back (a spring, not a
-              timed slide), the thickness of the book (the stack of pages at the edges) and stiff covers
+     webgl  – one canvas; the page is held by a corner and rolled over a slanting fold (the back of the page shows), with light, a
+              glossy sheen and a shadow on the page underneath; the corner lifts as the mouse nears it and follows the pointer; the paper swings
+              and bounces back (a spring, not a timed slide); the thickness of the book (the stack of pages at the edges) and stiff covers
    Both offer the small interface of StPageFlip that the reader uses (flipNext, flipPrev, turnToPage, getCurrentPageIndex,
    getOrientation, on('flip' | 'changeState'), loadFromHTML), plus pageDrawn(i) (a page got its picture). They share one
    "core": the state of the book, the turn animation, dragging a corner and tapping the sides. */
@@ -27,9 +27,10 @@
 	   Landscape: leaf j has page 2j in front and 2j+1 behind. Portrait: leaf j has page j in front only (a single page is seen). */
 	function Core(host, o, R) {
 		var ev = emitter(), pages = [], total = 0, mode = 'landscape', c = 0, t = 0, anim = null, drag = null, api, ro = null;
-		var m = { mode: 'landscape', L: 0, t: 0, leaf: -1, th: 0, cx: 0.5, v: 0, tilt: 0, cover: false, peel: false };
+		var m = { mode: 'landscape', L: 0, t: 0, leaf: -1, th: 0, cx: 0.5, v: 0, px: 1, py: 0, cy: 0, cover: false, peel: false };
+		var H = o.ratio || 1.4; // the height of a page in page widths: the corners of the page are at y = ±H / 2
 		var peel = { amt: 0, tgt: 0, dir: 0, cy: 0, id: 0 };
-		var SPRING = 64, DAMP = 10.5, REST = 0.3; // stiffness, damping and how much of its speed the paper keeps when it lands
+		var SPRING = 64, DAMP = 10.5, REST = 0.3, LIFT = 0.16; // stiffness, damping, how much of its speed the paper keeps when it lands, how far a button turn lifts the corner
 
 		function modeNow() { return host.clientWidth >= 620 ? 'landscape' : 'portrait'; }
 		function leaves() { return mode === 'landscape' ? total / 2 : total; }
@@ -42,23 +43,38 @@
 			if (tf > L - 1) { return -0.5 * (tf - (L - 1)); }
 			return 0;
 		}
-		function rest() { m.mode = mode; m.L = leaves(); m.t = t; m.leaf = -1; m.th = 0; m.cx = cxAt(t); m.v = 0; m.tilt = 0; m.cover = false; m.peel = false; }
+		function rest() { m.mode = mode; m.L = leaves(); m.t = t; m.leaf = -1; m.th = 0; m.cx = cxAt(t); m.v = 0; m.px = 1; m.py = 0; m.cy = 0; m.cover = false; m.peel = false; }
 		function coverOf(leaf) { return leaf === 0 || leaf === leaves() - 1; }
-		function tiltFor(th, dir, cy) { return R.tilt ? 0.5 * cy * (dir > 0 ? 1 : -1) * Math.pow(Math.sin(clamp(th, 0, 1) * RAD), 0.6) * (m.cover ? 0.5 : 1) : 0; }
 		function draw() { R.draw(m); }
 		function canTurn(dir) { return dir > 0 ? t < (mode === 'landscape' ? leaves() : total - 1) : t > 0; }
 
-		function begin(dir, speed) {
+		/* The turning page is held by one corner, which is at m.cy (±H / 2: the bottom or the top) and is taken to the point (m.px, m.py) (page widths from the spine, up is +).
+		   The fold is the line half way between where the corner was and where it is now; the part of the page behind the fold is rolled over it.
+		   The paper does not stretch: the corner cannot be further from the spine than the page is long. */
+		function limit(px, py, cy) {
+			var s = cy > 0 ? -1 : 1, u = (py - cy) * s; // u: how far the corner is lifted towards the middle of the page
+			px = clamp(px, -1, 1);
+			u = clamp(u, Math.max(-0.05, H - Math.sqrt(1 + H * H - px * px)), Math.sqrt(Math.max(0, 1 - px * px)));
+			return [px, cy + s * u];
+		}
+		function setP(px, py, cy) {
+			var q = limit(px, py, cy);
+			m.px = q[0]; m.py = q[1]; m.cy = cy;
+			m.th = Math.acos(q[0]) / RAD;
+			m.cx = cxAt(m.leaf + m.th);
+			draw();
+		}
+		function begin(dir, speed, cy) {
 			stopPeel();
 			m.leaf = dir > 0 ? t : t - 1;
-			m.th = dir > 0 ? 0 : 1;
+			m.cy = cy === undefined ? -H / 2 : cy;
+			m.px = dir > 0 ? 1 : -1; m.py = m.cy; m.th = dir > 0 ? 0 : 1;
 			m.cx = cxAt(m.leaf + m.th);
-			m.cover = coverOf(m.leaf); m.v = 0; m.tilt = 0;
+			m.cover = coverOf(m.leaf); m.v = 0;
 			ev.emit('turnmeta', { dir: dir, cover: m.cover, speed: speed });
 			ev.emit('changeState', 'flipping');
 			draw();
 		}
-		function setTh(th, dir, cy) { m.th = clamp(th, 0, 1); m.cx = cxAt(m.leaf + m.th); if (dir) { m.tilt = tiltFor(m.th, dir, cy || 0); } draw(); }
 		function finish(dir, committed) {
 			if (committed) { t += dir > 0 ? 1 : -1; c = cOf(t); }
 			rest();
@@ -67,12 +83,14 @@
 			if (committed) { ev.emit('flip', c); }
 		}
 		/* the paper is on a spring: it is pulled to where it ends (committed) or back to where it started, with the speed it was let go with;
-		   it starts slowly (the finger or the hand has to lift it), and when it lands it bounces back a little */
-		function run(dir, committed, v0, cy) {
-			var target = committed ? (dir > 0 ? 1 : 0) : (dir > 0 ? 0 : 1), th = m.th, v = v0 || 0, last = null, born = null, landed = false;
+		   it starts slowly (the finger or the hand has to lift it), and when it lands it bounces back a little. The corner comes back to the
+		   edge of the page on the way (a turn from a button lifts it a little, so that the fold is a slant). */
+		function run(dir, committed, v0) {
+			var target = committed ? (dir > 0 ? 1 : 0) : (dir > 0 ? 0 : 1), th = m.th, v = v0 || 0, last = null, born = null, landed = false, cy = m.cy;
+			var sgn = cy > 0 ? -1 : 1, off0 = (m.py - cy) * sgn - LIFT * H * Math.sin(th * RAD); // how far the hand has taken the corner from the way a button would
 			if (anim) { cancelAnimationFrame(anim.id); }
 			anim = { id: 0 };
-			if (o.reduced) { anim = null; m.th = target; finish(dir, committed); return; }
+			if (o.reduced) { anim = null; finish(dir, committed); return; }
 			function step(now) {
 				if (last === null) { last = now; born = now; }
 				var age = (now - born) / 1000, dt = Math.min((now - last) / 1000, 0.12), ramp = v0 ? 1 : clamp(age / 0.2, 0, 1), n = Math.max(2, Math.ceil(dt * 120)), k; // steps of at most 1/120 s, so that a slow frame rate makes it choppy, not slow
@@ -88,7 +106,8 @@
 					}
 				}
 				m.v = v;
-				setTh(th, dir, cy || 0);
+				var u = LIFT * H * Math.sin(th * RAD) + off0 * Math.exp(-6 * age);
+				setP(Math.cos(th * RAD), cy + sgn * u, cy);
 				if ((Math.abs(target - th) < 0.002 && Math.abs(v) < 0.05) || age > 2.5) { anim = null; if (!landed) { ev.emit('land', { speed: 0.2, cover: m.cover, committed: committed }); } finish(dir, committed); } else { anim.id = requestAnimationFrame(step); }
 			}
 			anim.id = requestAnimationFrame(step);
@@ -96,7 +115,7 @@
 		function turn(dir) {
 			if (anim || drag && drag.started || !canTurn(dir)) { return; }
 			begin(dir, 1);
-			run(dir, true, 0, 0);
+			run(dir, true, 0);
 		}
 
 		/* ---- a corner lifts when the mouse comes near it (a hint that the page can be turned) */
@@ -111,9 +130,10 @@
 			var d = peel.tgt - peel.amt;
 			peel.amt = Math.abs(d) < 0.001 ? peel.tgt : peel.amt + d * 0.22;
 			if (peel.amt < 0.002 && peel.tgt === 0) { peel.amt = 0; if (m.peel) { rest(); draw(); } peel.dir = 0; host.removeAttribute('data-peel'); return; }
-			var p = peel.amt * 0.08, dsg = peel.dir > 0 ? 1 : -1;
-			m.peel = true; m.leaf = peel.dir > 0 ? t : t - 1; m.cover = coverOf(m.leaf);
-			m.th = peel.dir > 0 ? p : 1 - p; m.cx = cxAt(m.leaf + m.th); m.v = 0; m.tilt = 1.1 * peel.amt * dsg * peel.cy;
+			var cy = peel.cy > 0 ? H / 2 : -H / 2, sg = cy > 0 ? -1 : 1, dir = peel.dir;
+			m.peel = true; m.leaf = dir > 0 ? t : t - 1; m.cover = coverOf(m.leaf); m.v = 0;
+			var q = limit(dir * (1 - 0.24 * peel.amt), cy + sg * 0.17 * H * peel.amt, cy);
+			m.px = q[0]; m.py = q[1]; m.cy = cy; m.th = Math.acos(q[0]) / RAD; m.cx = cxAt(m.leaf + m.th);
 			host.setAttribute('data-peel', '1');
 			draw();
 			if (peel.amt !== peel.tgt) { peel.id = requestAnimationFrame(peelStep); }
@@ -124,8 +144,8 @@
 			var dir = xr >= 0.5 ? 1 : -1, pw = mode === 'landscape' ? 0.5 : 1, edge = dir > 0 ? 1 - xr : xr, zone = 0.17 * pw, vy = Math.abs(yr - 0.5), tgt = 0;
 			if (edge >= 0 && edge < zone && vy > 0.26 && canTurn(dir)) { tgt = 0.3 + 0.7 * clamp(1 - edge / zone, 0, 1) * clamp((vy - 0.26) / 0.2, 0, 1); }
 			if (peel.amt > 0 && peel.dir !== dir && tgt > 0) { peel.amt = 0; if (m.peel) { rest(); } }
-			if (tgt === peel.tgt && Math.abs(peel.cy - (yr * 2 - 1)) < 0.02) { return; }
-			peel.tgt = tgt; peel.dir = tgt > 0 ? dir : peel.dir; peel.cy = clamp(yr * 2 - 1, -1, 1);
+			if (tgt === peel.tgt && Math.abs(peel.cy - (yr - 0.5)) < 0.01) { return; }
+			peel.tgt = tgt; peel.dir = tgt > 0 ? dir : peel.dir; peel.cy = yr < 0.5 ? 1 : -1;
 			host.style.cursor = tgt > 0 ? 'grab' : '';
 			if (!peel.id) { peel.id = requestAnimationFrame(peelStep); }
 		}
@@ -137,8 +157,8 @@
 		function onDown(e) {
 			if ((e.button && e.button > 0) || anim || (host.closest && host.closest('.bk-reader.is-zoomed'))) { return; }
 			stopPeel();
-			var r = host.getBoundingClientRect();
-			drag = { x0: e.clientX, y0: e.clientY, xr: (e.clientX - r.left) / r.width, w: r.width, top: r.top, h: r.height, started: false, dir: 0, cy: 0, hist: [] };
+			var r = host.getBoundingClientRect(), yr = (e.clientY - r.top) / r.height;
+			drag = { x0: e.clientX, y0: e.clientY, xr: (e.clientX - r.left) / r.width, w: r.width, started: false, dir: 0, cy: yr < 0.5 ? H / 2 : -H / 2, hist: [] };
 			drag.dir = drag.xr >= 0.5 ? 1 : -1;
 			document.addEventListener('pointermove', onMove);
 			document.addEventListener('pointerup', onUp);
@@ -150,14 +170,13 @@
 			if (!drag.started) {
 				if (Math.abs(dx) < 8 || (drag.dir > 0 ? dx > 0 : dx < 0) || !canTurn(drag.dir)) { return; }
 				drag.started = true;
-				begin(drag.dir, 0.6);
+				begin(drag.dir, 0.6, drag.cy);
 			}
-			var tip = clamp((drag.dir > 0 ? 1 : -1) + dx / pw, -1, 1), th = Math.acos(tip) / RAD, now = e.timeStamp || performance.now(), h = drag.hist; // when the pointer moved, not when this code got to run
-			drag.cy = clamp((e.clientY - drag.top) / drag.h * 2 - 1, -1, 1);
+			var px = clamp(drag.dir + dx / pw, -1, 1), py = drag.cy - (e.clientY - drag.y0) / pw, now = e.timeStamp || performance.now(), h = drag.hist, th = Math.acos(px) / RAD; // when the pointer moved, not when this code got to run
 			h.push({ t: now, th: th });
 			while (h.length > 2 && now - h[0].t > 90) { h.shift(); }
 			if (h.length > 1 && now - h[0].t >= 30) { m.v = (th - h[0].th) / ((now - h[0].t) / 1000); } // a speed only from a stretch long enough to mean something
-			setTh(th, drag.dir, drag.cy);
+			setP(px, py, drag.cy);
 			if (e.cancelable) { e.preventDefault(); }
 		}
 		function onUp(e) {
@@ -169,7 +188,7 @@
 			if (d.started) {
 				var v0 = clamp(m.v, -8, 8), vf = d.dir > 0 ? v0 : -v0; // vf > 0: the paper is moving on towards the other side
 				var commit = vf > 1.2 ? true : (vf < -1.2 ? false : (d.dir > 0 ? m.th > 0.5 : m.th < 0.5));
-				run(d.dir, commit, v0, d.cy);
+				run(d.dir, commit, v0);
 			} else if (e.type === 'pointerup' && Math.abs(e.clientX - d.x0) < 6 && Math.abs(e.clientY - d.y0) < 6) {
 				if (d.xr > 0.65) { turn(1); } else if (d.xr < 0.35) { turn(-1); }
 			}
@@ -284,31 +303,35 @@
 	var PAD = 0.955, OVER = 1.036; // the pages are a little smaller than the picture, so that the hard covers can stick out around them
 	var VS = [
 		'attribute vec2 aPos;',
-		'uniform float uTheta, uC, uH, uViewW, uCx, uD, uZoff, uTilt, uSc, uPad;',
-		'varying vec2 vUv; varying float vPhi; varying float vX;',
+		'uniform vec2 uM, uN;', // the fold: a point on it, and the unit normal that points to the corner that is held
+		'uniform float uOn, uR, uH, uViewW, uCx, uD, uZoff, uSc, uPad;',
+		'varying vec2 vUv; varying vec3 vN; varying float vX, vY;',
 		'void main() {',
-		'  float s = aPos.x;',
-		'  float th = clamp(uTheta + uTilt * (-2.0 * aPos.y), 0.0, 3.14159265);', // a corner that leads: the top and the bottom turn by different angles
-		'  float x, z;',
-		'  float cc = min(uC / max(sin(uTheta), 0.02) * sin(th), th * 0.98);', // the bend follows the angle of this part of the page and never dips under the pages below
-		'  if (abs(cc) < 0.0001) { x = s * cos(th); z = s * sin(th); }',
-		'  else { x = (sin(th) - sin(th - cc * s)) / cc; z = (cos(th - cc * s) - cos(th)) / cc; }',
-		'  x *= uSc;',
-		'  z += uZoff;',
-		'  vPhi = th - cc * s;',
-		'  vX = x;',
-		'  vUv = vec2(s, 0.5 - aPos.y);',
-		'  float dz = uD - z;',
-		'  float qx = (x - uCx) * uD / dz, qy = aPos.y * uSc * uH * uD / dz;',
-		'  gl_Position = vec4(qx * 2.0 / uViewW * uPad, qy * 2.0 / uH * uPad, -z * 0.2, 1.0);',
+		'  vec2 q = vec2(aPos.x, aPos.y * uH);',
+		'  float d = uOn > 0.5 ? dot(q - uM, uN) : -1.0;',
+		'  vec3 p = vec3(q, 0.0);',
+		'  vec3 nrm = vec3(0.0, 0.0, 1.0);',
+		'  if (d > 0.0) {', // behind the fold: rolled over a cylinder of radius uR, then flat again, face down, on top
+		'    vec2 F = q - d * uN;',
+		'    float pr = 3.14159265 * uR;',
+		'    if (d < pr) { float ph = d / uR; p = vec3(F + uN * (uR * sin(ph)), uR * (1.0 - cos(ph))); nrm = vec3(-uN * sin(ph), cos(ph)); }',
+		'    else { p = vec3(F - uN * (d - pr), 2.0 * uR); nrm = vec3(0.0, 0.0, -1.0); }',
+		'  }',
+		'  p.xy *= uSc;',
+		'  p.z += uZoff;',
+		'  vX = p.x; vY = p.y; vN = nrm;',
+		'  vUv = vec2(aPos.x, 0.5 - aPos.y);',
+		'  float dz = uD - p.z;',
+		'  gl_Position = vec4((p.x - uCx) * uD / dz * 2.0 / uViewW * uPad, p.y * uD / dz * 2.0 / uH * uPad, -p.z * 0.2, 1.0);',
 		'}'
 	].join('\n');
 	var FS = [
 		'precision mediump float;',
 		'uniform sampler2D uFront, uBack;',
-		'uniform float uHasBack, uShade, uSa, uSb, uSi, uPaper, uCovF, uCovB, uInF, uInB, uOver;',
+		'uniform vec2 uShM, uShN;',
+		'uniform float uHasBack, uShade, uShI, uPaper, uCovF, uCovB, uInF, uInB, uOver;',
 		'uniform vec3 uPaperCol;',
-		'varying vec2 vUv; varying float vPhi; varying float vX;',
+		'varying vec2 vUv; varying vec3 vN; varying float vX, vY;',
 		'void main() {',
 		'  bool front = gl_FrontFacing;',
 		'  vec3 col = uPaperCol;',
@@ -317,7 +340,7 @@
 		'  bool outside = iv.x > 1.0 || iv.y < 0.0 || iv.y > 1.0;',
 		'  if (front) { col = (uInF > 0.5) ? (outside ? vec3(0.17, 0.17, 0.2) : texture2D(uFront, iv).rgb) : texture2D(uFront, vUv).rgb; }',
 		'  else if (uHasBack > 0.5) { col = (uInB > 0.5) ? (outside ? vec3(0.17, 0.17, 0.2) : texture2D(uBack, vec2(1.0 - iv.x, iv.y)).rgb) : texture2D(uBack, vec2(1.0 - vUv.x, vUv.y)).rgb; }',
-		'  vec3 n = vec3(-sin(vPhi), 0.0, cos(vPhi));',
+		'  vec3 n = normalize(vN);',
 		'  if (!front) { n = -n; }',
 		'  vec3 l = normalize(vec3(-0.30, 0.35, 0.89));',
 		'  float dif = max(dot(n, l), 0.0) / l.z;',
@@ -331,9 +354,9 @@
 		'    col *= 1.0 - 0.26 * smoothstep(0.035, 0.0, e) - 0.34 * smoothstep(0.007, 0.0, e);',
 		'    col *= 1.0 - 0.24 * exp(-pow((vUv.x - 0.03) / 0.011, 2.0));',
 		'  }',
-		'  if (uSi > 0.0) {',
-		'    float d = max(max(uSa - vX, vX - uSb), 0.0);',
-		'    col *= 1.0 - uSi * exp(-d * d / 0.06);',
+		'  if (uShI > 0.0) {', // the shadow of the turning page on the page under it: along the fold
+		'    float e = dot(vec2(vX, vY) - uShM, uShN);',
+		'    col *= 1.0 - uShI * exp(-e * e / 0.02);',
 		'  }',
 		'  gl_FragColor = vec4(col, 1.0);',
 		'}'
@@ -375,8 +398,8 @@
 	}
 
 	function GlRenderer(host, core) {
-		this.peel = true; this.tilt = true; // a corner lifts at the mouse, and follows the pointer
-		var cv = null, gl = null, prog = null, prog2 = null, ov = null, buf = null, ibuf = null, buf2 = null, nIdx = 0, loc = {}, loc2 = {}, texs = {}, paper = null, N = 64, M = 10, dirty = false, raf = 0;
+		this.peel = true; // a corner lifts at the mouse, and the page is rolled over a fold that follows the pointer
+		var cv = null, gl = null, prog = null, prog2 = null, ov = null, buf = null, ibuf = null, buf2 = null, nIdx = 0, loc = {}, loc2 = {}, texs = {}, paper = null, N = 72, M = 48, dirty = false, raf = 0;
 		var pages = [], model = null, opts = null, ratio = 1.4;
 
 		function sh(type, src) {
@@ -397,7 +420,7 @@
 			gl = cv.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: true }) || cv.getContext('experimental-webgl');
 			prog = link(VS, FS); prog2 = link(VS2, FS2);
 			gl.useProgram(prog);
-			['uTheta', 'uC', 'uH', 'uViewW', 'uCx', 'uD', 'uZoff', 'uTilt', 'uSc', 'uPad', 'uFront', 'uBack', 'uHasBack', 'uShade', 'uSa', 'uSb', 'uSi', 'uPaperCol', 'uCovF', 'uCovB', 'uInF', 'uInB', 'uOver'].forEach(function (n) { loc[n] = gl.getUniformLocation(prog, n); });
+			['uM', 'uN', 'uOn', 'uR', 'uH', 'uViewW', 'uCx', 'uD', 'uZoff', 'uSc', 'uPad', 'uFront', 'uBack', 'uHasBack', 'uShade', 'uShM', 'uShN', 'uShI', 'uPaperCol', 'uCovF', 'uCovB', 'uInF', 'uInB', 'uOver'].forEach(function (n) { loc[n] = gl.getUniformLocation(prog, n); });
 			['uH', 'uViewW', 'uCx', 'uPad', 'uCol', 'uAxis'].forEach(function (n) { loc2[n] = gl.getUniformLocation(prog2, n); });
 			var v = [], idx = [], i, r;
 			for (r = 0; r <= M; r++) { for (i = 0; i <= N; i++) { v.push(i / N, 0.5 - r / M); } } // a grid, so that the top and the bottom of a page can turn by different angles
@@ -493,20 +516,34 @@
 			keys.slice(0, keys.length - 14).forEach(function (k) { gl.deleteTexture(texs[k].tex); delete texs[k]; });
 		}
 
-		function drawLeaf(j, theta, curl, zoff, shadow, tilt, cover) {
+		/* fold: null for a page lying flat, 'flip' for a page turned over completely, else { M, N, R } (see foldOf); shadow: { M, N, I } of the turning page, for the pages under it */
+		function drawLeaf(j, fold, zoff, shadow, cover) {
 			var land = model.mode === 'landscape', f = land ? 2 * j : j, b = land ? 2 * j + 1 : -1;
 			var tf = texFor(f), tb = b >= 0 ? texFor(b) : null, last = j === model.L - 1;
 			gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tf || paper); gl.uniform1i(loc.uFront, 0);
 			gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, tb || paper); gl.uniform1i(loc.uBack, 1);
 			gl.uniform1f(loc.uHasBack, tb ? 1 : 0);
-			gl.uniform1f(loc.uTheta, theta); gl.uniform1f(loc.uC, curl); gl.uniform1f(loc.uZoff, zoff);
-			gl.uniform1f(loc.uTilt, tilt || 0);
+			if (!fold) { gl.uniform1f(loc.uOn, 0); gl.uniform1f(loc.uR, 0.0001); gl.uniform2f(loc.uM, 0, 0); gl.uniform2f(loc.uN, 1, 0); }
+			else if (fold === 'flip') { gl.uniform1f(loc.uOn, 1); gl.uniform1f(loc.uR, 0.0001); gl.uniform2f(loc.uM, 0, 0); gl.uniform2f(loc.uN, 1, 0); } // the fold is the spine: the page lies mirrored on the other side
+			else { gl.uniform1f(loc.uOn, 1); gl.uniform1f(loc.uR, fold.R); gl.uniform2f(loc.uM, fold.M[0], fold.M[1]); gl.uniform2f(loc.uN, fold.N[0], fold.N[1]); }
+			gl.uniform1f(loc.uZoff, zoff);
 			gl.uniform1f(loc.uSc, cover ? OVER : 1);
 			gl.uniform1f(loc.uCovF, j === 0 || (!land && last) ? 1 : 0); gl.uniform1f(loc.uCovB, land && last ? 1 : 0);
 			gl.uniform1f(loc.uInF, land && last && j !== 0 ? 1 : 0); gl.uniform1f(loc.uInB, land && j === 0 && !last ? 1 : 0);
 			gl.uniform1f(loc.uShade, 0);
-			if (shadow) { gl.uniform1f(loc.uSa, shadow[0]); gl.uniform1f(loc.uSb, shadow[1]); gl.uniform1f(loc.uSi, shadow[2]); } else { gl.uniform1f(loc.uSi, 0); }
+			if (shadow) { gl.uniform2f(loc.uShM, shadow.M[0], shadow.M[1]); gl.uniform2f(loc.uShN, shadow.N[0], shadow.N[1]); gl.uniform1f(loc.uShI, shadow.I); } else { gl.uniform1f(loc.uShI, 0); }
 			gl.drawElements(gl.TRIANGLES, nIdx, gl.UNSIGNED_SHORT, 0);
+		}
+		/* The fold of the page that is held by the corner (1, m.cy) and taken to (m.px, m.py): half way between the two, square to the way the corner went;
+		   the paper is rolled over a cylinder (the radius grows as the corner leaves its place and shrinks to nothing as the page lands flat on the other side,
+		   is bigger for a faster swing and for a hard cover, which does not roll tightly). The fold is moved by half the roll so that the corner arrives exactly at the pointer. */
+		function foldOf(m) {
+			var cx = 1, cyy = m.cy, dx = cx - m.px, dy = cyy - m.py, dist = Math.sqrt(dx * dx + dy * dy);
+			if (dist < 0.0005) { return null; }
+			var nx = dx / dist, ny = dy / dist;
+			var rad = 0.1 * clamp(dist / 0.3, 0, 1) * clamp((2 - dist) / 0.3, 0, 1) * (m.cover ? 1.7 : 1) * (1 + 0.3 * Math.min(Math.abs(m.v) / 3, 1)) + 0.0001;
+			var mx = (cx + m.px) / 2 - nx * Math.PI * rad / 2, my = (cyy + m.py) / 2 - ny * Math.PI * rad / 2;
+			return { M: [mx, my], N: [nx, ny], R: rad, I: 0.5 * clamp(dist / 0.3, 0, 1) * clamp((2 - dist) / 0.4, 0, 1) };
 		}
 		/* the thickness of the book: the board that carries the pages (the back cover) and the pages stacked along the edges, each side
 		   as thick as the number of pages that are on it */
@@ -536,25 +573,20 @@
 			if (W < 2 || H < 2) { return; }
 			gl.viewport(0, 0, W, H);
 			gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-			var turning = m.leaf >= 0, j = turning ? m.leaf : m.t, shadow = null, theta, curl, ext, a, b, s;
+			var turning = m.leaf >= 0, j = turning ? m.leaf : m.t, fold = null, shadow = null;
 			useMain();
 			gl.uniform1f(loc.uH, ratio); gl.uniform1f(loc.uViewW, m.mode === 'landscape' ? 2 : 1); gl.uniform1f(loc.uCx, m.cx);
 			drawBlock(m, turning ? j : m.t, L - (turning ? j + 1 : m.t));
 			if (turning) {
-				theta = m.th * RAD;
-				// the page bends most when it is upright, and is flat again at both ends; faster it swings, the more it trails behind; a hard cover hardly bends
-				curl = 0.95 * Math.sin(theta) * (m.cover ? 0.4 : 1) * (m.peel ? 0.4 : 1) * (1 + 0.35 * Math.min(Math.abs(m.v) / 3, 1));
-				// where the free edge of the turning page is: its shadow falls between the spine and there
-				ext = curl < 0.0001 ? Math.cos(theta) : (Math.sin(theta) - Math.sin(theta - curl)) / curl;
-				a = Math.min(0, ext); b = Math.max(0, ext);
-				s = [a, b, 0.5 * Math.pow(Math.sin(theta), 0.8)];
+				fold = foldOf(m);
+				if (fold) { shadow = { M: fold.M, N: fold.N, I: fold.I }; }
 			}
-			// the pages at rest: left (back of the leaf before) and right (front of the leaf after)
+			// the pages at rest: left (back of the leaf before, turned over) and right (front of the leaf after)
 			var left = turning ? j - 1 : m.t - 1, right = turning ? j + 1 : m.t;
 			var cvr = function (i) { return i === 0 || i === L - 1; };
-			if (m.mode === 'landscape' && left >= 0 && left < L) { drawLeaf(left, RAD, 0, 0, s, 0, cvr(left)); }
-			if (right >= 0 && right < L) { drawLeaf(right, 0, 0, 0, s, 0, cvr(right)); }
-			if (turning) { drawLeaf(j, theta, curl, 0.004, null, m.tilt, m.cover); }
+			if (m.mode === 'landscape' && left >= 0 && left < L) { drawLeaf(left, 'flip', 0, shadow, cvr(left)); }
+			if (right >= 0 && right < L) { drawLeaf(right, null, 0, shadow, cvr(right)); }
+			if (turning) { drawLeaf(j, fold, 0.004, null, m.cover); }
 			syncOverlay();
 		}
 		function want() { if (!raf) { raf = requestAnimationFrame(render); } }
