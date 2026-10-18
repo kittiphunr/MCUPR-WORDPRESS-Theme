@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.51.1 =
+* Header tools capsule: same space all round, same button height and gap, round all-menu button.
+
 = 1.51.0 =
 * Toolbar for editors: floating icon with a card of the toolbar's links, in groups (or the WordPress bar).
 
