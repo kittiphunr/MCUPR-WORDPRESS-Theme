@@ -3308,6 +3308,20 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       }
       phpD('remove_theme_mod( "mcupr_toolbar" );');
     }
+    // sidebar mode, a visitor: the content is as wide as the frame, and the home hero starts at the top edge of the capsule
+    for (const [w, sbmin] of [[1428, false], [1920, true], [1180, false]]) {
+      const fc = await br.newContext({ viewport: { width: w, height: 800 } });
+      const fp = await fc.newPage();
+      await fp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', m ? '1' : '0'); } catch (e) { /* */ } }, sbmin);
+      await fp.goto(B + '/');
+      await fp.waitForTimeout(700);
+      const g = await fp.evaluate(() => { const r = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; }; const f = r('.site-page'), h = r('#masthead'), hero = r('.hero'); const ws = [...document.querySelectorAll('#content .wrap')].slice(0, 6).map((e) => e.getBoundingClientRect()); return f && h && hero ? { top: hero.top - h.top, right: hero.right - h.right, left: hero.left - f.left, rgap: f.right - hero.right, wl: Math.max.apply(null, ws.map((x) => Math.abs(x.left - hero.left))), wr: Math.max.apply(null, ws.map((x) => Math.abs(x.right - hero.right))), sw: document.documentElement.scrollWidth - innerWidth } : null; });
+      const tag = 'sidebar mode (' + w + ' px, ' + (sbmin ? 'folded' : 'open') + ', visitor)';
+      ok(g && Math.abs(g.top) <= 1, tag + ': the hero starts at the top edge of the tools capsule (' + (g ? g.top.toFixed(1) : '?') + ' px apart)');
+      ok(g && Math.abs(g.right) <= 1 && Math.abs(g.left - g.rgap) <= 1 && g.left >= 10 && g.left <= 16, tag + ': the hero ends where the capsule ends (' + (g ? g.right.toFixed(1) : '?') + ' px) and is the same ' + (g ? g.left.toFixed(1) : '?') + ' px inside the frame on both sides (' + (g ? g.rgap.toFixed(1) : '?') + ')');
+      ok(g && g.wl <= 1 && g.wr <= 1 && g.sw <= 0, tag + ': the other blocks are as wide as the hero, and nothing scrolls sideways');
+      await fc.close();
+    }
     // the WordPress toolbar as a floating icon for signed-in editors (and the classic bar when chosen)
     {
       const { execSync: execC } = require('child_process');
