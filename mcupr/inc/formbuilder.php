@@ -432,9 +432,7 @@ function mcupr_fb_submit( $form_id, $data, $now = 0, $files = null ) {
 	if ( ! empty( $o['copy'] ) && $mail ) {
 		$thanks = '' !== $o['success'] ? $o['success'] : __( 'Thank you. Your answers were received.', 'mcupr' );
 		$own    = is_user_logged_in() && 0 === strcasecmp( (string) wp_get_current_user()->user_email, $mail ); // the full answers only to the address of the person who is signed in
-		$ck     = 'mcupr_fb_copies';
-		if ( (int) get_transient( $ck ) < 60 ) { // and never more than 60 such mails an hour from the whole site
-			set_transient( $ck, (int) get_transient( $ck ) + 1, HOUR_IN_SECONDS );
+		if ( mcupr_throttle( 'fb_copies', 60, HOUR_IN_SECONDS ) ) { // and never more than 60 such mails an hour from the whole site
 			wp_mail( $mail, wp_specialchars_decode( get_the_title( $form_id ), ENT_QUOTES ), $own ? $thanks . "\n\n" . $body : $thanks ); // anyone else: only the thanks, never what was typed
 		}
 	}
