@@ -1975,7 +1975,9 @@ html[data-contrast] button[role="switch"]:focus-visible { outline: 3px solid var
 .office-chrome[data-variant="slim"] .of-band { padding: .55rem 0; }
 .of-up { margin: 0 0 .5rem; font-size: .9rem; }
 .of-up a, .of-name a { color: inherit; }
-.of-up a { text-decoration: underline; text-underline-offset: .15em; }
+.of-up a { display: inline-flex; align-items: center; gap: .3rem; padding: .15rem .8rem .15rem .55rem; border: 1px solid color-mix(in srgb, var(--of-on) 40%, transparent); border-radius: 9999px; background: color-mix(in srgb, var(--of-on) 14%, transparent); text-decoration: none; }
+.of-up a:hover, .of-up a:focus-visible { background: color-mix(in srgb, var(--of-on) 26%, transparent); }
+html[data-contrast] .of-up a { border: 2px solid var(--border); background: var(--bg); }
 .of-name a { text-decoration: none; }
 .of-id { display: flex; align-items: center; gap: 1rem; }
 .of-badge { flex: none; display: inline-grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: var(--of-on); color: var(--of); font-size: 1.5rem; font-weight: 800; line-height: 1; overflow: hidden; }
@@ -2000,6 +2002,24 @@ html[data-contrast] .of-tabs a[aria-current="page"] { background: var(--text); c
 html[data-contrast] .of-tabs { border-bottom: 2px solid var(--border); }
 html[data-contrast] .office-chrome[data-variant="full"] .of-tabs { border-bottom: 0; }
 html[data-contrast] .office-chrome[data-variant="full"] .of-tabs ul { border: 2px solid var(--border); box-shadow: none; }
+.of-head { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: .8rem 1.25rem; overflow: hidden; isolation: isolate; margin: 0 0 1.75rem; padding: 1.35rem 1.6rem; border: 1px solid var(--edge); border-radius: 1.8rem; background: linear-gradient(135deg, var(--bg), color-mix(in srgb, var(--of) 10%, var(--bg))); box-shadow: 0 2px 14px color-mix(in srgb, var(--text) 7%, transparent); }
+.of-head::after { content: ""; position: absolute; z-index: -1; right: -2.5rem; top: -3.5rem; width: 14rem; height: 14rem; border-radius: 50%; background: var(--of); opacity: .08; }
+.of-head-ic { flex: none; display: grid; place-items: center; width: 4.2rem; height: 4.2rem; border-radius: 1.3rem; background: linear-gradient(135deg, var(--of), color-mix(in srgb, var(--of) 70%, #fff)); color: var(--of-on); box-shadow: 0 8px 18px -6px color-mix(in srgb, var(--of) 60%, transparent); }
+.of-head-t { flex: 1 1 14rem; min-width: 0; }
+.of-head .of-h1 { margin: 0; font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.4rem); line-height: 1.15; }
+.of-head-lead { margin: .2rem 0 0; color: var(--text-2); }
+.of-count { margin: 0 0 0 auto; text-align: center; line-height: 1.1; }
+.of-count b { display: block; color: color-mix(in srgb, var(--of) 70%, var(--text)); font-size: clamp(2rem, 1.4rem + 2vw, 2.7rem); font-weight: 800; }
+.of-count span { color: var(--muted); font-size: .88rem; }
+html[data-contrast] .of-head { background: var(--bg); border: 2px solid var(--border); box-shadow: none; }
+html[data-contrast] .of-head::after { display: none; }
+html[data-contrast] .of-head-ic { background: var(--bg); color: var(--text); border: 2px solid var(--border); box-shadow: none; }
+html[data-contrast] .of-count b { color: var(--text); }
+/* the cards of an office's sections lift when pointed at */
+.of-body .album-grid > * { transition: transform .18s ease, box-shadow .18s ease; }
+.of-body .album-grid > *:hover, .of-body .album-grid > *:focus-within { transform: translateY(-4px); box-shadow: 0 16px 30px -14px color-mix(in srgb, var(--text) 40%, transparent); }
+html[data-motion="1"] .of-body .album-grid > *, html[data-contrast] .of-body .album-grid > * { transition: none; transform: none; }
+@media (prefers-reduced-motion: reduce) { .of-body .album-grid > * { transition: none; transform: none !important; } }
 .of-h1 { margin: 0 0 1.5rem; font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 800; line-height: 1.25; }
 .of-home { display: grid; gap: 1.5rem; }
 @media (min-width: 900px) { .of-home:not(.of-home-solo) { grid-template-columns: minmax(0, 1fr) 21rem; align-items: start; } }
