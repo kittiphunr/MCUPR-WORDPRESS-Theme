@@ -4,7 +4,8 @@
  *
  * One click makes three offices as mini-sites with working sample content: the campus office, the academic office and the
  * Buddhist college – each with its colour, head, contact details, news and announcements (with pictures), events, people,
- * a photo album and pages of its own (which become tabs). Everything carries a key (_mcupr_demo_off), is made only if it
+ * a photo album and pages of its own (which become tabs); the first two also get work groups (inc/groups.php) with
+ * services, contact details and some of their people and news marked with the group (no documents: the demo has no files). Everything carries a key (_mcupr_demo_off), is made only if it
  * does not exist yet, and “Remove the offices demo” deletes it all (also what was edited). Nothing else is touched.
  * The data is in starter/mcupr-demo-offices.json (the same file can be uploaded on another site).
  *
@@ -21,7 +22,7 @@ function mcupr_od_data() {
 
 /** Make the demo. Returns counts: offices, posts, events, people, albums, pages, images, skipped. */
 function mcupr_od_apply( $d ) {
-	$r = array( 'offices' => 0, 'posts' => 0, 'events' => 0, 'people' => 0, 'albums' => 0, 'pages' => 0, 'images' => 0, 'skipped' => 0 );
+	$r = array( 'offices' => 0, 'posts' => 0, 'events' => 0, 'people' => 0, 'albums' => 0, 'pages' => 0, 'groups' => 0, 'images' => 0, 'skipped' => 0 );
 	if ( ! is_array( $d ) || empty( $d['mcupr_demo_offices'] ) || empty( $d['offices'] ) || ! is_array( $d['offices'] ) ) {
 		return $r;
 	}
@@ -198,6 +199,48 @@ function mcupr_od_apply( $d ) {
 				$r['pages']++;
 			}
 		}
+		// ---- work groups (inc/groups.php), with the people and news of the office marked with them
+		$n = 0;
+		foreach ( isset( $o['work_groups'] ) && is_array( $o['work_groups'] ) && post_type_exists( 'mcupr_group' ) ? array_slice( $o['work_groups'], 0, 8 ) : array() as $wg ) {
+			$n++;
+			$key = $ok . '-group-' . sanitize_key( $wg['key'] );
+			if ( mcupr_demo_find( $key, $M ) ) {
+				$r['skipped']++;
+				continue;
+			}
+			$gid = wp_insert_post( array( 'post_type' => 'mcupr_group', 'post_status' => 'publish', 'post_title' => $txt( $wg, 'title' ), 'post_name' => sanitize_title( $txt( $wg, 'slug' ) ), 'post_excerpt' => $txt( $wg, 'excerpt' ), 'post_content' => wp_kses_post( wpautop( isset( $wg['content'] ) ? $wg['content'] : '' ) ), 'menu_order' => (int) ( isset( $wg['order'] ) ? $wg['order'] : $n ) ) );
+			if ( ! $gid || is_wp_error( $gid ) ) {
+				continue;
+			}
+			update_post_meta( $gid, $M, $key );
+			mcupr_group_set_office( $gid, $oid );
+			foreach ( array( 'name_en', 'tel', 'place' ) as $k ) {
+				if ( '' !== $txt( $wg, $k ) ) {
+					update_post_meta( $gid, '_mcupr_g_' . $k, $txt( $wg, $k ) );
+				}
+			}
+			if ( ! empty( $wg['email'] ) ) {
+				update_post_meta( $gid, '_mcupr_g_email', sanitize_email( $wg['email'] ) );
+			}
+			if ( ! empty( $wg['hours'] ) && is_string( $wg['hours'] ) ) {
+				update_post_meta( $gid, '_mcupr_g_hours', implode( "\n", mcupr_group_lines( sanitize_textarea_field( $wg['hours'] ) ) ) );
+			}
+			$sv = mcupr_group_clean_services( isset( $wg['services'] ) ? $wg['services'] : array() );
+			if ( $sv ) {
+				update_post_meta( $gid, '_mcupr_g_services', $sv );
+			}
+			foreach ( array( 'posts' => 'post', 'people' => 'person' ) as $list => $kind ) {
+				foreach ( isset( $o[ $list ] ) && is_array( $o[ $list ] ) ? $o[ $list ] : array() as $it ) {
+					if ( isset( $it['work_group'], $it['key'] ) && $it['work_group'] === $wg['key'] ) {
+						$pid = mcupr_demo_find( $ok . '-' . $kind . '-' . sanitize_key( $it['key'] ), $M );
+						if ( $pid ) {
+							mcupr_group_mark( $pid, $gid, 'person' === $kind ? ! empty( $it['ghead'] ) : null );
+						}
+					}
+				}
+			}
+			$r['groups']++;
+		}
 	}
 	return $r;
 }
@@ -229,7 +272,7 @@ function mcupr_od_remove() {
 
 function mcupr_od_message( $r ) {
 	$parts = array();
-	foreach ( array( 'offices' => __( 'offices', 'mcupr' ), 'posts' => __( 'news', 'mcupr' ), 'events' => __( 'events', 'mcupr' ), 'people' => __( 'people', 'mcupr' ), 'albums' => __( 'albums', 'mcupr' ), 'pages' => __( 'pages', 'mcupr' ), 'images' => __( 'sample pictures', 'mcupr' ) ) as $k => $label ) {
+	foreach ( array( 'offices' => __( 'offices', 'mcupr' ), 'posts' => __( 'news', 'mcupr' ), 'events' => __( 'events', 'mcupr' ), 'people' => __( 'people', 'mcupr' ), 'albums' => __( 'albums', 'mcupr' ), 'pages' => __( 'pages', 'mcupr' ), 'groups' => __( 'work groups', 'mcupr' ), 'images' => __( 'sample pictures', 'mcupr' ) ) as $k => $label ) {
 		if ( $r[ $k ] ) {
 			$parts[] = $r[ $k ] . ' ' . $label;
 		}
