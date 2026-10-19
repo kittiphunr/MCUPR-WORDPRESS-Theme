@@ -21,6 +21,7 @@ get_header();
 			<?php if ( has_excerpt() ) : ?>
 				<div class="band-lead"><?php echo wp_kses_post( wpautop( get_the_excerpt() ) ); ?></div>
 			<?php endif; ?>
+			<p class="band-meta no-print"><span class="band-chip"><?php echo mcupr_icon( 'clock', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'updated_on' ); ?> <?php echo esc_html( mcupr_date_text( get_post_timestamp( null, 'modified' ) ) ); ?></span></span><span class="band-chip"><?php echo mcupr_icon( 'book', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( sprintf( mcupr_t( 'reading_time' ), mcupr_reading_minutes( get_the_content() ) ) ); ?></span></span></p>
 		</div>
 	</header>
 
@@ -33,7 +34,6 @@ get_header();
 					<div class="pill-tabs !flex items-center" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'article_tools' ) ); ?>">
 						<button type="button" class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border-0 bg-transparent px-4 font-semibold text-fg2 hover:bg-tint hover:text-link" data-print><?php mcupr_e( 'print' ); ?></button>
 					</div>
-					<span class="inline-flex items-center gap-1.5 text-sm text-muted"><?php echo mcupr_icon( 'clock', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php mcupr_e( 'updated_on' ); ?> <?php echo esc_html( mcupr_date_text( get_post_timestamp( null, 'modified' ) ) ); ?></span>
 					<?php echo mcupr_views_html(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				</div>
 			</div>
