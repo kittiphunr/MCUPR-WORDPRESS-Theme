@@ -6,10 +6,11 @@
  *   office       the name (or address part, or number) of the office the group belongs to
  *   name         name of the group (Thai)
  *   name_en      English name
- *   division     the division the group sits under, if the chart has one (kept as the first line of the short text)
+ *   division     the division the group sits under, if the chart has one: the office home shows the groups under its heading
  *   description  short text
  *   tel, email, place, hours   contact details (hours: rows separated by " | ")
- * A group that already exists in that office (same name) is left as it is: nothing an editor wrote is overwritten.
+ * A group that already exists in that office (same name) is left as it is: nothing an editor wrote is overwritten –
+ * except that an empty division is filled in from the file (so a file imported before divisions existed can be imported again).
  * Groups are added in the order of the file (the order of the list). Nothing else on the site is touched.
  * The chart of the Phrae campus is in starter/mcupr-work-groups.csv (the “Use the sample file” button).
  *
@@ -70,7 +71,7 @@ function mcupr_groups_import_table( array $rows ) {
  * Add the groups of a table. Returns array( 'added' => n, 'skipped' => n, 'problems' => array( message… ) ).
  */
 function mcupr_groups_import_apply( array $table ) {
-	$res   = array( 'added' => 0, 'skipped' => 0, 'problems' => array() );
+	$res   = array( 'added' => 0, 'skipped' => 0, 'filled' => 0, 'problems' => array() );
 	$order = array();
 	foreach ( $table as $n => $row ) {
 		$line = $n + 2;
@@ -84,32 +85,39 @@ function mcupr_groups_import_apply( array $table ) {
 			$res['problems'][] = sprintf( /* translators: 1: line number, 2: office as typed */ __( 'Line %1$d: the office “%2$s” was not found – skipped.', 'mcupr' ), $line, isset( $row['office'] ) ? sanitize_text_field( $row['office'] ) : '' );
 			continue;
 		}
-		$have = false;
+		$div  = ! empty( $row['division'] ) ? sanitize_text_field( $row['division'] ) : '';
+		$have = null;
 		foreach ( mcupr_office_groups( $oid ) as $g ) {
 			if ( preg_replace( '/\s+/u', '', mb_strtolower( $g->post_title ) ) === preg_replace( '/\s+/u', '', mb_strtolower( $name ) ) ) {
-				$have = true;
+				$have = $g;
 				break;
 			}
 		}
 		if ( $have ) {
-			$res['skipped']++;
+			if ( '' !== $div && '' === (string) get_post_meta( $have->ID, '_mcupr_g_division', true ) ) {
+				update_post_meta( $have->ID, '_mcupr_g_division', $div );
+				$ex = (string) $have->post_excerpt; // an earlier import kept the division as the first words of the short text
+				if ( $ex === $div || 0 === strpos( $ex, $div . ' · ' ) ) {
+					wp_update_post( array( 'ID' => $have->ID, 'post_excerpt' => $ex === $div ? '' : substr( $ex, strlen( $div . ' · ' ) ) ) );
+				}
+				mcupr_group_memo_reset();
+				$res['filled']++;
+			} else {
+				$res['skipped']++;
+			}
 			continue;
 		}
 		$order[ $oid ] = isset( $order[ $oid ] ) ? $order[ $oid ] + 1 : count( mcupr_office_groups( $oid ) ) + 1;
-		$text          = array();
-		if ( ! empty( $row['division'] ) ) {
-			$text[] = sanitize_text_field( $row['division'] );
-		}
-		if ( ! empty( $row['description'] ) ) {
-			$text[] = sanitize_text_field( $row['description'] );
-		}
-		$gid = wp_insert_post( array( 'post_type' => MCUPR_GROUP, 'post_status' => 'publish', 'post_title' => $name, 'post_excerpt' => implode( ' · ', $text ), 'menu_order' => $order[ $oid ] ), true );
+		$gid           = wp_insert_post( array( 'post_type' => MCUPR_GROUP, 'post_status' => 'publish', 'post_title' => $name, 'post_excerpt' => ! empty( $row['description'] ) ? sanitize_text_field( $row['description'] ) : '', 'menu_order' => $order[ $oid ] ), true );
 		if ( is_wp_error( $gid ) || ! $gid ) {
 			$res['problems'][] = sprintf( /* translators: %d: line number */ __( 'Line %d: the group could not be saved.', 'mcupr' ), $line );
 			continue;
 		}
 		mcupr_group_set_office( $gid, $oid );
 		mcupr_group_memo_reset(); // the next row sees this group
+		if ( '' !== $div ) {
+			update_post_meta( $gid, '_mcupr_g_division', $div );
+		}
 		foreach ( array( 'name_en', 'tel', 'place' ) as $k ) {
 			if ( ! empty( $row[ $k ] ) ) {
 				update_post_meta( $gid, '_mcupr_g_' . $k, sanitize_text_field( $row[ $k ] ) );
@@ -123,7 +131,7 @@ function mcupr_groups_import_apply( array $table ) {
 		}
 		$res['added']++;
 	}
-	if ( $res['added'] && function_exists( 'mcupr_office_counts_clear' ) ) {
+	if ( ( $res['added'] || $res['filled'] ) && function_exists( 'mcupr_office_counts_clear' ) ) {
 		mcupr_office_counts_clear();
 	}
 	return $res;
@@ -156,8 +164,8 @@ function mcupr_groups_import_page() {
 	$act = esc_url( admin_url( 'admin-post.php' ) );
 	echo '<div class="wrap"><h1>' . esc_html__( 'Import work groups', 'mcupr' ) . '</h1>';
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_GET['res'] ) && is_string( $_GET['res'] ) && preg_match( '/^(\d+)-(\d+)-(\d+)$/', wp_unslash( $_GET['res'] ), $m ) ) {
-		echo '<div class="notice notice-success"><p>' . esc_html( sprintf( /* translators: 1: added, 2: left as it was, 3: problems */ __( 'Done: %1$d work groups added, %2$d already there (left as they are), %3$d lines with a problem.', 'mcupr' ), (int) $m[1], (int) $m[2], (int) $m[3] ) ) . '</p>';
+	if ( isset( $_GET['res'] ) && is_string( $_GET['res'] ) && preg_match( '/^(\d+)-(\d+)-(\d+)-(\d+)$/', wp_unslash( $_GET['res'] ), $m ) ) {
+		echo '<div class="notice notice-success"><p>' . esc_html( sprintf( /* translators: 1: added, 2: left as it was, 3: problems */ __( 'Done: %1$d work groups added, %2$d already there (left as they are), %3$d got their division, %4$d lines with a problem.', 'mcupr' ), (int) $m[1], (int) $m[2], (int) $m[3], (int) $m[4] ) ) . '</p>';
 		$p = get_transient( 'mcupr_groups_import_problems_' . get_current_user_id() );
 		if ( is_array( $p ) && $p ) {
 			echo '<ul style="list-style:disc;margin-left:1.5rem">';
@@ -193,13 +201,13 @@ add_action(
 		}
 		$table = '' !== $path && is_readable( $path ) ? mcupr_groups_import_table( mcupr_import_read_csv( $path ) ) : null;
 		if ( null === $table ) {
-			wp_safe_redirect( add_query_arg( 'res', '0-0-1', $back ) );
+			wp_safe_redirect( add_query_arg( 'res', '0-0-0-1', $back ) );
 			set_transient( 'mcupr_groups_import_problems_' . get_current_user_id(), array( __( 'The file could not be read: it needs a first row with at least the columns office and name (CSV, UTF-8, up to 2 MB).', 'mcupr' ) ), 5 * MINUTE_IN_SECONDS );
 			exit;
 		}
 		$r = mcupr_groups_import_apply( array_slice( $table, 0, 500 ) );
 		set_transient( 'mcupr_groups_import_problems_' . get_current_user_id(), $r['problems'], 5 * MINUTE_IN_SECONDS );
-		wp_safe_redirect( add_query_arg( 'res', $r['added'] . '-' . $r['skipped'] . '-' . count( $r['problems'] ), $back ) );
+		wp_safe_redirect( add_query_arg( 'res', $r['added'] . '-' . $r['skipped'] . '-' . $r['filled'] . '-' . count( $r['problems'] ), $back ) );
 		exit;
 	}
 );
