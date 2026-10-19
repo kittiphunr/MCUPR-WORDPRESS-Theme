@@ -3496,6 +3496,40 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       }
       phpQ('foreach(array(' + qids + ') as $i){ wp_delete_post($i,true); }');
     }
+    // a page owned by an office wears the same head panel as the section pages; the office home has stat tiles
+    {
+      const { execSync: execR } = require('child_process');
+      const phpR = (code) => { const f = require('os').tmpdir() + '/e2e-ofpage-' + process.pid + '.php'; require('fs').writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execR('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+      const rids = phpR('wp_set_current_user(1); $o=wp_insert_post(array("post_type"=>"mcupr_office","post_status"=>"publish","post_title"=>"Page test office","post_name"=>"e2e-ofpage")); $p=wp_insert_post(array("post_type"=>"page","post_status"=>"publish","post_title"=>"Office owned page","post_content"=>"Some text here.")); mcupr_office_assign($p,$o); $q=wp_insert_post(array("post_type"=>"page","post_status"=>"publish","post_title"=>"Plain page","post_content"=>"Other text.")); flush_rewrite_rules(); echo implode(",",array($o,$p,$q));').split(',');
+      for (const [w, menu] of [[1428, 'side'], [390, 'top']]) {
+        const rc = await br.newContext({ viewport: { width: w, height: 800 } });
+        const rp = await rc.newPage();
+        await rp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        const rtag = 'office page (' + w + ' px, ' + menu + ' menu)';
+        await rp.goto(B + '/?page_id=' + rids[1]);
+        await rp.waitForTimeout(600);
+        const rg = await rp.evaluate(() => ({ head: !!document.querySelector('.of-head'), h1: document.querySelectorAll('h1').length, wheel: !!document.querySelector('header.mcu-wheel'), chips: document.querySelectorAll('.of-head-meta .band-chip').length, sw: document.documentElement.scrollWidth - innerWidth }));
+        ok(rg.head && rg.h1 === 1 && !rg.wheel && rg.chips === 2 && rg.sw <= 0, rtag + ': same head panel as the section pages (' + rg.chips + ' chips), no old band, no sideways scroll');
+        await rp.addScriptTag({ content: axeSource() });
+        const axR = await rp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+        ok(axR.violations.length === 0, rtag + ': axe ' + (axR.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        await rp.goto(B + '/?page_id=' + rids[2]);
+        const rn = await rp.evaluate(() => ({ head: !!document.querySelector('.of-head'), wheel: !!document.querySelector('header.mcu-wheel') }));
+        ok(!rn.head && rn.wheel, rtag + ': a page that is not owned by an office keeps the usual band');
+        await rp.goto(B + '/?mcupr_office=e2e-ofpage');
+        await rp.waitForTimeout(400);
+        const rh = await rp.evaluate(() => ({ stats: document.querySelectorAll('.of-stats li').length, ic: document.querySelectorAll('.of-stats .of-stat-ic svg').length, sw: document.documentElement.scrollWidth - innerWidth }));
+        ok(rh.stats >= 1 && rh.ic === rh.stats && rh.sw <= 0, rtag + ': office home – ' + rh.stats + ' stat tiles with icons, no sideways scroll');
+        if (w === 1428) {
+          await rp.goto(B + '/?page_id=' + rids[1]);
+          await rp.evaluate(() => document.documentElement.setAttribute('data-contrast', 'wb'));
+          const rw = await rp.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.of-head')).borderBottomWidth));
+          ok(rw >= 2, rtag + ': white on black – the head panel has an outline (' + rw + ' px)');
+        }
+        await rc.close();
+      }
+      phpR('foreach(array(' + rids.join(',') + ') as $i){ wp_delete_post($i,true); }');
+    }
     // the WordPress toolbar as a floating icon for signed-in editors (and the classic bar when chosen)
     {
       const { execSync: execC } = require('child_process');
