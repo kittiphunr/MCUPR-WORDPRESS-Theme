@@ -16,7 +16,7 @@ function mcupr_forum_notices() {
 	// phpcs:enable
 	$map = array(
 		'name' => 'form_err_name', 'email' => 'form_err_email', 'message' => 'form_err_msg', 'consent' => 'form_err_consent', 'spam' => 'form_err_spam', 'limit' => 'form_err_limit',
-		'title' => 'fm_err_title', 'board' => 'fm_err_board', 'topic' => 'fm_err_topic', 'locked' => 'fm_err_locked', 'dup' => 'fm_err_dup', 'login' => 'fm_err_login', 'closed' => 'fm_err_closed',
+		'title' => 'fm_err_title', 'board' => 'fm_err_board', 'topic' => 'fm_err_topic', 'locked' => 'fm_err_locked', 'dup' => 'fm_err_dup', 'login' => 'fm_err_login', 'closed' => 'fm_err_closed', 'staffname' => 'fm_err_staff_name',
 	);
 	$out = '';
 	if ( 'pending' === $state ) {
@@ -197,7 +197,7 @@ function mcupr_forum_replies_html( $topic_id ) {
 	$o    = '<ol class="forum-replies">';
 	foreach ( $cs as $c ) {
 		$staff = $c->user_id && user_can( (int) $c->user_id, 'edit_pages' );
-		$o    .= '<li class="forum-reply' . ( $staff ? ' is-staff' : '' ) . '" id="reply-' . (int) $c->comment_ID . '"><span class="forum-av" aria-hidden="true">' . esc_html( mcupr_forum_initial( $c->comment_author ) ) . '</span><div class="forum-rb"><p class="forum-rh"><b>' . esc_html( $c->comment_author ) . '</b>' . ( $staff ? ' <span class="forum-badge">' . esc_html( mcupr_t( 'fm_staff' ) ) . '</span>' : '' ) . ' <time datetime="' . esc_attr( mysql2date( 'c', $c->comment_date_gmt ) ) . '">' . esc_html( mcupr_date_fmt( 'j M Y H:i', (int) strtotime( $c->comment_date_gmt . ' +0000' ) ) ) . '</time></p><div class="forum-tx">' . mcupr_forum_text( $c->comment_content ) . '</div>' . mcupr_forum_report_button( 'reply', $c->comment_ID, $back ) . '</div></li>';
+		$o    .= '<li class="forum-reply' . ( $staff ? ' is-staff' : '' ) . '" id="reply-' . (int) $c->comment_ID . '"><span class="forum-av" aria-hidden="true">' . esc_html( mcupr_forum_initial( $c->comment_author ) ) . '</span><div class="forum-rb"><p class="forum-rh"><b>' . esc_html( $c->comment_author ) . '</b>' . ( $staff ? ' <span class="forum-badge">' . esc_html( mcupr_t( 'fm_staff' ) ) . '</span>' : '' ) . ( ! $c->user_id ? ' <span class="forum-badge is-guest">' . esc_html( mcupr_t( 'fm_guest' ) ) . '</span>' : '' ) . ' <time datetime="' . esc_attr( mysql2date( 'c', $c->comment_date_gmt ) ) . '">' . esc_html( mcupr_date_fmt( 'j M Y H:i', (int) strtotime( $c->comment_date_gmt . ' +0000' ) ) ) . '</time></p><div class="forum-tx">' . mcupr_forum_text( $c->comment_content ) . '</div>' . mcupr_forum_report_button( 'reply', $c->comment_ID, $back ) . '</div></li>';
 	}
 	return $o . '</ol>';
 }

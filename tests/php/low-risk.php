@@ -75,6 +75,32 @@ delete_transient( 'mcupr_fbv_' . $lk );
 wp_delete_post( $lf, true );
 wp_set_current_user( $adm[0]->ID );
 
+// 5. forum: a visitor cannot post under the name of a member of the staff; guest posts are marked
+$fo_old = get_option( 'mcupr_forum' );
+$fo = mcupr_forum_opts(); $fo['enabled'] = 1; update_option( 'mcupr_forum', $fo );
+$boss = wp_insert_user( array( 'user_login' => 'lr_rector', 'user_pass' => wp_generate_password(), 'user_email' => 'lr_rector@example.org', 'role' => 'editor', 'display_name' => 'Phra Rector  Example' ) );
+$brd  = get_term_by( 'slug', 'general', 'mcupr_board' );
+$post = static function ( $name ) use ( $brd ) {
+	return mcupr_forum_submit( 'topic', array( 'tk' => mcupr_form_token( time() - 10 ), 'website' => '', 'consent' => '1', 'name' => $name, 'email' => 'g@example.org', 'title' => 'คำถามทดสอบชื่อ', 'message' => 'ข้อความทดสอบยาวพอสมควร ' . $name, 'board' => $brd ? $brd->term_id : 0 ) );
+};
+wp_set_current_user( 0 );
+$r1 = $post( 'phra   rector example' );
+$r2 = $post( 'LR_RECTOR' );
+$r3 = $post( 'ผู้มาเยือนทั่วไป' );
+t( ! $r1['ok'] && isset( $r1['errors']['staffname'] ) && ! $r2['ok'] && isset( $r2['errors']['staffname'] ), 'forum: a visitor typing the display name or login of a staff member (any case, extra spaces) is refused' );
+t( $r3['ok'] || ! isset( $r3['errors']['staffname'] ), 'forum: an ordinary name is not refused for that reason' );
+$_GET = array( 'fm' => 'err', 'fme' => 'staffname' ); list( $nt ) = mcupr_forum_notices(); $_GET = array();
+t( false !== strpos( $nt, esc_html( mcupr_t( 'fm_err_staff_name' ) ) ), 'forum: the refusal is told in words on the page' );
+if ( $r3['ok'] ) {
+	$cid = wp_insert_comment( array( 'comment_post_ID' => $r3['id'], 'comment_author' => 'ผู้ตอบทั่วไป', 'comment_author_email' => 'g2@example.org', 'comment_content' => 'คำตอบทดสอบ', 'comment_approved' => 1, 'user_id' => 0 ) );
+	wp_update_post( array( 'ID' => $r3['id'], 'post_status' => 'publish' ) );
+	t( false !== strpos( mcupr_forum_replies_html( $r3['id'] ), 'is-guest' ), 'forum: a reply by a visitor carries the guest mark' );
+	wp_delete_post( $r3['id'], true );
+}
+wp_set_current_user( $adm[0]->ID );
+wp_delete_user( $boss );
+false === $fo_old ? delete_option( 'mcupr_forum' ) : update_option( 'mcupr_forum', $fo_old );
+
 //@@NEXT@@
 echo $fails ? "$fails FAILED\n" : "all passed\n";
 exit( $fails ? 1 : 0 );
