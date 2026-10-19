@@ -179,6 +179,10 @@ function mcupr_plain_target( $rel ) {
 	if ( 'request' === $rel && function_exists( 'mcupr_rq_track_url' ) ) {
 		return mcupr_rq_track_url();
 	}
+	if ( 'office' === $first && isset( $parts[1], $parts[2], $parts[3] ) && 'group' === $parts[2] && post_type_exists( 'mcupr_group' ) ) {
+		$g = get_page_by_path( $parts[3], OBJECT, 'mcupr_group' ); // a work group of an office (inc/groups.php)
+		return $g ? get_permalink( $g ) : '';
+	}
 	if ( 'office' === $first && isset( $parts[1] ) && post_type_exists( 'mcupr_office' ) && function_exists( 'mcupr_office_url' ) ) {
 		$o = get_page_by_path( $parts[1], OBJECT, 'mcupr_office' );
 		if ( $o ) {
