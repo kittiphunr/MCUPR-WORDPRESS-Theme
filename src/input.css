@@ -2089,6 +2089,155 @@ html[data-contrast] .of-ic { background: var(--bg); color: var(--text); border: 
 .office-card .of-badge { width: 3.25rem; height: 3.25rem; }
 html[data-contrast] .office-card .oc-top.has-cover { background-image: none; }
 
+/* ===== Work groups of an office (inc/groups*.php): the landing page /office/<office>/group/<group>/ and the cards on the office home.
+   --of / --of-on = the office colour and the text colour on it (set on .gl / .of-body); a group without an office takes the site colours. ===== */
+.gl { --of: var(--primary); --of-on: var(--on-primary); }
+.gl, .of-body { --gl-soft: color-mix(in srgb, var(--of) 12%, var(--bg)); }
+.gl .fi, .gl-gcards .fi { flex: none; }
+.gl-crumb { margin: 0 0 1rem; }
+.gl-band { position: relative; overflow: hidden; isolation: isolate; padding: 2rem 2rem 3.75rem; border-radius: 1.5rem; background: linear-gradient(135deg, color-mix(in srgb, var(--of) 88%, #000) 0%, var(--of) 65%); color: var(--of-on); }
+.gl-band:not(:has(+ .gl-tabs)) { padding-bottom: 2rem; }
+.gl-band::before, .gl-band::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; background: var(--of-on); opacity: .09; pointer-events: none; }
+.gl-band::before { width: 16rem; height: 16rem; inset-inline-end: -4rem; top: -5.5rem; }
+.gl-band::after { width: 9rem; height: 9rem; inset-inline-end: 11rem; bottom: -4.5rem; }
+.gl-who { display: flex; align-items: center; gap: 1.1rem; }
+.gl-mark { flex: none; display: grid; place-items: center; width: 4.5rem; height: 4.5rem; border-radius: 50%; background: var(--of-on); color: var(--of); font-size: 2rem; font-weight: 800; line-height: 1; box-shadow: 0 0 0 4px color-mix(in srgb, var(--of-on) 35%, transparent); }
+.gl-name { margin: 0; font-size: clamp(1.5rem, 3.6vw, 2.2rem); font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.gl-sub { margin: .25rem 0 0; font-size: 1rem; overflow-wrap: anywhere; }
+.gl-lead { max-width: 46rem; margin: 1.1rem 0 0; font-size: 1.1rem; }
+.gl-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+.gl-chip { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.25rem; padding: .2rem .9rem; border: 1px solid color-mix(in srgb, var(--of-on) 45%, transparent); border-radius: 9999px; background: color-mix(in srgb, var(--of-on) 14%, transparent); color: var(--of-on); font-size: .95rem; font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+a.gl-chip:hover, a.gl-chip:focus-visible { background: var(--of-on); color: var(--of); }
+/* the in-page menu: floats on the bottom of the band, and stays under the site header while the page scrolls (not on small or very low screens) */
+.gl-tabs { position: relative; z-index: 5; margin: -1.85rem 1.25rem 0; }
+.gl-tabs ul { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0; padding: .35rem; list-style: none; border: 1px solid var(--edge); border-radius: 1.5rem; background: var(--bg); box-shadow: 0 10px 28px -12px rgb(15 23 42 / .35); }
+.gl-tabs a { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.75rem; padding: .35rem 1rem; border: 2px solid transparent; border-radius: 9999px; color: var(--text-2); font-weight: 600; text-decoration: none; }
+.gl-tabs a:hover { background: var(--tint); color: var(--link); }
+.gl-tabs a[aria-current] { background: var(--of); color: var(--of-on); font-weight: 800; }
+.gl-tabs a:focus-visible { outline: 3px solid var(--focus, var(--primary)); outline-offset: 2px; }
+.gl-ask-li { margin-inline-start: auto; }
+.gl-tabs .gl-ask, .gl-tabs .gl-ask:hover { background: var(--primary); color: var(--on-primary); }
+.gl-tabs .gl-ask:hover { text-decoration: underline; }
+@media (min-width: 640px) and (min-height: 500px) {
+	.gl-tabs { position: sticky; top: calc(var(--hdr-h, 5.5rem) + .5rem); }
+	html:has(.gl-tabs) { scroll-padding-top: calc(var(--hdr-h, 5.5rem) + var(--gl-tabs-h, 3.75rem) + 1.5rem); } /* a part or a focused element is never hidden under the menu */
+}
+.gl-sec { margin-top: 2.5rem; scroll-margin-top: 1rem; }
+.gl-h { display: flex; align-items: center; gap: .65rem; margin: 0 0 1rem; font-size: clamp(1.25rem, 2.6vw, 1.55rem); font-weight: 800; line-height: 1.3; }
+.gl-ic { flex: none; display: inline-grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--gl-soft); color: var(--of); }
+.gl-card { border: 1px solid var(--edge); border-radius: 1.5rem; background: var(--bg); box-shadow: var(--shadow-soft); }
+.gl-about { padding: 1.25rem 1.5rem; }
+/* services */
+.gl-svc { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.gl-svc-i { position: relative; min-width: 0; padding: 1.1rem 1.25rem; transition: border-color .15s, box-shadow .15s; }
+.gl-svc-i.has-link:hover, .gl-svc-i.has-link:focus-within { border-color: var(--of); box-shadow: 0 10px 24px -14px rgb(15 23 42 / .4); }
+.gl-svc-ic { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; margin-bottom: .65rem; border-radius: .9rem; background: var(--gl-soft); color: var(--of); }
+.gl-svc-t { margin: 0; font-size: 1.05rem; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.gl-svc-t a { color: var(--text); text-decoration: none; }
+.gl-svc-t a:hover { text-decoration: underline; }
+.gl-stretch::after { content: ""; position: absolute; inset: 0; border-radius: 1.5rem; }
+.gl-svc-x { margin: .2rem 0 0; color: var(--text-2); font-size: .95rem; }
+/* news */
+.gl-news { padding: .4rem 1.25rem 0; }
+.gl-news ul { margin: 0; padding: 0; list-style: none; }
+.gl-news li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1rem; padding: .9rem 0; border-bottom: 1px solid var(--edge); }
+.gl-date { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 3.75rem; padding: .35rem .45rem; border-radius: .9rem; background: var(--gl-soft); color: var(--text); line-height: 1.15; text-align: center; }
+.gl-date b { font-size: 1.35rem; font-weight: 800; }
+.gl-date small { font-size: .78rem; white-space: nowrap; }
+.gl-news-t { margin: 0; font-size: 1.05rem; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.gl-news-t a { color: var(--text); }
+.gl-news li p { margin: .15rem 0 0; color: var(--text-2); font-size: .95rem; }
+.gl-more-p { margin: 0; padding: .35rem 0 .6rem; }
+.gl-more { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.75rem; font-weight: 700; }
+/* people */
+.gl-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.gl-person { min-width: 0; padding: 1.1rem; text-align: center; }
+.gl-ph { display: grid; place-items: center; width: 5.25rem; height: 5.25rem; margin: 0 auto .65rem; border: 3px solid var(--gl-soft); border-radius: 50%; object-fit: cover; background: var(--gl-soft); color: var(--of); font-size: 1.6rem; font-weight: 800; }
+img.gl-ph { display: block; }
+.gl-pbody { min-width: 0; }
+.gl-pn { margin: 0; font-size: 1rem; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.gl-pn a { color: var(--text); }
+.gl-pr { margin: .2rem 0 0; color: var(--text-2); font-size: .9rem; }
+.gl-person.is-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 1.1rem; text-align: start; background: linear-gradient(135deg, var(--gl-soft), var(--bg)); }
+.gl-person.is-head .gl-ph { flex: none; width: 6rem; height: 6rem; margin: 0; }
+@media (min-width: 640px) { .gl-person.is-head { grid-column: span 2; } }
+@media (max-width: 420px) { .gl-person.is-head { flex-direction: column; text-align: center; } }
+.gl-badge { display: inline-block; margin: 0 0 .3rem; padding: .05rem .65rem; border-radius: 9999px; background: var(--of); color: var(--of-on); font-size: .8rem; font-weight: 700; }
+.gl-pc { display: flex; flex-direction: column; gap: .15rem; margin: .45rem 0 0; font-size: .9rem; }
+.gl-pc a { display: inline-flex; align-items: center; gap: .4rem; min-height: 1.75rem; overflow-wrap: anywhere; }
+/* documents */
+.gl-docs { padding: .3rem 1.25rem; }
+.gl-docs ul { margin: 0; padding: 0; list-style: none; }
+.gl-docs li { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem .9rem; padding: .8rem 0; border-bottom: 1px solid var(--edge); }
+.gl-docs li:last-child { border-bottom: 0; }
+.gl-doc-ic { display: inline-flex; color: var(--of); }
+.gl-doc-t { flex: 1 1 12rem; min-width: 0; }
+.gl-doc-n { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.gl-doc-t small { display: block; color: var(--muted); font-size: .85rem; }
+.gl-btn { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.5rem; padding: .3rem 1rem; border: 2px solid var(--link); border-radius: 9999px; background: var(--bg); color: var(--link); font-size: .95rem; font-weight: 700; text-decoration: none; }
+.gl-btn:hover, .gl-btn:focus-visible { border-color: var(--primary); background: var(--primary); color: var(--on-primary); }
+.gl-btn.is-solid { border-color: var(--primary); background: var(--primary); color: var(--on-primary); }
+.gl-btn.is-solid:hover { text-decoration: underline; }
+/* contact */
+.gl-contact { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; }
+.gl-cc { min-width: 0; padding: 1.25rem; }
+.gl-cc.is-form { grid-column: 1 / -1; }
+.gl-h3 { margin: 0 0 .6rem; font-size: 1.1rem; font-weight: 800; }
+.gl-rows, .gl-hours { margin: 0; padding: 0; list-style: none; }
+.gl-rows li { display: flex; align-items: flex-start; gap: .6rem; margin: .4rem 0; overflow-wrap: anywhere; }
+.gl-rows li > svg { margin-top: .25rem; color: var(--of); }
+.gl-rows a { display: inline-block; min-height: 1.5rem; }
+.gl-hours li { padding: .2rem 0; border-bottom: 1px dashed var(--edge); }
+.gl-hours li:last-child { border-bottom: 0; }
+.gl-write-x { margin: .1rem 0 .9rem; color: var(--text-2); }
+.gl-empty { margin-top: 2rem; }
+@media (max-width: 640px) {
+	.gl-band { padding: 1.5rem 1.15rem 3.5rem; }
+	.gl-mark { width: 3.5rem; height: 3.5rem; font-size: 1.5rem; }
+	.gl-tabs { margin-inline: .5rem; }
+	.gl-tabs a { padding-inline: .8rem; }
+	.gl-ask-li { margin-inline-start: 0; }
+}
+/* the office home: one card per group */
+.gl-gcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.gl-gcard { position: relative; display: flex; flex-direction: column; gap: .3rem; min-width: 0; padding: 1.1rem 1.25rem 1.1rem 1.4rem; border: 1px solid var(--edge); border-inline-start: 6px solid var(--of); border-radius: 1.5rem; background: var(--bg); box-shadow: var(--shadow-soft); transition: box-shadow .15s; }
+.gl-gcard:hover, .gl-gcard:focus-within { box-shadow: 0 10px 24px -12px rgb(15 23 42 / .4); }
+.gl-gname { margin: 0; font-size: 1.15rem; font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
+.gl-gname a { color: var(--text); text-decoration: none; }
+.gl-gex { margin: 0; color: var(--text-2); font-size: .95rem; }
+.gl-gmeta { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: .25rem 0 0; padding: 0; list-style: none; color: var(--text-2); font-size: .9rem; }
+.gl-gmeta li { display: inline-flex; align-items: center; gap: .35rem; overflow-wrap: anywhere; }
+.gl-ggo { margin: auto 0 0; padding-top: .5rem; }
+.gl-glink { display: inline-flex; align-items: center; gap: .35rem; min-height: 1.5rem; font-weight: 700; text-decoration: none; }
+.gl-glink::after { content: ""; position: absolute; inset: 0; border-radius: 1.5rem; }
+/* the office news of one group */
+.of-filter { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin: 0 0 1.25rem; padding: .75rem 1rem; border: 1px solid var(--edge); border-inline-start: 5px solid var(--of); border-radius: 1rem; background: var(--bg); }
+.of-filter span { font-weight: 700; }
+.of-filter a { display: inline-flex; align-items: center; min-height: 1.5rem; font-weight: 600; }
+/* high contrast: the page colours instead of the office colour, every card and control outlined, the chosen tab filled (stronger than the others) */
+html[data-contrast] .gl-band { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
+html[data-contrast] .gl-band::before, html[data-contrast] .gl-band::after { display: none; }
+html[data-contrast] .gl-mark { background: var(--bg); color: var(--text); border: 2px solid var(--border); box-shadow: none; }
+html[data-contrast] .gl-chip { border: 2px solid var(--border); background: transparent; color: var(--text); }
+html[data-contrast] a.gl-chip:hover, html[data-contrast] a.gl-chip:focus-visible { background: var(--text); color: var(--bg); }
+html[data-contrast] .gl-tabs ul { border: 2px solid var(--border); box-shadow: none; }
+html[data-contrast] .gl-tabs a { border-color: var(--border); background: var(--bg); color: var(--text); }
+html[data-contrast] .gl-tabs a:hover { outline: 3px solid var(--text); outline-offset: 0; }
+html[data-contrast] .gl-tabs a[aria-current], html[data-contrast] .gl-tabs a[aria-current]:hover { border-color: var(--text); background: var(--text); color: var(--bg); }
+html[data-contrast] .gl-tabs .gl-ask, html[data-contrast] .gl-tabs .gl-ask:hover { border: 3px double var(--text); background: var(--bg); color: var(--text); }
+html[data-contrast] .gl-tabs a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+html[data-contrast] .gl-card { border: 2px solid var(--border); box-shadow: none; }
+html[data-contrast] .gl-svc-i.has-link:hover, html[data-contrast] .gl-svc-i.has-link:focus-within { border-color: var(--text); outline: 3px solid var(--text); box-shadow: none; }
+html[data-contrast] .gl-ic, html[data-contrast] .gl-svc-ic, html[data-contrast] .gl-date, html[data-contrast] .gl-ph { border: 2px solid var(--border); background: var(--bg); color: var(--text); }
+html[data-contrast] .gl-person.is-head { background: var(--bg); }
+html[data-contrast] .gl-badge { background: var(--text); color: var(--bg); }
+html[data-contrast] .gl-doc-ic, html[data-contrast] .gl-rows li > svg { color: var(--text); }
+html[data-contrast] .gl-news li, html[data-contrast] .gl-docs li, html[data-contrast] .gl-hours li { border-color: var(--border); }
+html[data-contrast] .gl-btn { border-color: var(--border); background: var(--bg); color: var(--text); }
+html[data-contrast] .gl-btn:hover, html[data-contrast] .gl-btn:focus-visible, html[data-contrast] .gl-btn.is-solid { border-color: var(--text); background: var(--text); color: var(--bg); }
+html[data-contrast] .gl-gcard, html[data-contrast] .of-filter { border: 2px solid var(--border); border-inline-start-width: 6px; box-shadow: none; }
+@media print { .gl-tabs { display: none; } .gl-band { border: 2px solid #000; background: none; color: #000; } .gl-band::before, .gl-band::after { display: none; } }
+
 /* 404 page */
 .nf { max-width: 46rem; margin: 2.5rem auto; padding: 2.5rem 1.75rem 2.25rem; border: 1px solid var(--edge); border-radius: 1.75rem; background: var(--bg); box-shadow: var(--shadow-soft); text-align: center; }
 .nf-code { margin: 0; font-size: clamp(5rem, 22vw, 9rem); font-weight: 800; line-height: 1; letter-spacing: -.04em; background: linear-gradient(120deg, var(--primary), var(--accent, #f59e0b)); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
