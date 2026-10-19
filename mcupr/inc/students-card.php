@@ -143,10 +143,17 @@ add_action(
 		}
 	}
 );
+/** 1101700203450 → •••••••••3450 (only the last 4 digits). */
+function mcupr_card_mask( $num ) {
+	$num = (string) $num;
+	return str_repeat( '•', max( 0, strlen( $num ) - 4 ) ) . substr( $num, -4 );
+}
+
+/** The box shows the ID number masked and its input empty: left empty, the stored number stays as it is (see the save below). */
 function mcupr_card_box( $post ) {
 	wp_nonce_field( 'mcupr_card_box', 'mcupr_card_box_nonce' );
 	$s = mcupr_card_state( $post->ID );
-	echo '<p class="description">' . esc_html__( 'The card code is kept only as a one-way hash and cannot be shown again; leave its box empty to keep it. The national ID number is the one in the central details (encrypted) and is kept in step with the sign-in hash.', 'mcupr' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'The card code is kept only as a one-way hash and cannot be shown again; leave its box empty to keep it. The national ID number is the one in the central details (encrypted) and is kept in step with the sign-in hash.', 'mcupr' ) . ' ' . esc_html__( 'Here it is shown with only its last 4 digits (in full under “Details from the central file”, where opening is logged); type a new number only to change it, leave the box empty to keep it.', 'mcupr' ) . '</p>';
 	echo '<p><strong>' . esc_html__( 'Card code (RFID)', 'mcupr' ) . ':</strong> ' . esc_html( $s['rfid'] ? __( 'set', 'mcupr' ) : __( 'not set', 'mcupr' ) ) . '<br><label class="screen-reader-text" for="mcs-rfid">' . esc_html__( 'New card code (10 digits)', 'mcupr' ) . '</label><input id="mcs-rfid" name="mcupr_card_rfid" type="password" inputmode="numeric" maxlength="10" autocomplete="off" class="regular-text" style="width:100%" placeholder="' . esc_attr__( '10 digits – tap the card here', 'mcupr' ) . '">';
 	if ( $s['rfid'] ) {
 		echo '<br><label><input type="checkbox" name="mcupr_card_clear_rfid" value="1"> ' . esc_html__( 'Remove the card code', 'mcupr' ) . '</label>';
@@ -157,7 +164,7 @@ function mcupr_card_box( $post ) {
 	} else {
 		$st = '' !== $num || $s['idcard'] ? __( 'set', 'mcupr' ) : __( 'not set', 'mcupr' );
 	}
-	echo '</p><p><strong>' . esc_html__( 'National ID number', 'mcupr' ) . ':</strong> ' . esc_html( $st ) . '<br><label class="screen-reader-text" for="mcs-idc">' . esc_html__( 'National ID number (13 digits)', 'mcupr' ) . '</label><input id="mcs-idc" name="mcupr_card_idc" type="text" inputmode="numeric" maxlength="13" autocomplete="off" class="regular-text" style="width:100%" value="' . esc_attr( $num ) . '" placeholder="' . esc_attr__( '13 digits', 'mcupr' ) . '">';
+	echo '</p><p><strong>' . esc_html__( 'National ID number', 'mcupr' ) . ':</strong> ' . esc_html( $st ) . '<br><label class="screen-reader-text" for="mcs-idc">' . esc_html__( 'National ID number (13 digits)', 'mcupr' ) . '</label><input id="mcs-idc" name="mcupr_card_idc" type="text" inputmode="numeric" maxlength="13" autocomplete="off" class="regular-text" style="width:100%" value="" placeholder="' . esc_attr( '' !== $num ? mcupr_card_mask( $num ) : __( '13 digits', 'mcupr' ) ) . '">';
 	if ( '' !== $num || $s['idcard'] ) {
 		echo '<br><label><input type="checkbox" name="mcupr_card_clear_idc" value="1"> ' . esc_html__( 'Remove the national ID number', 'mcupr' ) . '</label>';
 	}

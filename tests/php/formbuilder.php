@@ -108,9 +108,11 @@ $h = mcupr_fb_html( $form );
 t( substr_count( $h, '<fieldset' ) === 3 && false !== strpos( $h, 'ส่วนที่ 1' ) && false !== strpos( $h, 'name="website"' ) && false !== strpos( $h, 'aria-required="true"' ) && false !== strpos( $h, 'type="date"' ), 'page: headings, fieldsets for choices, trap field, required marks, date box' );
 t( false !== strpos( $h, 'for="fbform-' . $form . '-name-i"' ) && false !== strpos( $h, 'ตามบัตรประชาชน' ) && false !== strpos( $h, 'aria-describedby="fbform-' . $form . '-name-h"' ), 'page: labels belong to their boxes, help text is linked (aria-describedby)' );
 $k = 'abcdef123456';
-set_transient( 'mcupr_fbv_' . $k, array( 'v' => array( 'name' => 'สมหญิง' ), 'e' => array( 'mail' => 'email', 'name' => 'required' ) ), 600 );
+set_transient( 'mcupr_fbv_' . $k, array( 'v' => array( 'name' => 'สมหญิง' ), 'e' => array( 'mail' => 'email', 'name' => 'required' ), 'h' => hash( 'sha256', 'fbk-secret-1' ) ), 600 );
 $_GET = array( 'fb' => 'err', 'fbid' => (string) $form, 'fbk' => $k );
+$_COOKIE['mcupr_fbk'] = 'fbk-secret-1'; // the browser that sent the form
 $he = mcupr_fb_html( $form );
+unset( $_COOKIE['mcupr_fbk'] );
 t( false !== strpos( $he, 'role="alert"' ) && false !== strpos( $he, 'value="สมหญิง"' ) && false !== strpos( $he, 'aria-invalid="true"' ) && false !== strpos( $he, '#fbform-' . $form . '-mail' ), 'page: errors listed with links to the fields, the answers typed so far are kept' );
 $_GET = array( 'fb' => 'ok', 'fbid' => (string) $form );
 $ho = mcupr_fb_html( $form );
