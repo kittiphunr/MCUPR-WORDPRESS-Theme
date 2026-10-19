@@ -3470,6 +3470,32 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       }
       phpP('wp_delete_post(' + parseInt(pid, 10) + ', true);');
     }
+    // the pages of an office's sections: the head (icon, title, count) and the capsule back to all offices
+    {
+      const { execSync: execQ } = require('child_process');
+      const phpQ = (code) => { const f = require('os').tmpdir() + '/e2e-ofhead-' + process.pid + '.php'; require('fs').writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execQ('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+      const qids = phpQ('wp_set_current_user(1); $o=wp_insert_post(array("post_type"=>"mcupr_office","post_status"=>"publish","post_title"=>"Head test office","post_name"=>"e2e-ofhead")); $ids=array($o); foreach(array("Album one","Album two") as $t){ $a=wp_insert_post(array("post_type"=>"mcupr_album","post_status"=>"publish","post_title"=>$t)); mcupr_office_assign($a,$o); $ids[]=$a; } flush_rewrite_rules(); echo implode(",",$ids);');
+      for (const [w, menu] of [[1428, 'side'], [390, 'top']]) {
+        const qc = await br.newContext({ viewport: { width: w, height: 800 } });
+        const qp = await qc.newPage();
+        await qp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        await qp.goto(B + '/?mcupr_office=e2e-ofhead&mcupr_osec=albums');
+        await qp.waitForTimeout(600);
+        const qg = await qp.evaluate(() => { const h = document.querySelector('.of-head'); const up = document.querySelector('.of-up a'); return { head: !!h, h1: document.querySelectorAll('h1').length, count: h && h.querySelector('.of-count') ? h.querySelector('.of-count').textContent : '', icon: !!(h && h.querySelector('svg')), pill: up ? parseFloat(getComputedStyle(up).borderTopLeftRadius) > 20 : false, cards: document.querySelectorAll('.album-grid > *').length, sw: document.documentElement.scrollWidth - innerWidth }; });
+        const qtag = 'office section page (' + w + ' px, ' + menu + ' menu)';
+        ok(qg.head && qg.h1 === 1 && /2/.test(qg.count) && qg.icon && qg.pill && qg.cards === 2 && qg.sw <= 0, qtag + ': head with icon and count "' + qg.count + '", the back link is a capsule, ' + qg.cards + ' cards, no sideways scroll');
+        await qp.addScriptTag({ content: axeSource() });
+        const axQ = await qp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+        ok(axQ.violations.length === 0, qtag + ': axe ' + (axQ.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        if (w === 1428) {
+          await qp.evaluate(() => document.documentElement.setAttribute('data-contrast', 'wb'));
+          const qh = await qp.evaluate(() => ({ bw: parseFloat(getComputedStyle(document.querySelector('.of-head')).borderBottomWidth), cw: parseFloat(getComputedStyle(document.querySelector('.of-count')).borderTopWidth) }));
+          ok(qh.bw >= 2 && qh.cw >= 2, qtag + ': white on black – the head and the count have outlines (' + qh.bw + ' / ' + qh.cw + ' px)');
+        }
+        await qc.close();
+      }
+      phpQ('foreach(array(' + qids + ') as $i){ wp_delete_post($i,true); }');
+    }
     // the WordPress toolbar as a floating icon for signed-in editors (and the classic bar when chosen)
     {
       const { execSync: execC } = require('child_process');
