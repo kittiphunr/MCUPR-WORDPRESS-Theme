@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.8 =
+* Office pages share the section head panel; office home restyled
+
 = 1.54.7 =
 * Update.
 
