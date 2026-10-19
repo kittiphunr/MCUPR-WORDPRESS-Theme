@@ -28,6 +28,31 @@ ob_start(); mcupr_si_page(); $pg2 = ob_get_clean();
 $_GET = array();
 t( false === strpos( $pg, 'call-0812345678-now' ) && false === strpos( $pg, 'notice-error' ) && false !== strpos( $pg2, 'notice-error' ), 'notices: the student import shows only its known error codes' );
 
+// 3. student import: the saved upload is only for the person who uploaded it; old ones go also by the daily cron
+$imp = mcupr_si_parse( "รหัสนิสิต,ชื่อ-สกุล\n77001,นิสิตลับเฉพาะ\n" );
+$own = wp_insert_user( array( 'user_login' => 'lr_owner', 'user_pass' => wp_generate_password(), 'user_email' => 'lr_owner@example.org', 'role' => 'editor' ) );
+$oth = wp_insert_user( array( 'user_login' => 'lr_other', 'user_pass' => wp_generate_password(), 'user_email' => 'lr_other@example.org', 'role' => 'editor' ) );
+foreach ( array( $own, $oth ) as $u ) { get_userdata( $u )->add_cap( MCUPR_STU_CAP ); }
+$tk = bin2hex( random_bytes( 16 ) );
+mcupr_si_save( $tk, array( 'cols' => $imp['cols'], 'rows' => $imp['rows'], 'unknown' => array(), 'central' => false, 'mode' => 'add_update', 'accounts' => false, 'user' => $own, 'sample' => false ) );
+wp_set_current_user( $oth ); clean_user_cache( $oth );
+ob_start(); mcupr_si_preview( $tk ); $pv_other = ob_get_clean();
+$other_gets = mcupr_si_load_own( $tk );
+wp_set_current_user( $own );
+ob_start(); mcupr_si_preview( $tk ); $pv_own = ob_get_clean();
+wp_set_current_user( $adm[0]->ID );
+t( null === $other_gets && false === strpos( $pv_other, 'นิสิตลับเฉพาะ' ) && false !== strpos( $pv_own, 'นิสิตลับเฉพาะ' ) && null !== mcupr_si_load_own( $tk ), 'import: another staff member cannot open someone else\'s upload by its token; the owner and an administrator can' );
+$tk_old = bin2hex( random_bytes( 16 ) );
+mcupr_si_save( $tk_old, array( 'rows' => array(), 'user' => $own ) );
+touch( mcupr_si_file( $tk_old ), time() - 3 * HOUR_IN_SECONDS );
+clearstatcache();
+do_action( 'mcupr_si_cleanup_cron' );
+clearstatcache();
+t( ! file_exists( mcupr_si_file( $tk_old ) ) && file_exists( mcupr_si_file( $tk ) ) && false !== wp_next_scheduled( 'mcupr_si_cleanup_cron' ), 'import: the daily cron deletes uploads older than 2 hours and keeps a fresh one' );
+t( file_exists( mcupr_si_dir() . '/.htaccess' ) && file_exists( mcupr_si_dir() . '/index.php' ), 'import: the folder has its deny-all .htaccess and index.php' );
+wp_delete_file( mcupr_si_file( $tk ) );
+wp_delete_user( $own ); wp_delete_user( $oth );
+
 //@@NEXT@@
 echo $fails ? "$fails FAILED\n" : "all passed\n";
 exit( $fails ? 1 : 0 );
