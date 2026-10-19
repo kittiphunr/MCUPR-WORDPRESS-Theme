@@ -3340,6 +3340,108 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await oc.close();
     }
     phpO('foreach(array(' + officeIds.join(',') + ') as $i){ wp_delete_post($i,true); }');
+    // work groups (v1.54.0): the landing page of a group of an office – an office, a group with services, a document, people and news, made here and removed at the end
+    {
+      const gd = JSON.parse(phpO(`
+        $ids = array();
+        $o = wp_insert_post( array( "post_type" => "mcupr_office", "post_status" => "publish", "post_title" => "สำนักงานทดสอบกลุ่มงาน e2e", "post_name" => "e2e-group-office", "post_excerpt" => "หน่วยงานสำหรับทดสอบหน้ากลุ่มงาน" ) ); $ids[] = $o;
+        update_post_meta( $o, "_mcupr_of_color", "#1d4ed8" );
+        $g = wp_insert_post( array( "post_type" => "mcupr_group", "post_status" => "publish", "post_title" => "กลุ่มงานการเงินและบัญชี e2e", "post_name" => "e2e-finance", "post_excerpt" => "เบิกจ่าย ค่าธรรมเนียม ทุนการศึกษา และรายงานการเงิน", "post_content" => "กลุ่มงานนี้ดูแลการเงินของหน่วยงาน (ทดสอบ)" ) ); $ids[] = $g;
+        mcupr_group_set_office( $g, $o );
+        update_post_meta( $g, "_mcupr_g_tel", "054-000-011" ); update_post_meta( $g, "_mcupr_g_email", "finance-e2e@example.org" ); update_post_meta( $g, "_mcupr_g_place", "อาคารสำนักงาน ชั้น 1 ห้อง 105" ); update_post_meta( $g, "_mcupr_g_hours", "จันทร์–ศุกร์ 08.30–16.30 น.\\nพักเที่ยง 12.00–13.00 น." );
+        update_post_meta( $g, "_mcupr_g_services", mcupr_group_clean_services( array( array( "title" => "ชำระค่าธรรมเนียม", "text" => "ช่องทาง วันเวลา และใบเสร็จ", "icon" => "dollar-sign", "url" => home_url( "/" ) ), array( "title" => "ขอเบิกเงิน", "text" => "ขั้นตอนและเอกสาร", "icon" => "edit-3", "url" => "" ), array( "title" => "คำถามที่พบบ่อย", "text" => "คำตอบสั้นๆ", "icon" => "help-circle", "url" => home_url( "/" ) ) ) ) );
+        $a = wp_insert_attachment( array( "post_title" => "แบบขอเบิกเงิน e2e", "post_mime_type" => "application/pdf", "post_status" => "inherit" ), "e2e-group-form.pdf", 0 ); $ids[] = $a;
+        update_post_meta( $g, "_mcupr_g_docs", mcupr_group_clean_docs( array( array( "title" => "แบบขอเบิกเงิน", "att" => $a ), array( "title" => "ตารางค่าธรรมเนียม", "url" => home_url( "/fees.docx" ) ) ) ) );
+        foreach ( array( array( "นางสมศรี หัวหน้า e2e", "หัวหน้ากลุ่มงานการเงิน", 1 ), array( "นายวรเดช e2e", "นักวิชาการเงิน", 0 ), array( "นางสาวนงลักษณ์ e2e", "เจ้าหน้าที่การเงิน", 0 ) ) as $i => $pp ) {
+          $p = wp_insert_post( array( "post_type" => "mcupr_person", "post_status" => "publish", "post_title" => $pp[0], "menu_order" => $i ) ); $ids[] = $p;
+          update_post_meta( $p, "_mcupr_person_role", $pp[1] ); update_post_meta( $p, "_mcupr_person_email", "p" . $i . "-e2e@example.org" );
+          mcupr_office_assign( $p, $o ); mcupr_group_mark( $p, $g, (bool) $pp[2] );
+        }
+        foreach ( array( "ประกาศปิดรับชำระค่าธรรมเนียม e2e", "ประกาศรายชื่อผู้ได้รับทุน e2e" ) as $t ) {
+          $n = wp_insert_post( array( "post_type" => "post", "post_status" => "publish", "post_title" => $t, "post_content" => "รายละเอียดประกาศ" ) ); $ids[] = $n;
+          mcupr_office_assign( $n, $o ); mcupr_group_mark( $n, $g );
+        }
+        echo json_encode( array( "ids" => $ids, "url" => get_permalink( $g ), "office" => get_permalink( $o ) ) );`));
+      ok(/\/office\/e2e-group-office\/group\/e2e-finance\/$/.test(gd.url), 'work group: the address is /office/<office>/group/<group>/ (' + gd.url + ')');
+      const parts = ['about', 'services', 'news', 'people', 'docs', 'contact'];
+      const gerr = [];
+      for (const [w, menu] of [[1428, 'side'], [1920, 'side'], [1180, 'top'], [390, 'top']]) {
+        const gc = await br.newContext({ viewport: { width: w, height: 860 }, reducedMotion: 'reduce' });
+        await gc.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); localStorage.setItem('mcupr_sbmin', '0'); localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } }, menu);
+        const gp = await gc.newPage();
+        gp.on('pageerror', (e) => gerr.push(e.message));
+        const r = await gp.goto(gd.url);
+        await gp.waitForTimeout(600);
+        const tag = 'work group page (' + w + ' px, ' + menu + ' menu)';
+        const g = await gp.evaluate((ps) => {
+          const nav = document.querySelector('.gl-tabs');
+          const links = nav ? [...nav.querySelectorAll('a[href^="#gl-"]')] : [];
+          return {
+            h1: document.querySelectorAll('main h1').length, name: (document.querySelector('main h1') || {}).textContent || '',
+            parts: ps.filter((k) => document.getElementById('gl-' + k)).length,
+            h2: ps.filter((k) => { const s = document.getElementById('gl-' + k); return s && s.querySelector(':scope > h2'); }).length,
+            links: links.length, targets: links.every((a) => document.getElementById(a.getAttribute('href').slice(1))),
+            last: links.length ? links[links.length - 1].getAttribute('href') : '', ask: !!(nav && nav.querySelector('.gl-ask')),
+            minH: links.length ? Math.min(...links.map((a) => a.getBoundingClientRect().height)) : 0,
+            crumb: [...document.querySelectorAll('.gl-crumb li')].map((li) => li.textContent.replace(/›/g, '').trim()),
+            head: !!document.querySelector('.gl-people > li:first-child.is-head'),
+            svc: document.querySelectorAll('.gl-svc > li').length, docs: document.querySelectorAll('.gl-docs .gl-btn').length, news: document.querySelectorAll('.gl-news li').length,
+            hs: document.documentElement.scrollWidth > innerWidth + 1,
+            out: [...document.querySelectorAll('.gl *')].some((e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.right > innerWidth + 1; }),
+          };
+        }, parts);
+        ok(r.status() === 200 && g.h1 === 1 && /กลุ่มงานการเงินและบัญชี e2e/.test(g.name), tag + ': 200, one h1 – the name of the group');
+        ok(g.parts === 6 && g.h2 === 6, tag + ': the six parts are there, each with its h2 (' + g.parts + ')');
+        ok(g.links === 7 && g.targets && g.last === '#gl-contact' && g.ask && g.minH >= 24, tag + ': the in-page menu links every part (' + g.links + ' links, each target exists), the last one "ask the staff" goes to contact, each link at least 24 px tall (' + Math.round(g.minH) + ')');
+        ok(g.crumb.length === 4 && /สำนักงานทดสอบกลุ่มงาน e2e/.test(g.crumb[2]) && /กลุ่มงานการเงิน/.test(g.crumb[3]), tag + ': breadcrumb home / offices / office / group (' + g.crumb.join(' | ') + ')');
+        ok(g.head && g.svc === 3 && g.docs === 2 && g.news === 2, tag + ': the head first, 3 services, 2 documents to download, 2 news');
+        ok(!g.hs && !g.out, tag + ': no sideways scroll, nothing outside the window');
+        if (w === 1428 || w === 390) {
+          await gp.addScriptTag({ content: axeSource() });
+          const ax = await gp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+          ok(ax.violations.length === 0, 'axe (' + tag + '): ' + (ax.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+          await gp.screenshot({ path: shot('group-' + w + '.png'), fullPage: true });
+        }
+        if (w >= 1180) {
+          // the menu stays under the site header, the chosen part is marked, and its heading is not hidden under the menu
+          await gp.click('.gl-tabs a[href="#gl-docs"]');
+          await gp.waitForTimeout(700);
+          const s = await gp.evaluate(() => { const n = document.querySelector('.gl-tabs').getBoundingClientRect(); const h = document.querySelector('#gl-docs > h2').getBoundingClientRect(); const hd = document.getElementById('masthead').getBoundingClientRect(); const cur = document.querySelector('.gl-tabs a[aria-current]'); return { pos: getComputedStyle(document.querySelector('.gl-tabs')).position, nTop: n.top, nBottom: n.bottom, hTop: h.top, hdBottom: hd.bottom, cur: cur ? cur.getAttribute('href') : '' }; });
+          ok(s.pos === 'sticky' && s.nTop >= s.hdBottom - 1 && s.nTop < 260, tag + ': the in-page menu stays in view under the site header (top ' + Math.round(s.nTop) + ' px, header ends ' + Math.round(s.hdBottom) + ' px)');
+          ok(s.hTop >= s.nBottom - 1 && s.cur === '#gl-docs', tag + ': after choosing "documents" its heading is below the menu, not under it (' + Math.round(s.hTop) + ' / ' + Math.round(s.nBottom) + '), and its link is marked as current');
+          // keyboard: walk down through the page and back up; no focused element may sit under the sticky menu (WCAG 2.4.11)
+          await gp.focus('.gl-tabs .gl-ask');
+          const hidden = [];
+          for (const key of [...Array(18).fill('Tab'), ...Array(10).fill('Shift+Tab')]) {
+            await gp.keyboard.press(key);
+            await gp.waitForTimeout(60);
+            const f = await gp.evaluate(() => { const a = document.activeElement; if (!a || a === document.body || a.closest('.gl-tabs') || !a.closest('.gl')) { return null; } const b = a.getBoundingClientRect(); const n = document.querySelector('.gl-tabs').getBoundingClientRect(); return { t: (a.textContent || a.tagName).trim().slice(0, 30), top: b.top, nb: n.bottom }; });
+            if (f && f.top < f.nb - 1) { hidden.push(f.t + ' ' + Math.round(f.top) + '<' + Math.round(f.nb)); }
+          }
+          ok(hidden.length === 0, tag + ': moving with Tab and Shift+Tab, no focused element is hidden under the menu' + (hidden.length ? ' (' + hidden.join(', ') + ')' : ''));
+        }
+        if (w === 1428) {
+          for (const mode of ['wb', 'yb', 'by']) {
+            await gp.evaluate((m) => document.documentElement.setAttribute('data-contrast', m), mode);
+            await gp.waitForTimeout(150);
+            const hc = await gp.evaluate(() => { const on = document.querySelector('.gl-tabs a[aria-current]'); const off = document.querySelector('.gl-tabs a:not([aria-current]):not(.gl-ask)'); const cs = (e) => getComputedStyle(e); const band = cs(document.querySelector('.gl-band')); return { onBg: cs(on).backgroundColor, onCol: cs(on).color, onBw: parseFloat(cs(on).borderTopWidth), offBg: cs(off).backgroundColor, offBw: parseFloat(cs(off).borderTopWidth), pageBg: cs(document.body).backgroundColor, bandBg: band.backgroundColor, bandBw: band.borderTopWidth, card: cs(document.querySelector('.gl-card')).borderTopWidth }; });
+            ok(hc.onBg !== hc.offBg && hc.onBg !== hc.pageBg && hc.onBw >= hc.offBw && hc.offBw >= 2, 'work group in high contrast "' + mode + '": the chosen tab is filled (' + hc.onBg + ') and not weaker than the others (' + hc.onBw + ' / ' + hc.offBw + ' px border)');
+            ok(hc.bandBg !== 'rgb(29, 78, 216)' && hc.bandBw === '2px' && hc.card === '2px', 'work group in high contrast "' + mode + '": the band drops the office colour, band and cards are outlined (2px)');
+            await gp.addScriptTag({ content: axeSource() });
+            const axh = await gp.evaluate(() => axe.run(document.querySelector('main'), { runOnly: ['color-contrast'] }).then((x) => x.violations.map((v) => v.id + '(' + v.nodes.length + ')')));
+            ok(axh.length === 0, 'axe (work group, high contrast "' + mode + '"): ' + (axh.join(', ') || '0 violations'));
+          }
+          await gp.evaluate(() => document.documentElement.removeAttribute('data-contrast'));
+          // the office home lists the group
+          await gp.goto(gd.office);
+          const oc = await gp.evaluate((u) => { const c = [...document.querySelectorAll('#of-groups ~ * .gl-gcard, .gl-gcards .gl-gcard')]; return { n: c.length, link: c.some((x) => [...x.querySelectorAll('a')].some((a) => a.href === u)), people: c.length ? /3/.test(c[0].textContent) : false }; }, gd.url);
+          ok(oc.n === 1 && oc.link && oc.people, 'office home: the part "work groups" with a card for the group (its link and 3 people)');
+        }
+        await gc.close();
+      }
+      ok(gerr.length === 0, 'work group page: no JavaScript errors' + (gerr.length ? ': ' + gerr[0] : ''));
+      phpO('foreach(array(' + gd.ids.join(',') + ') as $i){ wp_delete_post($i,true); } delete_transient("mcupr_group_counts");');
+    }
     // the WordPress toolbar as a floating icon for signed-in editors (and the classic bar when chosen)
     {
       const { execSync: execC } = require('child_process');
