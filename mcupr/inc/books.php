@@ -746,7 +746,7 @@ add_action(
 		$real = $path ? realpath( $path ) : false;
 		$up   = wp_get_upload_dir();
 		$base = realpath( $up['basedir'] );
-		if ( ! $real || ! $base || 0 !== strpos( $real, $base ) || ! is_readable( $real ) ) {
+		if ( ! mcupr_path_inside( $real, $base ) || ! is_readable( $real ) ) { // with the trailing separator: uploads-old/ is not inside uploads/
 			wp_die( esc_html( mcupr_t( 'file_missing' ) ), '', array( 'response' => 404 ) );
 		}
 		mcupr_book_stream( $real, (string) get_post_mime_type( $att ) );

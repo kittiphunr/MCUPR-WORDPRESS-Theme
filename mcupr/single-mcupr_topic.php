@@ -32,7 +32,7 @@ while ( have_posts() ) :
 		<div class="forum-op">
 			<span class="forum-av" aria-hidden="true"><?php echo esc_html( mcupr_forum_initial( $name ) ); ?></span>
 			<div class="forum-rb">
-				<p class="forum-rh"><b><?php echo esc_html( $name ); ?></b><?php echo $staff ? ' <span class="forum-badge">' . esc_html( mcupr_t( 'fm_staff' ) ) . '</span>' : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?></p>
+				<p class="forum-rh"><b><?php echo esc_html( $name ); ?></b><?php echo $staff ? ' <span class="forum-badge">' . esc_html( mcupr_t( 'fm_staff' ) ) . '</span>' : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo ! (int) get_post_field( 'post_author', $id ) && $byuser ? ' <span class="forum-badge is-guest">' . esc_html( mcupr_t( 'fm_guest' ) ) . '</span>' : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- the guest mark: a visitor who was not logged in ?></p>
 				<div class="forum-tx"><?php echo $byuser ? mcupr_forum_text( get_the_content() ) : wp_kses_post( wpautop( get_the_content() ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 				<?php echo mcupr_forum_report_button( 'topic', $id, get_permalink( $id ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			</div>
