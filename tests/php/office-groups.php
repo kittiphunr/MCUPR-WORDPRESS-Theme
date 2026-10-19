@@ -149,7 +149,7 @@ t( false !== strpos( $h, 'class="gl-ask" href="#gl-contact"' ) && false !== strp
 t( false !== strpos( $h, '--of:#1d4ed8' ) && false !== strpos( $h, 'aria-label="' . esc_attr( mcupr_t( 'breadcrumb' ) ) . '"' ) && false !== strpos( $h, '>สำนักงานทดสอบกลุ่มงาน</a>' ), 'page: the office colour, a breadcrumb that ends Offices › office › group' );
 t( strpos( $h, 'นางสมศรี หัวหน้าดี' ) < strpos( $h, 'นายวรเดช ใจดี' ) && 1 === substr_count( $h, 'gl-person is-head' ) && false !== strpos( $h, mcupr_t( 'gr_head' ) ), 'page: the head comes first, on the larger card, with the label' );
 t( false !== strpos( $h, 'ogroup=' . $G1 ) && false !== strpos( $h, 'ประกาศของกลุ่มงานการเงิน 2' ) && false === strpos( $h, 'ข่าวของสำนักงานที่ไม่อยู่ในกลุ่มงาน' ), 'page: the group\'s news with the link to all its news in the office' );
-t( false !== strpos( $h, 'class="gl-btn"' ) && false !== strpos( $h, 'PDF' ) && 8 === substr_count( $h, 'gl-svc-i' ), 'page: download buttons with the kind of file, 8 service cards' );
+t( false !== strpos( $h, 'class="gl-btn"' ) && false !== strpos( $h, 'PDF' ) && 8 === substr_count( $h, '<li class="gl-card gl-svc-i' ), 'page: download buttons with the kind of file, 8 service cards' );
 t( false !== strpos( $h, 'tel:054000011' ) && false === strpos( $h, 'gl-write' ), 'page: the telephone; no "write to us" card (no form, no e-mail)' );
 t( false === strpos( $h, 'javascript:' ) && ! preg_match( '/[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]/u', $h ), 'page: no javascript: link and no emoji' );
 
