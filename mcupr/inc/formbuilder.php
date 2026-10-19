@@ -453,8 +453,11 @@ function mcupr_fb_handler() {
 		wp_safe_redirect( add_query_arg( apply_filters( 'mcupr_fb_ok_args', array( 'fb' => 'ok', 'fbid' => $fid ), $r['entry'], $fid ), $back ) . $anch );
 		exit;
 	}
-	$k = wp_generate_password( 12, false );
-	set_transient( 'mcupr_fbv_' . $k, array( 'v' => $r['values'], 'e' => $r['errors'] ), 15 * MINUTE_IN_SECONDS );
+	$k   = wp_generate_password( 12, false );
+	$sec = wp_generate_password( 32, false );
+	// the typed answers come back only to this browser: the key in the address alone (history, Referer) does not show them
+	set_transient( 'mcupr_fbv_' . $k, array( 'v' => $r['values'], 'e' => $r['errors'], 'h' => hash( 'sha256', $sec ) ), 15 * MINUTE_IN_SECONDS );
+	mcupr_set_cookie( 'mcupr_fbk', $sec, time() + 15 * MINUTE_IN_SECONDS );
 	wp_safe_redirect( add_query_arg( array( 'fb' => 'err', 'fbid' => $fid, 'fbk' => $k ), $back ) . $anch );
 	exit;
 }
@@ -462,6 +465,12 @@ add_action( 'admin_post_nopriv_mcupr_fb', 'mcupr_fb_handler' );
 add_action( 'admin_post_mcupr_fb', 'mcupr_fb_handler' );
 
 /* ------------------------------------------------------------------ the form on the page */
+
+/** Were the kept answers $t typed in this browser? (the mcupr_fbk cookie matches the hash stored with them) */
+function mcupr_fb_values_mine( $t ) {
+	$c = isset( $_COOKIE['mcupr_fbk'] ) ? (string) wp_unslash( $_COOKIE['mcupr_fbk'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	return is_array( $t ) && ! empty( $t['h'] ) && '' !== $c && hash_equals( (string) $t['h'], hash( 'sha256', $c ) );
+}
 
 function mcupr_fb_error_text( $key ) {
 	$m = array( 'required' => 'fb_e_req', 'email' => 'form_err_email', 'tel' => 'fb_e_tel', 'number' => 'fb_e_num', 'date' => 'fb_e_date', 'pick' => 'fb_e_pick', 'agree' => 'form_err_consent', 'spam' => 'form_err_spam', 'file_type' => 'rq_e_type', 'file_size' => 'rq_e_size', 'file_fail' => 'rq_e_fail', 'student' => 'rq_e_student', 'limit' => 'form_err_limit', 'closed' => 'fb_closed', 'login' => 'fb_login' );
@@ -482,6 +491,9 @@ function mcupr_fb_html( $form_id ) {
 	if ( 'err' === $state && isset( $_GET['fbk'] ) ) {
 		$t    = get_transient( 'mcupr_fbv_' . preg_replace( '/[^A-Za-z0-9]/', '', wp_unslash( $_GET['fbk'] ) ) );
 		$sess = is_array( $t ) ? array_merge( $sess, $t ) : $sess;
+		if ( ! mcupr_fb_values_mine( $t ) ) {
+			$sess['v'] = array(); // not the browser that typed them: the errors are listed, the boxes stay empty
+		}
 	}
 	// phpcs:enable
 	ob_start();
