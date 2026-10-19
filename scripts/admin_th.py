@@ -1718,4 +1718,5 @@ TH = {
 "Line %1$d: the office “%2$s” was not found – skipped.": "แถว %1$d: ไม่พบหน่วยงาน “%2$s” – ข้าม",
 "Line %d: the group could not be saved.": "แถว %d: บันทึกกลุ่มงานไม่ได้",
 "The file could not be read: it needs a first row with at least the columns office and name (CSV, UTF-8, up to 2 MB).": "อ่านไฟล์ไม่ได้: ต้องมีแถวแรกที่มีอย่างน้อยคอลัมน์ office และ name (CSV, UTF-8, ไม่เกิน 2 MB)",
+"Here it is shown with only its last 4 digits (in full under “Details from the central file”, where opening is logged); type a new number only to change it, leave the box empty to keep it.": "ในช่องนี้แสดงเฉพาะเลข 4 หลักท้าย (ดูเลขเต็มได้ใน “ข้อมูลละเอียดจากไฟล์ส่วนกลาง” ซึ่งบันทึกการเปิดดูไว้) พิมพ์เลขใหม่เฉพาะเมื่อต้องการเปลี่ยน เว้นว่างไว้เพื่อคงเลขเดิม",
 }

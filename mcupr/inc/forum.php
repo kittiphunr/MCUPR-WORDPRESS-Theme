@@ -296,6 +296,23 @@ function mcupr_forum_suspicious( $text ) {
 	return false;
 }
 
+/** Is $name (case and spaces ignored) the display name or login of someone who can edit pages (staff)? */
+function mcupr_forum_staff_name( $name ) {
+	$norm = static function ( $s ) {
+		return mb_strtolower( trim( preg_replace( '/\s+/u', ' ', (string) $s ) ) );
+	};
+	$want = $norm( $name );
+	if ( '' === $want ) {
+		return false;
+	}
+	foreach ( get_users( array( 'capability' => 'edit_pages', 'fields' => array( 'display_name', 'user_login' ) ) ) as $u ) {
+		if ( $want === $norm( $u->display_name ) || $want === $norm( $u->user_login ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /**
  * Validate and store a topic ($kind "topic") or a reply ($kind "reply").
  * Returns array( 'ok', 'errors' => array( field => key ), 'status' => publish|pending, 'id', 'url' ).
@@ -335,6 +352,8 @@ function mcupr_forum_submit( $kind, $data, $now = 0 ) {
 	$errors = array();
 	if ( '' === $name ) {
 		$errors['name'] = 'form_err_name';
+	} elseif ( ! $member && mcupr_forum_staff_name( $name ) ) {
+		$errors['staffname'] = 'fm_err_staff_name'; // a visitor cannot post as a member of the staff
 	}
 	if ( ! is_email( $email ) ) {
 		$errors['email'] = 'form_err_email';

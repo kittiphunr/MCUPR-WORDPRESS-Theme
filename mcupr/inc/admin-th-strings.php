@@ -561,6 +561,7 @@ return array(
 	'Height (cm)' => 'ส่วนสูง (ซม.)',
 	'Help' => 'ช่วยเหลือ',
 	'Help text (optional)' => 'ข้อความช่วยเหลือ (ไม่บังคับ)',
+	'Here it is shown with only its last 4 digits (in full under “Details from the central file”, where opening is logged); type a new number only to change it, leave the box empty to keep it.' => 'ในช่องนี้แสดงเฉพาะเลข 4 หลักท้าย (ดูเลขเต็มได้ใน “ข้อมูลละเอียดจากไฟล์ส่วนกลาง” ซึ่งบันทึกการเปิดดูไว้) พิมพ์เลขใหม่เฉพาะเมื่อต้องการเปลี่ยน เว้นว่างไว้เพื่อคงเลขเดิม',
 	'Hero background image (falls back to the newest post image)' => 'ภาพพื้นหลัง Hero (ถ้าไม่เลือก จะใช้ภาพของข่าวล่าสุด)',
 	'Hero headline, bold line (%s)' => 'หัวข้อ Hero บรรทัดตัวหนา (%s)',
 	'Hero headline, light line (%s)' => 'หัวข้อ Hero บรรทัดตัวบาง (%s)',

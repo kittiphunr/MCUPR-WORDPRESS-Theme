@@ -403,7 +403,12 @@ function mcupr_si_dir() {
 	$dir = trailingslashit( $up['basedir'] ) . 'mcupr-import';
 	if ( ! is_dir( $dir ) ) {
 		wp_mkdir_p( $dir );
+	}
+	// the files hold personal data: no listing and no direct download (written again if someone removed them)
+	if ( ! file_exists( $dir . '/index.php' ) ) {
 		file_put_contents( $dir . '/index.php', "<?php\n// Silence is golden.\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+	}
+	if ( ! file_exists( $dir . '/.htaccess' ) ) {
 		file_put_contents( $dir . '/.htaccess', "Require all denied\nDeny from all\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	}
 	return $dir;
@@ -422,17 +427,44 @@ function mcupr_si_load( $token ) {
 	return is_array( $d ) ? $d : null;
 }
 
+/** The saved upload, only for the person who uploaded it (or an administrator); anyone else gets null, as for an expired one. */
+function mcupr_si_load_own( $token ) {
+	$d = mcupr_si_load( $token );
+	if ( ! $d ) {
+		return null;
+	}
+	$owner = isset( $d['user'] ) ? (int) $d['user'] : 0;
+	return ( $owner && get_current_user_id() === $owner ) || current_user_can( 'manage_options' ) ? $d : null;
+}
+
 function mcupr_si_save( $token, $d ) {
 	return false !== file_put_contents( mcupr_si_file( $token ), wp_json_encode( $d ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 }
 
-function mcupr_si_cleanup() {
+/** Delete saved uploads older than $age seconds (when the import page is opened: a day; the daily cron: 2 hours). */
+function mcupr_si_cleanup( $age = DAY_IN_SECONDS ) {
 	foreach ( (array) glob( mcupr_si_dir() . '/*.json' ) as $f ) {
-		if ( filemtime( $f ) < time() - DAY_IN_SECONDS ) {
+		if ( $f && filemtime( $f ) < time() - (int) $age ) {
 			wp_delete_file( $f );
 		}
 	}
 }
+
+/** Once a day, even when nobody opens the import page: an upload left half-way (personal data) is not kept for long. */
+add_action(
+	'mcupr_si_cleanup_cron',
+	static function () {
+		mcupr_si_cleanup( 2 * HOUR_IN_SECONDS );
+	}
+);
+add_action(
+	'init',
+	static function () {
+		if ( ! wp_next_scheduled( 'mcupr_si_cleanup_cron' ) ) {
+			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'mcupr_si_cleanup_cron' );
+		}
+	}
+);
 
 /* ------------------------------------------------------------------ the pages */
 
@@ -459,13 +491,15 @@ function mcupr_si_page() {
 	if ( isset( $_GET['err'] ) ) {
 		$e = sanitize_key( wp_unslash( $_GET['err'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$t = array( 'file' => __( 'No file was uploaded (or it is bigger than 5 MB).', 'mcupr' ), 'empty' => __( 'The file is empty.', 'mcupr' ), 'excel' => __( 'An .xlsx file cannot be imported as it is. Open it in Excel and choose Save as → CSV UTF-8 (or Excel 97-2003 .xls), then choose that file here.', 'mcupr' ), 'xls' => __( 'The .xls file could not be read. Open it in Excel and choose Save as → CSV UTF-8, then choose that .csv file here.', 'mcupr' ), 'mixed' => __( 'The files have different columns, so they cannot be imported together. Import them one at a time.', 'mcupr' ), 'pdf' => __( 'This is a PDF, not a spreadsheet. Choose a .csv file.', 'mcupr' ), 'columns' => __( 'The first line must name the columns, and there must be a student ID column (รหัสนิสิต) and a name column (ชื่อ-สกุล).', 'mcupr' ), 'big' => __( 'The file has too many rows (20,000 at most). Split it in parts.', 'mcupr' ), 'gone' => __( 'That import has expired. Upload the file again.', 'mcupr' ) );
-		echo '<div class="notice notice-error"><p>' . esc_html( isset( $t[ $e ] ) ? $t[ $e ] : $e ) . '</p>';
-		$dg = get_transient( 'mcupr_si_diag_' . get_current_user_id() );
-		if ( is_array( $dg ) && in_array( $e, array( 'empty', 'columns', 'xls' ), true ) ) {
-			/* translators: 1: size in bytes, 2: PHP version, 3: the first line of the file */
-			echo '<p class="description">' . esc_html( sprintf( __( 'What the website saw: %1$d bytes, PHP %2$s. First line: “%3$s”', 'mcupr' ), $dg['size'], $dg['php'], $dg['head'] ) ) . '</p>';
+		if ( isset( $t[ $e ] ) ) { // an unknown code shows nothing: no sentence taken from the address
+			echo '<div class="notice notice-error"><p>' . esc_html( $t[ $e ] ) . '</p>';
+			$dg = get_transient( 'mcupr_si_diag_' . get_current_user_id() );
+			if ( is_array( $dg ) && in_array( $e, array( 'empty', 'columns', 'xls' ), true ) ) {
+				/* translators: 1: size in bytes, 2: PHP version, 3: the first line of the file */
+				echo '<p class="description">' . esc_html( sprintf( __( 'What the website saw: %1$d bytes, PHP %2$s. First line: “%3$s”', 'mcupr' ), $dg['size'], $dg['php'], $dg['head'] ) ) . '</p>';
+			}
+			echo '</div>';
 		}
-		echo '</div>';
 	}
 	if ( 'preview' === $step && $token ) {
 		mcupr_si_preview( $token );
@@ -598,7 +632,7 @@ add_action(
 );
 
 function mcupr_si_preview( $token ) {
-	$d = mcupr_si_load( $token );
+	$d = mcupr_si_load_own( $token );
 	if ( ! $d ) {
 		echo '<p><a class="button" href="' . esc_url( mcupr_si_url( array( 'err' => 'gone' ) ) ) . '">' . esc_html__( 'Start again', 'mcupr' ) . '</a></p>';
 		return;
@@ -691,7 +725,7 @@ add_action(
 		if ( ! current_user_can( MCUPR_STU_CAP ) || ! $token || ! mcupr_check_request( 'mcupr_si_nonce', 'mcupr_si_start' . $token ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
-		$d = mcupr_si_load( $token );
+		$d = mcupr_si_load_own( $token );
 		if ( ! $d ) {
 			wp_safe_redirect( mcupr_si_url( array( 'err' => 'gone' ) ) );
 			exit;
@@ -707,7 +741,7 @@ add_action(
 
 /** One chunk of the import, then the page continues by itself until the end. */
 function mcupr_si_run( $token ) {
-	$d = mcupr_si_load( $token );
+	$d = mcupr_si_load_own( $token );
 	if ( ! $d || empty( $d['state'] ) ) {
 		echo '<p><a class="button" href="' . esc_url( mcupr_si_url( array( 'err' => 'gone' ) ) ) . '">' . esc_html__( 'Start again', 'mcupr' ) . '</a></p>';
 		return;

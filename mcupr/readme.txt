@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.4 =
+* Low-risk hardening: book files, admin notices, import files, kept form answers, forum names, masked ID number.
+
 = 1.54.3 =
 * Update.
 
