@@ -1445,7 +1445,8 @@
 		var busy = false;
 		function mark() {
 			busy = false;
-			var line = nav.getBoundingClientRect().bottom + 24;
+			var nb = Math.max(0, nav.getBoundingClientRect().bottom); /* (the menu does not stick on small screens) */
+			var line = nb + Math.min(120, Math.max(24, (window.innerHeight - nb) / 3)); /* a part is "being read" once its top passes this line */
 			var cur = -1;
 			parts.forEach(function (p, i) { if (p && p.getBoundingClientRect().top <= line) { cur = i; } });
 			if (cur < 0) { cur = 0; }

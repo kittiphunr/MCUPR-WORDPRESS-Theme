@@ -185,6 +185,20 @@ add_filter(
 
 /* ------------------------------------------------------------------ data */
 
+/** What was read for this request (news, people, documents, groups of an office…), forgotten whenever any of it changes. */
+function &mcupr_group_memo() {
+	static $m = array();
+	return $m;
+}
+
+function mcupr_group_memo_reset() {
+	$m = &mcupr_group_memo();
+	$m = array();
+}
+foreach ( array( 'save_post', 'deleted_post', 'transition_post_status', 'set_object_terms' ) as $mcupr_h ) {
+	add_action( $mcupr_h, 'mcupr_group_memo_reset' );
+}
+
 /** The parts of a group page, in their order. "about" is the text of the group (it has no switch: no text, no part). */
 function mcupr_group_section_keys() {
 	return array( 'about', 'services', 'news', 'people', 'docs', 'contact' );
@@ -346,9 +360,9 @@ function mcupr_group_sections( $gid ) {
 
 /** The latest news of a group: the office's posts marked with it (one query, kept for the request). */
 function mcupr_group_news( $gid, $limit = 5 ) {
-	static $cache = array();
-	$gid = (int) $gid;
-	$k   = $gid . '|' . (int) $limit;
+	$cache = &mcupr_group_memo();
+	$gid   = (int) $gid;
+	$k     = 'news|' . $gid . '|' . (int) $limit;
 	if ( ! isset( $cache[ $k ] ) ) {
 		$oid         = mcupr_group_office( $gid );
 		$cache[ $k ] = $oid ? get_posts(
@@ -384,9 +398,10 @@ function mcupr_group_heads_first( array $people, array $heads ) {
 
 /** The people of a group: the office's staff marked with it, the head(s) first, then by "Order in the list" (one query). */
 function mcupr_group_people( $gid ) {
-	static $cache = array();
-	$gid = (int) $gid;
-	if ( ! isset( $cache[ $gid ] ) ) {
+	$cache = &mcupr_group_memo();
+	$gid   = (int) $gid;
+	$k     = 'people|' . $gid;
+	if ( ! isset( $cache[ $k ] ) ) {
 		$oid    = mcupr_group_office( $gid );
 		$people = $oid ? get_posts(
 			mcupr_office_query_args(
@@ -407,9 +422,9 @@ function mcupr_group_people( $gid ) {
 				$heads[] = (int) $p->ID;
 			}
 		}
-		$cache[ $gid ] = mcupr_group_heads_first( $people, $heads );
+		$cache[ $k ] = mcupr_group_heads_first( $people, $heads );
 	}
-	return $cache[ $gid ];
+	return $cache[ $k ];
 }
 
 /** Is a person a head of their group? */
@@ -429,10 +444,11 @@ function mcupr_group_file_kind( $path ) {
  * was last changed (0 for a link). The attachments are read in one go.
  */
 function mcupr_group_docs( $gid ) {
-	static $cache = array();
-	$gid = (int) $gid;
-	if ( isset( $cache[ $gid ] ) ) {
-		return $cache[ $gid ];
+	$cache = &mcupr_group_memo();
+	$gid   = (int) $gid;
+	$ck    = 'docs|' . $gid;
+	if ( isset( $cache[ $ck ] ) ) {
+		return $cache[ $ck ];
 	}
 	$rows = mcupr_group_data( $gid )['docs'];
 	$ids  = array();
@@ -471,18 +487,19 @@ function mcupr_group_docs( $gid ) {
 			}
 		)
 	);
-	$cache[ $gid ] = $out;
+	$cache[ $ck ] = $out;
 	return $out;
 }
 
 /** The groups of an office, in order ("Order in the list", then the name). One query, kept for the request. */
 function mcupr_office_groups( $oid ) {
-	static $cache = array();
-	$oid = (int) $oid;
-	if ( ! isset( $cache[ $oid ] ) ) {
-		$cache[ $oid ] = $oid ? get_posts( mcupr_office_query_args( $oid, MCUPR_GROUP, array( 'posts_per_page' => 50, 'orderby' => 'menu_order title', 'order' => 'ASC', 'suppress_filters' => false ) ) ) : array();
+	$cache = &mcupr_group_memo();
+	$oid   = (int) $oid;
+	$k     = 'office|' . $oid;
+	if ( ! isset( $cache[ $k ] ) ) {
+		$cache[ $k ] = $oid ? get_posts( mcupr_office_query_args( $oid, MCUPR_GROUP, array( 'posts_per_page' => 50, 'orderby' => 'menu_order title', 'order' => 'ASC', 'suppress_filters' => false ) ) ) : array();
 	}
-	return $cache[ $oid ];
+	return $cache[ $k ];
 }
 
 /**
@@ -525,6 +542,9 @@ foreach ( array( 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ) a
 			if ( in_array( $key, array( '_mcupr_person_group', '_mcupr_post_group', '_mcupr_person_ghead' ), true ) && function_exists( 'mcupr_office_counts_clear' ) ) {
 				mcupr_office_counts_clear();
 			}
+			if ( 0 === strpos( (string) $key, '_mcupr_g_' ) || in_array( $key, array( '_mcupr_person_group', '_mcupr_post_group', '_mcupr_person_ghead', '_thumbnail_id' ), true ) ) {
+				mcupr_group_memo_reset();
+			}
 		},
 		10,
 		3
@@ -535,10 +555,11 @@ foreach ( array( 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ) a
 
 /** The groups this user may choose, by office: array( office id => array( group posts ) ). Administrators get all. */
 function mcupr_groups_for_user( $user_id = 0 ) {
-	static $cache = array();
+	$cache   = &mcupr_group_memo();
 	$user_id = $user_id ? (int) $user_id : get_current_user_id();
-	if ( isset( $cache[ $user_id ] ) ) {
-		return $cache[ $user_id ];
+	$ck      = 'user|' . $user_id;
+	if ( isset( $cache[ $ck ] ) ) {
+		return $cache[ $ck ];
 	}
 	$mine = mcupr_user_offices( $user_id );
 	$all  = get_posts( array( 'post_type' => MCUPR_GROUP, 'post_status' => array( 'publish', 'draft', 'pending', 'private', 'future' ), 'posts_per_page' => 300, 'orderby' => 'menu_order title', 'order' => 'ASC', 'no_found_rows' => true, 'mcupr_office_all' => 1 ) );
@@ -549,7 +570,7 @@ function mcupr_groups_for_user( $user_id = 0 ) {
 			$out[ $o ][] = $g;
 		}
 	}
-	$cache[ $user_id ] = $out;
+	$cache[ $ck ] = $out;
 	return $out;
 }
 
