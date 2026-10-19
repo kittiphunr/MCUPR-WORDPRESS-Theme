@@ -1975,7 +1975,9 @@ html[data-contrast] button[role="switch"]:focus-visible { outline: 3px solid var
 .office-chrome[data-variant="slim"] .of-band { padding: .55rem 0; }
 .of-up { margin: 0 0 .5rem; font-size: .9rem; }
 .of-up a, .of-name a { color: inherit; }
-.of-up a { text-decoration: underline; text-underline-offset: .15em; }
+.of-up a { display: inline-flex; align-items: center; gap: .3rem; padding: .15rem .8rem .15rem .55rem; border: 1px solid color-mix(in srgb, var(--of-on) 40%, transparent); border-radius: 9999px; background: color-mix(in srgb, var(--of-on) 14%, transparent); text-decoration: none; }
+.of-up a:hover, .of-up a:focus-visible { background: color-mix(in srgb, var(--of-on) 26%, transparent); }
+html[data-contrast] .of-up a { border: 2px solid var(--border); background: var(--bg); }
 .of-name a { text-decoration: none; }
 .of-id { display: flex; align-items: center; gap: 1rem; }
 .of-badge { flex: none; display: inline-grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: var(--of-on); color: var(--of); font-size: 1.5rem; font-weight: 800; line-height: 1; overflow: hidden; }
@@ -2000,6 +2002,12 @@ html[data-contrast] .of-tabs a[aria-current="page"] { background: var(--text); c
 html[data-contrast] .of-tabs { border-bottom: 2px solid var(--border); }
 html[data-contrast] .office-chrome[data-variant="full"] .of-tabs { border-bottom: 0; }
 html[data-contrast] .office-chrome[data-variant="full"] .of-tabs ul { border: 2px solid var(--border); box-shadow: none; }
+.of-head { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem .9rem; margin: 0 0 1.75rem; padding-bottom: 1rem; border-bottom: 1px solid var(--edge); }
+.of-head-ic { flex: none; display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 1rem; background: color-mix(in srgb, var(--of) 14%, var(--bg)); color: var(--of); }
+.of-head .of-h1 { margin: 0; }
+.of-count { margin-inline-start: .25rem; padding: .15rem .8rem; border: 1px solid color-mix(in srgb, var(--of) 30%, var(--edge)); border-radius: 9999px; background: var(--bg); color: var(--text-2); font-size: .92rem; font-weight: 600; white-space: nowrap; }
+html[data-contrast] .of-head { border-bottom: 2px solid var(--border); }
+html[data-contrast] .of-head-ic, html[data-contrast] .of-count { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
 .of-h1 { margin: 0 0 1.5rem; font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 800; line-height: 1.25; }
 .of-home { display: grid; gap: 1.5rem; }
 @media (min-width: 900px) { .of-home:not(.of-home-solo) { grid-template-columns: minmax(0, 1fr) 21rem; align-items: start; } }
