@@ -459,13 +459,15 @@ function mcupr_si_page() {
 	if ( isset( $_GET['err'] ) ) {
 		$e = sanitize_key( wp_unslash( $_GET['err'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$t = array( 'file' => __( 'No file was uploaded (or it is bigger than 5 MB).', 'mcupr' ), 'empty' => __( 'The file is empty.', 'mcupr' ), 'excel' => __( 'An .xlsx file cannot be imported as it is. Open it in Excel and choose Save as → CSV UTF-8 (or Excel 97-2003 .xls), then choose that file here.', 'mcupr' ), 'xls' => __( 'The .xls file could not be read. Open it in Excel and choose Save as → CSV UTF-8, then choose that .csv file here.', 'mcupr' ), 'mixed' => __( 'The files have different columns, so they cannot be imported together. Import them one at a time.', 'mcupr' ), 'pdf' => __( 'This is a PDF, not a spreadsheet. Choose a .csv file.', 'mcupr' ), 'columns' => __( 'The first line must name the columns, and there must be a student ID column (รหัสนิสิต) and a name column (ชื่อ-สกุล).', 'mcupr' ), 'big' => __( 'The file has too many rows (20,000 at most). Split it in parts.', 'mcupr' ), 'gone' => __( 'That import has expired. Upload the file again.', 'mcupr' ) );
-		echo '<div class="notice notice-error"><p>' . esc_html( isset( $t[ $e ] ) ? $t[ $e ] : $e ) . '</p>';
-		$dg = get_transient( 'mcupr_si_diag_' . get_current_user_id() );
-		if ( is_array( $dg ) && in_array( $e, array( 'empty', 'columns', 'xls' ), true ) ) {
-			/* translators: 1: size in bytes, 2: PHP version, 3: the first line of the file */
-			echo '<p class="description">' . esc_html( sprintf( __( 'What the website saw: %1$d bytes, PHP %2$s. First line: “%3$s”', 'mcupr' ), $dg['size'], $dg['php'], $dg['head'] ) ) . '</p>';
+		if ( isset( $t[ $e ] ) ) { // an unknown code shows nothing: no sentence taken from the address
+			echo '<div class="notice notice-error"><p>' . esc_html( $t[ $e ] ) . '</p>';
+			$dg = get_transient( 'mcupr_si_diag_' . get_current_user_id() );
+			if ( is_array( $dg ) && in_array( $e, array( 'empty', 'columns', 'xls' ), true ) ) {
+				/* translators: 1: size in bytes, 2: PHP version, 3: the first line of the file */
+				echo '<p class="description">' . esc_html( sprintf( __( 'What the website saw: %1$d bytes, PHP %2$s. First line: “%3$s”', 'mcupr' ), $dg['size'], $dg['php'], $dg['head'] ) ) . '</p>';
+			}
+			echo '</div>';
 		}
-		echo '</div>';
 	}
 	if ( 'preview' === $step && $token ) {
 		mcupr_si_preview( $token );
