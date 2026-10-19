@@ -194,6 +194,16 @@ function mcupr_check_request( $field, $action, $cap = '', $src = 'post' ) {
 	return isset( $in[ $field ] ) && false !== wp_verify_nonce( sanitize_text_field( wp_unslash( $in[ $field ] ) ), $action );
 }
 
+/** Is the real path $real inside the folder $base (both already through realpath())? A sibling such as uploads-old/ is not. */
+function mcupr_path_inside( $real, $base ) {
+	if ( ! $real || ! $base ) {
+		return false;
+	}
+	$real = wp_normalize_path( $real );
+	$base = trailingslashit( wp_normalize_path( $base ) );
+	return 0 === strpos( $real, $base );
+}
+
 /** A meta box may be saved: its nonce is good, this is not an autosave, and the user may edit the post. */
 function mcupr_can_save_box( $post_id, $field, $action ) {
 	return mcupr_check_request( $field, $action ) && ! ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) && current_user_can( 'edit_post', $post_id );
