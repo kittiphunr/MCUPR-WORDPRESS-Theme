@@ -53,6 +53,28 @@ t( file_exists( mcupr_si_dir() . '/.htaccess' ) && file_exists( mcupr_si_dir() .
 wp_delete_file( mcupr_si_file( $tk ) );
 wp_delete_user( $own ); wp_delete_user( $oth );
 
+// 4. form builder: the answers kept after a mistake come back only to the browser that typed them
+$lf = wp_insert_post( array( 'post_type' => 'mcupr_fb', 'post_status' => 'publish', 'post_title' => 'LR form' ) );
+update_post_meta( $lf, '_mcupr_fb_fields', mcupr_fb_clean_fields( array( array( 'id' => 'mail', 'type' => 'email', 'label' => 'Mail', 'required' => 1 ), array( 'id' => 'tel', 'type' => 'text', 'label' => 'Phone' ) ) ) );
+$lk = 'lrkey123456x';
+set_transient( 'mcupr_fbv_' . $lk, array( 'v' => array( 'tel' => '0899999999' ), 'e' => array( 'mail' => 'required' ), 'h' => hash( 'sha256', 'right-secret' ) ), 600 );
+wp_set_current_user( 0 );
+$_GET = array( 'fb' => 'err', 'fbid' => (string) $lf, 'fbk' => $lk );
+unset( $_COOKIE['mcupr_fbk'] ); $h_none = mcupr_fb_html( $lf );
+$_COOKIE['mcupr_fbk'] = 'wrong-secret'; $h_wrong = mcupr_fb_html( $lf );
+$_COOKIE['mcupr_fbk'] = 'right-secret'; $h_mine = mcupr_fb_html( $lf );
+unset( $_COOKIE['mcupr_fbk'] ); $_GET = array();
+t( false === strpos( $h_none, '0899999999' ) && false === strpos( $h_wrong, '0899999999' ) && false !== strpos( $h_none, 'role="alert"' ), 'form: with only the ?fbk= address (no or another cookie) the errors are listed but the typed phone number is not shown' );
+t( false !== strpos( $h_mine, 'value="0899999999"' ), 'form: the browser with the matching cookie gets its answers back' );
+set_transient( 'mcupr_fbv_' . $lk, array( 'v' => array( 'tel' => '0899999999' ), 'e' => array() ), 600 ); // kept before this change: no hash
+$_GET = array( 'fb' => 'err', 'fbid' => (string) $lf, 'fbk' => $lk ); $_COOKIE['mcupr_fbk'] = 'right-secret';
+$h_old = mcupr_fb_html( $lf );
+unset( $_COOKIE['mcupr_fbk'] ); $_GET = array();
+t( false === strpos( $h_old, '0899999999' ), 'form: answers kept without a hash are not shown' );
+delete_transient( 'mcupr_fbv_' . $lk );
+wp_delete_post( $lf, true );
+wp_set_current_user( $adm[0]->ID );
+
 //@@NEXT@@
 echo $fails ? "$fails FAILED\n" : "all passed\n";
 exit( $fails ? 1 : 0 );
