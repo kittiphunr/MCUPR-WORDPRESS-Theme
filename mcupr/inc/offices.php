@@ -27,7 +27,7 @@ const MCUPR_OFFICE_ROLE = 'mcupr_office_editor';
 
 /** The kinds of content an office can own. */
 function mcupr_office_types() {
-	return apply_filters( 'mcupr_office_types', array( 'post', 'page', 'mcupr_event', 'mcupr_album', 'mcupr_video', 'mcupr_person' ) );
+	return apply_filters( 'mcupr_office_types', array( 'post', 'page', 'mcupr_event', 'mcupr_album', 'mcupr_video', 'mcupr_person', 'mcupr_group' ) );
 }
 
 function mcupr_offices_register() {
@@ -471,7 +471,7 @@ function mcupr_office_member_box( $post ) {
 		}
 	}
 	echo '<p><label class="screen-reader-text" for="mcupr-office-sel">' . esc_html__( 'Belongs to office', 'mcupr' ) . '</label><select id="mcupr-office-sel" name="mcupr_office_sel" class="widefat">';
-	if ( null === $mine ) {
+	if ( null === $mine && 'mcupr_group' !== $post->post_type ) { // a work group always belongs to an office
 		echo '<option value="0">' . esc_html__( 'The university (main site)', 'mcupr' ) . '</option>';
 	}
 	foreach ( $items as $o ) {
