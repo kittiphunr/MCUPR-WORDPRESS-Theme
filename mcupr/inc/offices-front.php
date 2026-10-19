@@ -378,11 +378,15 @@ add_action(
 add_action( 'delete_' . MCUPR_OFFICE_TAX, 'mcupr_office_counts_clear' );
 
 /** Print the body of an office page for a section ('' = the office home). */
-/** The head of a section page of an office: icon, title and – when there are items – how many. */
-function mcupr_office_head( $title, $icon, $count = null ) {
-	$o = '<header class="of-head"><span class="of-head-ic" aria-hidden="true">' . mcupr_feather( $icon, 24 ) . '</span><h1 class="of-h1">' . esc_html( $title ) . '</h1>';
+/** The head of a section page of an office: a panel with the icon, the title, one line about it and – when there are items – how many. */
+function mcupr_office_head( $title, $icon, $count = null, $lead = '', $unit = 'of_n_unit_items' ) {
+	$o = '<header class="of-head"><span class="of-head-ic" aria-hidden="true">' . mcupr_feather( $icon, 28 ) . '</span><div class="of-head-t"><h1 class="of-h1">' . esc_html( $title ) . '</h1>';
+	if ( '' !== $lead ) {
+		$o .= '<p class="of-head-lead">' . esc_html( $lead ) . '</p>';
+	}
+	$o .= '</div>';
 	if ( null !== $count && $count > 0 ) {
-		$o .= '<span class="of-count">' . esc_html( sprintf( mcupr_t( 'of_n_items' ), (int) $count ) ) . '</span>';
+		$o .= '<p class="of-count"><b>' . (int) $count . '</b><span>' . esc_html( mcupr_t( $unit ) ) . '</span></p>';
 	}
 	return $o . '</header>';
 }
@@ -406,7 +410,7 @@ function mcupr_office_render( $oid, $section ) {
 			// the categories used by this office's news
 			$all  = new WP_Query( mcupr_office_query_args( $oid, 'post', array( 'posts_per_page' => 200, 'fields' => 'ids' ) ) );
 			$cats = $all->posts ? wp_get_object_terms( $all->posts, 'category', array( 'orderby' => 'name' ) ) : array();
-			echo mcupr_office_head( mcupr_t( 'of_news' ), 'file-text', (int) $q->found_posts ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo mcupr_office_head( mcupr_t( 'of_news' ), 'file-text', (int) $q->found_posts, sprintf( mcupr_t( 'of_lead_news' ), get_the_title( $oid ) ), 'of_n_unit_news' ); // phpcs:ignore WordPress.Security.EscapeOutput
 			if ( $grp ) {
 				echo '<p class="of-filter"><span>' . esc_html( sprintf( mcupr_t( 'gr_news_of' ), get_the_title( $grp ) ) ) . '</span> <a href="' . esc_url( get_permalink( $grp ) ) . '">' . esc_html( mcupr_t( 'gr_back' ) ) . '</a> <a href="' . esc_url( mcupr_office_url( $oid, 'news' ) ) . '">' . esc_html( mcupr_t( 'gr_news_clear' ) ) . '</a></p>';
 			}
@@ -423,7 +427,7 @@ function mcupr_office_render( $oid, $section ) {
 		case 'events':
 			$up = mcupr_office_events( $oid, 'upcoming', 30 );
 			$pa = mcupr_office_events( $oid, 'past', 30 );
-			echo mcupr_office_head( mcupr_t( 'of_events' ), 'calendar', count( $up ) + count( $pa ) ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo mcupr_office_head( mcupr_t( 'of_events' ), 'calendar', count( $up ) + count( $pa ), sprintf( mcupr_t( 'of_lead_events' ), get_the_title( $oid ) ), 'of_n_unit_events' ); // phpcs:ignore WordPress.Security.EscapeOutput
 			echo mcupr_office_block( 'of-ev-up', mcupr_t( 'of_upcoming' ), mcupr_office_events_html( $up ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 			echo mcupr_office_block( 'of-ev-past', mcupr_t( 'of_past' ), mcupr_office_events_html( $pa ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 			if ( ! $up && ! $pa ) {
@@ -432,7 +436,7 @@ function mcupr_office_render( $oid, $section ) {
 			break;
 		case 'people':
 			$people = get_posts( mcupr_office_query_args( $oid, 'mcupr_person', array( 'posts_per_page' => 200, 'orderby' => 'menu_order title', 'order' => 'ASC' ) ) );
-			echo mcupr_office_head( mcupr_t( 'of_people' ), 'users', count( $people ) ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo mcupr_office_head( mcupr_t( 'of_people' ), 'users', count( $people ), sprintf( mcupr_t( 'of_lead_people' ), get_the_title( $oid ) ), 'of_n_unit_people' ); // phpcs:ignore WordPress.Security.EscapeOutput
 			$groups = array();
 			foreach ( $people as $p ) {
 				$t = wp_get_object_terms( $p->ID, 'mcupr_person_group' );
@@ -457,7 +461,7 @@ function mcupr_office_render( $oid, $section ) {
 		case 'albums':
 		case 'videos':
 			$items = get_posts( mcupr_office_query_args( $oid, 'albums' === $section ? 'mcupr_album' : 'mcupr_video', array( 'posts_per_page' => 48, 'orderby' => 'date', 'order' => 'DESC' ) ) );
-			echo mcupr_office_head( mcupr_t( 'albums' === $section ? 'of_albums' : 'of_videos' ), 'albums' === $section ? 'image' : 'video', count( $items ) ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo mcupr_office_head( mcupr_t( 'albums' === $section ? 'of_albums' : 'of_videos' ), 'albums' === $section ? 'image' : 'video', count( $items ), sprintf( mcupr_t( 'albums' === $section ? 'of_lead_albums' : 'of_lead_videos' ), get_the_title( $oid ) ), 'albums' === $section ? 'of_n_unit_albums' : 'of_n_unit_videos' ); // phpcs:ignore WordPress.Security.EscapeOutput
 			if ( ! $items ) {
 				echo '<p class="text-muted">' . esc_html( mcupr_t( 'of_none' ) ) . '</p>';
 				break;
@@ -469,7 +473,7 @@ function mcupr_office_render( $oid, $section ) {
 			echo '</div>';
 			break;
 		case 'contact':
-			echo mcupr_office_head( mcupr_t( 'of_contact' ), 'phone' ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo mcupr_office_head( mcupr_t( 'of_contact' ), 'phone', null, sprintf( mcupr_t( 'of_lead_contact' ), get_the_title( $oid ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 			echo str_replace( '<h2 class="of-info-t">' . esc_html( mcupr_t( 'of_contact' ) ) . '</h2>', '', mcupr_office_info_html( $oid, true ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 			break;
 		default:
