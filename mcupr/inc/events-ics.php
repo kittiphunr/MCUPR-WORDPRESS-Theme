@@ -453,14 +453,43 @@ add_action(
 	}
 );
 
-function mcupr_ics_result_text( $r ) {
+/** The result of an import as a notice code and its numbers, for the address after the redirect (never free text). */
+function mcupr_ics_result_args( $r, $feed = '' ) {
 	if ( is_wp_error( $r ) ) {
-		return sprintf( /* translators: %s: error */ __( 'Could not read the calendar: %s', 'mcupr' ), $r->get_error_message() );
+		return array( 'msg' => 'fail', 'feed' => $feed );
 	}
 	if ( in_array( 'not-ics', $r['errors'], true ) ) {
-		return __( 'This is not a calendar file (.ics).', 'mcupr' );
+		return array( 'msg' => 'notics' );
 	}
-	return sprintf( /* translators: 1: added 2: updated 3: removed 4: skipped */ __( 'Done: %1$d added, %2$d updated, %3$d removed, %4$d skipped (past events, cancelled or without a title).', 'mcupr' ), $r['added'], $r['updated'], $r['removed'], $r['skipped'] + $r['cancelled'] );
+	return array( 'msg' => 'done', 'n1' => (int) $r['added'], 'n2' => (int) $r['updated'], 'n3' => (int) $r['removed'], 'n4' => (int) $r['skipped'] + (int) $r['cancelled'] );
+}
+
+/** The notice for ?msg=CODE (fixed, translated sentences; numbers only from n1…n4; an unknown code shows nothing). */
+function mcupr_ics_notice_text( $q ) {
+	$code = isset( $q['msg'] ) ? sanitize_key( wp_unslash( $q['msg'] ) ) : '';
+	$n    = static function ( $k ) use ( $q ) {
+		return isset( $q[ $k ] ) ? absint( $q[ $k ] ) : 0;
+	};
+	switch ( $code ) {
+		case 'file':
+			return __( 'Choose an .ics file of at most 2 MB.', 'mcupr' );
+		case 'url':
+			return __( 'This address cannot be used (it must start with https://, http:// or webcal://).', 'mcupr' );
+		case 'stopped':
+			return __( 'Stopped. Events already imported stay on the website.', 'mcupr' );
+		case 'notics':
+			return __( 'This is not a calendar file (.ics).', 'mcupr' );
+		case 'done':
+			return sprintf( /* translators: 1: added 2: updated 3: removed 4: skipped */ __( 'Done: %1$d added, %2$d updated, %3$d removed, %4$d skipped (past events, cancelled or without a title).', 'mcupr' ), $n( 'n1' ), $n( 'n2' ), $n( 'n3' ), $n( 'n4' ) );
+		case 'fail':
+			$feeds = mcupr_ics_feeds();
+			$id    = isset( $q['feed'] ) ? sanitize_key( wp_unslash( $q['feed'] ) ) : '';
+			if ( ! isset( $feeds[ $id ] ) ) {
+				return '';
+			}
+			return sprintf( /* translators: %s: error */ __( 'Could not read the calendar: %s', 'mcupr' ), preg_replace( '/^error: /', '', (string) $feeds[ $id ]['msg'] ) ); // the error the site itself stored for this feed
+	}
+	return '';
 }
 
 function mcupr_ics_page() {
@@ -471,8 +500,9 @@ function mcupr_ics_page() {
 	$every = array( 'hourly' => __( 'Every hour', 'mcupr' ), 'twicedaily' => __( 'Twice a day', 'mcupr' ), 'daily' => __( 'Once a day', 'mcupr' ) );
 	echo '<div class="wrap"><h1>' . esc_html__( 'Import and sync calendar', 'mcupr' ) . '</h1>';
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_GET['msg'] ) ) {
-		echo '<div class="notice notice-info is-dismissible"><p>' . esc_html( sanitize_text_field( wp_unslash( rawurldecode( $_GET['msg'] ) ) ) ) . '</p></div>';
+	$note = mcupr_ics_notice_text( $_GET );
+	if ( '' !== $note ) {
+		echo '<div class="notice notice-info is-dismissible"><p>' . esc_html( $note ) . '</p></div>';
 	}
 	// phpcs:enable
 	echo '<div class="card" style="max-width:none"><h2>' . esc_html__( '1. Import a file (.ics)', 'mcupr' ) . '</h2><p class="description">' . esc_html__( 'Export your calendar from Google Calendar, Outlook or Apple Calendar as an .ics file and choose it here. Importing the same file again updates the events instead of duplicating them.', 'mcupr' ) . '</p>';
@@ -507,8 +537,10 @@ function mcupr_ics_page() {
 	echo '<div class="card" style="max-width:none"><h2>' . esc_html__( '3. The other way: subscribe to this website’s calendar', 'mcupr' ) . '</h2><p>' . esc_html__( 'Visitors and staff can add all events to their own calendar app with this address:', 'mcupr' ) . '</p><p><code>' . esc_html( home_url( '/?mcupr_ics=all' ) ) . '</code></p></div></div>';
 }
 
-function mcupr_ics_back( $msg ) {
-	wp_safe_redirect( add_query_arg( 'msg', rawurlencode( $msg ), admin_url( 'admin.php?page=mcupr-ics' ) ) );
+/** Back to the page with a notice code ('' = none) and its numbers, see mcupr_ics_notice_text(). */
+function mcupr_ics_back( $code, $args = array() ) {
+	$args = is_array( $code ) ? $code : array_merge( array( 'msg' => $code ), $args );
+	wp_safe_redirect( add_query_arg( array_map( 'rawurlencode', array_filter( array_map( 'strval', $args ), 'strlen' ) ), admin_url( 'admin.php?page=mcupr-ics' ) ) );
 	exit;
 }
 
@@ -520,11 +552,11 @@ add_action(
 		}
 		$f = isset( $_FILES['ics'] ) ? $_FILES['ics'] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 		if ( empty( $f['tmp_name'] ) || ! empty( $f['error'] ) || $f['size'] > 2 * MB_IN_BYTES || ! preg_match( '/\.ics$/i', (string) $f['name'] ) ) {
-			mcupr_ics_back( __( 'Choose an .ics file of at most 2 MB.', 'mcupr' ) );
+			mcupr_ics_back( 'file' );
 		}
 		$text = file_get_contents( $f['tmp_name'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		$res  = mcupr_ics_import( (string) $text, array( 'src' => 'file', 'status' => isset( $_POST['status'] ) && 'draft' === $_POST['status'] ? 'draft' : 'publish' ) );
-		mcupr_ics_back( mcupr_ics_result_text( $res ) );
+		mcupr_ics_back( mcupr_ics_result_args( $res ) );
 	}
 );
 
@@ -539,7 +571,7 @@ add_action(
 		if ( 'add' === $do ) {
 			$url = mcupr_ics_clean_url( isset( $_POST['url'] ) ? wp_unslash( $_POST['url'] ) : '' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 			if ( ! $url ) {
-				mcupr_ics_back( __( 'This address cannot be used (it must start with https://, http:// or webcal://).', 'mcupr' ) );
+				mcupr_ics_back( 'url' );
 			}
 			$id           = substr( md5( $url ), 0, 10 );
 			$feeds[ $id ] = array(
@@ -553,17 +585,17 @@ add_action(
 			);
 			update_option( 'mcupr_ics_feeds', $feeds, false );
 			mcupr_ics_schedule();
-			mcupr_ics_back( mcupr_ics_result_text( mcupr_ics_sync_feed( $id ) ) );
+			mcupr_ics_back( mcupr_ics_result_args( mcupr_ics_sync_feed( $id ), $id ) );
 		}
 		$id = isset( $_POST['feed'] ) ? sanitize_key( wp_unslash( $_POST['feed'] ) ) : '';
 		if ( 'sync' === $do && isset( $feeds[ $id ] ) ) {
-			mcupr_ics_back( mcupr_ics_result_text( mcupr_ics_sync_feed( $id ) ) );
+			mcupr_ics_back( mcupr_ics_result_args( mcupr_ics_sync_feed( $id ), $id ) );
 		}
 		if ( 'delete' === $do && isset( $feeds[ $id ] ) ) {
 			unset( $feeds[ $id ] );
 			update_option( 'mcupr_ics_feeds', $feeds, false );
 			mcupr_ics_schedule();
-			mcupr_ics_back( __( 'Stopped. Events already imported stay on the website.', 'mcupr' ) );
+			mcupr_ics_back( 'stopped' );
 		}
 		mcupr_ics_back( '' );
 	}
