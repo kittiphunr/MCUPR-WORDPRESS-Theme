@@ -251,6 +251,7 @@ function mcupr_group_data( $gid ) {
 	return array(
 		'office'   => mcupr_group_office( $gid ),
 		'name_en'  => (string) $g( 'name_en' ),
+		'division' => (string) $g( 'division' ),
 		'tel'      => (string) $g( 'tel' ),
 		'email'    => (string) $g( 'email' ),
 		'place'    => (string) $g( 'place' ),
@@ -724,6 +725,18 @@ function mcupr_group_box_parts( $post ) {
 		echo '<label><input type="checkbox" name="mcupr_g[show][]" value="' . esc_attr( $k ) . '"' . checked( ! in_array( $k, $d['off'], true ), true, false ) . '> ' . esc_html( $label ) . '</label>';
 	}
 	echo '</p><p><label><strong>' . esc_html__( 'Name in English (optional)', 'mcupr' ) . '</strong><br><input type="text" class="widefat" name="mcupr_g[name_en]" value="' . esc_attr( $d['name_en'] ) . '" placeholder="Finance and Accounting Group"></label></p>';
+	$divs = array();
+	foreach ( $d['office'] ? mcupr_office_groups( $d['office'] ) : array() as $og ) {
+		$dv = (string) get_post_meta( $og->ID, '_mcupr_g_division', true );
+		if ( '' !== $dv ) {
+			$divs[ $dv ] = 1;
+		}
+	}
+	echo '<p><label><strong>' . esc_html__( 'Division (optional)', 'mcupr' ) . '</strong><br><input type="text" class="widefat" name="mcupr_g[division]" list="mcg-divs" value="' . esc_attr( $d['division'] ) . '" placeholder="' . esc_attr__( 'e.g. Treasury and Property Division', 'mcupr' ) . '"></label><br><span class="description">' . esc_html__( 'The office home shows its work groups under the heading of their division. Groups with the same division name are put together; leave it empty for a group that belongs to no division.', 'mcupr' ) . '</span></p><datalist id="mcg-divs">';
+	foreach ( array_keys( $divs ) as $dv ) {
+		echo '<option value="' . esc_attr( $dv ) . '">';
+	}
+	echo '</datalist>';
 	if ( 'publish' === $post->post_status ) {
 		echo '<p>' . esc_html__( 'Address of the page:', 'mcupr' ) . ' <a href="' . esc_url( get_permalink( $post ) ) . '" target="_blank" rel="noopener">' . esc_html( rawurldecode( get_permalink( $post ) ) ) . '</a></p>';
 	}
@@ -843,6 +856,7 @@ add_action(
 		$show = isset( $in['show'] ) && is_array( $in['show'] ) ? array_map( 'sanitize_key', array_filter( $in['show'], 'is_string' ) ) : array();
 		$set( 'off', array_values( array_diff( mcupr_group_toggle_keys(), $show ) ) );
 		$set( 'name_en', sanitize_text_field( $g( 'name_en' ) ) );
+		$set( 'division', sanitize_text_field( $g( 'division' ) ) );
 		$set( 'tel', sanitize_text_field( $g( 'tel' ) ) );
 		$set( 'email', (string) sanitize_email( $g( 'email' ) ) );
 		$set( 'place', sanitize_text_field( $g( 'place' ) ) );
