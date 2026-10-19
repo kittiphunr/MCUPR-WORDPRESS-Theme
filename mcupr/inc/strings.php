@@ -116,6 +116,8 @@ return array(
 	'fm_err_topic'  => array( 'ไม่พบหัวข้อนี้', 'That topic was not found', '找不到该主题', 'トピックが見つかりません' ),
 	'fm_err_locked' => array( 'หัวข้อนี้ปิดการตอบแล้ว', 'This topic is closed', '此主题已关闭', 'このトピックは閉じられています' ),
 	'fm_err_dup'    => array( 'ข้อความนี้เพิ่งส่งไปแล้ว', 'That was just posted', '该内容刚刚已提交', 'この内容はすでに投稿されています' ),
+	'fm_err_staff_name' => array( 'ชื่อนี้เป็นชื่อของเจ้าหน้าที่ กรุณาใช้ชื่ออื่น หรือเข้าสู่ระบบก่อนโพสต์', 'This name belongs to a staff member. Please use another name, or log in first', '此名称属于工作人员，请使用其他名称，或先登录', 'この名前はスタッフの名前です。別の名前を使うか、先にログインしてください' ),
+	'fm_guest'      => array( 'บุคคลทั่วไป', 'Guest', '访客', 'ゲスト' ),
 	'fm_prev'       => array( 'ก่อนหน้า', 'Previous', '上一页', '前へ' ),
 	'fm_next'       => array( 'ถัดไป', 'Next', '下一页', '次へ' ),
 	'faq_none'      => array( 'ยังไม่มีคำถามที่พบบ่อย', 'No questions yet', '暂无常见问题', 'よくある質問はまだありません' ),
