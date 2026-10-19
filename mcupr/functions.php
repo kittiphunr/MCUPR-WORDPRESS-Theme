@@ -41,6 +41,8 @@ require_once MCUPR_DIR . '/inc/browser.php';
 require_once MCUPR_DIR . '/inc/print.php';
 require_once MCUPR_DIR . '/inc/offices.php';
 require_once MCUPR_DIR . '/inc/offices-front.php';
+require_once MCUPR_DIR . '/inc/groups.php';
+require_once MCUPR_DIR . '/inc/groups-front.php';
 require_once MCUPR_DIR . '/inc/students.php';
 require_once MCUPR_DIR . '/inc/students-portal.php';
 require_once MCUPR_DIR . '/inc/students-profile.php';
