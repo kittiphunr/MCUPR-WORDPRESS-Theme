@@ -101,6 +101,25 @@ wp_set_current_user( $adm[0]->ID );
 wp_delete_user( $boss );
 false === $fo_old ? delete_option( 'mcupr_forum' ) : update_option( 'mcupr_forum', $fo_old );
 
-//@@NEXT@@
+// 6. student card box: the national ID number is masked; saving the box untouched changes nothing
+if ( function_exists( 'mcupr_sp_can_encrypt' ) && mcupr_sp_can_encrypt() ) {
+	$stu = wp_insert_post( array( 'post_type' => MCUPR_STU, 'post_status' => 'publish', 'post_title' => 'LR student' ) );
+	update_post_meta( $stu, '_mcupr_s_sid', 'LR9001' );
+	$_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_idc' => '1101700203450' );
+	do_action( 'save_post_mcupr_student', $stu, get_post( $stu ), true );
+	$hash0 = get_post_meta( $stu, MCUPR_CARD_IDC, true );
+	ob_start(); mcupr_card_box( get_post( $stu ) ); $box = ob_get_clean();
+	t( '' !== $hash0 && false === strpos( $box, '1101700203450' ) && false !== strpos( $box, 'placeholder="•••••••••3450"' ) && false !== strpos( $box, 'name="mcupr_card_idc"' ), 'card box: the ID number is shown masked (last 4 digits), the box stays for a new number' );
+	$logs0 = count( wp_list_filter( get_posts( array( 'post_type' => MCUPR_AUDIT, 'post_status' => 'any', 'posts_per_page' => -1 ) ), array( 'post_title' => 'cardset' ) ) );
+	$_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_rfid' => '', 'mcupr_card_idc' => '' ); // the form as it comes back untouched
+	do_action( 'save_post_mcupr_student', $stu, get_post( $stu ), true );
+	$logs1 = count( wp_list_filter( get_posts( array( 'post_type' => MCUPR_AUDIT, 'post_status' => 'any', 'posts_per_page' => -1 ) ), array( 'post_title' => 'cardset' ) ) );
+	t( '1101700203450' === mcupr_sp_get( $stu )['idcard'] && $hash0 === get_post_meta( $stu, MCUPR_CARD_IDC, true ) && $logs0 === $logs1, 'card box: saved untouched, the stored number and its sign-in hash stay, nothing is logged as changed' );
+	$_POST = array();
+	wp_delete_post( $stu, true );
+} else {
+	echo "SKIP card box: this server cannot encrypt\n";
+}
+
 echo $fails ? "$fails FAILED\n" : "all passed\n";
 exit( $fails ? 1 : 0 );
