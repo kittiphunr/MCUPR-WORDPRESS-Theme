@@ -142,7 +142,7 @@ function mcupr_groups_import_apply( array $table ) {
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'edit.php?post_type=' . MCUPR_GROUP, __( 'Import work groups', 'mcupr' ), __( 'Import', 'mcupr' ), 'edit_pages', 'mcupr-groups-import', 'mcupr_groups_import_page' );
+		add_submenu_page( 'mcupr', __( 'Import work groups', 'mcupr' ), __( 'Import', 'mcupr' ), 'edit_pages', 'mcupr-groups-import', 'mcupr_groups_import_page' );
 	}
 );
 
@@ -152,7 +152,7 @@ add_action(
 	static function () {
 		$s = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		if ( $s && 'edit-' . MCUPR_GROUP === $s->id && current_user_can( 'edit_pages' ) ) {
-			echo '<div class="notice notice-info"><p>' . esc_html__( 'Many work groups at once? Import them from a spreadsheet file.', 'mcupr' ) . ' <a href="' . esc_url( admin_url( 'edit.php?post_type=' . MCUPR_GROUP . '&page=mcupr-groups-import' ) ) . '">' . esc_html__( 'Import work groups', 'mcupr' ) . '</a></p></div>';
+			echo '<div class="notice notice-info"><p>' . esc_html__( 'Many work groups at once? Import them from a spreadsheet file.', 'mcupr' ) . ' <a href="' . esc_url( admin_url( 'admin.php?page=mcupr-groups-import' ) ) . '">' . esc_html__( 'Import work groups', 'mcupr' ) . '</a></p></div>';
 		}
 	}
 );
@@ -192,7 +192,7 @@ add_action(
 		if ( ! mcupr_check_request( 'mcupr_gi_nonce', 'mcupr_groups_import', 'edit_pages' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
-		$back = admin_url( 'edit.php?post_type=' . MCUPR_GROUP . '&page=mcupr-groups-import' );
+		$back = admin_url( 'admin.php?page=mcupr-groups-import' );
 		$path = '';
 		if ( ! empty( $_POST['sample'] ) ) {
 			$path = get_theme_file_path( 'starter/mcupr-work-groups.csv' );
