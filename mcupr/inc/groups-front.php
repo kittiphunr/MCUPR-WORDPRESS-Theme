@@ -68,6 +68,9 @@ function mcupr_group_band( $gid, array $d ) {
 	if ( $d['office'] ) {
 		$sub[] = esc_html( get_the_title( $d['office'] ) );
 	}
+	if ( '' !== $d['division'] ) {
+		$sub[] = esc_html( $d['division'] );
+	}
 	if ( '' !== $d['name_en'] ) {
 		$sub[] = '<span lang="en">' . esc_html( $d['name_en'] ) . '</span>';
 	}
@@ -300,12 +303,24 @@ function mcupr_office_groups_html( $oid ) {
 	if ( ! $groups ) {
 		return '';
 	}
-	$n = mcupr_group_people_counts( $oid );
-	$o = '<ul class="gl-gcards">';
+	$n   = mcupr_group_people_counts( $oid );
+	$by  = array(); // division => groups, in the order the divisions first appear ('' = no division, shown first without a heading)
 	foreach ( $groups as $g ) {
-		$o .= mcupr_group_card( $g, isset( $n[ $g->ID ] ) ? (int) $n[ $g->ID ] : 0 );
+		$by[ (string) get_post_meta( $g->ID, '_mcupr_g_division', true ) ][] = $g;
 	}
-	return mcupr_office_block( 'of-groups', mcupr_t( 'gr_groups' ), $o . '</ul>' );
+	if ( isset( $by[''] ) && count( $by ) > 1 ) {
+		$by = array( '' => $by[''] ) + $by;
+	}
+	$o = '';
+	foreach ( $by as $division => $list ) {
+		$o .= '' !== $division ? '<h3 class="gl-div">' . esc_html( $division ) . '</h3>' : '';
+		$o .= '<ul class="gl-gcards">';
+		foreach ( $list as $g ) {
+			$o .= mcupr_group_card( $g, isset( $n[ $g->ID ] ) ? (int) $n[ $g->ID ] : 0 );
+		}
+		$o .= '</ul>';
+	}
+	return mcupr_office_block( 'of-groups', mcupr_t( 'gr_groups' ), $o );
 }
 
 /** The group asked for in the office news (?ogroup=<id>): a published group of this office, or 0. */
