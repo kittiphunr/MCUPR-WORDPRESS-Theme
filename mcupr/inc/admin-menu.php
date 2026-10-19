@@ -44,6 +44,7 @@ function mcupr_admin_sections() {
 			'label' => __( 'Staff and offices', 'mcupr' ),
 			'items' => array(
 				array( 'type' => 'mcupr_office', 'icon' => 'dashicons-building', 'desc' => __( 'Offices as mini-sites inside the website, each with its own news, events, people and staff accounts', 'mcupr' ) ),
+				array( 'type' => 'mcupr_group', 'icon' => 'dashicons-groups', 'desc' => __( 'Work groups of the offices, each with a landing page of its own', 'mcupr' ) ),
 				array( 'type' => 'mcupr_person', 'tax' => array( 'mcupr_person_group' ), 'page' => 'mcupr-staff-hub', 'icon' => 'dashicons-groups', 'desc' => __( 'Staff profiles, honours and the staff hub', 'mcupr' ) ),
 				array( 'type' => 'mcupr_unit', 'icon' => 'dashicons-networking', 'desc' => __( 'The administration chart', 'mcupr' ) ),
 			),
