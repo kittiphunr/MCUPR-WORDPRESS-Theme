@@ -275,12 +275,27 @@ function mcupr_office_pager( $oid, $section, $current, $total ) {
 			'total'     => $total,
 			'mid_size'  => 1,
 			'type'      => 'list',
+			'add_args'  => mcupr_office_pager_args(),
 			'prev_text' => '<span aria-hidden="true">‹</span> ' . esc_html( mcupr_t( 'prev' ) ),
 			'next_text' => esc_html( mcupr_t( 'next' ) ) . ' <span aria-hidden="true">›</span>',
 		)
 	);
 	$links = preg_replace( array( '#/page/1/(["\'])#', '#(?:&amp;|&\#038;|&|\?)mcupr_opage=1(["\'])#' ), array( '/$1', '$1' ), (string) $links );
 	return '<nav class="navigation pagination" aria-label="' . esc_attr( mcupr_t( 'pagination' ) ) . '"><div class="nav-links">' . $links . '</div></nav>'; // phpcs:ignore WordPress.Security.EscapeOutput
+}
+
+/** What the office news list was filtered by (category, work group), kept on the links of the pages. */
+function mcupr_office_pager_args() {
+	// phpcs:disable WordPress.Security.NonceVerification
+	$a = array();
+	if ( isset( $_GET['ocat'] ) && '' !== sanitize_title( wp_unslash( $_GET['ocat'] ) ) ) {
+		$a['ocat'] = sanitize_title( wp_unslash( $_GET['ocat'] ) );
+	}
+	if ( isset( $_GET['ogroup'] ) && absint( wp_unslash( $_GET['ogroup'] ) ) ) {
+		$a['ogroup'] = absint( wp_unslash( $_GET['ogroup'] ) );
+	}
+	// phpcs:enable
+	return $a;
 }
 
 /** How much an office has, for the tiles on its home: array of array( section, label, count ), empty ones left out. */
@@ -318,6 +333,7 @@ function mcupr_office_counts( $oid ) {
 /** Forget the kept office numbers (any change to content an office can own, or to which office owns it). */
 function mcupr_office_counts_clear() {
 	delete_transient( 'mcupr_office_counts' );
+	delete_transient( 'mcupr_group_counts' ); // the people of each work group (inc/groups.php)
 }
 add_action(
 	'save_post',
@@ -373,11 +389,18 @@ function mcupr_office_render( $oid, $section ) {
 			if ( '' !== $cat ) {
 				$args['category_name'] = $cat;
 			}
+			$grp = function_exists( 'mcupr_office_news_group' ) ? mcupr_office_news_group( $oid ) : 0; // ?ogroup=<id>: the news of one work group
+			if ( $grp ) {
+				$args['meta_query'] = array( array( 'key' => '_mcupr_post_group', 'value' => (string) $grp ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+			}
 			$q = new WP_Query( mcupr_office_query_args( $oid, 'post', $args ) );
 			// the categories used by this office's news
 			$all  = new WP_Query( mcupr_office_query_args( $oid, 'post', array( 'posts_per_page' => 200, 'fields' => 'ids' ) ) );
 			$cats = $all->posts ? wp_get_object_terms( $all->posts, 'category', array( 'orderby' => 'name' ) ) : array();
 			echo '<h1 class="of-h1">' . esc_html( mcupr_t( 'of_news' ) ) . '</h1>';
+			if ( $grp ) {
+				echo '<p class="of-filter"><span>' . esc_html( sprintf( mcupr_t( 'gr_news_of' ), get_the_title( $grp ) ) ) . '</span> <a href="' . esc_url( get_permalink( $grp ) ) . '">' . esc_html( mcupr_t( 'gr_back' ) ) . '</a> <a href="' . esc_url( mcupr_office_url( $oid, 'news' ) ) . '">' . esc_html( mcupr_t( 'gr_news_clear' ) ) . '</a></p>';
+			}
 			if ( count( $cats ) > 1 ) {
 				echo '<nav class="mb-6" aria-label="' . esc_attr( mcupr_t( 'news_categories' ) ) . '"><ul class="pill-tabs m-0 list-none"><li class="contents"><a href="' . esc_url( mcupr_office_url( $oid, 'news' ) ) . '"' . ( '' === $cat ? ' aria-current="page"' : '' ) . '>' . esc_html( mcupr_t( 'all_cats' ) ) . '</a></li>';
 				foreach ( $cats as $c ) {
@@ -456,6 +479,7 @@ function mcupr_office_render( $oid, $section ) {
 			}
 			echo mcupr_office_info_html( $oid ); // phpcs:ignore WordPress.Security.EscapeOutput
 			echo '</div>';
+			echo function_exists( 'mcupr_office_groups_html' ) ? mcupr_office_groups_html( $oid ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- the work groups (inc/groups-front.php)
 			$news = new WP_Query( mcupr_office_query_args( $oid, 'post', array( 'posts_per_page' => 6 ) ) );
 			if ( $news->have_posts() ) {
 				echo mcupr_office_block( 'of-news', mcupr_t( 'of_news' ), mcupr_office_news_html( $news ), mcupr_office_more( $oid, 'news' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
