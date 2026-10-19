@@ -24,10 +24,24 @@ $res = mcupr_groups_import_apply( $table );
 t( 13 === $res['added'] && 0 === $res['skipped'] && ! $res['problems'], 'import: 13 groups added, nothing skipped, no problems' );
 $g = mcupr_office_groups( $offices[ $names[0] ] );
 t( 5 === count( $g ) && 'กลุ่มงานบริหาร' === $g[0]->post_title && 'กลุ่มงานคลังและทรัพย์สิน' === $g[4]->post_title, 'import: the campus office has its 5 groups in the order of the file' );
-t( 'Administration Group' === get_post_meta( $g[0]->ID, '_mcupr_g_name_en', true ) && false !== strpos( $g[0]->post_excerpt, 'ส่วนงานบริหาร' ) && $offices[ $names[0] ] === mcupr_group_office( $g[0]->ID ), 'import: English name, the division in the short text, owned by the office' );
+t( 'Administration Group' === get_post_meta( $g[0]->ID, '_mcupr_g_name_en', true ) && 'ส่วนงานบริหาร' === get_post_meta( $g[0]->ID, '_mcupr_g_division', true ) && '' === $g[0]->post_excerpt && $offices[ $names[0] ] === mcupr_group_office( $g[0]->ID ), 'import: English name, the division in its own field (not in the short text), owned by the office' );
 t( 4 === count( mcupr_office_groups( $offices[ $names[1] ] ) ) && 4 === count( mcupr_office_groups( $offices[ $names[2] ] ) ), 'import: the other two offices have 4 groups each' );
 t( 'กลุ่มงานบริหาร' === mcupr_office_groups( $offices[ $names[2] ] )[0]->post_title, 'import: a group with the same name in another office is its own group' );
 
+// the office home: the groups under the heading of their division, the divisions in the order of the file
+$h = mcupr_office_groups_html( $offices[ $names[0] ] );
+t( 2 === substr_count( $h, '<h3 class="gl-div">' ) && strpos( $h, 'ส่วนงานบริหาร</h3>' ) < strpos( $h, 'ส่วนคลังและทรัพย์สิน</h3>' ) && 5 === substr_count( $h, '<li class="gl-gcard' ), 'office home: two division headings (administration first), five group cards' );
+t( strpos( $h, 'กลุ่มงานวางแผนและงบประมาณ' ) < strpos( $h, 'ส่วนคลังและทรัพย์สิน</h3>' ) && strpos( $h, 'กลุ่มงานการเงิน' ) > strpos( $h, 'ส่วนคลังและทรัพย์สิน</h3>' ), 'office home: every group is under its own division' );
+// a file imported before divisions had a field kept them as the first words of the short text: importing again moves them
+$old = wp_insert_post( array( 'post_type' => MCUPR_GROUP, 'post_status' => 'publish', 'post_title' => 'กลุ่มงานเก่า', 'post_excerpt' => 'ส่วนเก่า · คำอธิบายของกลุ่ม' ) );
+mcupr_group_set_office( $old, $offices[ $names[1] ] );
+mcupr_group_memo_reset();
+$rf = mcupr_groups_import_apply( mcupr_groups_import_table( array( array( 'office', 'name', 'division' ), array( $names[1], 'กลุ่มงานเก่า', 'ส่วนเก่า' ) ) ) );
+t( 1 === $rf['filled'] && 'ส่วนเก่า' === get_post_meta( $old, '_mcupr_g_division', true ) && 'คำอธิบายของกลุ่ม' === get_post( $old )->post_excerpt, 'import: an existing group gets its empty division, and it leaves the short text' );
+$rf2 = mcupr_groups_import_apply( mcupr_groups_import_table( array( array( 'office', 'name', 'division' ), array( $names[1], 'กลุ่มงานเก่า', 'ส่วนอื่น' ) ) ) );
+t( 0 === $rf2['filled'] && 1 === $rf2['skipped'] && 'ส่วนเก่า' === get_post_meta( $old, '_mcupr_g_division', true ), 'import: a division that is already set is not overwritten' );
+$band = ''; $_d = mcupr_group_data( $old ); ob_start(); echo mcupr_group_band( $old, $_d ); $band = ob_get_clean();
+t( false !== strpos( $band, 'ส่วนเก่า' ), 'landing page: the band names the division' );
 $again = mcupr_groups_import_apply( $table );
 t( 0 === $again['added'] && 13 === $again['skipped'], 'import: a second time nothing is added (13 already there)' );
 
