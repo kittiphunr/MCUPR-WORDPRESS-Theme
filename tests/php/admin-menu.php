@@ -20,6 +20,10 @@ t( ! $stray, 'none of the theme\'s sections is a top-level menu of its own' . ( 
 $sub = array_map( function ( $s ) { return $s[2]; }, $submenu['mcupr'] );
 foreach ( $ours as $o ) { t( in_array( 'edit.php?post_type=' . $o, $sub, true ), 'MCUPR menu: ' . $o . ' list' ); }
 foreach ( array( 'mcupr-forum', 'mcupr-staff-hub', 'mcupr-status' ) as $p ) { t( in_array( $p, $sub, true ), 'MCUPR menu: page ' . $p ); }
+t( in_array( 'mcupr-groups-import', $sub, true ), 'MCUPR menu: page mcupr-groups-import (the import of work groups is under MCUPR, not under the list of groups that no longer has a menu of its own)' );
+$GLOBALS['pagenow'] = 'admin.php'; $GLOBALS['plugin_page'] = 'mcupr-groups-import'; $_GET['page'] = 'mcupr-groups-import';
+t( user_can_access_admin_page(), 'work groups import: an administrator can open admin.php?page=mcupr-groups-import (no "not allowed" page)' );
+$GLOBALS['pagenow'] = 'index.php'; $GLOBALS['plugin_page'] = ''; unset( $_GET['page'] );
 foreach ( array( 'mcupr_work_cat', 'mcupr_video_cat', 'mcupr_faq_cat', 'mcupr_board', 'mcupr_person_group' ) as $tx ) {
 	t( count( array_filter( $sub, function ( $s ) use ( $tx ) { return 0 === strpos( $s, 'edit-tags.php?taxonomy=' . $tx ); } ) ) === 1, 'MCUPR menu: the categories of ' . $tx );
 }
