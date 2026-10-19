@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.1 =
+* Update.
+
 = 1.54.0 =
 * Offices: work groups with a landing page of their own (services, news, people, documents, contact).
 
