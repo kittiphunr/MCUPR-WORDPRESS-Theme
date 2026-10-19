@@ -1695,6 +1695,7 @@ return array(
 	'with a warning (imported)' => 'มีคำเตือน (นำเข้า)',
 	'with neither (cannot sign in while this is on)' => 'ไม่มีทั้งสองอย่าง (เข้าสู่ระบบไม่ได้ขณะที่เปิด)',
 	'with only a national ID number' => 'มีแค่เลขบัตรประชาชน',
+	'work groups' => 'กลุ่มงาน',
 	'— automatic (most used) —' => '— อัตโนมัติ (ใช้บ่อยที่สุด) —',
 	'— choose —' => '— เลือก —',
 	'— no form —' => '— ไม่มีแบบฟอร์ม —',
