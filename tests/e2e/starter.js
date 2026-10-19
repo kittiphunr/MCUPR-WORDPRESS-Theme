@@ -3442,6 +3442,34 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       ok(gerr.length === 0, 'work group page: no JavaScript errors' + (gerr.length ? ': ' + gerr[0] : ''));
       phpO('foreach(array(' + gd.ids.join(',') + ') as $i){ wp_delete_post($i,true); } delete_transient("mcupr_group_counts");');
     }
+    // the top of a page: soft hero – breadcrumb pill, big gradient title, chips; solid text in the high-contrast modes
+    {
+      const { execSync: execP } = require('child_process');
+      const phpP = (code) => { const f = require('os').tmpdir() + '/e2e-band-' + process.pid + '.php'; require('fs').writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execP('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+      const pid = phpP('echo wp_insert_post(array("post_type"=>"page","post_status"=>"publish","post_title"=>"Band test page","post_name"=>"e2e-band","post_excerpt"=>"A short lead for the page.","post_content"=>str_repeat("<p>Some text of the page.</p>",10)));');
+      for (const [w, menu] of [[1428, 'side'], [390, 'top']]) {
+        const bc = await br.newContext({ viewport: { width: w, height: 800 } });
+        const bp = await bc.newPage();
+        await bp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        await bp.goto(B + '/?pagename=e2e-band');
+        await bp.waitForTimeout(600);
+        const bg = await bp.evaluate(() => { const h = document.querySelector('header.mcu-wheel'); const t = h.querySelector('.mcu-title'); return { fs: parseFloat(getComputedStyle(t).fontSize), grad: /gradient/.test(getComputedStyle(h).backgroundImage), radius: parseFloat(getComputedStyle(h).borderBottomLeftRadius), pill: parseFloat(getComputedStyle(h.querySelector('nav')).borderTopLeftRadius) > 20, chips: h.querySelectorAll('.band-chip').length, sw: document.documentElement.scrollWidth - innerWidth, dupUpdated: document.querySelectorAll('.reader')[0] ? document.querySelectorAll('.no-print .inline-flex .ic').length : 0 }; });
+        const btag = 'page top (' + w + ' px, ' + menu + ' menu)';
+        ok(bg.fs >= 31 && bg.grad && bg.radius >= 24 && bg.pill && bg.chips === 2 && bg.sw <= 0, btag + ': big title ' + bg.fs.toFixed(0) + ' px, soft gradient, rounded foot, breadcrumb pill, two chips, no sideways scroll');
+        await bp.addScriptTag({ content: axeSource() });
+        const axB = await bp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+        ok(axB.violations.length === 0, btag + ': axe ' + (axB.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        if (w === 1428) {
+          for (const mode of ['wb', 'yb', 'by']) {
+            await bp.evaluate((m) => document.documentElement.setAttribute('data-contrast', m), mode);
+            const ct = await bp.evaluate(() => { const h = document.querySelector('header.mcu-wheel'); const t = getComputedStyle(h.querySelector('.mcu-title')); return { solid: t.color !== 'rgba(0, 0, 0, 0)' && getComputedStyle(h).backgroundImage === 'none', col: t.color }; });
+            ok(ct.solid, btag + ': ' + mode + ' – the title is solid text (' + ct.col + ') on a plain band');
+          }
+        }
+        await bc.close();
+      }
+      phpP('wp_delete_post(' + parseInt(pid, 10) + ', true);');
+    }
     // the WordPress toolbar as a floating icon for signed-in editors (and the classic bar when chosen)
     {
       const { execSync: execC } = require('child_process');
