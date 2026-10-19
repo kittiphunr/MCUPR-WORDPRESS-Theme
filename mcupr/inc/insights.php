@@ -279,6 +279,20 @@ add_action(
 	}
 );
 
+/** The notice for ?msg=CODE after an action on the page: fixed, translated sentences; an unknown code shows nothing. */
+function mcupr_ins_notice_text( $code ) {
+	$t = array(
+		'added'   => __( 'Redirect added.', 'mcupr' ),
+		'from'    => __( 'The “From” address is not usable (give a path such as /old-page/).', 'mcupr' ),
+		'to'      => __( 'The “To” address is not usable (a path or an https:// address).', 'mcupr' ),
+		'loop'    => __( 'A redirect to the same address would loop.', 'mcupr' ),
+		'deleted' => __( 'Deleted.', 'mcupr' ),
+		'cleared' => __( 'Cleared.', 'mcupr' ),
+		'saved'   => __( 'Saved.', 'mcupr' ),
+	);
+	return isset( $t[ $code ] ) ? $t[ $code ] : '';
+}
+
 function mcupr_ins_page() {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
@@ -287,7 +301,7 @@ function mcupr_ins_page() {
 	$rules = mcupr_redirects_with_hits();
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended
 	$pre_from = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : '';
-	$msg      = isset( $_GET['msg'] ) ? sanitize_text_field( rawurldecode( wp_unslash( $_GET['msg'] ) ) ) : '';
+	$msg      = mcupr_ins_notice_text( isset( $_GET['msg'] ) ? sanitize_key( wp_unslash( $_GET['msg'] ) ) : '' );
 	// phpcs:enable
 	echo '<div class="wrap"><h1>' . esc_html__( 'Redirects & insights', 'mcupr' ) . '</h1>';
 	if ( '' !== $msg ) {
@@ -372,29 +386,29 @@ add_action(
 				$log = get_option( 'mcupr_404log', array() );
 				unset( $log[ md5( $rule['from'] ) ] );
 				update_option( 'mcupr_404log', is_array( $log ) ? $log : array(), false );
-				$msg = __( 'Redirect added.', 'mcupr' );
+				$msg = 'added';
 			} else {
-				$msg = array( 'from' => __( 'The “From” address is not usable (give a path such as /old-page/).', 'mcupr' ), 'to' => __( 'The “To” address is not usable (a path or an https:// address).', 'mcupr' ), 'loop' => __( 'A redirect to the same address would loop.', 'mcupr' ) )[ $err ];
+				$msg = (string) $err; // from / to / loop
 			}
 		} elseif ( 'del' === $do ) {
 			$rules = mcupr_redirects();
 			unset( $rules[ isset( $_POST['i'] ) ? (int) $_POST['i'] : -1 ] );
 			update_option( 'mcupr_redirects', array_values( $rules ), false );
 			mcupr_redirect_hits_prune( $rules );
-			$msg = __( 'Deleted.', 'mcupr' );
+			$msg = 'deleted';
 		} elseif ( 'clear404' === $do ) {
 			delete_option( 'mcupr_404log' );
 			delete_option( 'mcupr_404log_buf' );
-			$msg = __( 'Cleared.', 'mcupr' );
+			$msg = 'cleared';
 		} elseif ( 'clearsearch' === $do ) {
 			delete_option( 'mcupr_searchlog' );
 			delete_option( 'mcupr_searchlog_buf' );
-			$msg = __( 'Cleared.', 'mcupr' );
+			$msg = 'cleared';
 		} elseif ( 'opts' === $do ) {
 			update_option( 'mcupr_ins', array( 'log404' => ! empty( $_POST['log404'] ) ? 1 : 0, 'logsearch' => ! empty( $_POST['logsearch'] ) ? 1 : 0 ), false );
-			$msg = __( 'Saved.', 'mcupr' );
+			$msg = 'saved';
 		}
-		wp_safe_redirect( add_query_arg( 'msg', rawurlencode( $msg ), admin_url( 'admin.php?page=mcupr-insights' ) ) );
+		wp_safe_redirect( '' !== $msg ? add_query_arg( 'msg', $msg, admin_url( 'admin.php?page=mcupr-insights' ) ) : admin_url( 'admin.php?page=mcupr-insights' ) );
 		exit;
 	}
 );
