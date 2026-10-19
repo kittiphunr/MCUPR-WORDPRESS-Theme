@@ -1432,6 +1432,31 @@
 		});
 	})();
 
+	/* Work group page: the in-page menu marks the part being read (aria-current), and its height is kept in --gl-tabs-h so
+	   a part or a focused element is not hidden under it (scroll-padding, see input.css) */
+	(function () {
+		var nav = $('[data-gl-tabs]');
+		if (!nav) { return; }
+		var links = $$('a[href^="#gl-"]:not(.gl-ask)', nav);
+		var parts = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+		if (window.ResizeObserver) {
+			new ResizeObserver(function () { root.style.setProperty('--gl-tabs-h', nav.offsetHeight + 'px'); }).observe(nav);
+		}
+		var busy = false;
+		function mark() {
+			busy = false;
+			var line = nav.getBoundingClientRect().bottom + 24;
+			var cur = -1;
+			parts.forEach(function (p, i) { if (p && p.getBoundingClientRect().top <= line) { cur = i; } });
+			if (cur < 0) { cur = 0; }
+			if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) { cur = parts.length - 1; } /* the end of the page: the last part */
+			links.forEach(function (a, i) { if (i === cur) { a.setAttribute('aria-current', 'true'); } else { a.removeAttribute('aria-current'); } });
+		}
+		window.addEventListener('scroll', function () { if (!busy) { busy = true; window.requestAnimationFrame(mark); } }, { passive: true });
+		window.addEventListener('resize', mark);
+		mark();
+	})();
+
 	apply();
 	reveal();
 })();
