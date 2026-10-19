@@ -450,6 +450,7 @@ return array(
 	'of_news' => array( 'ข่าวสาร', 'News', '新闻', 'ニュース' ),
 	'of_events' => array( 'กิจกรรม', 'Events', '活动', 'イベント' ),
 	'of_people' => array( 'บุคลากร', 'People', '人员', 'スタッフ' ),
+	'of_n_items' => array( '%d รายการ', '%d items', '%d 项', '%d 件' ),
 	'of_albums' => array( 'อัลบั้มภาพ', 'Photo albums', '相册', 'フォトアルバム' ),
 	'of_videos' => array( 'วิดีโอ', 'Videos', '视频', '動画' ),
 	'of_contact' => array( 'ติดต่อ', 'Contact', '联系我们', 'お問い合わせ' ),
