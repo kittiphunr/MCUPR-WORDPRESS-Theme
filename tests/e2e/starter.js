@@ -3481,16 +3481,16 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await qp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
         await qp.goto(B + '/?mcupr_office=e2e-ofhead&mcupr_osec=albums');
         await qp.waitForTimeout(600);
-        const qg = await qp.evaluate(() => { const h = document.querySelector('.of-head'); const up = document.querySelector('.of-up a'); return { head: !!h, h1: document.querySelectorAll('h1').length, count: h && h.querySelector('.of-count') ? h.querySelector('.of-count').textContent : '', icon: !!(h && h.querySelector('svg')), pill: up ? parseFloat(getComputedStyle(up).borderTopLeftRadius) > 20 : false, cards: document.querySelectorAll('.album-grid > *').length, sw: document.documentElement.scrollWidth - innerWidth }; });
+        const qg = await qp.evaluate(() => { const h = document.querySelector('.of-head'); const up = document.querySelector('.of-up a'); return { head: !!h, h1: document.querySelectorAll('h1').length, count: h && h.querySelector('.of-count b') ? h.querySelector('.of-count b').textContent : '', lead: !!(h && h.querySelector('.of-head-lead')), icon: !!(h && h.querySelector('svg')), pill: up ? parseFloat(getComputedStyle(up).borderTopLeftRadius) > 20 : false, cards: document.querySelectorAll('.album-grid > *').length, sw: document.documentElement.scrollWidth - innerWidth }; });
         const qtag = 'office section page (' + w + ' px, ' + menu + ' menu)';
-        ok(qg.head && qg.h1 === 1 && /2/.test(qg.count) && qg.icon && qg.pill && qg.cards === 2 && qg.sw <= 0, qtag + ': head with icon and count "' + qg.count + '", the back link is a capsule, ' + qg.cards + ' cards, no sideways scroll');
+        ok(qg.head && qg.h1 === 1 && qg.count === '2' && qg.lead && qg.icon && qg.pill && qg.cards === 2 && qg.sw <= 0, qtag + ': head panel with icon, one line and the number "' + qg.count + '", the back link is a capsule, ' + qg.cards + ' cards, no sideways scroll');
         await qp.addScriptTag({ content: axeSource() });
         const axQ = await qp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
         ok(axQ.violations.length === 0, qtag + ': axe ' + (axQ.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
         if (w === 1428) {
           await qp.evaluate(() => document.documentElement.setAttribute('data-contrast', 'wb'));
-          const qh = await qp.evaluate(() => ({ bw: parseFloat(getComputedStyle(document.querySelector('.of-head')).borderBottomWidth), cw: parseFloat(getComputedStyle(document.querySelector('.of-count')).borderTopWidth) }));
-          ok(qh.bw >= 2 && qh.cw >= 2, qtag + ': white on black – the head and the count have outlines (' + qh.bw + ' / ' + qh.cw + ' px)');
+          const qh = await qp.evaluate(() => ({ bw: parseFloat(getComputedStyle(document.querySelector('.of-head')).borderBottomWidth), cw: parseFloat(getComputedStyle(document.querySelector('.of-head-ic')).borderTopWidth) }));
+          ok(qh.bw >= 2 && qh.cw >= 2, qtag + ': white on black – the head panel and its icon have outlines (' + qh.bw + ' / ' + qh.cw + ' px)');
         }
         await qc.close();
       }
