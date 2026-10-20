@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.34 =
+* Work group import file: service tiles and figures
+
 = 1.54.33 =
 * Work group page: figures, news and people in one row; documents beside the contact
 
