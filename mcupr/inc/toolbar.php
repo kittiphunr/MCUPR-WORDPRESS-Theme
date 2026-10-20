@@ -61,6 +61,23 @@ add_filter(
 	20
 );
 
+/** The picture that goes with a toolbar item (by its id in the bar; a plus for "add new" things it does not know). */
+function mcupr_toolbar_icon( $id ) {
+	$id  = (string) $id;
+	$map = array(
+		'edit' => 'edit-3', 'view' => 'eye', 'preview' => 'eye', 'archive' => 'list', 'dashboard' => 'home', 'customize' => 'sliders', 'themes' => 'layout',
+		'widgets' => 'grid', 'menus' => 'menu', 'background' => 'image', 'header' => 'image', 'mcupr-maint' => 'tool', 'comments' => 'message-circle', 'updates' => 'refresh-cw',
+		'edit-profile' => 'user', 'mcupr-cc' => 'settings', 'logout' => 'log-out', 'site-name' => 'home', 'new-post' => 'file-text', 'new-media' => 'image', 'new-page' => 'file', 'new-user' => 'user-plus',
+		'new-mcupr_office' => 'briefcase', 'new-mcupr_student' => 'user-check', 'new-mcupr_group' => 'users', 'new-mcupr_book' => 'book', 'new-mcupr_event' => 'calendar',
+		'new-mcupr_work' => 'award', 'new-mcupr_person' => 'user', 'new-mcupr_unit' => 'layers', 'new-mcupr_topic' => 'message-square', 'new-mcupr_faq' => 'help-circle',
+		'new-mcupr_album' => 'camera', 'new-mcupr_poll' => 'bar-chart-2', 'new-mcupr_video' => 'film', 'new-mcupr_fb' => 'clipboard',
+	);
+	if ( isset( $map[ $id ] ) ) {
+		return $map[ $id ];
+	}
+	return 0 === strpos( $id, 'new-' ) ? 'plus-circle' : 'chevron-right';
+}
+
 /** The text of a toolbar item: its title without the little pictures and the text for screen readers that comes with them. */
 function mcupr_toolbar_label( $node ) {
 	$t = (string) $node->title;
@@ -94,7 +111,7 @@ function mcupr_toolbar_groups( $nodes ) {
 	$item = static function ( $n, $label = '' ) use ( &$used ) {
 		$used[ $n->id ] = 1;
 		$cl = ! empty( $n->meta['class'] ) ? (string) $n->meta['class'] : '';
-		return array( '' !== $label ? $label : mcupr_toolbar_label( $n ), (string) $n->href, $cl, ! empty( $n->meta['target'] ) ? (string) $n->meta['target'] : '' );
+		return array( '' !== $label ? $label : mcupr_toolbar_label( $n ), (string) $n->href, $cl, ! empty( $n->meta['target'] ) ? (string) $n->meta['target'] : '', (string) $n->id );
 	};
 	$g = array( 'page' => array(), 'add' => array(), 'site' => array(), 'other' => array(), 'me' => array() );
 	foreach ( array( 'edit', 'view', 'preview', 'archive' ) as $id ) {
@@ -109,7 +126,7 @@ function mcupr_toolbar_groups( $nodes ) {
 		$used['new-content'] = 1;
 	}
 	if ( current_user_can( 'edit_pages' ) ) {
-		$g['site'][] = array( __( 'MCUPR control center', 'mcupr' ), admin_url( 'admin.php?page=mcupr' ), '', '' );
+		$g['site'][] = array( __( 'MCUPR control center', 'mcupr' ), admin_url( 'admin.php?page=mcupr' ), '', '', 'mcupr-cc' );
 	}
 	foreach ( array( 'dashboard', 'customize', 'themes', 'widgets', 'menus', 'background', 'header', 'mcupr-maint', 'comments', 'updates' ) as $id ) {
 		if ( isset( $nodes[ $id ] ) && $nodes[ $id ]->href ) {
@@ -165,9 +182,11 @@ function mcupr_toolbar_render() {
 	echo '<nav id="' . esc_attr( $id ) . '" class="cc-panel" aria-label="' . esc_attr__( 'Tools for editors', 'mcupr' ) . '" hidden>';
 	echo '<p class="cc-who">' . esc_html( $u->display_name ) . '</p>';
 	foreach ( $groups as $head => $list ) {
-		echo '<section class="cc-g' . ( count( $list ) > 6 ? ' cc-chips' : '' ) . '"><h2 class="cc-h">' . esc_html( $head ) . '</h2><ul>';
+		$tiles = in_array( $head, array( __( 'Add new', 'mcupr' ), __( 'This page', 'mcupr' ) ), true ); // "this page" and "add new": big tiles, a picture over its words; the rest: rows
+		echo '<section class="cc-g ' . ( $tiles ? 'cc-tiles' : 'cc-rows' ) . ( __( 'This page', 'mcupr' ) === $head ? ' cc-page' : '' ) . '"><h2 class="cc-h">' . esc_html( $head ) . '</h2><ul>';
 		foreach ( $list as $it ) {
-			echo '<li><a href="' . esc_url( $it[1] ) . '"' . ( $it[3] ? ' target="' . esc_attr( $it[3] ) . '" rel="noopener"' : '' ) . '>' . ( false !== strpos( $it[2], 'cc-maint' ) ? mcupr_feather_i( 'tool', 16 ) . ' ' : '' ) . esc_html( $it[0] ) . '</a></li>';
+			$out = 'logout' === ( isset( $it[4] ) ? $it[4] : '' ) ? ' class="cc-out"' : '';
+			echo '<li><a' . $out . ' href="' . esc_url( $it[1] ) . '"' . ( $it[3] ? ' target="' . esc_attr( $it[3] ) . '" rel="noopener"' : '' ) . '><span class="cc-ic" aria-hidden="true">' . mcupr_feather_i( false !== strpos( $it[2], 'cc-maint' ) ? 'tool' : mcupr_toolbar_icon( isset( $it[4] ) ? $it[4] : '' ), $tiles ? 22 : 18 ) . '</span><span class="cc-t">' . esc_html( $it[0] ) . '</span></a></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		}
 		echo '</ul></section>';
 	}
