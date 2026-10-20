@@ -3456,7 +3456,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await bp.waitForTimeout(600);
         const bg = await bp.evaluate(() => { const h = document.querySelector('header.mcu-wheel'); const t = h.querySelector('.mcu-title'); return { fs: parseFloat(getComputedStyle(t).fontSize), grad: /gradient/.test(getComputedStyle(h).backgroundImage), radius: parseFloat(getComputedStyle(h).borderBottomLeftRadius), pill: parseFloat(getComputedStyle(h.querySelector('nav')).borderTopLeftRadius) > 20, chips: h.querySelectorAll('.band-chip').length, sw: document.documentElement.scrollWidth - innerWidth, dupUpdated: document.querySelectorAll('.reader')[0] ? document.querySelectorAll('.no-print .inline-flex .ic').length : 0 }; });
         const btag = 'page top (' + w + ' px, ' + menu + ' menu)';
-        ok(bg.fs >= 31 && bg.grad && bg.radius >= 24 && bg.pill && bg.chips === 2 && bg.sw <= 0, btag + ': big title ' + bg.fs.toFixed(0) + ' px, soft gradient, rounded foot, breadcrumb pill, two chips, no sideways scroll');
+        ok(bg.fs >= 31 && bg.grad && bg.radius === 0 && bg.pill && bg.chips === 2 && bg.sw <= 0, btag + ': big title ' + bg.fs.toFixed(0) + ' px, soft gradient, straight foot (no rounded corners), breadcrumb pill, two chips, no sideways scroll');
         await bp.addScriptTag({ content: axeSource() });
         const axB = await bp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
         ok(axB.violations.length === 0, btag + ': axe ' + (axB.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
