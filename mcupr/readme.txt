@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.18 =
+* Page head band: straight bottom edge
+
 = 1.54.17 =
 * Three levels: university / office / work group with one trail in the office band
 
