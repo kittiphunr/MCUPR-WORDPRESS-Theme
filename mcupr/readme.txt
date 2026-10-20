@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.10 =
+* Central-file box masks the national ID and passport numbers
+
 = 1.54.9 =
 * Home hero fills the frame edge to edge with the side menu
 
