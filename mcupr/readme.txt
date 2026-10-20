@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.22 =
+* Editor tools: picture + words, tiles like a start menu
+
 = 1.54.21 =
 * Control center: work groups moved to people, menus in order of use
 
