@@ -1594,7 +1594,7 @@ TH = {
 "No details from the central file for this student.": "ไม่มีข้อมูลจากไฟล์ส่วนกลางของนิสิตคนนี้",
 "Not in the central file": "ไม่พบในไฟล์ส่วนกลาง",
 "Occupation": "อาชีพ",
-"Only staff with the student-data permission see this (the national ID number, blood group, date of birth, religion, height, weight, passport and the guardian’s income are kept encrypted). Opening it is written in the activity log. To change something, change it in the central system and import the file again.": "เห็นได้เฉพาะเจ้าหน้าที่ที่มีสิทธิ์ข้อมูลนิสิต (เลขบัตรประชาชน หมู่โลหิต วันเกิด ศาสนา ส่วนสูง น้ำหนัก พาสปอร์ต และรายได้ผู้ปกครอง เก็บแบบเข้ารหัส) การเปิดดูถูกบันทึกในบันทึกกิจกรรม หากต้องการแก้ไข ให้แก้ที่ระบบส่วนกลางแล้วนำเข้าไฟล์ใหม่",
+"Only staff with the student-data permission see this (the national ID number, blood group, date of birth, religion, height, weight, passport and the guardian’s income are kept encrypted). The national ID number and the passport number show only their last four characters. Opening it is written in the activity log. To change something, change it in the central system and import the file again.": "เห็นได้เฉพาะเจ้าหน้าที่ที่มีสิทธิ์ข้อมูลนิสิต (เลขบัตรประชาชน หมู่โลหิต วันเกิด ศาสนา ส่วนสูง น้ำหนัก พาสปอร์ต และรายได้ผู้ปกครอง เก็บแบบเข้ารหัส) เลขบัตรประชาชนและเลขพาสปอร์ตแสดงเฉพาะ 4 ตัวท้าย การเปิดดูถูกบันทึกในบันทึกกิจกรรม หากต้องการแก้ไข ให้แก้ที่ระบบส่วนกลางแล้วนำเข้าไฟล์ใหม่",
 "Opened the details from the central file of a student": "เปิดดูข้อมูลละเอียดจากไฟล์ส่วนกลางของนิสิต",
 "Pali grade passed": "สอบไล่ได้บาลีชั้น",
 "Pali qualification used to apply": "วุฒิบาลีที่ใช้สมัครเข้าศึกษา",
