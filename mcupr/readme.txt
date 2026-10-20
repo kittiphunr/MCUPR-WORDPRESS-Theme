@@ -32,8 +32,11 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
-= 1.54.23 =
+= 1.54.26 =
 * Editor tools card fits a phone screen
+
+= 1.54.25 =
+* E-books: manage the pages of a PDF; PDF.js served as .js
 
 = 1.54.22 =
 * Editor tools: picture + words, tiles like a start menu
