@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.21 =
+* Control center: work groups moved to people, menus in order of use
+
 = 1.54.20 =
 * Page head title: clear gap between the breadcrumb and the tone marks
 
