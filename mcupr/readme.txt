@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.32 =
+* All menu: groups rail on the left, the chosen group on the right
+
 = 1.54.31 =
 * Work group page: services first as tiles beside the group, figures part
 
