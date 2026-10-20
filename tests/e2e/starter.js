@@ -3520,6 +3520,10 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await rp.waitForTimeout(400);
         const rh = await rp.evaluate(() => ({ stats: document.querySelectorAll('.of-stats li').length, ic: document.querySelectorAll('.of-stats .of-stat-ic svg').length, sw: document.documentElement.scrollWidth - innerWidth }));
         ok(rh.stats >= 1 && rh.ic === rh.stats && rh.sw <= 0, rtag + ': office home – ' + rh.stats + ' stat tiles with icons, no sideways scroll');
+        if (menu === 'side') {
+          const rs = await rp.evaluate(() => { const f = document.querySelector('.site-page').getBoundingClientRect(); const u = document.querySelector('.of-up a').getBoundingClientRect(); const ids = document.querySelector('.of-id').getBoundingClientRect(); const t = document.querySelector('.of-tabs ul').getBoundingClientRect(); const chips = document.querySelector('.of-band .wrap').getBoundingClientRect(); return { top: u.top - f.top, left: u.left - f.left, idl: ids.left - f.left, gap: t.top - [...document.querySelectorAll('.of-band .wrap > *')].pop().getBoundingClientRect().bottom }; });
+          ok(Math.abs(rs.top - 24) <= 2 && Math.abs(rs.left - 24) <= 2 && Math.abs(rs.idl - 24) <= 2 && Math.abs(rs.gap - 24) <= 3, rtag + ': office home head – the same inner margin on every side (top ' + rs.top.toFixed(0) + ', left ' + rs.left.toFixed(0) + ', bottom ' + rs.gap.toFixed(0) + ' px)');
+        }
         if (w === 1428) {
           await rp.goto(B + '/?page_id=' + rids[1]);
           await rp.evaluate(() => document.documentElement.setAttribute('data-contrast', 'wb'));
