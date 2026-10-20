@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.9 =
+* Home hero fills the frame edge to edge with the side menu
+
 = 1.54.8 =
 * Office pages share the section head panel; office home restyled
 
