@@ -22,6 +22,8 @@ return array(
 	'%d sample blocks added. Edit them at Appearance → Widgets.' => 'เพิ่มบล็อกตัวอย่าง %d รายการแล้ว แก้ไขได้ที่ ลักษณะที่ปรากฏ → วิดเจ็ต',
 	'%d student(s)' => '%d คน',
 	'%d widgets' => '%d วิดเจ็ต',
+	'(and the same for service2 to service4)' => '(และเช่นเดียวกันสำหรับ service2 ถึง service4)',
+	'(and the same for stat2 to stat4)' => '(และเช่นเดียวกันสำหรับ stat2 ถึง stat4)',
 	'(logged in, currently studying)' => '(เข้าสู่ระบบแล้วและกำลังศึกษาอยู่)',
 	'(tap the card here, or import the file again, to show its last 4 digits)' => '(แตะบัตรที่นี่ หรือนำเข้าไฟล์ใหม่ เพื่อแสดง 4 หลักท้าย)',
 	'(the name of the office, exactly as on the site)' => '(ชื่อหน่วยงาน ตรงกับที่ใช้ในเว็บไซต์)',

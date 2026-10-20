@@ -264,10 +264,28 @@ function mcupr_group_render( $gid ) {
 	$has_svc = in_array( 'services', $secs, true );
 	echo '<div class="gl-top' . ( $has_svc ? ' has-svc' : '' ) . '">' . mcupr_group_band( $gid, $d, $secs ) . ( $has_svc ? $section( 'services' ) : '' ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	echo mcupr_group_tabs( $secs ); // phpcs:ignore WordPress.Security.EscapeOutput
-	foreach ( $secs as $k ) {
-		if ( 'services' !== $k ) {
+	// then three parts side by side (figures, news, people), the text of the group, and the documents beside the contact
+	$rest = array_diff( $secs, array( 'services' ) );
+	$rows = array(
+		'a' => array_values( array_intersect( array( 'stats', 'news', 'people' ), $rest ) ),
+		'b' => array_values( array_intersect( array( 'docs', 'contact' ), $rest ) ),
+	);
+	if ( $rows['a'] ) {
+		echo '<div class="gl-rows gl-rows-a n' . count( $rows['a'] ) . '">'; // phpcs:ignore WordPress.Security.EscapeOutput
+		foreach ( $rows['a'] as $k ) {
 			echo $section( $k ); // phpcs:ignore WordPress.Security.EscapeOutput
 		}
+		echo '</div>';
+	}
+	if ( in_array( 'about', $rest, true ) ) {
+		echo $section( 'about' ); // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+	if ( $rows['b'] ) {
+		echo '<div class="gl-rows gl-rows-b n' . count( $rows['b'] ) . '">'; // phpcs:ignore WordPress.Security.EscapeOutput
+		foreach ( $rows['b'] as $k ) {
+			echo $section( $k ); // phpcs:ignore WordPress.Security.EscapeOutput
+		}
+		echo '</div>';
 	}
 	if ( ! $secs ) {
 		echo '<p class="gl-empty text-muted">' . esc_html( mcupr_t( 'of_none' ) ) . '</p>';
