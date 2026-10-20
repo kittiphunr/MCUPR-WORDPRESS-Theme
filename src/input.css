@@ -2162,21 +2162,24 @@ html[data-contrast] .office-card .oc-top.has-cover { background-image: none; }
 .gl { --of: var(--primary); --of-on: var(--on-primary); }
 .gl, .of-body { --gl-soft: color-mix(in srgb, var(--of) 12%, var(--bg)); }
 .gl .fi, .gl-gcards .fi { flex: none; }
-.gl-band { position: relative; overflow: hidden; isolation: isolate; padding: 1.35rem 1.6rem 3.5rem; border: 1px solid var(--edge); border-radius: 1.8rem; background: linear-gradient(135deg, var(--bg), color-mix(in srgb, var(--of) 10%, var(--bg))); color: var(--text); box-shadow: 0 2px 14px color-mix(in srgb, var(--text) 7%, transparent); } /* the same light panel as the head of the office's pages, under the office band */
-.gl-band:not(:has(+ .gl-tabs)) { padding-bottom: 1.35rem; }
-.gl-band::before, .gl-band::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; background: var(--of); opacity: .08; pointer-events: none; }
-.gl-band::before { width: 16rem; height: 16rem; inset-inline-end: -4rem; top: -5.5rem; }
-.gl-band::after { width: 9rem; height: 9rem; inset-inline-end: 11rem; bottom: -4.5rem; }
-.gl-who { display: flex; align-items: center; gap: 1.1rem; }
-.gl-mark { flex: none; display: grid; place-items: center; width: 4.2rem; height: 4.2rem; border-radius: 1.3rem; background: linear-gradient(135deg, var(--of), color-mix(in srgb, var(--of) 70%, #fff)); color: var(--of-on); font-size: 1.9rem; font-weight: 800; line-height: 1; box-shadow: 0 8px 18px -6px color-mix(in srgb, var(--of) 60%, transparent); }
-.gl-name { margin: 0; font-size: clamp(1.5rem, 3.6vw, 2.2rem); font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
-.gl-sub { margin: .25rem 0 0; font-size: 1rem; overflow-wrap: anywhere; }
-.gl-lead { max-width: 46rem; margin: 1.1rem 0 0; font-size: 1.1rem; }
+/* the top of a group page: the group on the left in the office colour, the services as big tiles on the right ("start here") */
+.gl-top { display: grid; gap: clamp(.8rem, 1.8vw, 1.25rem); }
+.gl-top.has-svc { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: stretch; }
+.gl-band { position: relative; overflow: hidden; isolation: isolate; display: flex; flex-direction: column; padding: clamp(1.4rem, 3vw, 2.5rem); border-radius: 2.2rem; background: linear-gradient(135deg, color-mix(in srgb, var(--of) 78%, #000), var(--of)); color: var(--of-on); }
+.gl-band::before, .gl-band::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; background: var(--of-on); opacity: .08; pointer-events: none; }
+.gl-band::before { width: 18rem; height: 18rem; inset-inline-end: -5rem; top: -6rem; }
+.gl-band::after { width: 10rem; height: 10rem; inset-inline-end: 6rem; bottom: -5rem; }
+.gl-eye { align-self: flex-start; margin: 0 0 1rem; padding: .3rem 1rem; border-radius: 9999px; background: color-mix(in srgb, var(--of-on) 16%, transparent); font-size: .95rem; font-weight: 700; }
+.gl-name { margin: 0; font-size: clamp(1.9rem, 1.1rem + 2.8vw, 3.1rem); font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+.gl-sub { margin: .35rem 0 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+.gl-lead { max-width: 40rem; margin: 1rem 0 0; font-size: clamp(1.05rem, 1rem + .35vw, 1.25rem); line-height: 1.6; }
+.gl-start { display: inline-flex; align-items: center; align-self: flex-start; gap: .5rem; margin: 1.1rem 0 0; font-weight: 700; }
+.gl-chips { margin-top: auto !important; padding-top: 1.25rem; }
 .gl-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 0; padding: 0; list-style: none; }
 .gl-chip { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.25rem; padding: .2rem .9rem; border: 1px solid color-mix(in srgb, var(--of-on) 45%, transparent); border-radius: 9999px; background: color-mix(in srgb, var(--of-on) 14%, transparent); color: var(--of-on); font-size: .95rem; font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
 a.gl-chip:hover, a.gl-chip:focus-visible { background: var(--of-on); color: var(--of); }
 /* the in-page menu: floats on the bottom of the band, and stays under the site header while the page scrolls (not on small or very low screens) */
-.gl-tabs { position: relative; z-index: 5; margin: -1.85rem 1.25rem 0; }
+.gl-tabs { position: relative; z-index: 5; margin: 1rem 0 0; }
 .gl-tabs ul { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0; padding: .35rem; list-style: none; border: 1px solid var(--edge); border-radius: 1.5rem; background: var(--bg); box-shadow: 0 10px 28px -12px rgb(15 23 42 / .35); }
 .gl-tabs a { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.75rem; padding: .35rem 1rem; border: 2px solid transparent; border-radius: 9999px; color: var(--text-2); font-weight: 600; text-decoration: none; }
 .gl-tabs a:hover { background: var(--tint); color: var(--link); }
@@ -2259,9 +2262,8 @@ img.gl-ph { display: block; }
 .gl-write-x { margin: .1rem 0 .9rem; color: var(--text-2); }
 .gl-empty { margin-top: 2rem; }
 @media (max-width: 640px) {
-	.gl-band { padding: 1.15rem 1.15rem 3.5rem; }
-	.gl-mark { width: 3.5rem; height: 3.5rem; font-size: 1.5rem; }
-	.gl-tabs { margin-inline: .5rem; }
+	.gl-band { padding: 1.15rem; border-radius: 1.6rem; }
+	.gl-tabs { margin-inline: 0; }
 	.gl-tabs a { padding-inline: .8rem; }
 	.gl-ask-li { margin-inline-start: 0; }
 }
@@ -2286,8 +2288,8 @@ img.gl-ph { display: block; }
 .of-filter a { display: inline-flex; align-items: center; min-height: 1.5rem; font-weight: 600; }
 /* high contrast: the page colours instead of the office colour, every card and control outlined, the chosen tab filled (stronger than the others) */
 html[data-contrast] .gl-band { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
+html[data-contrast] .gl-eye { background: transparent; border: 2px solid var(--border); }
 html[data-contrast] .gl-band::before, html[data-contrast] .gl-band::after { display: none; }
-html[data-contrast] .gl-mark { background: var(--bg); color: var(--text); border: 2px solid var(--border); box-shadow: none; }
 html[data-contrast] .gl-chip { border: 2px solid var(--border); background: transparent; color: var(--text); }
 html[data-contrast] a.gl-chip:hover, html[data-contrast] a.gl-chip:focus-visible { background: var(--text); color: var(--bg); }
 html[data-contrast] .gl-tabs ul { border: 2px solid var(--border); box-shadow: none; }
@@ -2849,3 +2851,27 @@ html[data-contrast] .fs-tab .ic, html[data-contrast] .fs-tab[aria-selected="true
 html[data-contrast] .fs-g { border-width: 2px; box-shadow: none; }
 html[data-motion="1"] .fs-rb { transition: none; }
 @media (prefers-reduced-motion: reduce) { .fs-rb { transition: none; } .fs-rb:hover, .fs-rb:focus-visible { transform: none; } }
+
+/* the services beside the group: big tiles, the first one filled (it is where most people start) */
+.gl-top.has-svc .gl-sec-services { margin-top: 0; display: flex; flex-direction: column; }
+.gl-top.has-svc .gl-sec-services > .gl-h { margin-bottom: .6rem; }
+.gl-top.has-svc .gl-svc { flex: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: .8rem; }
+.gl-top.has-svc .gl-svc-i { display: flex; flex-direction: column; justify-content: space-between; gap: .8rem; min-height: 9rem; padding: 1.2rem 1.3rem; border-radius: 1.9rem; }
+.gl-top.has-svc .gl-svc-ic { width: 3.4rem; height: 3.4rem; margin: 0; border-radius: 1.1rem; font-size: 1.5rem; }
+.gl-top.has-svc .gl-svc-t { font-size: 1.2rem; font-weight: 800; }
+.gl-top.has-svc .gl-svc-i:first-child { border-color: transparent; background: var(--of); color: var(--of-on); }
+.gl-top.has-svc .gl-svc-i:first-child .gl-svc-ic { background: color-mix(in srgb, var(--of-on) 20%, transparent); color: var(--of-on); }
+.gl-top.has-svc .gl-svc-i:first-child .gl-svc-t a, .gl-top.has-svc .gl-svc-i:first-child .gl-svc-x { color: var(--of-on); }
+@media (max-width: 900px) { .gl-top.has-svc { grid-template-columns: 1fr; } .gl-top.has-svc .gl-svc-i { min-height: 7.5rem; } }
+@media (max-width: 420px) { .gl-top.has-svc .gl-svc { grid-template-columns: 1fr; } }
+/* the figures */
+.gl-figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); margin: 0; padding: 0; list-style: none; overflow: hidden; }
+.gl-figs li { padding: 1.3rem 1.6rem; border-inline-end: 1px solid var(--edge); }
+.gl-figs li:last-child { border-inline-end: 0; }
+.gl-figs b { display: block; color: color-mix(in srgb, var(--of) 82%, var(--text)); font-size: clamp(2rem, 1.4rem + 2vw, 2.9rem); font-weight: 800; line-height: 1.1; }
+.gl-figs span { color: var(--text-2); font-weight: 600; }
+html[data-contrast] .gl-top.has-svc .gl-svc-i:first-child { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
+html[data-contrast] .gl-top.has-svc .gl-svc-i:first-child .gl-svc-t a, html[data-contrast] .gl-top.has-svc .gl-svc-i:first-child .gl-svc-x { color: var(--text); }
+html[data-contrast] .gl-top.has-svc .gl-svc-i:first-child .gl-svc-ic { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
+html[data-contrast] .gl-figs b { color: var(--text); }
+html[data-contrast] .gl-figs li { border-color: var(--border); }
