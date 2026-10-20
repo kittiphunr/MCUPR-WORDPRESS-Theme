@@ -1532,7 +1532,7 @@ TH = {
 "Students sign in at the student portal, with the student card.": "นิสิตเข้าสู่ระบบที่พอร์ทัลนิสิตพร้อมบัตรนิสิต",
 "Students who study now": "นิสิตที่กำลังศึกษา",
 "The card code is not 10 digits, not saved": "รหัสบัตรไม่ครบ 10 หลัก ไม่ได้บันทึก",
-"The card code is kept only as a one-way hash and cannot be shown again; leave its box empty to keep it. The national ID number is the one in the central details (encrypted) and is kept in step with the sign-in hash.": "รหัสบัตรเก็บเป็นแฮชทางเดียว จึงแสดงกลับไม่ได้ เว้นช่องว่างไว้เพื่อใช้ค่าเดิม ส่วนเลขบัตรประชาชนคือเลขเดียวกับในข้อมูลส่วนกลาง (เข้ารหัส) และอัปเดตพร้อมแฮชสำหรับเข้าสู่ระบบ",
+"The card code is kept as a one-way hash (so it cannot be shown in full), with only its last 4 digits kept to show which card it is; leave its box empty to keep it. The national ID number is the one in the central details (encrypted) and is kept in step with the sign-in hash.": "รหัสบัตรเก็บเป็นแฮชทางเดียว (จึงแสดงเต็มไม่ได้) และเก็บเฉพาะ 4 หลักท้ายไว้ดูว่าเป็นบัตรใบไหน เว้นช่องว่างไว้เพื่อใช้ค่าเดิม ส่วนเลขบัตรประชาชนคือเลขเดียวกับในข้อมูลส่วนกลาง (เข้ารหัส) และอัปเดตพร้อมแฮชสำหรับเข้าสู่ระบบ",
 "in the central details, but the check digit is wrong (cannot be used to sign in)": "มีในข้อมูลส่วนกลาง แต่เลขตรวจสอบไม่ถูกต้อง (ใช้ยืนยันตอนเข้าสู่ระบบไม่ได้)",
 "National ID number (13 digits)": "เลขบัตรประชาชน (13 หลัก)",
 "The national ID number is not valid (13 digits with the right check digit), not saved": "เลขบัตรประชาชนไม่ถูกต้อง (13 หลักและเลขตรวจสอบต้องถูก) ไม่ได้บันทึก",

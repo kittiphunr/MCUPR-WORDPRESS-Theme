@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.11 =
+* Student card box shows the last 4 digits of the RFID code
+
 = 1.54.10 =
 * Central-file box masks the national ID and passport numbers
 
