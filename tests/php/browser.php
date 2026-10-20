@@ -37,6 +37,47 @@ foreach ( $z as $zone ) { if ( ! in_array( $zone['label'], array( 'ข่าว'
 t( in_array( 'service', $rest, true ) && ! in_array( 'research', $rest, true ), 'custom zones: categories not named anywhere are listed under "other"' );
 mods( array( 'mcupr_cat_zones' => null ) );
 
+// ---- the tree, descriptions, folders and the path bar
+$ac  = get_term_by( 'slug', 'academic', 'category' );
+$res = get_term_by( 'slug', 'research', 'category' );
+wp_update_term( $res->term_id, 'category', array( 'description' => 'ผลงานวิจัยของอาจารย์และนิสิต' ) );
+$idx = mcupr_browser_index();
+t( isset( $idx[0] ) && isset( $idx[ $ac->term_id ] ) && wp_list_pluck( $idx[ $ac->term_id ], 'slug' ) === array( 'research', 'service' ), 'tree: categories are indexed by their parent' );
+$tr = mcupr_browser_tree( 0, 0, array() );
+t( substr_count( $tr, 'data-fb-node' ) === 1 && substr_count( $tr, 'aria-expanded="false"' ) === 1 && substr_count( $tr, 'class="fb-subwrap" hidden' ) === 1, 'tree: a branch with children has a button and starts closed when the current category is elsewhere' );
+$tr = mcupr_browser_tree( 0, (int) $res->term_id, array( (int) $ac->term_id, (int) $res->term_id ) );
+t( substr_count( $tr, 'aria-expanded="true"' ) === 1 && strpos( $tr, 'class="fb-subwrap" hidden' ) === false && substr_count( $tr, 'is-cur' ) === 1, 'tree: the branch holding the current category is open and the category is marked once' );
+t( preg_match( '/<span class="fb-n">4<\/span>/', $tr ) === 1, 'tree: a parent counts the posts of its children' );
+t( strpos( $tr, 'fb-lv1' ) !== false, 'tree: the level below is marked as a level for indenting' );
+wp_update_term( $ac->term_id, 'category', array( 'description' => "<b>งาน</b>\n   ของคณะ <script>x</script>" ) );
+$ac = get_term( $ac->term_id, 'category' );
+t( 'งาน ของคณะ x' === mcupr_browser_desc( $ac ) || 'งาน ของคณะ' === mcupr_browser_desc( $ac ), 'description: tags and extra spaces are removed (' . mcupr_browser_desc( $ac ) . ')' );
+$long = (object) array( 'description' => str_repeat( 'ก', 300 ) );
+t( mb_strlen( mcupr_browser_desc( $long, 140 ) ) === 140 && mb_substr( mcupr_browser_desc( $long, 140 ), -1 ) === '…', 'description: a long one is cut with an ellipsis' );
+global $wp_query;
+$wp_query = new WP_Query( array( 'cat' => $ac->term_id ) );
+$GLOBALS['wp_the_query'] = $wp_query;
+$f = mcupr_browser_folders();
+t( substr_count( $f, 'class="fb-fd fb-d0"' ) === 2 && strpos( $f, 'fb-fh' ) !== false, 'folders: inside a category its sub-categories are the folders' );
+t( preg_match( '/fb-fn">งานวิจัย<.*?fb-fm">2 รายการ|fb-fn">งานวิจัย<.*?fb-fm">[^<]*2/su', $f ) === 1, 'folders: each shows its name and item count' );
+$fh = mcupr_browser_folders();
+t( preg_match( '/fb-fd-t">ผลงานวิจัย[^<]*</u', $fh ) === 1, 'folders: the category description is shown in its folder' );
+$tb = mcupr_browser_toolbar();
+t( strpos( $tb, 'class="fb-up"' ) !== false && strpos( $tb, 'fb-name">วิชาการ<' ) !== false && strpos( $tb, '2 โฟลเดอร์' ) !== false, 'toolbar: up button, the name of the place and its folder count' );
+$pb = mcupr_browser_path();
+t( substr_count( $pb, '<li' ) === 2 && strpos( $pb, 'aria-current="page"' ) !== false, 'path bar: all > the category, the last step is the current one' );
+$GLOBALS['wp_query'] = $wp_query = new WP_Query( array( 'cat' => $res->term_id ) );
+$pb = mcupr_browser_path();
+t( substr_count( $pb, '<li' ) === 3 && strpos( $pb, '/category/academic' ) !== false && mcupr_browser_folders() === '', 'path bar: two levels down has three steps with the parent linked; a category without sub-categories has no folders' );
+$GLOBALS['wp_query'] = $wp_query = new WP_Query( array( 'post_type' => 'post' ) );
+$wp_query->is_home = true;
+$GLOBALS['wp_the_query'] = $wp_query;
+$fl = mcupr_browser_folders();
+t( substr_count( $fl, 'class="fb-fd fb-d0"' ) === count( mcupr_browser_children( 0 ) ) && substr_count( $fl, 'class="fb-fk"' ) === 1 && substr_count( $fl, 'fb-fd fb-d1' ) === 2, 'folders: on the main page the top-level categories are the folders, the next level hangs under its parent' );
+t( strpos( mcupr_browser_toolbar(), 'class="fb-up is-off"' ) !== false && substr_count( mcupr_browser_path(), '<li' ) === 1, 'main page: nothing above it (up button off), the path is just "all"' );
+wp_update_term( $ac->term_id, 'category', array( 'description' => '' ) );
+wp_update_term( $res->term_id, 'category', array( 'description' => '' ) );
+
 // ---- sidebar markup on a tag archive: tags apart from categories
 $tag = get_term_by( 'name', 'โครงการ', 'post_tag' );
 global $wp_query;
