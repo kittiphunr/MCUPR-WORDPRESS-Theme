@@ -803,6 +803,8 @@ function mcupr_si_run( $token ) {
 						mcupr_si_rfid_owner( $c['row'][ $rk ], $id );
 					}
 					$res = 'unchanged' === $res ? 'updated' : $res;
+				} elseif ( '_rfid' === $rk && ! empty( $c['row']['_rfid4'] ) && hash_equals( (string) get_post_meta( $id, $mk, true ), (string) $c['row'][ $rk ] ) && '' === (string) get_post_meta( $id, MCUPR_CARD_RFID4, true ) ) {
+					update_post_meta( $id, MCUPR_CARD_RFID4, $c['row']['_rfid4'] ); // the same card as before: only its last 4 digits were missing
 				}
 			}
 		}
