@@ -695,8 +695,8 @@ html.fs-open-lock { overflow: hidden; }
 .fs-none { margin: 2rem 0; text-align: center; color: var(--muted); }
 .fs-quick { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .7rem clamp(1rem, 4vw, 3rem); border-top: 1px solid var(--edge); background: var(--bg); }
 .fs-quick > span { margin-right: .4rem; font-size: .8em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.fs-quick a { display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0 1rem; border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--edge)); border-radius: 9999px; color: var(--text-2); font-weight: 600; text-decoration: none; }
-.fs-quick a:hover, .fs-quick a:focus-visible { background: var(--hover-bg); border-color: var(--primary); color: var(--link); }
+.fs-quick a:not(.fs-rb) { display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0 1rem; border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--edge)); border-radius: 9999px; color: var(--text-2); font-weight: 600; text-decoration: none; }
+.fs-quick a:not(.fs-rb):hover, .fs-quick a:not(.fs-rb):focus-visible { background: var(--hover-bg); border-color: var(--primary); color: var(--link); }
 @media (max-width: 700px) { .fs-find { display: none; } }
 @media (max-width: 1180px) { .fs-split { grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr); } .fs-tab { font-size: 1em; } }
 @media (prefers-reduced-motion: reduce) { .fs-tab, .fs-g li > a { transition: none; } }
@@ -2843,9 +2843,11 @@ html:is([data-menu="side"],[data-menu="hybrid"]) .office-chrome[data-variant="fu
 .fs-rb svg { width: 1.5rem; height: 1.5rem; }
 .fs-rb:hover, .fs-rb:focus-visible { transform: translateY(-3px) scale(1.06); background: color-mix(in srgb, var(--primary) 86%, #000); }
 .fs-rb:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+.fs-rb:active { transform: translateY(0) scale(.96); background: color-mix(in srgb, var(--primary) 78%, #000); box-shadow: 0 2px 6px -3px color-mix(in srgb, var(--primary) 70%, transparent); }
 .fs-rb::after { content: attr(data-label); position: absolute; right: 50%; bottom: calc(100% + .45rem); transform: translateX(50%); padding: .2rem .65rem; border-radius: 9999px; background: var(--text); color: var(--bg); font-size: .8rem; font-weight: 700; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s; }
 .fs-rb:hover::after, .fs-rb:focus-visible::after { opacity: 1; }
 html[data-contrast] .fs-menu a.fs-rb { background: var(--bg); color: var(--text); border: 2px solid var(--border); box-shadow: none; }
+html[data-contrast] .fs-menu a.fs-rb:hover, html[data-contrast] .fs-menu a.fs-rb:focus-visible { background: var(--text); color: var(--bg); }
 html[data-contrast] .fs-tab[aria-selected="true"] { background: var(--bg); color: var(--text); box-shadow: none; outline: 3px solid var(--text); outline-offset: -3px; }
 html[data-contrast] .fs-tab .ic, html[data-contrast] .fs-tab[aria-selected="true"] .ic { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
 html[data-contrast] .fs-g { border-width: 2px; box-shadow: none; }
