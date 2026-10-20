@@ -68,7 +68,7 @@ function mcupr_office_chrome() {
 	if ( ! $oid || 'publish' !== get_post_status( $oid ) && ! current_user_can( 'edit_post', $oid ) ) {
 		return;
 	}
-	$full = is_singular( 'mcupr_office' ) || is_page(); // a page of the office wears the full band like its section pages
+	$full = is_singular( array( 'mcupr_office', 'mcupr_group' ) ) || is_page(); // the pages and the work groups of an office wear the full band like its section pages
 	$sec  = is_singular( 'mcupr_office' ) ? mcupr_office_section() : '-';
 	$d    = mcupr_office_data( $oid );
 	$name = get_the_title( $oid );
