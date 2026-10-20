@@ -769,6 +769,7 @@ TH = {
 "Unknown form.": "ไม่พบแบบฟอร์ม",
 "Use this form": "วิธีใช้แบบฟอร์มนี้",
 "Who can answer": "ใครตอบได้",
+"Only staff who can edit pages (not students or other members)": "เฉพาะเจ้าหน้าที่ที่แก้ไขหน้าได้ (ไม่รวมนิสิตหรือสมาชิกอื่น)",
 "days, then delete them automatically (0 = keep until you delete them). Personal data should not be kept longer than needed.": "วัน แล้วลบอัตโนมัติ (0 = เก็บจนกว่าจะลบเอง) ข้อมูลส่วนบุคคลไม่ควรเก็บนานเกินจำเป็น",
 "Redirects & insights": "เปลี่ยนเส้นทาง & สถิติ",
 "1. Redirects": "1. เปลี่ยนเส้นทาง",

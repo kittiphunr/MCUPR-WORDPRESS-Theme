@@ -152,7 +152,7 @@ function mcupr_fb_clean_opts( $p ) {
 		'closed'  => mb_substr( sanitize_textarea_field( isset( $p['closed'] ) ? (string) $p['closed'] : '' ), 0, 400 ),
 		'notify'  => implode( ', ', array_unique( $mail ) ),
 		'copy'    => ! empty( $p['copy'] ) ? 1 : 0,
-		'who'     => isset( $p['who'] ) && 'users' === $p['who'] ? 'users' : 'all',
+		'who'     => isset( $p['who'] ) && in_array( $p['who'], array( 'users', 'staff' ), true ) ? $p['who'] : 'all',
 		'from'    => $d( 'from' ),
 		'to'      => $d( 'to' ),
 		'limit'   => isset( $p['limit'] ) ? max( 0, min( 100000, (int) $p['limit'] ) ) : 0,
@@ -201,7 +201,7 @@ function mcupr_fb_opts_box( $post ) {
 	$row( __( 'Text above the form', 'mcupr' ), '<textarea name="mcupr_fb[intro]" rows="3" class="large-text">' . esc_textarea( $o['intro'] ) . '</textarea>' );
 	$row( __( 'Send button text', 'mcupr' ), '<input type="text" name="mcupr_fb[submit]" class="regular-text" value="' . esc_attr( $o['submit'] ) . '" placeholder="' . esc_attr__( 'Send', 'mcupr' ) . '">' );
 	$row( __( 'Thank-you message', 'mcupr' ), '<textarea name="mcupr_fb[success]" rows="2" class="large-text" placeholder="' . esc_attr__( 'Thank you. Your answers were received.', 'mcupr' ) . '">' . esc_textarea( $o['success'] ) . '</textarea>' );
-	$row( __( 'Who can answer', 'mcupr' ), '<select name="mcupr_fb[who]"><option value="all"' . selected( $o['who'], 'all', false ) . '>' . esc_html__( 'Everyone', 'mcupr' ) . '</option><option value="users"' . selected( $o['who'], 'users', false ) . '>' . esc_html__( 'Only people logged in to this website (internal)', 'mcupr' ) . '</option></select>' );
+	$row( __( 'Who can answer', 'mcupr' ), '<select name="mcupr_fb[who]"><option value="all"' . selected( $o['who'], 'all', false ) . '>' . esc_html__( 'Everyone', 'mcupr' ) . '</option><option value="users"' . selected( $o['who'], 'users', false ) . '>' . esc_html__( 'Only people logged in to this website (internal)', 'mcupr' ) . '</option><option value="staff"' . selected( $o['who'], 'staff', false ) . '>' . esc_html__( 'Only staff who can edit pages (not students or other members)', 'mcupr' ) . '</option></select>' );
 	$row( __( 'Open from / until', 'mcupr' ), '<input type="date" name="mcupr_fb[from]" value="' . esc_attr( $o['from'] ) . '"> – <input type="date" name="mcupr_fb[to]" value="' . esc_attr( $o['to'] ) . '"> <span class="description">' . esc_html__( 'Optional. Outside these days the form is closed.', 'mcupr' ) . '</span>' );
 	$row( __( 'Closed message', 'mcupr' ), '<textarea name="mcupr_fb[closed]" rows="2" class="large-text" placeholder="' . esc_attr__( 'This form is closed.', 'mcupr' ) . '">' . esc_textarea( $o['closed'] ) . '</textarea>' );
 	$row( __( 'At most this many answers', 'mcupr' ), '<input type="number" min="0" name="mcupr_fb[limit]" value="' . (int) $o['limit'] . '"> <span class="description">' . esc_html__( '0 = no limit. The form closes when it is reached.', 'mcupr' ) . '</span>' );
@@ -274,7 +274,16 @@ function mcupr_fb_state( $form_id ) {
 	if ( (int) $o['limit'] > 0 && mcupr_fb_count( $form_id ) >= (int) $o['limit'] ) {
 		return 'closed';
 	}
-	return 'users' === $o['who'] ? 'users' : 'open';
+	return in_array( $o['who'], array( 'users', 'staff' ), true ) ? 'users' : 'open';
+}
+
+/** For a form that needs a login: is this visitor allowed to answer it ('staff' = only those who can edit pages, so students and other members cannot)? */
+function mcupr_fb_who_ok( $form_id ) {
+	if ( ! is_user_logged_in() ) {
+		return false;
+	}
+	$o = mcupr_fb_opts( $form_id );
+	return 'staff' !== $o['who'] || current_user_can( 'edit_pages' );
 }
 
 /* ------------------------------------------------------------------ validation and saving */
@@ -369,7 +378,7 @@ function mcupr_fb_submit( $form_id, $data, $now = 0, $files = null ) {
 	if ( 'closed' === $state ) {
 		return $bad( 'closed' );
 	}
-	if ( 'users' === $state && ! is_user_logged_in() ) {
+	if ( 'users' === $state && ! mcupr_fb_who_ok( $form_id ) ) {
 		return $bad( 'login' );
 	}
 	$guard = apply_filters( 'mcupr_fb_guard', '', $form_id ); // e.g. a request that only students may send
@@ -510,6 +519,10 @@ function mcupr_fb_html( $form_id ) {
 	$gate = apply_filters( 'mcupr_fb_gate_html', '', $form_id );
 	if ( '' !== $gate ) {
 		echo $gate . '</section>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		return ob_get_clean();
+	}
+	if ( 'users' === $st && is_user_logged_in() && ! mcupr_fb_who_ok( $form_id ) ) {
+		echo '<div class="mform-err" role="status"><p><b>' . esc_html( mcupr_t( 'stu_denied_t' ) ) . '</b></p></div></section>';
 		return ob_get_clean();
 	}
 	if ( 'users' === $st && ! is_user_logged_in() ) {

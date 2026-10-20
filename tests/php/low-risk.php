@@ -49,7 +49,9 @@ clearstatcache();
 do_action( 'mcupr_si_cleanup_cron' );
 clearstatcache();
 t( ! file_exists( mcupr_si_file( $tk_old ) ) && file_exists( mcupr_si_file( $tk ) ) && false !== wp_next_scheduled( 'mcupr_si_cleanup_cron' ), 'import: the daily cron deletes uploads older than 2 hours and keeps a fresh one' );
-t( file_exists( mcupr_si_dir() . '/.htaccess' ) && file_exists( mcupr_si_dir() . '/index.php' ), 'import: the folder has its deny-all .htaccess and index.php' );
+t( file_exists( mcupr_si_dir( true ) . '/.htaccess' ) && file_exists( mcupr_si_dir( true ) . '/index.php' ), 'import: the folder inside uploads/ has its deny-all .htaccess and index.php' );
+$sd = mcupr_si_dir(); $ub = realpath( wp_get_upload_dir()['basedir'] );
+t( is_dir( $sd ) && is_writable( $sd ) && ( ! mcupr_path_inside( realpath( $sd ), $ub ) || $sd === mcupr_si_dir( true ) ), 'import: the saved uploads are kept outside the web folder when PHP may write there, inside uploads/ (protected) otherwise' );
 wp_delete_file( mcupr_si_file( $tk ) );
 wp_delete_user( $own ); wp_delete_user( $oth );
 
@@ -120,6 +122,36 @@ if ( function_exists( 'mcupr_sp_can_encrypt' ) && mcupr_sp_can_encrypt() ) {
 } else {
 	echo "SKIP card box: this server cannot encrypt\n";
 }
+
+
+// forms only for staff: a student or other member cannot answer, an editor can
+$fs = wp_insert_post( array( 'post_type' => 'mcupr_fb', 'post_status' => 'publish', 'post_title' => 'Staff only form' ) );
+update_post_meta( $fs, '_mcupr_fb_opts', mcupr_fb_clean_opts( array( 'who' => 'staff' ) ) );
+$sub = wp_insert_user( array( 'user_login' => 'lr-sub', 'user_pass' => wp_generate_password(), 'user_email' => 'lr-sub@example.org', 'role' => 'subscriber' ) );
+$edt = wp_insert_user( array( 'user_login' => 'lr-edt', 'user_pass' => wp_generate_password(), 'user_email' => 'lr-edt@example.org', 'role' => 'editor' ) );
+wp_set_current_user( 0 ); $a0 = mcupr_fb_who_ok( $fs );
+wp_set_current_user( $sub ); $a1 = mcupr_fb_who_ok( $fs );
+wp_set_current_user( $edt ); $a2 = mcupr_fb_who_ok( $fs );
+t( 'staff' === mcupr_fb_opts( $fs )['who'] && 'users' === mcupr_fb_state( $fs ) && ! $a0 && ! $a1 && $a2, 'forms: "staff only" – a visitor and a plain member cannot answer, an editor can' );
+wp_set_current_user( $sub ); $nowx = time(); $r = mcupr_fb_submit( $fs, array( 'tk' => mcupr_form_token( $nowx - 10 ), 'website' => '', 'f' => array() ), $nowx );
+t( ! $r['ok'] && isset( $r['errors']['login'] ), 'forms: a member who is not staff is turned away on sending too' );
+$fu = wp_insert_post( array( 'post_type' => 'mcupr_fb', 'post_status' => 'publish', 'post_title' => 'Members form' ) );
+update_post_meta( $fu, '_mcupr_fb_opts', mcupr_fb_clean_opts( array( 'who' => 'users' ) ) );
+wp_set_current_user( $sub ); t( mcupr_fb_who_ok( $fu ), 'forms: the existing "logged in" form still accepts any member' );
+
+// complaints and messages: administrators only
+$ptype = get_post_type_object( 'mcupr_msg' );
+wp_set_current_user( $edt ); $ce = current_user_can( $ptype->cap->edit_others_posts ) || current_user_can( $ptype->cap->read_private_posts );
+wp_set_current_user( 1 ); $ca = current_user_can( $ptype->cap->edit_others_posts ) && current_user_can( $ptype->cap->read_private_posts );
+t( ! $ce && $ca, 'messages: an editor cannot read the complaints, the administrator can' );
+
+// the 404 / redirect writes: one address cannot write at will
+$_SERVER['REMOTE_ADDR'] = '203.0.113.77'; $okn = 0;
+for ( $i = 0; $i < 40; $i++ ) { if ( mcupr_throttle( '404|' . mcupr_client_net(), 30, MINUTE_IN_SECONDS ) ) { $okn++; } }
+t( 30 === $okn, 'logs: 30 writes a minute from one address, then it is not written' );
+delete_transient( 'mcupr_thr_' . md5( '404|' . mcupr_client_net() ) );
+foreach ( array( $fs, $fu ) as $x ) { wp_delete_post( $x, true ); }
+foreach ( array( $sub, $edt ) as $x ) { wp_delete_user( $x ); }
 
 echo $fails ? "$fails FAILED\n" : "all passed\n";
 exit( $fails ? 1 : 0 );
