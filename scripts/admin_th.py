@@ -1525,6 +1525,7 @@ TH = {
 "New national ID number (13 digits)": "เลขบัตรประชาชนใหม่ (13 หลัก)",
 "On: students sign in with the card (or the national ID number)": "เปิด: นิสิตเข้าสู่ระบบด้วยบัตร (หรือเลขบัตรประชาชน)",
 "Remove the card code": "ลบรหัสบัตร",
+"(tap the card here, or import the file again, to show its last 4 digits)": "(แตะบัตรที่นี่ หรือนำเข้าไฟล์ใหม่ เพื่อแสดง 4 หลักท้าย)",
 "Remove the national ID number": "ลบเลขบัตรประชาชน",
 "Set or removed the card code or national ID number of a student": "ตั้งหรือลบรหัสบัตรหรือเลขบัตรประชาชนของนิสิต",
 "Student card": "บัตรนิสิต",
