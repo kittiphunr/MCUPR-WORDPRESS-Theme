@@ -3739,7 +3739,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await rp.goto(B + '/?page_id=' + ids[8]);
       await rp.waitForSelector('.bk-launch');
       ok(await rp.locator('.bk-reader').count() === 0 && await rp.locator('.bk-launch-cta').isVisible(), 'e-books: lightbox: the page holds only the cover and a button; the reader is not built yet');
-      const libLoaded = await rp.evaluate(() => performance.getEntriesByType('resource').map((r) => r.name).filter((n) => /pdf\.min\.mjs|pdf\.worker/.test(n)).length);
+      const libLoaded = await rp.evaluate(() => performance.getEntriesByType('resource').map((r) => r.name).filter((n) => /pdf\.min\.js|pdf\.worker/.test(n)).length);
       ok(libLoaded === 0, 'e-books: lightbox: PDF.js is not fetched until the cover is pressed');
       await rp.click('.bk-launch');
       await rp.waitForSelector('.bk-reader.is-lb[data-ready="1"]', { timeout: 30000 });
