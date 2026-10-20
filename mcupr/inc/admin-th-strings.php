@@ -23,6 +23,7 @@ return array(
 	'%d student(s)' => '%d คน',
 	'%d widgets' => '%d วิดเจ็ต',
 	'(logged in, currently studying)' => '(เข้าสู่ระบบแล้วและกำลังศึกษาอยู่)',
+	'(tap the card here, or import the file again, to show its last 4 digits)' => '(แตะบัตรที่นี่ หรือนำเข้าไฟล์ใหม่ เพื่อแสดง 4 หลักท้าย)',
 	'(the name of the office, exactly as on the site)' => '(ชื่อหน่วยงาน ตรงกับที่ใช้ในเว็บไซต์)',
 	'+ Add a decoration' => '+ เพิ่มเครื่องราชอิสริยาภรณ์',
 	'+ Add a decoration or medal' => '+ เพิ่มเครื่องราชฯ หรือเหรียญ',
