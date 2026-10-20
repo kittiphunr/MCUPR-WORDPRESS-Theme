@@ -696,6 +696,23 @@
 			$$('[id]', top).forEach(function (n) { n.removeAttribute('id'); });
 			$$('li.is-open', top).forEach(function (li) { li.classList.remove('is-open'); });
 			while (top.firstChild) { list.appendChild(top.firstChild); }
+			/* the items with nothing under them (home, contact …) are not cards: they become round buttons in the corner of the foot */
+			var rounds = document.createElement('div');
+			rounds.className = 'fs-round';
+			$$(':scope > li', list).forEach(function (li) {
+				var a = $(':scope > a', li);
+				var ic = a ? $('.ic', a) : null;
+				if (!a || !ic || $('ul', li) || !a.getAttribute('href')) { return; }
+				var label = a.textContent.trim();
+				var b = document.createElement('a');
+				b.className = 'fs-rb';
+				b.href = a.getAttribute('href');
+				b.setAttribute('aria-label', label);
+				b.setAttribute('data-label', label);
+				b.innerHTML = ic.innerHTML;
+				rounds.appendChild(b);
+				li.remove();
+			});
 			$('.fs-body', box).appendChild(list);
 			var none = document.createElement('p');
 			none.className = 'fs-none'; none.hidden = true; none.textContent = i18n.fsNone || '';
@@ -718,6 +735,11 @@
 				});
 				box.appendChild(q);
 			}
+			if (rounds.children.length) {
+				var foot = $('.fs-quick', box);
+				if (!foot) { foot = document.createElement('div'); foot.className = 'fs-quick'; box.appendChild(foot); }
+				foot.appendChild(rounds);
+			}
 			var find = $('[data-fs-find]', box);
 			find.addEventListener('input', function () {
 				var t = find.value.trim().toLowerCase();
@@ -736,6 +758,7 @@
 					if (show) { any = true; }
 				});
 				none.hidden = any;
+				fsLayout();
 			});
 			box.setAttribute('data-site', site.trim());
 			document.body.appendChild(box);
@@ -743,6 +766,23 @@
 				if (e.target.closest('[data-fs-close]') || e.target.closest('a[href]')) { closeFs(e.target.closest('a[href]') ? false : true); }
 			});
 			return box;
+		};
+		/* bento: a card with a long list is two columns wide; every card takes as many small rows as it is tall (grid rows of 6px), so the cards fit together without gaps */
+		var fsLayout = function () {
+			if (!fsBox) { return; }
+			var list = $('.fs-list', fsBox);
+			var cards = $$(':scope > li', list).filter(function (li) { return !li.hidden; });
+			var big = null; /* only the card with the most entries is wide (one big tile among small ones), and only where there is room for it */
+			cards.forEach(function (li) {
+				li.style.gridRowEnd = '';
+				li.classList.remove('fs-wide');
+				var n = $$('li', li).length;
+				if (n >= 9 && (!big || n > big.n)) { big = { li: li, n: n }; }
+			});
+			if (big && window.innerWidth >= 1280 && cards.length > 3) { big.li.classList.add('fs-wide'); }
+			cards.forEach(function (li) {
+				li.style.gridRowEnd = 'span ' + Math.ceil((li.offsetHeight + 16) / 6);
+			});
 		};
 		var fsFocusable = function () { return $$('a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled])', fsBox).filter(function (n) { return n.offsetParent !== null; }); };
 		var openFs = function () {
@@ -755,6 +795,7 @@
 			fsBox.style.setProperty('--fs-y', Math.round(r.top + r.height / 2) + 'px');
 			$$('.fs-list > li', fsBox).forEach(function (li, i) { li.style.setProperty('--i', Math.min(i, 11)); });
 			fsBox.hidden = false;
+			fsLayout();
 			root.classList.add('fs-open-lock');
 			fsBtn.setAttribute('aria-expanded', 'true');
 			requestAnimationFrame(function () { requestAnimationFrame(function () { fsBox.classList.add('is-in'); var c = $('[data-fs-close]', fsBox); if (c) { c.focus({ preventScroll: true }); } }); });
