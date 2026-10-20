@@ -37,6 +37,8 @@ t( count( $set_icons ) >= 280, 'the whole Feather set is there (' . count( $set_
 t( ! preg_match( '/[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]/u', file_get_contents( MCUPR_DIR . '/inc/control-center-data.php' ) . file_get_contents( MCUPR_DIR . '/inc/control-center.php' ) ), 'no emoji anywhere in the control center (every computer draws them differently)' );
 
 // ---- the links
+$byc = array(); foreach ( $data['items'] as $iid => $it ) { $byc[ $it['cat'] ][] = $iid; }
+t( 'people' === $data['items']['groups']['cat'] && array( 'offices', 'groups', 'units' ) === array_slice( $byc['people'], 0, 3 ) && array( 'posts', 'pages', 'media', 'events' ) === array_slice( $byc['content'], 0, 4 ) && ! in_array( 'groups', $byc['content'], true ), 'control center: the work groups sit with the offices (people), the menus are in the order of use inside each group' );
 t( admin_url( 'edit.php?post_type=mcupr_event' ) === mcupr_cc_url( 'type:mcupr_event' ) && admin_url( 'post-new.php' ) === mcupr_cc_url( 'new:post' ) && admin_url( 'post-new.php?post_type=page' ) === mcupr_cc_url( 'new:page' ) && admin_url( 'admin.php?page=mcupr-ics' ) === mcupr_cc_url( 'page:mcupr-ics' ) && false !== strpos( mcupr_cc_url( 'cust:mcupr_home' ), 'autofocus[section]=mcupr_home' ) && false === strpos( mcupr_cc_url( 'cust:' ), 'autofocus' ), 'links: list, new, page, customizer (with or without a section)' );
 
 wp_set_current_user( 1 );
