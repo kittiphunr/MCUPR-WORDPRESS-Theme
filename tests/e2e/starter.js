@@ -3508,8 +3508,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         const rtag = 'office page (' + w + ' px, ' + menu + ' menu)';
         await rp.goto(B + '/?page_id=' + rids[1]);
         await rp.waitForTimeout(600);
-        const rg = await rp.evaluate(() => ({ head: !!document.querySelector('.of-head'), h1: document.querySelectorAll('h1').length, wheel: !!document.querySelector('header.mcu-wheel'), chips: document.querySelectorAll('.of-head-meta .band-chip').length, sw: document.documentElement.scrollWidth - innerWidth }));
-        ok(rg.head && rg.h1 === 1 && !rg.wheel && rg.chips === 2 && rg.sw <= 0, rtag + ': same head panel as the section pages (' + rg.chips + ' chips), no old band, no sideways scroll');
+        const rg = await rp.evaluate(() => ({ full: !!document.querySelector('.office-chrome[data-variant=full]'), head: !!document.querySelector('.of-head'), h1: document.querySelectorAll('h1').length, wheel: !!document.querySelector('header.mcu-wheel'), chips: document.querySelectorAll('.of-head-meta .band-chip').length, sw: document.documentElement.scrollWidth - innerWidth }));
+        ok(rg.full && rg.head && rg.h1 === 1 && !rg.wheel && rg.chips === 2 && rg.sw <= 0, rtag + ': the full office band like the home and the same head panel as the section pages (' + rg.chips + ' chips), no old band, no sideways scroll');
         await rp.addScriptTag({ content: axeSource() });
         const axR = await rp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
         ok(axR.violations.length === 0, rtag + ': axe ' + (axR.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
