@@ -14,6 +14,18 @@ get_header();
 		$has_side               = $section || is_active_sidebar( 'sidebar-page' );
 		?>
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+	<?php
+	$mcupr_chips = '<span class="band-chip">' . mcupr_icon( 'clock', 16 ) . '<span>' . esc_html( mcupr_t( 'updated_on' ) . ' ' . mcupr_date_text( get_post_timestamp( null, 'modified' ) ) ) . '</span></span><span class="band-chip">' . mcupr_icon( 'book', 16 ) . '<span>' . esc_html( sprintf( mcupr_t( 'reading_time' ), mcupr_reading_minutes( get_the_content() ) ) ) . '</span></span>';
+	$mcupr_of    = function_exists( 'mcupr_current_office' ) ? mcupr_current_office() : 0;
+	if ( $mcupr_of && 'publish' !== get_post_status( $mcupr_of ) && ! current_user_can( 'edit_post', $mcupr_of ) ) {
+		$mcupr_of = 0;
+	}
+	?>
+	<?php if ( $mcupr_of ) : ?>
+	<div class="wrap of-body mt-8" style="<?php echo esc_attr( mcupr_office_style( $mcupr_of ) ); ?>"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+		<?php echo mcupr_office_page_head( $mcupr_of, get_the_title(), has_excerpt() ? get_the_excerpt() : '', $mcupr_chips ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+	</div>
+	<?php else : ?>
 	<header class="mcu-wheel bg-tint py-10"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<div class="wrap">
 			<?php mcupr_breadcrumb( false ); ?>
@@ -21,11 +33,12 @@ get_header();
 			<?php if ( has_excerpt() ) : ?>
 				<div class="band-lead"><?php echo wp_kses_post( wpautop( get_the_excerpt() ) ); ?></div>
 			<?php endif; ?>
-			<p class="band-meta no-print"><span class="band-chip"><?php echo mcupr_icon( 'clock', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'updated_on' ); ?> <?php echo esc_html( mcupr_date_text( get_post_timestamp( null, 'modified' ) ) ); ?></span></span><span class="band-chip"><?php echo mcupr_icon( 'book', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( sprintf( mcupr_t( 'reading_time' ), mcupr_reading_minutes( get_the_content() ) ) ); ?></span></span></p>
+			<p class="band-meta no-print"><?php echo $mcupr_chips; // phpcs:ignore WordPress.Security.EscapeOutput ?></p>
 		</div>
 	</header>
+	<?php endif; ?>
 
-	<div class="wrap mt-10 grid gap-10 <?php echo $has_side ? 'min-[1000px]:grid-cols-[minmax(0,1fr)_18rem]' : ''; ?>">
+	<div class="wrap <?php echo $mcupr_of ? 'mt-2' : 'mt-10'; ?> grid gap-10 <?php echo $has_side ? 'min-[1000px]:grid-cols-[minmax(0,1fr)_18rem]' : ''; ?>">
 		<div class="panel-card min-w-0 <?php echo $has_side ? '' : 'mx-auto w-full max-w-[52rem]'; ?>">
 			<?php mcupr_missing_translation_notice(); ?>
 			<div class="no-print mb-6 space-y-3">
