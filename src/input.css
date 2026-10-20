@@ -660,8 +660,8 @@ html.fs-open-lock { overflow: hidden; }
 .fs-close:hover { background: var(--primary); color: var(--on-primary); }
 .fs-body { flex: 1 0 auto; width: 100%; max-width: 100rem; margin-inline: auto; padding: clamp(.9rem, 2.2vh, 1.75rem) clamp(1rem, 4vw, 3rem) clamp(.9rem, 2vh, 1.5rem); }
 .fs-list, .fs-list ul { margin: 0; padding: 0; list-style: none; }
-.fs-list { display: block; column-width: 15.5rem; column-gap: clamp(.6rem, 1.4vh, 1rem); }
-.fs-list > li { display: block; break-inside: avoid; margin: 0 0 clamp(.6rem, 1.4vh, 1rem); padding: .8em .85em .55em; border: 1px solid var(--edge); border-radius: 1.4rem; background: var(--bg); box-shadow: 0 1px 0 color-mix(in srgb, var(--text) 5%, transparent); }
+.fs-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); grid-auto-rows: 6px; grid-auto-flow: dense; column-gap: clamp(.6rem, 1.4vh, 1rem); align-items: start; } /* bento: the rows are small, a card takes as many as it is tall (main.js) */
+.fs-list > li { display: block; margin: 0; align-self: start; padding: .8em .85em .55em; border: 1px solid var(--edge); border-radius: 1.4rem; background: var(--bg); box-shadow: 0 1px 0 color-mix(in srgb, var(--text) 5%, transparent); }
 .fs-list > li > a { display: flex; align-items: center; gap: .65rem; margin: 0 0 .35rem; padding: 0 0 .55em; border-bottom: 2px solid var(--tint); border-radius: 0; font-size: 1.12em; font-weight: 800; color: var(--text); text-decoration: none; }
 .fs-list > li > a:hover, .fs-list > li > a:focus-visible { color: var(--link); border-bottom-color: var(--primary); }
 .fs-list .ic { display: inline-grid; place-items: center; flex: none; width: 2.3em; height: 2.3em; border-radius: 9999px; background: var(--primary); color: var(--on-primary); font-size: .9em; }
@@ -2814,3 +2814,23 @@ html[data-contrast] .of-trail ol { border: 2px solid var(--border); background: 
 html[data-contrast] .of-trail a { text-decoration-color: currentColor; }
 @media print { .of-trail { display: none; } }
 html:is([data-menu="side"],[data-menu="hybrid"]) .office-chrome[data-variant="full"] .of-trail { margin-bottom: .75rem; }
+
+/* bento: the card with the longest lists is two columns wide, with its list in two columns, and has a tinted face */
+.fs-list > li.fs-wide { grid-column: span 2; background: linear-gradient(135deg, var(--bg), color-mix(in srgb, var(--primary) 9%, var(--bg))); }
+.fs-list > li.fs-wide > ul { column-count: 2; column-gap: 1.25rem; }
+.fs-list > li.fs-wide > ul > li { break-inside: avoid; }
+.fs-list > li.fs-wide > ul > li > a:not([href]), .fs-list > li.fs-wide > ul > li > a.menu-label { break-after: avoid; }
+/* home, contact… : round buttons in the corner of the foot bar */
+.fs-round { display: flex; align-items: center; gap: .6rem; margin-left: auto; }
+.fs-menu a.fs-rb { color: var(--on-primary); }
+.fs-menu a.fs-rb:hover, .fs-menu a.fs-rb:focus-visible { color: var(--on-primary); }
+.fs-rb { position: relative; display: inline-grid; place-items: center; width: 3.25rem; height: 3.25rem; border-radius: 50%; background: var(--primary); color: var(--on-primary); box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--primary) 70%, transparent); text-decoration: none; transition: transform .2s cubic-bezier(.16, .84, .2, 1), background-color .2s; }
+.fs-rb svg { width: 1.5rem; height: 1.5rem; }
+.fs-rb:hover, .fs-rb:focus-visible { transform: translateY(-3px) scale(1.06); background: color-mix(in srgb, var(--primary) 86%, #000); }
+.fs-rb:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+.fs-rb::after { content: attr(data-label); position: absolute; right: 50%; bottom: calc(100% + .45rem); transform: translateX(50%); padding: .2rem .65rem; border-radius: 9999px; background: var(--text); color: var(--bg); font-size: .8rem; font-weight: 700; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.fs-rb:hover::after, .fs-rb:focus-visible::after { opacity: 1; }
+html[data-contrast] .fs-menu a.fs-rb { background: var(--bg); color: var(--text); border: 2px solid var(--border); box-shadow: none; }
+html[data-contrast] .fs-list > li.fs-wide { background: var(--bg); }
+html[data-motion="1"] .fs-rb { transition: none; }
+@media (prefers-reduced-motion: reduce) { .fs-rb { transition: none; } .fs-rb:hover, .fs-rb:focus-visible { transform: none; } }

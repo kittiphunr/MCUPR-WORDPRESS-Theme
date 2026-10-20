@@ -195,7 +195,11 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   await p.click('[data-fs-open]');
   await p.waitForSelector('#fs-menu:not([hidden])');
   ok(await p.evaluate(() => document.activeElement && document.activeElement.hasAttribute('data-fs-close')), 'full-screen menu: focus moves to the close button');
-  ok((await p.$$eval('#fs-menu .fs-list > li', (l) => l.length)) >= 7, 'full-screen menu lists every top-level item (incl. those in "More")');
+  ok((await p.$$eval('#fs-menu .fs-list > li, #fs-menu .fs-rb', (l) => l.length)) >= 7, 'full-screen menu lists every top-level item (incl. those in "More"): cards and round buttons');
+  {
+    const bn = await p.evaluate(() => { const f = document.getElementById('fs-menu'); const cards = [...f.querySelectorAll('.fs-list > li')].map((c) => c.getBoundingClientRect()); const rb = [...f.querySelectorAll('.fs-rb')]; let overlap = false; for (let i = 0; i < cards.length; i++) { for (let j = i + 1; j < cards.length; j++) { const a = cards[i], b = cards[j]; if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) { overlap = true; } } } return { cards: cards.length, overlap, rounds: rb.length, named: rb.every((a) => a.getAttribute('aria-label') && a.getBoundingClientRect().width >= 44 && getComputedStyle(a).borderRadius !== '0px'), leafCards: [...f.querySelectorAll('.fs-list > li')].filter((li) => !li.querySelector('ul')).length, cols: new Set(cards.map((c) => Math.round(c.left))).size }; });
+    ok(bn.rounds >= 1 && bn.named && bn.leafCards === 0 && !bn.overlap && bn.cols >= 2, 'full-screen menu: bento – the items with nothing under them are round buttons with a name (' + bn.rounds + '), the cards sit in ' + bn.cols + ' columns and never overlap');
+  }
   ok((await p.$$eval('#fs-menu a[href]', (a) => a.length)) >= 40, 'full-screen menu lists the sub-pages too');
   ok(await p.evaluate(() => !document.querySelector('#fs-menu .submenu-toggle, #fs-menu [id]')), 'full-screen menu has no duplicate ids / leftover toggles');
   await p.addScriptTag({ content: axeSource() });
