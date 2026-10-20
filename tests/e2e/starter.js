@@ -2736,7 +2736,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     const recC = phpC('echo mcupr_student_find("6899100002");');
     await cp.goto(B + '/wp-admin/post.php?post=' + recC + '&action=edit');
     const box = await cp.locator('#mcupr_student_sp .inside').innerText();
-    ok(/1234567890123/.test(box) && /MI0000002/.test(box) && /Bade City/.test(box) && !/\t/.test(box), 'staff box: the registrar sees the details in full (ID number, passport) and cleaned values');
+    ok(!/1234567890123/.test(box) && /•{5,}0123/.test(box) && !/MI0000002/.test(box) && /•{5,}0002/.test(box) && /Bade City/.test(box) && !/\t/.test(box), 'staff box: the registrar sees the details, the ID and passport numbers only by their last four characters, and cleaned values');
     ok(phpC('$e=get_posts(array("post_type"=>"mcupr_audit","post_status"=>"any","numberposts"=>-1)); $t=array_map(function($p){return $p->post_title;},$e); $m=implode(" ",array_map(function($p){return get_post_meta($p->ID,"_mcupr_a",true);},$e)); echo in_array("profileview",$t,true)&&strpos($m,"1234567890123")===false?"yes":"no";') === 'yes', 'staff box: opening it is in the activity log, without the details');
     // the student
     phpC('wp_set_current_user(1); $p=mcupr_student_find("6999100001"); update_post_meta($p,"_mcupr_s_email","cen1@example.org"); update_post_meta($p,"_mcupr_cen_e2e",1); $u=mcupr_student_make_account($p); wp_set_password("Cen-pass-12345",$u);');
