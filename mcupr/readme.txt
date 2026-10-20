@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.16 =
+* Work groups: full office band above, light group head
+
 = 1.54.15 =
 * Office pages wear the full office band like the office home
 
