@@ -168,9 +168,9 @@ function mcupr_offices_home() {
 /* ------------------------------------------------------------------ what is inside an office page */
 
 /** The contact / head / social card of an office. */
-function mcupr_office_info_html( $oid, $big = false ) {
+function mcupr_office_info_html( $oid, $big = false, $title = true ) {
 	$d = mcupr_office_data( $oid );
-	$o = '<div class="of-info soft-card' . ( $big ? ' of-info-big' : '' ) . '"><h2 class="of-info-t">' . esc_html( mcupr_t( 'of_contact' ) ) . '</h2><dl class="of-dl">';
+	$o = '<div class="of-info soft-card' . ( $big ? ' of-info-big' : '' ) . '">' . ( $title ? '<h2 class="of-info-t"><span class="of-sec-ic" aria-hidden="true">' . mcupr_feather( 'phone', 20 ) . '</span><span>' . esc_html( mcupr_t( 'of_contact' ) ) . '</span></h2>' : '' ) . '<dl class="of-dl">';
 	$row = static function ( $label, $html, $icon = 'info' ) {
 		return '<div><dt><span class="of-ic" aria-hidden="true">' . mcupr_icon( $icon, 18 ) . '</span>' . esc_html( $label ) . '</dt><dd>' . $html . '</dd></div>';
 	};
@@ -242,11 +242,14 @@ function mcupr_office_block( $id, $title, $html, $more = '' ) {
 	if ( '' === trim( (string) $html ) ) {
 		return '';
 	}
-	return '<section class="of-sec" aria-labelledby="' . esc_attr( $id ) . '"><div class="of-sec-h"><h2 id="' . esc_attr( $id ) . '" class="of-sec-t">' . esc_html( $title ) . '</h2>' . $more . '</div>' . $html . '</section>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	$icons = array( 'of-news' => 'file-text', 'of-ev-up' => 'calendar', 'of-events' => 'calendar', 'of-ev-past' => 'clock', 'of-albums' => 'image', 'of-pages' => 'book', 'of-groups' => 'grid' );
+	$icon  = isset( $icons[ $id ] ) ? $icons[ $id ] : ( 0 === strpos( $id, 'of-pg-' ) ? 'users' : '' );
+	$ic    = '' !== $icon ? '<span class="of-sec-ic" aria-hidden="true">' . mcupr_feather( $icon, 20 ) . '</span>' : '';
+	return '<section class="of-sec" aria-labelledby="' . esc_attr( $id ) . '"><div class="of-sec-h"><h2 id="' . esc_attr( $id ) . '" class="of-sec-t">' . $ic . '<span>' . esc_html( $title ) . '</span></h2>' . $more . '</div>' . $html . '</section>'; // phpcs:ignore WordPress.Security.EscapeOutput
 }
 
 function mcupr_office_more( $oid, $section ) {
-	return '<a class="of-more" href="' . esc_url( mcupr_office_url( $oid, $section ) ) . '">' . esc_html( mcupr_t( 'of_all' ) ) . ' <span aria-hidden="true">→</span></a>';
+	return '<a class="of-more" href="' . esc_url( mcupr_office_url( $oid, $section ) ) . '">' . esc_html( mcupr_t( 'of_all' ) ) . mcupr_feather( 'arrow-right', 15 ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
 }
 
 /** News cards of an office (a loop over a query). */
@@ -378,6 +381,19 @@ add_action(
 add_action( 'delete_' . MCUPR_OFFICE_TAX, 'mcupr_office_counts_clear' );
 
 /** Print the body of an office page for a section ('' = the office home). */
+/** The head of a page that belongs to an office: the capsule back to the office, then the same panel as the section pages. */
+function mcupr_office_page_head( $oid, $title, $lead = '', $chips = '' ) {
+	$o  = '<p class="of-up of-up-page"><a href="' . esc_url( get_permalink( $oid ) ) . '">' . mcupr_feather( 'chevron-left', 14 ) . '<span>' . esc_html( get_the_title( $oid ) ) . '</span></a></p>';
+	$o .= '<header class="of-head"><span class="of-head-ic" aria-hidden="true">' . mcupr_feather( 'file-text', 28 ) . '</span><div class="of-head-t"><h1 class="of-h1">' . esc_html( $title ) . '</h1>';
+	if ( '' !== $lead ) {
+		$o .= '<p class="of-head-lead">' . esc_html( $lead ) . '</p>';
+	}
+	if ( '' !== $chips ) {
+		$o .= '<p class="of-head-meta">' . $chips . '</p>';
+	}
+	return $o . '</div></header>';
+}
+
 /** The head of a section page of an office: a panel with the icon, the title, one line about it and – when there are items – how many. */
 function mcupr_office_head( $title, $icon, $count = null, $lead = '', $unit = 'of_n_unit_items' ) {
 	$o = '<header class="of-head"><span class="of-head-ic" aria-hidden="true">' . mcupr_feather( $icon, 28 ) . '</span><div class="of-head-t"><h1 class="of-h1">' . esc_html( $title ) . '</h1>';
@@ -474,7 +490,7 @@ function mcupr_office_render( $oid, $section ) {
 			break;
 		case 'contact':
 			echo mcupr_office_head( mcupr_t( 'of_contact' ), 'phone', null, sprintf( mcupr_t( 'of_lead_contact' ), get_the_title( $oid ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput
-			echo str_replace( '<h2 class="of-info-t">' . esc_html( mcupr_t( 'of_contact' ) ) . '</h2>', '', mcupr_office_info_html( $oid, true ) ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo mcupr_office_info_html( $oid, true, false ); // phpcs:ignore WordPress.Security.EscapeOutput
 			break;
 		default:
 			$about  = trim( $post->post_content );
@@ -482,13 +498,14 @@ function mcupr_office_render( $oid, $section ) {
 			if ( $counts ) {
 				echo '<ul class="of-stats" aria-label="' . esc_attr( mcupr_t( 'of_nav' ) ) . '">';
 				foreach ( $counts as $c ) {
-					echo '<li><a href="' . esc_url( mcupr_office_url( $oid, $c[0] ) ) . '"><b>' . (int) $c[2] . '</b><span>' . esc_html( $c[1] ) . '</span></a></li>';
+					$ico = array( 'news' => 'file-text', 'events' => 'calendar', 'people' => 'users', 'albums' => 'image', 'videos' => 'video', 'contact' => 'phone' );
+					echo '<li><a href="' . esc_url( mcupr_office_url( $oid, $c[0] ) ) . '"><span class="of-stat-ic" aria-hidden="true">' . mcupr_feather( isset( $ico[ $c[0] ] ) ? $ico[ $c[0] ] : 'grid', 22 ) . '</span><span class="of-stat-t"><b>' . (int) $c[2] . '</b><span>' . esc_html( $c[1] ) . '</span></span><span class="of-stat-go" aria-hidden="true">' . mcupr_feather( 'arrow-right', 18 ) . '</span></a></li>';
 				}
 				echo '</ul>';
 			}
 			echo '<div class="of-home' . ( $about ? '' : ' of-home-solo' ) . '">';
 			if ( $about ) {
-				echo '<section class="of-about panel-card min-w-0" aria-labelledby="of-about-t"><h2 id="of-about-t" class="of-sec-t">' . esc_html( mcupr_t( 'of_about' ) ) . '</h2><div class="reader"' . mcupr_part_lang_attr() . '>' . apply_filters( 'the_content', $post->post_content ) . '</div></section>'; // phpcs:ignore WordPress.Security.EscapeOutput
+				echo '<section class="of-about panel-card min-w-0" aria-labelledby="of-about-t"><h2 id="of-about-t" class="of-sec-t"><span class="of-sec-ic" aria-hidden="true">' . mcupr_feather( 'book', 20 ) . '</span><span>' . esc_html( mcupr_t( 'of_about' ) ) . '</span></h2><div class="reader"' . mcupr_part_lang_attr() . '>' . apply_filters( 'the_content', $post->post_content ) . '</div></section>'; // phpcs:ignore WordPress.Security.EscapeOutput
 			}
 			echo mcupr_office_info_html( $oid ); // phpcs:ignore WordPress.Security.EscapeOutput
 			echo '</div>';
