@@ -771,19 +771,30 @@
 		var fsLayout = function () {
 			if (!fsBox) { return; }
 			var list = $('.fs-list', fsBox);
-			var cards = $$(':scope > li', list).filter(function (li) { return !li.hidden; });
-			var big = null; /* only the card with the most entries is wide (one big tile among small ones), and only where there is room for it */
-			cards.forEach(function (li) {
-				li.style.gridRowEnd = '';
-				li.classList.remove('fs-wide');
-				var n = $$('li', li).length;
-				if (n >= 9 && (!big || n > big.n)) { big = { li: li, n: n }; }
-			});
-			if (big && window.innerWidth >= 1280 && cards.length > 3) { big.li.classList.add('fs-wide'); }
-			cards.forEach(function (li) {
-				li.style.gridRowEnd = 'span ' + Math.ceil((li.offsetHeight + 16) / 6);
-			});
+			try {
+				var cards = $$(':scope > li', list).filter(function (li) { return !li.hidden; });
+				var big = null; /* only the card with the most entries is wide (one big tile among small ones), and only where there is room for it */
+				list.classList.remove('fs-bento');
+				cards.forEach(function (li) {
+					li.style.gridRowEnd = '';
+					li.classList.remove('fs-wide');
+					var n = $$('li', li).length;
+					if (n >= 9 && (!big || n > big.n)) { big = { li: li, n: n }; }
+				});
+				if (big && window.innerWidth >= 1280 && cards.length > 3) { big.li.classList.add('fs-wide'); }
+				var heights = cards.map(function (li) { return li.offsetHeight; });
+				list.classList.add('fs-bento');
+				cards.forEach(function (li, i) { li.style.gridRowEnd = 'span ' + Math.ceil((heights[i] + 16) / 6); });
+			} catch (e) {
+				list.classList.remove('fs-bento');
+				$$(':scope > li', list).forEach(function (li) { li.style.gridRowEnd = ''; });
+			}
 		};
+		/* the cards change height when the fonts arrive, the window is resized or a list is searched: measure again (a moment after the last change) */
+		var fsAgain = null;
+		var fsSoon = function () { window.clearTimeout(fsAgain); fsAgain = window.setTimeout(function () { if (fsBox && !fsBox.hidden) { fsLayout(); } }, 120); };
+		window.addEventListener('resize', fsSoon);
+		if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fsSoon); }
 		var fsFocusable = function () { return $$('a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled])', fsBox).filter(function (n) { return n.offsetParent !== null; }); };
 		var openFs = function () {
 			fsBox = fsBox || buildFs();
@@ -796,6 +807,7 @@
 			$$('.fs-list > li', fsBox).forEach(function (li, i) { li.style.setProperty('--i', Math.min(i, 11)); });
 			fsBox.hidden = false;
 			fsLayout();
+			fsSoon();
 			root.classList.add('fs-open-lock');
 			fsBtn.setAttribute('aria-expanded', 'true');
 			requestAnimationFrame(function () { requestAnimationFrame(function () { fsBox.classList.add('is-in'); var c = $('[data-fs-close]', fsBox); if (c) { c.focus({ preventScroll: true }); } }); });
