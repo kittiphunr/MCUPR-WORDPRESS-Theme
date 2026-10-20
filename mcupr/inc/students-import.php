@@ -214,7 +214,7 @@ function mcupr_si_check( $values, $cols, $map, &$seen, $mode ) {
 		$row['_rfid'] = null;
 		$warn[]       = 'rfid';
 	} else {
-		$row['_rfid'] = substr( $cell, 2 );
+		list( $row['_rfid'], $row['_rfid4'] ) = mcupr_card_cell_split( substr( $cell, 2 ) );
 	}
 	// the national ID number: kept (encrypted) as it is in the file; the hash for signing in only when it is a valid number
 	$cell = $get( 'idcard' );
@@ -797,6 +797,9 @@ function mcupr_si_run( $token ) {
 				if ( ! empty( $c['row'][ $rk ] ) && '' === (string) get_post_meta( $id, $mk, true ) ) {
 					update_post_meta( $id, $mk, $c['row'][ $rk ] );
 					if ( '_rfid' === $rk ) {
+						if ( ! empty( $c['row']['_rfid4'] ) ) {
+							update_post_meta( $id, MCUPR_CARD_RFID4, $c['row']['_rfid4'] );
+						}
 						mcupr_si_rfid_owner( $c['row'][ $rk ], $id );
 					}
 					$res = 'unchanged' === $res ? 'updated' : $res;
