@@ -9,8 +9,10 @@
  *   division     the division the group sits under, if the chart has one: the office home shows the groups under its heading
  *   description  short text
  *   tel, email, place, hours   contact details (hours: rows separated by " | ")
+ *   service1_title, service1_text, service1_icon, service1_url … service4_*   the service tiles at the top of the page (icon: a name of the list in the group editor, e.g. book-open; empty = file-text)
+ *   stat1_num, stat1_label … stat4_*   the figures ("Achievements in numbers")
  * A group that already exists in that office (same name) is left as it is: nothing an editor wrote is overwritten –
- * except that an empty division is filled in from the file (so a file imported before divisions existed can be imported again).
+ * except that an empty division, empty service tiles and empty figures are filled in from the file (so a file imported earlier can be imported again).
  * Groups are added in the order of the file (the order of the list). Nothing else on the site is touched.
  * The chart of the Phrae campus is in starter/mcupr-work-groups.csv (the “Use the sample file” button).
  *
@@ -67,6 +69,32 @@ function mcupr_groups_import_table( array $rows ) {
 	return null === $head || ! in_array( 'name', $head, true ) || ! in_array( 'office', $head, true ) ? null : $out;
 }
 
+/** The service tiles of a row (service1_title … service4_url) as the cleaner wants them. */
+function mcupr_groups_import_services( array $row ) {
+	$out = array();
+	for ( $i = 1; $i <= 4; $i++ ) {
+		$out[] = array(
+			'title' => isset( $row[ "service{$i}_title" ] ) ? $row[ "service{$i}_title" ] : '',
+			'text'  => isset( $row[ "service{$i}_text" ] ) ? $row[ "service{$i}_text" ] : '',
+			'icon'  => isset( $row[ "service{$i}_icon" ] ) ? $row[ "service{$i}_icon" ] : '',
+			'url'   => isset( $row[ "service{$i}_url" ] ) ? $row[ "service{$i}_url" ] : '',
+		);
+	}
+	return mcupr_group_clean_services( $out );
+}
+
+/** The figures of a row (stat1_num … stat4_label) as the cleaner wants them. */
+function mcupr_groups_import_stats( array $row ) {
+	$out = array();
+	for ( $i = 1; $i <= 4; $i++ ) {
+		$out[] = array(
+			'num'   => isset( $row[ "stat{$i}_num" ] ) ? $row[ "stat{$i}_num" ] : '',
+			'label' => isset( $row[ "stat{$i}_label" ] ) ? $row[ "stat{$i}_label" ] : '',
+		);
+	}
+	return mcupr_group_clean_stats( $out );
+}
+
 /**
  * Add the groups of a table. Returns array( 'added' => n, 'skipped' => n, 'problems' => array( message… ) ).
  */
@@ -93,7 +121,21 @@ function mcupr_groups_import_apply( array $table ) {
 				break;
 			}
 		}
+		$svc = mcupr_groups_import_services( $row );
+		$sts = mcupr_groups_import_stats( $row );
 		if ( $have ) {
+			$did = false;
+			if ( $svc && ! get_post_meta( $have->ID, '_mcupr_g_services', true ) ) {
+				update_post_meta( $have->ID, '_mcupr_g_services', $svc );
+				$did = true;
+			}
+			if ( $sts && ! get_post_meta( $have->ID, '_mcupr_g_stats', true ) ) {
+				update_post_meta( $have->ID, '_mcupr_g_stats', $sts );
+				$did = true;
+			}
+			if ( $did ) {
+				mcupr_group_memo_reset();
+			}
 			if ( '' !== $div && '' === (string) get_post_meta( $have->ID, '_mcupr_g_division', true ) ) {
 				update_post_meta( $have->ID, '_mcupr_g_division', $div );
 				$ex = (string) $have->post_excerpt; // an earlier import kept the division as the first words of the short text
@@ -101,6 +143,8 @@ function mcupr_groups_import_apply( array $table ) {
 					wp_update_post( array( 'ID' => $have->ID, 'post_excerpt' => $ex === $div ? '' : substr( $ex, strlen( $div . ' · ' ) ) ) );
 				}
 				mcupr_group_memo_reset();
+				$res['filled']++;
+			} elseif ( $did ) {
 				$res['filled']++;
 			} else {
 				$res['skipped']++;
@@ -125,6 +169,12 @@ function mcupr_groups_import_apply( array $table ) {
 		}
 		if ( ! empty( $row['email'] ) && is_email( $row['email'] ) ) {
 			update_post_meta( $gid, '_mcupr_g_email', sanitize_email( $row['email'] ) );
+		}
+		if ( $svc ) {
+			update_post_meta( $gid, '_mcupr_g_services', $svc );
+		}
+		if ( $sts ) {
+			update_post_meta( $gid, '_mcupr_g_stats', $sts );
 		}
 		if ( ! empty( $row['hours'] ) ) {
 			update_post_meta( $gid, '_mcupr_g_hours', implode( "\n", mcupr_group_lines( str_replace( ' | ', "\n", sanitize_textarea_field( $row['hours'] ) ) ) ) );
@@ -177,7 +227,7 @@ function mcupr_groups_import_page() {
 		echo '</div>';
 	}
 	echo '<p>' . esc_html__( 'One row for each work group. Save the sheet as CSV (UTF-8) and upload it. Groups that already exist in the same office are not changed.', 'mcupr' ) . '</p>';
-	echo '<p><strong>' . esc_html__( 'Columns (first row):', 'mcupr' ) . '</strong> <code>office</code> ' . esc_html__( '(the name of the office, exactly as on the site)', 'mcupr' ) . ', <code>name</code>, <code>name_en</code>, <code>division</code>, <code>description</code>, <code>tel</code>, <code>email</code>, <code>place</code>, <code>hours</code></p>';
+	echo '<p><strong>' . esc_html__( 'Columns (first row):', 'mcupr' ) . '</strong> <code>office</code> ' . esc_html__( '(the name of the office, exactly as on the site)', 'mcupr' ) . ', <code>name</code>, <code>name_en</code>, <code>division</code>, <code>description</code>, <code>tel</code>, <code>email</code>, <code>place</code>, <code>hours</code>, <code>service1_title</code> <code>service1_text</code> <code>service1_icon</code> <code>service1_url</code> ' . esc_html__( '(and the same for service2 to service4)', 'mcupr' ) . ', <code>stat1_num</code> <code>stat1_label</code> ' . esc_html__( '(and the same for stat2 to stat4)', 'mcupr' ) . '</p>';
 	echo '<form method="post" action="' . $act . '" enctype="multipart/form-data" style="margin:1rem 0">'; // phpcs:ignore WordPress.Security.EscapeOutput
 	wp_nonce_field( 'mcupr_groups_import', 'mcupr_gi_nonce' );
 	echo '<input type="hidden" name="action" value="mcupr_groups_import"><p><label><strong>' . esc_html__( 'CSV file', 'mcupr' ) . '</strong><br><input type="file" name="csv" accept=".csv,.txt,text/csv" required></label></p><button class="button button-primary">' . esc_html__( 'Import', 'mcupr' ) . '</button></form>';
