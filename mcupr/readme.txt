@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.19 =
+* Page head title: Thai vowels and tone marks are no longer clipped
+
 = 1.54.18 =
 * Page head band: straight bottom edge
 
