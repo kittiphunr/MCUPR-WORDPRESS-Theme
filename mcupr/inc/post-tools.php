@@ -222,7 +222,7 @@ function mcupr_download_handler() {
 	$real = $path ? realpath( $path ) : false;
 	$up   = wp_get_upload_dir();
 	$base = realpath( $up['basedir'] );
-	if ( ! $real || ! $base || 0 !== strpos( $real, $base ) || ! is_readable( $real ) ) {
+	if ( ! $real || ! $base || ! mcupr_path_inside( $real, $base ) || ! is_readable( $real ) ) {
 		wp_die( esc_html( mcupr_t( 'file_missing' ) ), '', array( 'response' => 404 ) );
 	}
 	if ( $f['max'] > 0 && $f['count'] >= $f['max'] ) {
