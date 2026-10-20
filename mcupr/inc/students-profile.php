@@ -477,7 +477,7 @@ add_action(
 /* ------------------------------------------------------------------ showing the details */
 
 /**
- * Details by group as an HTML list. $for 'staff' = everything; 'student' = their own, the ID number and the passport number by the last four characters.
+ * Details by group as an HTML list. $for 'staff' = everything, 'student' = their own; in both the ID number and the passport number show only the last four characters.
  * $lang: th | en | zh | ja (the labels in Chinese and Japanese come from inc/strings.php, spf_* and spg_*).
  */
 function mcupr_sp_html( $post_id, $for = 'staff', $lang = 'en' ) {
@@ -492,7 +492,7 @@ function mcupr_sp_html( $post_id, $for = 'staff', $lang = 'en' ) {
 				continue;
 			}
 			$v = $vals[ $k ];
-			if ( 'student' === $for && in_array( $k, array( 'idcard', 'passport' ), true ) ) {
+			if ( in_array( $k, array( 'idcard', 'passport' ), true ) ) {
 				$v = str_repeat( '•', max( 0, mb_strlen( $v ) - 4 ) ) . mb_substr( $v, -4 );
 			}
 			if ( 'date' === $f[3] && preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $v, $m ) ) {
@@ -527,7 +527,7 @@ function mcupr_sp_box( $post ) {
 		return;
 	}
 	mcupr_audit( 'profileview', array( 'post' => (int) $post->ID, 'sid' => (string) get_post_meta( $post->ID, '_mcupr_s_sid', true ) ) );
-	echo '<p class="description">' . esc_html__( 'Only staff with the student-data permission see this (the national ID number, blood group, date of birth, religion, height, weight, passport and the guardian’s income are kept encrypted). Opening it is written in the activity log. To change something, change it in the central system and import the file again.', 'mcupr' ) . '</p><style>.sp-g{margin:.5rem 0;border:1px solid #c3c4c7;border-radius:4px;background:#fff}.sp-g>summary{cursor:pointer;padding:8px 12px;font-weight:600}.sp-dl{margin:0;padding:4px 12px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:8px 16px}.sp-dl div{min-width:0}.sp-dl dt{font-size:12px;color:#50575e}.sp-dl dd{margin:0;overflow-wrap:anywhere}</style>' . $html; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo '<p class="description">' . esc_html__( 'Only staff with the student-data permission see this (the national ID number, blood group, date of birth, religion, height, weight, passport and the guardian’s income are kept encrypted). The national ID number and the passport number show only their last four characters. Opening it is written in the activity log. To change something, change it in the central system and import the file again.', 'mcupr' ) . '</p><style>.sp-g{margin:.5rem 0;border:1px solid #c3c4c7;border-radius:4px;background:#fff}.sp-g>summary{cursor:pointer;padding:8px 12px;font-weight:600}.sp-dl{margin:0;padding:4px 12px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:8px 16px}.sp-dl div{min-width:0}.sp-dl dt{font-size:12px;color:#50575e}.sp-dl dd{margin:0;overflow-wrap:anywhere}</style>' . $html; // phpcs:ignore WordPress.Security.EscapeOutput
 }
 
 /** The student's own details in the portal. */
