@@ -26,7 +26,20 @@ function mcupr_msg_register() {
 			'menu_icon'    => 'dashicons-email-alt',
 			'menu_position' => 10,
 			'supports'     => array( 'title' ),
-			'capabilities' => array( 'create_posts' => 'do_not_allow' ),
+			// the messages (complaints, corruption reports) are for administrators only: not editors or authors
+			'capabilities' => array(
+				'create_posts'           => 'do_not_allow',
+				'edit_posts'             => 'manage_options',
+				'edit_others_posts'      => 'manage_options',
+				'edit_private_posts'     => 'manage_options',
+				'edit_published_posts'   => 'manage_options',
+				'publish_posts'          => 'manage_options',
+				'read_private_posts'     => 'manage_options',
+				'delete_posts'           => 'manage_options',
+				'delete_private_posts'   => 'manage_options',
+				'delete_published_posts' => 'manage_options',
+				'delete_others_posts'    => 'manage_options',
+			),
 			'map_meta_cap' => true,
 		)
 	);

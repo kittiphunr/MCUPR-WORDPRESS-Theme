@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.13 =
+* Low-risk hardening 2: staff-only forms, complaint access, import folder, 404 write limit
+
 = 1.54.12 =
 * RFID last 4 digits: backfill on re-import and a hint for older cards
 
