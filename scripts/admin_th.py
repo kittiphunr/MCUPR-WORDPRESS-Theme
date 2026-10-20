@@ -1526,6 +1526,8 @@ TH = {
 "New national ID number (13 digits)": "เลขบัตรประชาชนใหม่ (13 หลัก)",
 "On: students sign in with the card (or the national ID number)": "เปิด: นิสิตเข้าสู่ระบบด้วยบัตร (หรือเลขบัตรประชาชน)",
 "Remove the card code": "ลบรหัสบัตร",
+"(and the same for service2 to service4)": "(และเช่นเดียวกันสำหรับ service2 ถึง service4)",
+"(and the same for stat2 to stat4)": "(และเช่นเดียวกันสำหรับ stat2 ถึง stat4)",
 "Achievements in numbers": "ผลงานในตัวเลข",
 "Up to 4 figures that show what the group has achieved (e.g. “12,480” visitors a year). Leave it empty to leave the part out.": "ตัวเลขผลงานของกลุ่มงานได้สูงสุด 4 ช่อง (เช่น “12,480” ผู้ใช้บริการต่อปี) เว้นว่างไว้ก็จะไม่แสดงส่วนนี้",
 "e.g. 12,480 or 96%": "เช่น 12,480 หรือ 96%",
