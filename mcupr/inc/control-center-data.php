@@ -100,7 +100,7 @@ function mcupr_cc_data_all() {
 				'steps' => array( 'กด "เพิ่มใหม่" ใส่คำถามเป็นชื่อ', 'พิมพ์คำตอบในเนื้อหา', 'เลือกหมวดคำถาม แล้วกด "เผยแพร่"' ), 'tips' => array( 'ถามจริงจากสิ่งที่คนโทรมาถามบ่อยที่สุด' ),
 			),
 			'groups'   => array(
-				'cat' => 'content', 'icon' => 'grid', 'title' => 'กลุ่มงานของหน่วยงาน', 'open' => 'type:mcupr_group', 'add' => 'new:mcupr_group',
+				'cat' => 'people', 'icon' => 'grid', 'title' => 'กลุ่มงานของหน่วยงาน', 'open' => 'type:mcupr_group', 'add' => 'new:mcupr_group',
 				'screens' => array( 'type:mcupr_group', 'page:mcupr-groups-import' ),
 				'links' => array( array( 'นำเข้ากลุ่มงานจากไฟล์ CSV', 'page:mcupr-groups-import' ) ),
 				'desc' => 'หน้าของแต่ละกลุ่มงานในหน่วยงาน มีบริการ ประกาศ บุคลากร เอกสารดาวน์โหลด และช่องทางติดต่อ',
@@ -375,4 +375,39 @@ function mcupr_cc_data_all() {
 			array( 'id' => 'users', 'icon' => 'user-plus', 'title' => 'เชิญผู้ช่วยดูแลเว็บ', 'desc' => 'สร้างบัญชีให้เจ้าหน้าที่ตามบทบาท ไม่ต้องให้สิทธิ์ผู้ดูแลเต็ม', 'link' => 'adm:user-new.php' ),
 		),
 	);
+}
+
+/**
+ * The order of the menus inside each group: what a person reaches for most comes first. A menu that is not listed keeps its place after the listed ones.
+ */
+function mcupr_cc_order() {
+	return array(
+		'content'  => array( 'posts', 'pages', 'media', 'events', 'albums', 'videos', 'works', 'faq', 'books' ),
+		'look'     => array( 'identity', 'home', 'sections', 'blocks', 'numbers', 'notice', 'menus', 'logos', 'colors', 'display', 'print', 'policy', 'customizer' ),
+		'visitors' => array( 'messages', 'answers', 'forms', 'forum', 'polls' ),
+		'students' => array( 'students', 'student_import', 'requests', 'student_grades', 'student_settings', 'student_mail', 'student_codes', 'student_log' ),
+		'people'   => array( 'offices', 'groups', 'units', 'persons', 'staff_hub' ),
+		'system'   => array( 'status', 'users', 'settings_io', 'insights', 'images', 'speed', 'updates' ),
+	);
+}
+
+/** The data with the menus in the order above (the keys stay; only the sequence of 'items' changes). */
+function mcupr_cc_arrange( $d ) {
+	$rank = array();
+	$n    = 0;
+	foreach ( array_keys( $d['cats'] ) as $cat ) {
+		$list = mcupr_cc_order();
+		foreach ( isset( $list[ $cat ] ) ? $list[ $cat ] : array() as $id ) {
+			$rank[ $id ] = $n++;
+		}
+	}
+	$pos = array();
+	$i   = 0;
+	foreach ( $d['items'] as $id => $it ) {
+		$pos[ $id ] = isset( $rank[ $id ] ) ? $rank[ $id ] : 1000 + $i++;
+	}
+	uksort( $d['items'], static function ( $a, $b ) use ( $pos ) {
+		return $pos[ $a ] <=> $pos[ $b ];
+	} );
+	return $d;
 }
