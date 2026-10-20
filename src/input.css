@@ -2145,13 +2145,13 @@ html[data-contrast] .office-card .oc-top.has-cover { background-image: none; }
 .gl, .of-body { --gl-soft: color-mix(in srgb, var(--of) 12%, var(--bg)); }
 .gl .fi, .gl-gcards .fi { flex: none; }
 .gl-crumb { margin: 0 0 1rem; }
-.gl-band { position: relative; overflow: hidden; isolation: isolate; padding: 2rem 2rem 3.75rem; border-radius: 1.5rem; background: linear-gradient(135deg, color-mix(in srgb, var(--of) 88%, #000) 0%, var(--of) 65%); color: var(--of-on); }
-.gl-band:not(:has(+ .gl-tabs)) { padding-bottom: 2rem; }
-.gl-band::before, .gl-band::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; background: var(--of-on); opacity: .09; pointer-events: none; }
+.gl-band { position: relative; overflow: hidden; isolation: isolate; padding: 1.35rem 1.6rem 3.5rem; border: 1px solid var(--edge); border-radius: 1.8rem; background: linear-gradient(135deg, var(--bg), color-mix(in srgb, var(--of) 10%, var(--bg))); color: var(--text); box-shadow: 0 2px 14px color-mix(in srgb, var(--text) 7%, transparent); } /* the same light panel as the head of the office's pages, under the office band */
+.gl-band:not(:has(+ .gl-tabs)) { padding-bottom: 1.35rem; }
+.gl-band::before, .gl-band::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; background: var(--of); opacity: .08; pointer-events: none; }
 .gl-band::before { width: 16rem; height: 16rem; inset-inline-end: -4rem; top: -5.5rem; }
 .gl-band::after { width: 9rem; height: 9rem; inset-inline-end: 11rem; bottom: -4.5rem; }
 .gl-who { display: flex; align-items: center; gap: 1.1rem; }
-.gl-mark { flex: none; display: grid; place-items: center; width: 4.5rem; height: 4.5rem; border-radius: 50%; background: var(--of-on); color: var(--of); font-size: 2rem; font-weight: 800; line-height: 1; box-shadow: 0 0 0 4px color-mix(in srgb, var(--of-on) 35%, transparent); }
+.gl-mark { flex: none; display: grid; place-items: center; width: 4.2rem; height: 4.2rem; border-radius: 1.3rem; background: linear-gradient(135deg, var(--of), color-mix(in srgb, var(--of) 70%, #fff)); color: var(--of-on); font-size: 1.9rem; font-weight: 800; line-height: 1; box-shadow: 0 8px 18px -6px color-mix(in srgb, var(--of) 60%, transparent); }
 .gl-name { margin: 0; font-size: clamp(1.5rem, 3.6vw, 2.2rem); font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
 .gl-sub { margin: .25rem 0 0; font-size: 1rem; overflow-wrap: anywhere; }
 .gl-lead { max-width: 46rem; margin: 1.1rem 0 0; font-size: 1.1rem; }
@@ -2242,7 +2242,7 @@ img.gl-ph { display: block; }
 .gl-write-x { margin: .1rem 0 .9rem; color: var(--text-2); }
 .gl-empty { margin-top: 2rem; }
 @media (max-width: 640px) {
-	.gl-band { padding: 1.5rem 1.15rem 3.5rem; }
+	.gl-band { padding: 1.15rem 1.15rem 3.5rem; }
 	.gl-mark { width: 3.5rem; height: 3.5rem; font-size: 1.5rem; }
 	.gl-tabs { margin-inline: .5rem; }
 	.gl-tabs a { padding-inline: .8rem; }
