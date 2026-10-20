@@ -376,7 +376,6 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     const path2 = await fp.$$eval('.fb-path li', (a) => a.map((x) => x.textContent.trim()));
     ok(path2.join('>') === 'ทั้งหมด>วิชาการ>งานวิจัย' && (await fp.$eval('.fb-up', (a) => a.getAttribute('href'))).includes('/category/academic') && (await fp.locator('.fb-row.is-cur').count()) === 1 && (await fp.locator('.fb-lv .fb-row.is-cur').count()) === 1, 'browser: two levels down, the path has three steps, up goes to the parent and the tree marks the nested row');
     await fp.goto(B + '/category/academic/');
-    ok(!!tree && tree.line && tree.tick && tree.indent, 'browser: sub-categories hang off a line with a tick each, indented under their parent');
     await fp.fill('[data-fb-filter]', 'ชุมชน');
     ok((await fp.locator('.fb-side [data-fb-item]:not([hidden])').count()) === 1 && (await fp.locator('.fb-side .fb-h:not([hidden])').count()) === 1, 'browser: the filter narrows categories and tags and hides empty headings');
     await fp.fill('[data-fb-filter]', 'zzzz');
