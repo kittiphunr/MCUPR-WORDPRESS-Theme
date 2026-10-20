@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.28 =
+* All menu: bento safe without the script, measured again after fonts and resize
+
 = 1.54.27 =
 * All menu: bento cards, home and contact as round buttons
 
