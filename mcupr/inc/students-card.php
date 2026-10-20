@@ -19,6 +19,7 @@ defined( 'ABSPATH' ) || exit;
 
 const MCUPR_CARD_RFID = '_mcupr_s_rfid_h';
 const MCUPR_CARD_IDC  = '_mcupr_s_idcard_h';
+const MCUPR_CARD_RFID4 = '_mcupr_s_rfid_l4'; // the last 4 digits of the card code, to show which card it is (the code itself stays a hash)
 
 /* ------------------------------------------------------------------ values and hashes */
 
@@ -46,14 +47,24 @@ function mcupr_card_digits( $v ) {
 function mcupr_card_hash( $kind, $value ) {
 	return hash_hmac( 'sha256', $kind . '|' . $value, wp_salt( 'auth' ) );
 }
-/** A cell of the import file → '' (empty), 'bad' (not valid) or 'h:…' (the hash, which is all that is kept from here on). */
+/** A cell of the import file → '' (empty), 'bad' (not valid) or 'h:…' (the hash, and for a card code '|' and its last 4 digits; nothing more is kept from here on). */
 function mcupr_card_import_cell( $kind, $raw ) {
 	$d = mcupr_card_digits( $raw );
 	if ( '' === $d ) {
 		return '';
 	}
 	$ok = 'rfid' === $kind ? mcupr_card_rfid_ok( $d ) : mcupr_card_idcard_ok( $d );
-	return $ok ? 'h:' . mcupr_card_hash( $kind, $d ) : 'bad';
+	return $ok ? 'h:' . mcupr_card_hash( $kind, $d ) . ( 'rfid' === $kind ? '|' . substr( $d, -4 ) : '' ) : 'bad';
+}
+/** 'h:hash|1234' (as above, without the 'h:') → array( hash, last 4 digits or '' ). */
+function mcupr_card_cell_split( $body ) {
+	$p = explode( '|', (string) $body, 2 );
+	return array( $p[0], isset( $p[1] ) && preg_match( '/^\d{4}$/', $p[1] ) ? $p[1] : '' );
+}
+/** The card code as shown to staff: •••••••1234, or '' when only the hash is known (set before the last 4 digits were kept). */
+function mcupr_card_rfid_shown( $post_id ) {
+	$l4 = (string) get_post_meta( $post_id, MCUPR_CARD_RFID4, true );
+	return preg_match( '/^\d{4}$/', $l4 ) ? '••••••' . $l4 : '';
 }
 
 function mcupr_card_state( $post_id ) {
@@ -153,8 +164,8 @@ function mcupr_card_mask( $num ) {
 function mcupr_card_box( $post ) {
 	wp_nonce_field( 'mcupr_card_box', 'mcupr_card_box_nonce' );
 	$s = mcupr_card_state( $post->ID );
-	echo '<p class="description">' . esc_html__( 'The card code is kept only as a one-way hash and cannot be shown again; leave its box empty to keep it. The national ID number is the one in the central details (encrypted) and is kept in step with the sign-in hash.', 'mcupr' ) . ' ' . esc_html__( 'Here it is shown with only its last 4 digits (in full under “Details from the central file”, where opening is logged); type a new number only to change it, leave the box empty to keep it.', 'mcupr' ) . '</p>';
-	echo '<p><strong>' . esc_html__( 'Card code (RFID)', 'mcupr' ) . ':</strong> ' . esc_html( $s['rfid'] ? __( 'set', 'mcupr' ) : __( 'not set', 'mcupr' ) ) . '<br><label class="screen-reader-text" for="mcs-rfid">' . esc_html__( 'New card code (10 digits)', 'mcupr' ) . '</label><input id="mcs-rfid" name="mcupr_card_rfid" type="password" inputmode="numeric" maxlength="10" autocomplete="off" class="regular-text" style="width:100%" placeholder="' . esc_attr__( '10 digits – tap the card here', 'mcupr' ) . '">';
+	echo '<p class="description">' . esc_html__( 'The card code is kept as a one-way hash (so it cannot be shown in full), with only its last 4 digits kept to show which card it is; leave its box empty to keep it. The national ID number is the one in the central details (encrypted) and is kept in step with the sign-in hash.', 'mcupr' ) . ' ' . esc_html__( 'Here it is shown with only its last 4 digits (in full under “Details from the central file”, where opening is logged); type a new number only to change it, leave the box empty to keep it.', 'mcupr' ) . '</p>';
+	echo '<p><strong>' . esc_html__( 'Card code (RFID)', 'mcupr' ) . ':</strong> ' . esc_html( $s['rfid'] ? __( 'set', 'mcupr' ) : __( 'not set', 'mcupr' ) ) . ( $s['rfid'] && '' !== mcupr_card_rfid_shown( $post->ID ) ? ' ' . esc_html( mcupr_card_rfid_shown( $post->ID ) ) : '' ) . '<br><label class="screen-reader-text" for="mcs-rfid">' . esc_html__( 'New card code (10 digits)', 'mcupr' ) . '</label><input id="mcs-rfid" name="mcupr_card_rfid" type="password" inputmode="numeric" maxlength="10" autocomplete="off" class="regular-text" style="width:100%" placeholder="' . esc_attr( $s['rfid'] && '' !== mcupr_card_rfid_shown( $post->ID ) ? mcupr_card_rfid_shown( $post->ID ) : __( '10 digits – tap the card here', 'mcupr' ) ) . '">';
 	if ( $s['rfid'] ) {
 		echo '<br><label><input type="checkbox" name="mcupr_card_clear_rfid" value="1"> ' . esc_html__( 'Remove the card code', 'mcupr' ) . '</label>';
 	}
@@ -180,6 +191,9 @@ add_action(
 		foreach ( array( 'rfid' => array( MCUPR_CARD_RFID, 'mcupr_card_rfid', 'mcupr_card_clear_rfid' ), 'idcard' => array( MCUPR_CARD_IDC, 'mcupr_card_idc', 'mcupr_card_clear_idc' ) ) as $kind => $f ) {
 			if ( ! empty( $_POST[ $f[2] ] ) ) {
 				delete_post_meta( $post_id, $f[0] );
+				if ( 'rfid' === $kind ) {
+					delete_post_meta( $post_id, MCUPR_CARD_RFID4 );
+				}
 				if ( 'idcard' === $kind && function_exists( 'mcupr_sp_forget' ) ) {
 					mcupr_sp_forget( $post_id, 'idcard' );
 				}
@@ -199,12 +213,15 @@ add_action(
 			}
 			$h = mcupr_card_import_cell( $kind, isset( $_POST[ $f[1] ] ) ? (string) wp_unslash( $_POST[ $f[1] ] ) : '' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 			if ( 0 === strpos( $h, 'h:' ) ) {
-				$hash  = substr( $h, 2 );
+				list( $hash, $l4 ) = mcupr_card_cell_split( substr( $h, 2 ) );
 				$map   = 'rfid' === $kind ? mcupr_card_rfid_map() : array();
 				if ( 'rfid' === $kind && isset( $map[ $hash ] ) && (int) $map[ $hash ] !== (int) $post_id ) {
 					continue; // another student has this card
 				}
 				update_post_meta( $post_id, $f[0], $hash );
+				if ( 'rfid' === $kind && '' !== $l4 ) {
+					update_post_meta( $post_id, MCUPR_CARD_RFID4, $l4 );
+				}
 				$changed[] = $kind . ' set';
 			}
 		}
