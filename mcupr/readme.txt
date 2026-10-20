@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.14 =
+* Office home head: the same 24px inner margin on every side with the side menu
+
 = 1.54.13 =
 * Low-risk hardening 2: staff-only forms, complaint access, import folder, 404 write limit
 
