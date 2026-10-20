@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.12 =
+* RFID last 4 digits: backfill on re-import and a hint for older cards
+
 = 1.54.11 =
 * Student card box shows the last 4 digits of the RFID code
 
