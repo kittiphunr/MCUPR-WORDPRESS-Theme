@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.17 =
+* Three levels: university / office / work group with one trail in the office band
+
 = 1.54.16 =
 * Work groups: full office band above, light group head
 
