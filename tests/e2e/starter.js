@@ -94,9 +94,10 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(sb0.op === 0 && sb1.op === 1 && samples.some((x) => x.op > 0 && x.op < 1) && samples.every((x) => x.r < 200), 'side bar opening: labels fade in (not switched on) and the corners are ordinary lengths, never a huge radius');
     ok(samples[0].anim && !sb1.anim, 'side bar opening: labels are kept on one line while it moves, and released after');
     await mp.click('[data-sb-toggle]');
-    await mp.waitForTimeout(150);
+    /* sample once it has started to shrink (a fixed delay is too tight on a busy machine), then once it has settled */
+    await mp.waitForFunction((w) => document.querySelector('.site-nav').getBoundingClientRect().width < w - 4, sb1.w, { timeout: 5000 }).catch(() => {});
     const mid2 = await mp.evaluate(() => document.querySelector('.site-nav').getBoundingClientRect().width);
-    await mp.waitForTimeout(800);
+    await mp.waitForFunction((w) => Math.abs(document.querySelector('.site-nav').getBoundingClientRect().width - w) < 2, sb0.w, { timeout: 5000 }).catch(() => {});
     const end2 = await mp.evaluate(() => document.querySelector('.site-nav').getBoundingClientRect().width);
     ok(mid2 > end2 + 4 && mid2 < sb1.w - 4 && Math.abs(end2 - sb0.w) < 2, 'side bar closing: shrinks back steadily to the narrow rail (' + Math.round(sb1.w) + ' → ' + Math.round(mid2) + ' → ' + Math.round(end2) + ')');
     await mc.close();
@@ -194,6 +195,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok((await p.$('#fs-menu')) === null, 'full-screen menu is not in the page until it is opened');
   await p.click('[data-fs-open]');
   await p.waitForSelector('#fs-menu:not([hidden])');
+  await p.waitForFunction(() => document.activeElement && document.activeElement.hasAttribute('data-fs-close'), null, { timeout: 3000 }).catch(() => {});
   ok(await p.evaluate(() => document.activeElement && document.activeElement.hasAttribute('data-fs-close')), 'full-screen menu: focus moves to the close button');
   ok((await p.$$eval('#fs-menu .fs-list > li, #fs-menu .fs-rb', (l) => l.length)) >= 7, 'full-screen menu lists every top-level item (incl. those in "More"): cards and round buttons');
   {
