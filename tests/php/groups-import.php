@@ -49,6 +49,24 @@ mcupr_group_memo_reset();
 $t2 = mcupr_groups_import_table( array( array( 'Office', 'NAME', 'tel' ), array( $offices[ $names[0] ], 'กลุ่มงานทดสอบ', '054-111111' ), array( 'ไม่มีหน่วยงานนี้', 'กลุ่มงานผี', '' ), array( $names[1], '', '' ) ) );
 $r2 = mcupr_groups_import_apply( $t2 );
 t( 1 === $r2['added'] && 2 === count( $r2['problems'] ), 'import: header names in any case, an office by number, an unknown office and an empty name are reported' );
+// the service tiles and the figures: from the sample (the library and finance groups), only filled in where a group has none, bad values cleaned
+$lib = null; $fin = null;
+foreach ( mcupr_office_groups( $offices[ $names[1] ] ) as $x ) { if ( 'กลุ่มงานห้องสมุดและสารสนเทศ' === $x->post_title ) { $lib = $x; } }
+foreach ( mcupr_office_groups( $offices[ $names[0] ] ) as $x ) { if ( 'กลุ่มงานการเงิน' === $x->post_title ) { $fin = $x; } }
+$ls = $lib ? get_post_meta( $lib->ID, '_mcupr_g_services', true ) : array(); $lt = $lib ? get_post_meta( $lib->ID, '_mcupr_g_stats', true ) : array(); $fs = $fin ? get_post_meta( $fin->ID, '_mcupr_g_services', true ) : array();
+t( is_array( $ls ) && 4 === count( $ls ) && 'ยืม-คืนและต่ออายุหนังสือ' === $ls[0]['title'] && 'book-open' === $ls[0]['icon'] && is_array( $lt ) && 4 === count( $lt ) && '12,480' === $lt[0]['num'] && is_array( $fs ) && 3 === count( $fs ) && '' === (string) get_post_meta( $fin->ID, '_mcupr_g_stats', true ), 'import: the service tiles and the figures of the sample are saved (4 + 4 for the library, 3 + none for finance)' );
+$tab = mcupr_groups_import_table( array( array( 'office', 'name', 'service1_title', 'service1_icon', 'service1_url', 'service2_title', 'stat1_num', 'stat1_label', 'stat2_num', 'stat5_num' ), array( $names[0], 'กลุ่มงานตัวเลข', 'ขอบริการ', 'not-an-icon', 'javascript:alert(1)', '', '1,000', 'ครั้ง', '', '9' ) ) );
+$rn = mcupr_groups_import_apply( $tab );
+$ng = null; foreach ( mcupr_office_groups( $offices[ $names[0] ] ) as $x ) { if ( 'กลุ่มงานตัวเลข' === $x->post_title ) { $ng = $x; } }
+$ns = $ng ? get_post_meta( $ng->ID, '_mcupr_g_services', true ) : array(); $nt = $ng ? get_post_meta( $ng->ID, '_mcupr_g_stats', true ) : array();
+t( 1 === $rn['added'] && is_array( $ns ) && 1 === count( $ns ) && 'file-text' === $ns[0]['icon'] && '' === $ns[0]['url'] && is_array( $nt ) && 1 === count( $nt ) && '1,000' === $nt[0]['num'], 'import: an unknown icon becomes the default, a javascript: link is dropped, a row without a title or number is left out, columns beyond 4 are ignored' );
+update_post_meta( $ng->ID, '_mcupr_g_services', array( array( 'title' => 'Editor made', 'text' => '', 'icon' => 'users', 'url' => '' ) ) );
+$tab2 = mcupr_groups_import_table( array( array( 'office', 'name', 'service1_title', 'stat1_num', 'stat1_label' ), array( $names[0], 'กลุ่มงานตัวเลข', 'From the file', '7', 'new figure' ) ) );
+mcupr_groups_import_apply( $tab2 );
+t( 'Editor made' === get_post_meta( $ng->ID, '_mcupr_g_services', true )[0]['title'] && '1,000' === get_post_meta( $ng->ID, '_mcupr_g_stats', true )[0]['num'], 'import: what an editor wrote (services, figures) is not overwritten by the file' );
+delete_post_meta( $ng->ID, '_mcupr_g_stats' );
+$rr = mcupr_groups_import_apply( $tab2 );
+t( 1 === $rr['filled'] && '7' === get_post_meta( $ng->ID, '_mcupr_g_stats', true )[0]['num'] && 'Editor made' === get_post_meta( $ng->ID, '_mcupr_g_services', true )[0]['title'], 'import: figures that were empty are filled in from the file, the services the editor wrote stay' );
 t( null === mcupr_groups_import_table( array( array( 'a', 'b' ), array( '1', '2' ) ) ), 'import: a file without the columns office and name is refused' );
 $dup = mcupr_groups_import_table( array( array( 'office', 'name' ), array( $names[2], 'กลุ่มงานซ้ำ' ), array( $names[2], 'กลุ่มงาน ซ้ำ' ) ) );
 $r3 = mcupr_groups_import_apply( $dup );
