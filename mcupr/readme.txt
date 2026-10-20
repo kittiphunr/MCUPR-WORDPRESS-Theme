@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.27 =
+* All menu: bento cards, home and contact as round buttons
+
 = 1.54.26 =
 * Editor tools card fits a phone screen
 
