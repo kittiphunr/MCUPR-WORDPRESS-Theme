@@ -382,6 +382,19 @@ function mcupr_book_pdf_id( $id ) {
 	return $a && 'application/pdf' === get_post_mime_type( $a ) ? $a : 0;
 }
 
+/**
+ * The pages of the PDF the book shows, in order (1-based pages of the PDF), when the editor took pages out or moved them; array() = every page as it is.
+ * Only valid for the PDF it was made for (a different PDF starts again with all its pages).
+ */
+function mcupr_book_pdf_keep( $id ) {
+	$pdf = mcupr_book_pdf_id( $id );
+	if ( ! $pdf || (int) get_post_meta( $id, '_mcupr_bk_keep_for', true ) !== $pdf ) {
+		return array();
+	}
+	$k = get_post_meta( $id, '_mcupr_bk_keep', true );
+	return is_array( $k ) ? array_values( array_filter( array_map( 'absint', $k ) ) ) : array();
+}
+
 /** Is this book for some students only? */
 function mcupr_book_restricted( $id ) {
 	return function_exists( 'mcupr_aud_is_restricted' ) && mcupr_aud_is_restricted( $id );
@@ -460,8 +473,8 @@ add_action(
 				'mcupr-book-admin',
 				'mcuprBookAdmin',
 				array(
-					'pdf'    => get_theme_file_uri( 'assets/vendor/pdfjs/pdf.min.mjs' ),
-					'worker' => get_theme_file_uri( 'assets/vendor/pdfjs/pdf.worker.min.mjs' ),
+					'pdf'    => get_theme_file_uri( 'assets/vendor/pdfjs/pdf.min.js' ),
+					'worker' => get_theme_file_uri( 'assets/vendor/pdfjs/pdf.worker.min.js' ),
 					'cmaps'  => get_theme_file_uri( 'assets/vendor/pdfjs/cmaps/' ),
 					'fonts'  => get_theme_file_uri( 'assets/vendor/pdfjs/standard_fonts/' ),
 					'ajax'   => admin_url( 'admin-ajax.php' ),
@@ -478,6 +491,20 @@ add_action(
 						'making'   => __( 'Making the cover…', 'mcupr' ),
 						'done'     => __( 'The cover is set.', 'mcupr' ),
 						'fail'     => __( 'The cover could not be made.', 'mcupr' ),
+						'loadingPages' => __( 'Loading the pages…', 'mcupr' ),
+						'pagesFail'    => __( 'The pages could not be shown. Check that the PDF opens in a browser, then try again.', 'mcupr' ),
+						/* translators: %d: page number */
+						'pageN'        => __( 'Page %d', 'mcupr' ),
+						/* translators: %d: page number */
+						'takeOut'      => __( 'Take page %d out of the book', 'mcupr' ),
+						/* translators: %d: page number */
+						'putBack'      => __( 'Put page %d back', 'mcupr' ),
+						'back'         => __( 'Put back', 'mcupr' ),
+						'earlier'      => __( 'Move earlier', 'mcupr' ),
+						'later'        => __( 'Move later', 'mcupr' ),
+						'keepOne'      => __( 'At least one page must stay in the book.', 'mcupr' ),
+						/* translators: 1: pages shown, 2: pages in the PDF */
+						'count'        => __( 'The book shows %1$d of %2$d pages.', 'mcupr' ),
 						'remove'   => __( 'Remove', 'mcupr' ),
 					),
 				)
@@ -508,6 +535,19 @@ function mcupr_book_media_row( $i, $m ) {
 	return $h;
 }
 
+/** The pages of the PDF as pictures to take out, put back and move (filled in by book-admin.js). */
+function mcupr_book_pages_manager( $post_id, $pdf ) {
+	$keep = mcupr_book_pdf_keep( $post_id );
+	$n    = (int) get_post_meta( $post_id, '_mcupr_bk_pdfn', true );
+	$o    = '<div id="mcupr-bk-pages" style="margin-top:1rem" data-keep="' . esc_attr( wp_json_encode( $keep ) ) . '" data-n="' . (int) $n . '" data-for="' . (int) $pdf . '"' . ( $pdf ? '' : ' hidden' ) . '>';
+	$o   .= '<h3 style="margin:0 0 .25rem">' . esc_html__( 'Pages of the PDF', 'mcupr' ) . '</h3><p class="description" style="max-width:52rem">' . esc_html__( 'Show every page, then take out the ones the book should not show, or drag them (or use the arrows) to change the order. Nothing is changed in the PDF file itself.', 'mcupr' ) . '</p>';
+	$o   .= '<p><button type="button" class="button" id="mcupr-bk-load-pages">' . esc_html__( 'Show all pages', 'mcupr' ) . '</button> <span id="mcupr-bk-pages-msg" role="status" class="description">' . ( $keep && $n ? esc_html( sprintf( /* translators: 1: pages shown, 2: pages in the PDF */ __( 'The book shows %1$d of %2$d pages.', 'mcupr' ), count( $keep ), $n ) ) : '' ) . '</span></p>';
+	$o   .= '<input type="hidden" name="mcupr_bk_keep_for" id="mcupr-bk-keep-for" value="' . (int) $pdf . '"><input type="hidden" name="mcupr_bk_pdfn" id="mcupr-bk-pdfn" value="' . (int) $n . '"><input type="hidden" name="mcupr_bk_keep_on" id="mcupr-bk-keep-on" value="0">';
+	$o   .= '<ol id="mcupr-bk-pdfpages" class="mcupr-bk-grid" style="display:flex;flex-wrap:wrap;gap:10px;margin:0 0 .75rem;padding:0;list-style:none"></ol>';
+	$o   .= '<div id="mcupr-bk-removed-wrap" hidden><h4 style="margin:.75rem 0 .35rem">' . esc_html__( 'Pages taken out', 'mcupr' ) . '</h4><ol id="mcupr-bk-removed" style="display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;list-style:none"></ol></div></div>';
+	return $o;
+}
+
 function mcupr_book_box( $post ) {
 	wp_nonce_field( 'mcupr_book_save', 'mcupr_book_nonce' );
 	$src  = mcupr_book_src( $post->ID );
@@ -523,7 +563,7 @@ function mcupr_book_box( $post ) {
 	echo '<label style="margin-right:1.5rem"><input type="radio" name="mcupr_bk_src" value="images"' . checked( $src, 'images', false ) . '> <strong>' . esc_html__( 'Pictures (one picture per page)', 'mcupr' ) . '</strong></label>';
 	echo '<label><input type="radio" name="mcupr_bk_src" value="epub"' . checked( $src, 'epub', false ) . '> <strong>' . esc_html__( 'An EPUB file', 'mcupr' ) . '</strong></label></fieldset>';
 	// PDF
-	echo '<div class="mcupr-bk-pane" data-src="pdf"' . ( 'pdf' === $src ? '' : ' hidden' ) . '><input type="hidden" name="mcupr_bk_pdf" id="mcupr-bk-pdf" value="' . (int) $pdf . '"><p><strong id="mcupr-bk-pdf-name">' . ( $pdf ? esc_html( get_the_title( $pdf ) . ' – ' . basename( (string) get_attached_file( $pdf ) ) ) : esc_html__( 'No PDF chosen yet.', 'mcupr' ) ) . '</strong></p><p><button type="button" class="button" id="mcupr-bk-pick-pdf">' . esc_html__( 'Choose the PDF', 'mcupr' ) . '</button> <button type="button" class="button" id="mcupr-bk-cover"' . ( $pdf ? '' : ' disabled' ) . '>' . esc_html__( 'Use the first page as the cover', 'mcupr' ) . '</button> <span id="mcupr-bk-msg" role="status" class="description"></span></p></div>';
+	echo '<div class="mcupr-bk-pane" data-src="pdf"' . ( 'pdf' === $src ? '' : ' hidden' ) . '><input type="hidden" name="mcupr_bk_pdf" id="mcupr-bk-pdf" value="' . (int) $pdf . '"><p><strong id="mcupr-bk-pdf-name">' . ( $pdf ? esc_html( get_the_title( $pdf ) . ' – ' . basename( (string) get_attached_file( $pdf ) ) ) : esc_html__( 'No PDF chosen yet.', 'mcupr' ) ) . '</strong></p><p><button type="button" class="button" id="mcupr-bk-pick-pdf">' . esc_html__( 'Choose the PDF', 'mcupr' ) . '</button> <button type="button" class="button" id="mcupr-bk-cover"' . ( $pdf ? '' : ' disabled' ) . '>' . esc_html__( 'Use the first page as the cover', 'mcupr' ) . '</button> <span id="mcupr-bk-msg" role="status" class="description"></span></p>' . mcupr_book_pages_manager( $post->ID, $pdf ) . '</div>';
 	// pictures
 	echo '<div class="mcupr-bk-pane" data-src="images"' . ( 'images' === $src ? '' : ' hidden' ) . '><ul id="mcupr-bk-imgs" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 .75rem;padding:0;list-style:none">';
 	foreach ( $imgs as $a ) {
@@ -565,6 +605,29 @@ add_action(
 		update_post_meta( $post_id, '_mcupr_bk_src', $src );
 		$pdf = isset( $_POST['mcupr_bk_pdf'] ) ? absint( $_POST['mcupr_bk_pdf'] ) : 0;
 		$pdf && 'application/pdf' === get_post_mime_type( $pdf ) ? update_post_meta( $post_id, '_mcupr_bk_pdf', $pdf ) : delete_post_meta( $post_id, '_mcupr_bk_pdf' );
+		// the pages of the PDF the editor chose to show (only when the page manager was opened; a different PDF starts again with all its pages)
+		if ( ! $pdf || (int) get_post_meta( $post_id, '_mcupr_bk_keep_for', true ) !== $pdf ) {
+			delete_post_meta( $post_id, '_mcupr_bk_keep' );
+			delete_post_meta( $post_id, '_mcupr_bk_keep_for' );
+		}
+		if ( $pdf && ! empty( $_POST['mcupr_bk_keep_on'] ) && isset( $_POST['mcupr_bk_keep_for'] ) && absint( $_POST['mcupr_bk_keep_for'] ) === $pdf ) {
+			$n    = isset( $_POST['mcupr_bk_pdfn'] ) ? absint( $_POST['mcupr_bk_pdfn'] ) : 0;
+			$keep = array();
+			foreach ( isset( $_POST['mcupr_bk_keep'] ) && is_array( $_POST['mcupr_bk_keep'] ) ? array_slice( wp_unslash( $_POST['mcupr_bk_keep'] ), 0, 5000 ) : array() as $pg ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+				$pg = absint( $pg );
+				if ( $pg >= 1 && $pg <= $n && ! in_array( $pg, $keep, true ) ) {
+					$keep[] = $pg;
+				}
+			}
+			update_post_meta( $post_id, '_mcupr_bk_pdfn', $n );
+			if ( $n > 0 && $keep && $keep !== range( 1, $n ) ) {
+				update_post_meta( $post_id, '_mcupr_bk_keep', $keep );
+				update_post_meta( $post_id, '_mcupr_bk_keep_for', $pdf );
+			} else {
+				delete_post_meta( $post_id, '_mcupr_bk_keep' );
+				delete_post_meta( $post_id, '_mcupr_bk_keep_for' );
+			}
+		}
 		$epub = isset( $_POST['mcupr_bk_epub'] ) ? absint( $_POST['mcupr_bk_epub'] ) : 0;
 		$epub && 'application/epub+zip' === get_post_mime_type( $epub ) ? update_post_meta( $post_id, '_mcupr_bk_epub', $epub ) : delete_post_meta( $post_id, '_mcupr_bk_epub' );
 		$rows = array();
@@ -873,8 +936,9 @@ function mcupr_book_reader( $id, $args = array() ) {
 			return '';
 		}
 		$cfg['pdf']    = mcupr_book_file_url( $id, $pdf );
-		$cfg['worker'] = get_theme_file_uri( 'assets/vendor/pdfjs/pdf.worker.min.mjs' );
-		$cfg['lib']    = get_theme_file_uri( 'assets/vendor/pdfjs/pdf.min.mjs' );
+		$cfg['keep']   = mcupr_book_pdf_keep( $id );
+		$cfg['worker'] = get_theme_file_uri( 'assets/vendor/pdfjs/pdf.worker.min.js' );
+		$cfg['lib']    = get_theme_file_uri( 'assets/vendor/pdfjs/pdf.min.js' );
 		$cfg['cmaps']  = get_theme_file_uri( 'assets/vendor/pdfjs/cmaps/' );
 		$cfg['fonts']  = get_theme_file_uri( 'assets/vendor/pdfjs/standard_fonts/' );
 		$dl            = $cfg['pdf'];
