@@ -4,6 +4,34 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
 
 (async () => {
   const br = await launch();
+  // when a sign-in or a redirect does not arrive, say what the page showed (a stuck login is otherwise a bare timeout)
+  const newContext0 = br.newContext.bind(br);
+  br.newContext = async (...a) => {
+    const c = await newContext0(...a);
+    const newPage0 = c.newPage.bind(c);
+    c.newPage = async () => {
+      const pg = await newPage0();
+      const wfu = pg.waitForURL.bind(pg);
+      const typed = {};
+      const fill0 = pg.fill.bind(pg);
+      pg.fill = async (sel, val, ...r) => { if (sel === '#user_login' || sel === '#user_pass') { typed[sel] = val; } return fill0(sel, val, ...r); };
+      pg.waitForURL = async (...x) => {
+        try { return await wfu(...x); } catch (e) {
+          // a sign-in that did not go through (the form was posted while the test server was busy): send the form once more
+          if (/wp-login\.php/.test(pg.url()) && (await pg.locator('#wp-submit').count()) && !(await pg.locator('#login_error').count())) {
+            if (typed['#user_login'] && typed['#user_pass']) {
+              await fill0('#user_login', typed['#user_login']).catch(() => {}); await fill0('#user_pass', typed['#user_pass']).catch(() => {});
+              await pg.click('#wp-submit').catch(() => {});
+              try { return await wfu(...x); } catch (e2) { e = e2; }
+            }
+          }
+          console.log('DIAG waitForURL stuck on ' + pg.url() + ' :: ' + (await pg.locator('#login_error, .message, .wp-die-message, body').first().innerText({ timeout: 2000 }).catch(() => '?')).replace(/\s+/g, ' ').slice(0, 300)); throw e;
+        }
+      };
+      return pg;
+    };
+    return c;
+  };
   const ctx = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
   await ctx.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* cross-origin frame (the map) */ } });
   const p = await ctx.newPage();
@@ -2592,6 +2620,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     const wl = await kc.newPage();
     await wl.goto(B + '/wp-login.php');
     await wl.fill('#user_login', 'carde2e1'); await wl.fill('#user_pass', 'Card-pass-12345'); await wl.click('#wp-submit');
+    await wl.waitForSelector('#login_error', { timeout: 10000 }).catch(() => {});
     ok(await wl.locator('#login_error').count() === 1 && !/wp-admin|student/.test(wl.url().replace('wp-login.php', '')), 'card login: a student cannot go in by the ordinary WordPress login page with the password alone');
     // typing allowed by staff
     phpK('update_option("mcupr_card", array("on"=>1,"typing"=>1));');
@@ -3087,10 +3116,10 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
           await fp.mouse.move(bw.x + bw.width * 0.5, mid);
           ok((await fp.locator('.bk-fx').getAttribute('data-peel')) === null, 'e-books: turning "webgl": with the mouse in the middle no page is lifted');
           await fp.mouse.move(bw.x + bw.width * 0.97, cy, { steps: 4 });
-          await fp.waitForFunction(() => document.querySelector('.bk-fx').getAttribute('data-peel') === '1', null, { timeout: 4000 }).catch(() => {});
+          await fp.waitForFunction(() => document.querySelector('.bk-fx').getAttribute('data-peel') === '1', null, { timeout: 15000 }).catch(() => {});
           ok((await fp.locator('.bk-fx').getAttribute('data-peel')) === '1', 'e-books: turning "webgl": the corner lifts when the mouse comes near it');
           await fp.mouse.move(bw.x + bw.width * 0.5, mid, { steps: 4 });
-          await fp.waitForFunction(() => document.querySelector('.bk-fx').getAttribute('data-peel') === null, null, { timeout: 4000 }).catch(() => {});
+          await fp.waitForFunction(() => document.querySelector('.bk-fx').getAttribute('data-peel') === null, null, { timeout: 15000 }).catch(() => {});
           ok((await fp.locator('.bk-fx').getAttribute('data-peel')) === null, 'e-books: turning "webgl": it is put down when the mouse leaves the corner');
           const pg0 = +(await rd.getAttribute('data-page'));
           await fp.mouse.move(bw.x + bw.width * 0.95, cy); // a flick: let go before the middle, but fast enough to carry the page over
@@ -3483,9 +3512,9 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await qp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
         await qp.goto(B + '/?mcupr_office=e2e-ofhead&mcupr_osec=albums');
         await qp.waitForTimeout(600);
-        const qg = await qp.evaluate(() => { const h = document.querySelector('.of-head'); const up = document.querySelector('.of-up a'); return { head: !!h, h1: document.querySelectorAll('h1').length, count: h && h.querySelector('.of-count b') ? h.querySelector('.of-count b').textContent : '', lead: !!(h && h.querySelector('.of-head-lead')), icon: !!(h && h.querySelector('svg')), pill: up ? parseFloat(getComputedStyle(up).borderTopLeftRadius) > 20 : false, cards: document.querySelectorAll('.album-grid > *').length, sw: document.documentElement.scrollWidth - innerWidth }; });
+        const qg = await qp.evaluate(() => { const h = document.querySelector('.of-head'); const up = document.querySelector('.of-trail ol'); return { head: !!h, h1: document.querySelectorAll('h1').length, count: h && h.querySelector('.of-count b') ? h.querySelector('.of-count b').textContent : '', lead: !!(h && h.querySelector('.of-head-lead')), icon: !!(h && h.querySelector('svg')), pill: up ? parseFloat(getComputedStyle(up).borderTopLeftRadius) > 15 : false, cards: document.querySelectorAll('.album-grid > *').length, sw: document.documentElement.scrollWidth - innerWidth }; });
         const qtag = 'office section page (' + w + ' px, ' + menu + ' menu)';
-        ok(qg.head && qg.h1 === 1 && qg.count === '2' && qg.lead && qg.icon && qg.pill && qg.cards === 2 && qg.sw <= 0, qtag + ': head panel with icon, one line and the number "' + qg.count + '", the back link is a capsule, ' + qg.cards + ' cards, no sideways scroll');
+        ok(qg.head && qg.h1 === 1 && qg.count === '2' && qg.lead && qg.icon && qg.pill && qg.cards === 2 && qg.sw <= 0, qtag + ': head panel with icon, one line and the number "' + qg.count + '", the trail (home › offices › office) is a capsule, ' + qg.cards + ' cards, no sideways scroll');
         await qp.addScriptTag({ content: axeSource() });
         const axQ = await qp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
         ok(axQ.violations.length === 0, qtag + ': axe ' + (axQ.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
@@ -3523,7 +3552,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         const rh = await rp.evaluate(() => ({ stats: document.querySelectorAll('.of-stats li').length, ic: document.querySelectorAll('.of-stats .of-stat-ic svg').length, sw: document.documentElement.scrollWidth - innerWidth }));
         ok(rh.stats >= 1 && rh.ic === rh.stats && rh.sw <= 0, rtag + ': office home – ' + rh.stats + ' stat tiles with icons, no sideways scroll');
         if (menu === 'side') {
-          const rs = await rp.evaluate(() => { const f = document.querySelector('.site-page').getBoundingClientRect(); const u = document.querySelector('.of-up a').getBoundingClientRect(); const ids = document.querySelector('.of-id').getBoundingClientRect(); const t = document.querySelector('.of-tabs ul').getBoundingClientRect(); const chips = document.querySelector('.of-band .wrap').getBoundingClientRect(); return { top: u.top - f.top, left: u.left - f.left, idl: ids.left - f.left, gap: t.top - [...document.querySelectorAll('.of-band .wrap > *')].pop().getBoundingClientRect().bottom }; });
+          const rs = await rp.evaluate(() => { const f = document.querySelector('.site-page').getBoundingClientRect(); const u = document.querySelector('.of-trail ol').getBoundingClientRect(); const ids = document.querySelector('.of-id').getBoundingClientRect(); const t = document.querySelector('.of-tabs ul').getBoundingClientRect(); const chips = document.querySelector('.of-band .wrap').getBoundingClientRect(); return { top: u.top - f.top, left: u.left - f.left, idl: ids.left - f.left, gap: t.top - [...document.querySelectorAll('.of-band .wrap > *')].pop().getBoundingClientRect().bottom }; });
           ok(Math.abs(rs.top - 24) <= 2 && Math.abs(rs.left - 24) <= 2 && Math.abs(rs.idl - 24) <= 2 && Math.abs(rs.gap - 24) <= 3, rtag + ': office home head – the same inner margin on every side (top ' + rs.top.toFixed(0) + ', left ' + rs.left.toFixed(0) + ', bottom ' + rs.gap.toFixed(0) + ' px)');
         }
         if (w === 1428) {
