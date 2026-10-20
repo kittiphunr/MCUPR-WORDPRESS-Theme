@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.37 =
+* News browser: Finder/Files-style category tree, folders with descriptions, path bar.
+
 = 1.54.36 =
 * Round buttons in the all-menu: hover/pressed/contrast states fixed.
 
