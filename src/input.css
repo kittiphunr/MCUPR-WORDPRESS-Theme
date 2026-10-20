@@ -2144,7 +2144,6 @@ html[data-contrast] .office-card .oc-top.has-cover { background-image: none; }
 .gl { --of: var(--primary); --of-on: var(--on-primary); }
 .gl, .of-body { --gl-soft: color-mix(in srgb, var(--of) 12%, var(--bg)); }
 .gl .fi, .gl-gcards .fi { flex: none; }
-.gl-crumb { margin: 0 0 1rem; }
 .gl-band { position: relative; overflow: hidden; isolation: isolate; padding: 1.35rem 1.6rem 3.5rem; border: 1px solid var(--edge); border-radius: 1.8rem; background: linear-gradient(135deg, var(--bg), color-mix(in srgb, var(--of) 10%, var(--bg))); color: var(--text); box-shadow: 0 2px 14px color-mix(in srgb, var(--text) 7%, transparent); } /* the same light panel as the head of the office's pages, under the office band */
 .gl-band:not(:has(+ .gl-tabs)) { padding-bottom: 1.35rem; }
 .gl-band::before, .gl-band::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; background: var(--of); opacity: .08; pointer-events: none; }
@@ -2787,3 +2786,18 @@ html[data-contrast] .cc-panel { box-shadow: none; border-width: 2px; }
 html:is([data-menu="side"],[data-menu="hybrid"]) .office-chrome[data-variant="full"] .of-band { padding-top: 1.5rem; }
 html:is([data-menu="side"],[data-menu="hybrid"]) .office-chrome[data-variant="full"] .of-band > .wrap { padding-inline: .75rem; }
 html:is([data-menu="side"],[data-menu="hybrid"]) .office-chrome[data-variant="full"] .of-up { margin-bottom: .75rem; }
+
+/* the trail of the three levels (university / offices / office / group) in the office band */
+.of-trail { margin: 0 0 .5rem; font-size: .9rem; }
+.of-trail ol { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .1rem .15rem; margin: 0; padding: .2rem .85rem; list-style: none; border: 1px solid color-mix(in srgb, var(--of-on) 40%, transparent); border-radius: 1.2rem; background: color-mix(in srgb, var(--of-on) 14%, transparent); }
+.of-trail li { display: inline-flex; align-items: center; gap: .15rem; }
+.of-trail a { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--of-on) 55%, transparent); text-underline-offset: 3px; }
+.of-trail a:hover, .of-trail a:focus-visible { text-decoration-color: currentColor; }
+.of-trail [aria-current] { font-weight: 800; }
+.of-trail-sep { display: inline-grid; place-items: center; opacity: .8; }
+.office-chrome[data-variant="slim"] .of-trail { display: none; }
+.office-chrome[data-level="3"] .of-en, .office-chrome[data-level="3"] .of-tag { display: none; }
+html[data-contrast] .of-trail ol { border: 2px solid var(--border); background: var(--bg); color: var(--text); }
+html[data-contrast] .of-trail a { text-decoration-color: currentColor; }
+@media print { .of-trail { display: none; } }
+html:is([data-menu="side"],[data-menu="hybrid"]) .office-chrome[data-variant="full"] .of-trail { margin-bottom: .75rem; }
