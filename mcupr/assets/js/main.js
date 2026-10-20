@@ -1273,6 +1273,7 @@
 			b.addEventListener('click', function () {
 				var v = b.getAttribute('data-fb-view');
 				if (fbItems) { fbItems.setAttribute('data-view', v); }
+				fb.setAttribute('data-view', v);
 				fbBtns.forEach(function (o) { o.setAttribute('aria-checked', String(o === b)); });
 				try { localStorage.setItem('mcupr_view', v); } catch (e) { /* ignore */ }
 			});
@@ -1292,13 +1293,34 @@
 		if (fbDrawer && window.matchMedia) {
 			window.matchMedia('(min-width: 900px)').addEventListener('change', function (e) { if (e.matches) { fbDrawer.setAttribute('open', ''); } });
 		}
+		/* the category tree: a button opens / closes the level below (open in the HTML for no-JS only when the current category is inside) */
+		var fbSetNode = function (li, open) {
+			var t = $(':scope > .fb-row > [data-fb-tog]', li), box = $(':scope > .fb-subwrap', li);
+			if (!t || !box) { return; }
+			t.setAttribute('aria-expanded', String(open));
+			box.hidden = !open;
+			t.setAttribute('aria-label', (open ? fbText.collapse : fbText.expand) + ' ' + t.getAttribute('data-name'));
+		};
+		var fbSide = $('.fb-side', fb);
+		var fbTree = $('.fb-tree', fb);
+		var fbText = { expand: fbTree ? fbTree.getAttribute('data-expand') : '', collapse: fbTree ? fbTree.getAttribute('data-collapse') : '' };
+		if (fbSide) {
+			fbSide.addEventListener('click', function (e) {
+				var b = e.target.closest ? e.target.closest('[data-fb-tog]') : null;
+				if (!b) { return; }
+				fbSetNode(b.closest('li'), b.getAttribute('aria-expanded') !== 'true');
+			});
+		}
 		var fbFind = $('[data-fb-filter]', fb);
 		if (fbFind) {
 			var fbZones = $$('[data-fb-zone]', fb);
 			var fbWas = fbZones.map(function (z) { return z.hasAttribute('open'); });
+			var fbNodeWas = new Map(), fbSearching = false;
 			fbFind.addEventListener('input', function () {
 				var q = fbFind.value.trim().toLowerCase();
 				var shown = 0;
+				if (q && !fbSearching) { $$('[data-fb-node]', fb).forEach(function (li) { var t = $(':scope > .fb-row > [data-fb-tog]', li); fbNodeWas.set(li, !!t && t.getAttribute('aria-expanded') === 'true'); }); }
+				fbSearching = !!q;
 				$$('[data-fb-item]', fb).forEach(function (li) {
 					var hit = !q || li.textContent.toLowerCase().indexOf(q) !== -1;
 					li.hidden = !hit;
@@ -1316,6 +1338,9 @@
 						nxt = nxt.nextElementSibling;
 					}
 					h.hidden = !vis;
+				});
+				$$('[data-fb-node]', fb).forEach(function (li) {
+					if (q) { fbSetNode(li, !li.hidden); } else { fbSetNode(li, fbNodeWas.get(li)); }
 				});
 				var em = $('.fb-empty', fb);
 				if (em) { em.hidden = shown > 0; }
