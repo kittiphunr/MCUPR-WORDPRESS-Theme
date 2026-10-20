@@ -32,11 +32,11 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
-= 1.54.30 =
-* All menu: split layout contrast fix
-
-= 1.54.29 =
+= 1.54.32 =
 * All menu: groups rail on the left, the chosen group on the right
+
+= 1.54.31 =
+* Work group page: services first as tiles beside the group, figures part
 
 = 1.54.28 =
 * All menu: bento safe without the script, measured again after fonts and resize

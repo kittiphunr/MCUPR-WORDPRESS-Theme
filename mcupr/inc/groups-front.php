@@ -16,6 +16,7 @@ function mcupr_group_part_names() {
 	return array(
 		'about'    => array( 'gr_about', 'gr_tab_about', 'info' ),
 		'services' => array( 'gr_services', 'gr_tab_services', 'grid' ),
+		'stats'    => array( 'gr_stats', 'gr_tab_stats', 'trending-up' ),
 		'news'     => array( 'gr_news', 'gr_tab_news', 'bell' ),
 		'people'   => array( 'gr_people', 'gr_tab_people', 'users' ),
 		'docs'     => array( 'gr_docs', 'gr_tab_docs', 'file-text' ),
@@ -42,26 +43,31 @@ function mcupr_group_h2( $key ) {
 	return '<h2 id="gl-' . esc_attr( $key ) . '-t" class="gl-h"><span class="gl-ic" aria-hidden="true">' . mcupr_feather( $n[2], 20 ) . '</span>' . esc_html( mcupr_t( $n[0] ) ) . '</h2>';
 }
 
-/** The band at the top: mark, name (the h1), office, one-line description and chips (hours, telephone, place). */
-function mcupr_group_band( $gid, array $d ) {
-	$name = get_the_title( $gid );
-	$o    = '<header class="gl-band"><div class="gl-who"><span class="gl-mark" aria-hidden="true">' . esc_html( mcupr_group_initial( $name ) ) . '</span><div class="min-w-0"><h1 class="gl-name">' . esc_html( $name ) . '</h1>';
-	$sub  = array();
+/**
+ * The left of the top of the page: where the group belongs, its name (the h1), the one-line description, "start here" when there are
+ * services (the tiles beside it) and the chips (hours, telephone, place).
+ */
+function mcupr_group_band( $gid, array $d, array $secs = array() ) {
+	$eye = array();
 	if ( $d['office'] ) {
-		$sub[] = esc_html( get_the_title( $d['office'] ) );
+		$eye[] = esc_html( get_the_title( $d['office'] ) );
 	}
 	if ( '' !== $d['division'] ) {
-		$sub[] = esc_html( $d['division'] );
+		$eye[] = esc_html( $d['division'] );
 	}
+	$o = '<header class="gl-band">';
+	if ( $eye ) {
+		$o .= '<p class="gl-eye">' . implode( ' · ', $eye ) . '</p>';
+	}
+	$o .= '<h1 class="gl-name">' . esc_html( get_the_title( $gid ) ) . '</h1>';
 	if ( '' !== $d['name_en'] ) {
-		$sub[] = '<span lang="en">' . esc_html( $d['name_en'] ) . '</span>';
+		$o .= '<p class="gl-sub" lang="en">' . esc_html( $d['name_en'] ) . '</p>';
 	}
-	if ( $sub ) {
-		$o .= '<p class="gl-sub">' . implode( ' · ', $sub ) . '</p>';
-	}
-	$o .= '</div></div>';
 	if ( has_excerpt( $gid ) ) {
 		$o .= '<p class="gl-lead"' . mcupr_part_lang_attr( $gid ) . '>' . esc_html( get_the_excerpt( $gid ) ) . '</p>';
+	}
+	if ( in_array( 'services', $secs, true ) ) {
+		$o .= '<p class="gl-start">' . mcupr_feather( 'arrow-right', 18 ) . '<span>' . esc_html( mcupr_t( 'gr_start' ) ) . '</span></p>';
 	}
 	$chips = array();
 	if ( $d['hours'] ) {
@@ -98,6 +104,15 @@ function mcupr_group_tabs( array $secs ) {
 function mcupr_group_part_about( $gid ) {
 	$post = get_post( $gid );
 	return '<div class="gl-card gl-about reader"' . mcupr_part_lang_attr( $gid ) . '>' . apply_filters( 'the_content', $post->post_content ) . '</div>'; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals
+}
+
+/** The figures: big numbers with what they count. */
+function mcupr_group_part_stats( array $d ) {
+	$o = '<ul class="gl-card gl-figs">';
+	foreach ( $d['stats'] as $st ) {
+		$o .= '<li><b>' . esc_html( $st['num'] ) . '</b>' . ( '' !== $st['label'] ? '<span>' . esc_html( $st['label'] ) . '</span>' : '' ) . '</li>';
+	}
+	return $o . '</ul>';
 }
 
 function mcupr_group_part_services( array $d ) {
@@ -224,29 +239,35 @@ function mcupr_group_render( $gid ) {
 	$d    = mcupr_group_data( $gid );
 	$secs = mcupr_group_sections( $gid );
 	echo '<div class="wrap gl mt-6 pb-6"' . ( $d['office'] ? ' style="' . esc_attr( mcupr_office_style( $d['office'] ) ) . '"' : '' ) . '>';
-	echo mcupr_group_band( $gid, $d ); // phpcs:ignore WordPress.Security.EscapeOutput
-	echo mcupr_group_tabs( $secs ); // phpcs:ignore WordPress.Security.EscapeOutput
-	foreach ( $secs as $k ) {
+	$html_of = static function ( $k ) use ( $gid, $d ) {
 		switch ( $k ) {
 			case 'about':
-				$html = mcupr_group_part_about( $gid );
-				break;
+				return mcupr_group_part_about( $gid );
 			case 'services':
-				$html = mcupr_group_part_services( $d );
-				break;
+				return mcupr_group_part_services( $d );
+			case 'stats':
+				return mcupr_group_part_stats( $d );
 			case 'news':
-				$html = mcupr_group_part_news( $gid );
-				break;
+				return mcupr_group_part_news( $gid );
 			case 'people':
-				$html = mcupr_group_part_people( $gid );
-				break;
+				return mcupr_group_part_people( $gid );
 			case 'docs':
-				$html = mcupr_group_part_docs( $gid );
-				break;
+				return mcupr_group_part_docs( $gid );
 			default:
-				$html = mcupr_group_part_contact( $d );
+				return mcupr_group_part_contact( $d );
 		}
-		echo '<section id="gl-' . esc_attr( $k ) . '" class="gl-sec gl-sec-' . esc_attr( $k ) . '" aria-labelledby="gl-' . esc_attr( $k ) . '-t">' . mcupr_group_h2( $k ) . $html . '</section>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	};
+	$section = static function ( $k ) use ( $html_of ) {
+		return '<section id="gl-' . esc_attr( $k ) . '" class="gl-sec gl-sec-' . esc_attr( $k ) . '" aria-labelledby="gl-' . esc_attr( $k ) . '-t">' . mcupr_group_h2( $k ) . $html_of( $k ) . '</section>';
+	};
+	// the top: the group on the left, what people come for (the services) as big tiles on the right
+	$has_svc = in_array( 'services', $secs, true );
+	echo '<div class="gl-top' . ( $has_svc ? ' has-svc' : '' ) . '">' . mcupr_group_band( $gid, $d, $secs ) . ( $has_svc ? $section( 'services' ) : '' ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo mcupr_group_tabs( $secs ); // phpcs:ignore WordPress.Security.EscapeOutput
+	foreach ( $secs as $k ) {
+		if ( 'services' !== $k ) {
+			echo $section( $k ); // phpcs:ignore WordPress.Security.EscapeOutput
+		}
 	}
 	if ( ! $secs ) {
 		echo '<p class="gl-empty text-muted">' . esc_html( mcupr_t( 'of_none' ) ) . '</p>';
