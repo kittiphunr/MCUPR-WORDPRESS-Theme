@@ -354,7 +354,7 @@ add_action(
 		$path  = $f ? mcupr_rq_dir( $f['k'] ) . '/' . wp_basename( $f['f'] ) : '';
 		$real  = $path ? realpath( $path ) : false;
 		$base  = realpath( mcupr_rq_dir() );
-		if ( ! $real || ! $base || 0 !== strpos( $real, $base ) || ! is_readable( $real ) ) {
+		if ( ! $real || ! $base || ! mcupr_path_inside( $real, $base ) || ! is_readable( $real ) ) {
 			wp_die( esc_html( mcupr_t( 'file_missing' ) ), '', array( 'response' => 404 ) );
 		}
 		nocache_headers();
