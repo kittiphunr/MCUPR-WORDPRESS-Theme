@@ -12,8 +12,21 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     c.newPage = async () => {
       const pg = await newPage0();
       const wfu = pg.waitForURL.bind(pg);
+      const typed = {};
+      const fill0 = pg.fill.bind(pg);
+      pg.fill = async (sel, val, ...r) => { if (sel === '#user_login' || sel === '#user_pass') { typed[sel] = val; } return fill0(sel, val, ...r); };
       pg.waitForURL = async (...x) => {
-        try { return await wfu(...x); } catch (e) { console.log('DIAG waitForURL stuck on ' + pg.url() + ' :: ' + (await pg.locator('#login_error, .message, .wp-die-message, body').first().innerText({ timeout: 2000 }).catch(() => '?')).replace(/\s+/g, ' ').slice(0, 300)); throw e; }
+        try { return await wfu(...x); } catch (e) {
+          // a sign-in that did not go through (the form was posted while the test server was busy): send the form once more
+          if (/wp-login\.php/.test(pg.url()) && (await pg.locator('#wp-submit').count()) && !(await pg.locator('#login_error').count())) {
+            if (typed['#user_login'] && typed['#user_pass']) {
+              await fill0('#user_login', typed['#user_login']).catch(() => {}); await fill0('#user_pass', typed['#user_pass']).catch(() => {});
+              await pg.click('#wp-submit').catch(() => {});
+              try { return await wfu(...x); } catch (e2) { e = e2; }
+            }
+          }
+          console.log('DIAG waitForURL stuck on ' + pg.url() + ' :: ' + (await pg.locator('#login_error, .message, .wp-die-message, body').first().innerText({ timeout: 2000 }).catch(() => '?')).replace(/\s+/g, ' ').slice(0, 300)); throw e;
+        }
       };
       return pg;
     };
