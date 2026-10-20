@@ -201,7 +201,7 @@ foreach ( array( 'save_post', 'deleted_post', 'transition_post_status', 'set_obj
 
 /** The parts of a group page, in their order. "about" is the text of the group (it has no switch: no text, no part). */
 function mcupr_group_section_keys() {
-	return array( 'services', 'stats', 'about', 'news', 'people', 'docs', 'contact' );
+	return array( 'services', 'stats', 'news', 'people', 'about', 'docs', 'contact' );
 }
 
 /** The parts that can be switched off on a group. */
