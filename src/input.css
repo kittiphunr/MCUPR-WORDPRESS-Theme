@@ -2866,12 +2866,39 @@ html[data-motion="1"] .fs-rb { transition: none; }
 @media (max-width: 420px) { .gl-top.has-svc .gl-svc { grid-template-columns: 1fr; } }
 /* the figures */
 .gl-figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); margin: 0; padding: 0; list-style: none; overflow: hidden; }
-.gl-figs li { padding: 1.3rem 1.6rem; border-inline-end: 1px solid var(--edge); }
+.gl-figs li { display: block; padding: 1.3rem 1.6rem; border-inline-end: 1px solid var(--edge); }
 .gl-figs li:last-child { border-inline-end: 0; }
 .gl-figs b { display: block; color: color-mix(in srgb, var(--of) 82%, var(--text)); font-size: clamp(2rem, 1.4rem + 2vw, 2.9rem); font-weight: 800; line-height: 1.1; }
-.gl-figs span { color: var(--text-2); font-weight: 600; }
+.gl-figs span { display: block; color: var(--text-2); font-weight: 600; }
 html[data-contrast] .gl-top.has-svc .gl-svc-i:first-child { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
 html[data-contrast] .gl-top.has-svc .gl-svc-i:first-child .gl-svc-t a, html[data-contrast] .gl-top.has-svc .gl-svc-i:first-child .gl-svc-x { color: var(--text); }
 html[data-contrast] .gl-top.has-svc .gl-svc-i:first-child .gl-svc-ic { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
 html[data-contrast] .gl-figs b { color: var(--text); }
 html[data-contrast] .gl-figs li { border-color: var(--border); }
+
+/* below the top: figures, news and people side by side; the documents beside the contact */
+.gl-rows { display: grid; gap: clamp(.8rem, 1.8vw, 1.25rem); margin-top: 1.5rem; align-items: stretch; }
+.gl-rows-b { align-items: start; }
+.gl-rows > .gl-sec { margin-top: 0; min-width: 0; display: flex; flex-direction: column; }
+.gl-rows > .gl-sec > .gl-card, .gl-rows > .gl-sec > .gl-people, .gl-rows > .gl-sec > .gl-contact { flex: 1; }
+@media (min-width: 900px) {
+	.gl-rows-a.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+	.gl-rows-a.n2, .gl-rows-b.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.gl-rows-b.n2 { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+}
+.gl-rows-a .gl-people { grid-template-columns: 1fr; gap: .6rem; }
+.gl-rows-a .gl-person { display: flex; align-items: center; gap: .9rem; padding: .8rem 1rem; text-align: start; }
+.gl-rows-a .gl-person .gl-ph { flex: none; width: 3.6rem; height: 3.6rem; margin: 0; }
+.gl-rows-a .gl-person.is-head { grid-column: auto; }
+.gl-rows-a .gl-person.is-head .gl-ph { width: 3.6rem; height: 3.6rem; }
+.gl-rows-b .gl-contact { grid-template-columns: 1fr; }
+.gl-rows-b .gl-cc.gl-write { border-color: transparent; background: var(--of); color: var(--of-on); }
+.gl-rows-b .gl-cc.gl-write .gl-h3, .gl-rows-b .gl-cc.gl-write .gl-write-x { color: var(--of-on); }
+.gl-rows-b .gl-cc.gl-write .gl-btn.is-solid { border-color: var(--of-on); background: var(--of-on); color: var(--of); }
+.gl-rows-a .gl-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; padding: 1rem; background: transparent; border: 0; box-shadow: none; }
+.gl-rows-a .gl-figs li { display: block; padding: .9rem 1rem; border: 0; border-radius: 1.1rem; background: var(--gl-soft); }
+.gl-rows-a .gl-figs b { font-size: clamp(1.6rem, 1.2rem + 1vw, 2.1rem); }
+.gl-rows-a .gl-figs span { font-size: .9rem; }
+html[data-contrast] .gl-rows-b .gl-cc.gl-write { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
+html[data-contrast] .gl-rows-b .gl-cc.gl-write .gl-h3, html[data-contrast] .gl-rows-b .gl-cc.gl-write .gl-write-x { color: var(--text); }
+html[data-contrast] .gl-rows-a .gl-figs li { border: 2px solid var(--border); background: var(--bg); }
