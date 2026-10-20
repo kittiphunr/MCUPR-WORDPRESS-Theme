@@ -3308,18 +3308,18 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       }
       phpD('remove_theme_mod( "mcupr_toolbar" );');
     }
-    // sidebar mode, a visitor: the content is as wide as the frame, and the home hero starts at the top edge of the capsule
+    // sidebar mode, a visitor: the content is as wide as the frame, and the home hero fills the frame edge to edge
     for (const [w, sbmin] of [[1428, false], [1920, true], [1180, false]]) {
       const fc = await br.newContext({ viewport: { width: w, height: 800 } });
       const fp = await fc.newPage();
       await fp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', m ? '1' : '0'); } catch (e) { /* */ } }, sbmin);
       await fp.goto(B + '/');
       await fp.waitForTimeout(700);
-      const g = await fp.evaluate(() => { const r = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; }; const f = r('.site-page'), h = r('#masthead'), hero = r('.hero'); const ws = [...document.querySelectorAll('#content .wrap')].slice(0, 6).map((e) => e.getBoundingClientRect()); return f && h && hero ? { top: hero.top - h.top, right: hero.right - h.right, left: hero.left - f.left, rgap: f.right - hero.right, wl: Math.max.apply(null, ws.map((x) => Math.abs(x.left - hero.left))), wr: Math.max.apply(null, ws.map((x) => Math.abs(x.right - hero.right))), sw: document.documentElement.scrollWidth - innerWidth } : null; });
+      const g = await fp.evaluate(() => { const r = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; }; const f = r('.site-page'), hero = r('.hero'); const ws = [...document.querySelectorAll('#content .wrap:not(.hero-wrap)')].slice(0, 6).map((e) => e.getBoundingClientRect()); return f && hero ? { top: hero.top - f.top, right: hero.right - f.right, left: hero.left - f.left, wl: Math.max.apply(null, ws.map((x) => Math.abs((x.left - f.left) - (f.right - x.right)))), gl: Math.min.apply(null, ws.map((x) => x.left - f.left)), gr: Math.max.apply(null, ws.map((x) => x.left - f.left)), sw: document.documentElement.scrollWidth - innerWidth } : null; });
       const tag = 'sidebar mode (' + w + ' px, ' + (sbmin ? 'folded' : 'open') + ', visitor)';
-      ok(g && Math.abs(g.top) <= 1, tag + ': the hero starts at the top edge of the tools capsule (' + (g ? g.top.toFixed(1) : '?') + ' px apart)');
-      ok(g && Math.abs(g.right) <= 1 && Math.abs(g.left - g.rgap) <= 1 && g.left >= 10 && g.left <= 16, tag + ': the hero ends where the capsule ends (' + (g ? g.right.toFixed(1) : '?') + ' px) and is the same ' + (g ? g.left.toFixed(1) : '?') + ' px inside the frame on both sides (' + (g ? g.rgap.toFixed(1) : '?') + ')');
-      ok(g && g.wl <= 1 && g.wr <= 1 && g.sw <= 0, tag + ': the other blocks are as wide as the hero, and nothing scrolls sideways');
+      ok(g && Math.abs(g.top) <= 1, tag + ': the hero starts at the top edge of the frame (' + (g ? g.top.toFixed(1) : '?') + ' px apart)');
+      ok(g && Math.abs(g.right) <= 1 && Math.abs(g.left) <= 1, tag + ': the hero fills the frame edge to edge (' + (g ? g.left.toFixed(1) : '?') + ' / ' + (g ? g.right.toFixed(1) : '?') + ' px)');
+      ok(g && g.wl <= 1 && g.gl >= 10 && g.gr <= 16 && g.sw <= 0, tag + ': the other blocks keep the same small gap on both sides of the frame, and nothing scrolls sideways');
       const fg = await fp.evaluate(() => { window.scrollTo(0, document.body.scrollHeight); const f = document.querySelector('.site-page').getBoundingClientRect(), c = document.querySelector('#colophon > .wrap').getBoundingClientRect(); return { bottom: f.bottom - c.bottom, side: f.right - c.right, left: c.left - f.left }; });
       ok(Math.abs(fg.bottom - fg.side) <= 1 && Math.abs(fg.left - fg.side) <= 1, tag + ': the footer card is as far from the bottom of the frame (' + fg.bottom.toFixed(1) + ' px) as from its sides (' + fg.left.toFixed(1) + ' / ' + fg.side.toFixed(1) + ' px)');
       await fc.close();
