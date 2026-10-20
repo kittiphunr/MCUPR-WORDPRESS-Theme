@@ -221,7 +221,7 @@ t( isset( $cols['mcupr_g_people'] ), 'admin list: a column with the number of pe
 ob_start(); do_action( 'restrict_manage_posts', 'mcupr_group', 'top' ); $flt = ob_get_clean();
 t( false !== strpos( $flt, 'name="mcupr_of_filter"' ) && false !== strpos( $flt, 'สำนักงานทดสอบกลุ่มงาน' ), 'admin list: the administrator\'s filter by office (like the other content of an office)' );
 $cc = mcupr_cc_data();
-t( isset( $cc['items']['groups'] ) && 'content' === $cc['items']['groups']['cat'] && 'type:mcupr_group' === $cc['items']['groups']['open'] && in_array( 'type:mcupr_group', $cc['items']['groups']['screens'], true ), 'control center: an entry for the work groups in the content group, with its screen' );
+t( isset( $cc['items']['groups'] ) && 'people' === $cc['items']['groups']['cat'] && 'type:mcupr_group' === $cc['items']['groups']['open'] && in_array( 'type:mcupr_group', $cc['items']['groups']['screens'], true ), 'control center: an entry for the work groups in the people and offices group, with its screen' );
 $keys = array( 'gr_groups', 'gr_enter', 'gr_people_n', 'gr_on_page', 'gr_about', 'gr_tab_about', 'gr_services', 'gr_tab_services', 'gr_news', 'gr_tab_news', 'gr_news_all', 'gr_news_of', 'gr_news_clear', 'gr_back', 'gr_people', 'gr_tab_people', 'gr_head', 'gr_docs', 'gr_tab_docs', 'gr_download', 'gr_updated', 'gr_contact', 'gr_tab_contact', 'gr_ask', 'gr_channels', 'gr_place', 'gr_write', 'gr_write_lead', 'gr_write_btn' );
 $miss = array();
 foreach ( $keys as $k ) {
