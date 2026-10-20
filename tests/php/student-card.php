@@ -17,7 +17,7 @@ t( mcupr_card_rfid_ok( '4028251661' ) && ! mcupr_card_rfid_ok( '402825166' ) && 
 t( mcupr_card_idcard_ok( '1101700203450' ) && ! mcupr_card_idcard_ok( '1101700203451' ) && ! mcupr_card_idcard_ok( '110170020345' ) && ! mcupr_card_idcard_ok( 'abcdefghijklm' ), 'national ID: 13 digits with the right check digit' );
 t( '4028251661' === mcupr_card_digits( ' 4028251661.0 ' ) && '1101700203450' === mcupr_card_digits( '1-1017-00203-45-0' ), 'values: spaces, dashes and ".0" from a spreadsheet are removed' );
 $h = mcupr_card_import_cell( 'rfid', '4028251661' );
-t( 0 === strpos( $h, 'h:' ) && false === strpos( $h, '4028251661' ) && 66 === strlen( $h ), 'hash: the cell becomes a keyed hash that does not contain the number' );
+t( 0 === strpos( $h, 'h:' ) && false === strpos( $h, '4028251661' ) && 71 === strlen( $h ) && '|1661' === substr( $h, -5 ) && array( substr( $h, 2, 64 ), '1661' ) === mcupr_card_cell_split( substr( $h, 2 ) ), 'hash: the cell becomes a keyed hash and the last 4 digits, not the number' );
 t( $h === mcupr_card_import_cell( 'rfid', '4028251661.0' ) && 'bad' === mcupr_card_import_cell( 'rfid', '123' ) && '' === mcupr_card_import_cell( 'rfid', '  ' ) && 'bad' === mcupr_card_import_cell( 'idcard', '1101700203451' ), 'hash: same value same hash; short, empty and wrong-check-digit are told apart' );
 t( mcupr_card_import_cell( 'rfid', '1101700203450' ) !== mcupr_card_import_cell( 'idcard', '1101700203450' ), 'hash: a card code and an ID number never share a hash' );
 
@@ -143,12 +143,17 @@ t( false !== strpos( $form, 'name="on"' ) && false !== strpos( $form, 'name="typ
 $_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_rfid' => '5555555555', 'mcupr_card_idc' => '1101700203450' );
 do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
 t( mcupr_card_state( $s4 ) === array( 'rfid' => true, 'idcard' => true ), 'staff: a card code and an ID number set on the record' );
+ob_start(); mcupr_card_box( get_post( $s4 ) ); $bx0 = ob_get_clean();
+t( '••••••5555' === mcupr_card_rfid_shown( $s4 ) && false !== strpos( $bx0, 'placeholder="••••••5555"' ) && false === strpos( $bx0, '5555555555' ), 'staff: the card code is shown by its last 4 digits, never in full' );
+$s6 = wp_insert_post( array( 'post_type' => MCUPR_STU, 'post_status' => 'publish', 'post_title' => 'Old card' ) ); update_post_meta( $s6, MCUPR_CARD_RFID, str_repeat( 'a', 64 ) );
+t( '' === mcupr_card_rfid_shown( $s6 ) && mcupr_card_state( $s6 )['rfid'], 'staff: a card set before the last digits were kept just says "set"' ); wp_delete_post( $s6, true );
 $_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_rfid' => '4028251661' );
 do_action( 'save_post_mcupr_student', $s2, get_post( $s2 ), true );
 t( ! mcupr_card_state( $s2 )['rfid'], 'staff: a card code that belongs to another student is not set' );
 $_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_clear_rfid' => '1' );
 do_action( 'save_post_mcupr_student', $s4, get_post( $s4 ), true );
 t( ! mcupr_card_state( $s4 )['rfid'] && mcupr_card_state( $s4 )['idcard'], 'staff: the card code removed, the ID number kept' );
+t( '' === mcupr_card_rfid_shown( $s4 ), 'staff: removing the card code removes its last digits too' );
 // the box shows the number from the central details and keeps both places in step
 t( '1101700203450' === ( mcupr_sp_get( $s4 )['idcard'] ?? '' ), 'sync: an ID number set in the box is also in the central details' );
 ob_start(); mcupr_card_box( get_post( $s4 ) ); $bx = ob_get_clean();
