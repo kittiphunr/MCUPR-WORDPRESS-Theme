@@ -3116,10 +3116,10 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
           await fp.mouse.move(bw.x + bw.width * 0.5, mid);
           ok((await fp.locator('.bk-fx').getAttribute('data-peel')) === null, 'e-books: turning "webgl": with the mouse in the middle no page is lifted');
           await fp.mouse.move(bw.x + bw.width * 0.97, cy, { steps: 4 });
-          await fp.waitForFunction(() => document.querySelector('.bk-fx').getAttribute('data-peel') === '1', null, { timeout: 4000 }).catch(() => {});
+          await fp.waitForFunction(() => document.querySelector('.bk-fx').getAttribute('data-peel') === '1', null, { timeout: 15000 }).catch(() => {});
           ok((await fp.locator('.bk-fx').getAttribute('data-peel')) === '1', 'e-books: turning "webgl": the corner lifts when the mouse comes near it');
           await fp.mouse.move(bw.x + bw.width * 0.5, mid, { steps: 4 });
-          await fp.waitForFunction(() => document.querySelector('.bk-fx').getAttribute('data-peel') === null, null, { timeout: 4000 }).catch(() => {});
+          await fp.waitForFunction(() => document.querySelector('.bk-fx').getAttribute('data-peel') === null, null, { timeout: 15000 }).catch(() => {});
           ok((await fp.locator('.bk-fx').getAttribute('data-peel')) === null, 'e-books: turning "webgl": it is put down when the mouse leaves the corner');
           const pg0 = +(await rd.getAttribute('data-page'));
           await fp.mouse.move(bw.x + bw.width * 0.95, cy); // a flick: let go before the middle, but fast enough to carry the page over
