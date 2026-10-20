@@ -78,7 +78,7 @@ t( '' !== mcupr_book_cover_url( $b2 ), 'a picture book uses its first picture as
 
 // ---- the reader
 $h = mcupr_book_reader( $b1 );
-t( false !== strpos( $h, 'class="bk-reader"' ) && false !== strpos( $h, 'data-book' ) && false !== strpos( $h, 'pdf.min.mjs' ), 'PDF reader: markup with the PDF.js address' );
+t( false !== strpos( $h, 'class="bk-reader"' ) && false !== strpos( $h, 'data-book' ) && false !== strpos( $h, 'pdf.min.js' ), 'PDF reader: markup with the PDF.js address' );
 t( false !== strpos( $h, ' download ' ), 'PDF reader: download is offered by default' );
 update_post_meta( $b1, '_mcupr_bk_dl', '0' );
 t( false === strpos( mcupr_book_reader( $b1 ), ' download ' ), 'PDF reader: the book can hide the download button' );
@@ -111,7 +111,7 @@ ob_start(); mcupr_book_box( get_post( $bx ) ); $bb = ob_get_clean();
 t( false !== strpos( $bb, 'name="mcupr_bk_fx"' ) && false !== strpos( $bb, esc_html__( 'Same as the settings', 'mcupr' ) ), 'the edit screen of a book has the choice' );
 wp_delete_post( $bx, true );
 delete_option( 'mcupr_books_opts' );
-foreach ( array( 'assets/vendor/pageflip/page-flip.browser.js', 'assets/vendor/pdfjs/pdf.min.mjs', 'assets/vendor/pdfjs/pdf.worker.min.mjs', 'assets/js/book-reader.js', 'assets/js/book-shelf.js' ) as $f ) {
+foreach ( array( 'assets/vendor/pageflip/page-flip.browser.js', 'assets/vendor/pdfjs/pdf.min.js', 'assets/vendor/pdfjs/pdf.worker.min.js', 'assets/js/book-reader.js', 'assets/js/book-shelf.js' ) as $f ) {
 	t( is_readable( get_theme_file_path( $f ) ), 'file shipped: ' . $f );
 }
 
@@ -261,6 +261,26 @@ if ( is_wp_error( $probe ) ) {
 $src = file_get_contents( get_theme_file_path( 'inc/strings.php' ) );
 preg_match_all( "/'(bk_[a-z0-9_]+)' => array\\( ('[^']*'|\"[^\"]*\"), ('[^']*'|\"[^\"]*\"), ('[^']*'|\"[^\"]*\"), ('[^']*'|\"[^\"]*\") \\)/", $src, $mm );
 t( count( $mm[1] ) >= 30, 'e-book words have all four languages (' . count( $mm[1] ) . ' keys)' );
+// the pages of a PDF the editor took out: saved only for that PDF, kept in order, checked against the page count, given to the reader
+$save = function ( $post, $post_fields ) { $_POST = array_merge( array( 'mcupr_book_nonce' => wp_create_nonce( 'mcupr_book_save' ), 'mcupr_bk_src' => 'pdf' ), $post_fields ); do_action( 'save_post_mcupr_book', $post, get_post( $post ), true ); $_POST = array(); };
+$kb = wp_insert_post( array( 'post_type' => 'mcupr_book', 'post_status' => 'publish', 'post_title' => 'Keep Book' ) );
+$save( $kb, array( 'mcupr_bk_pdf' => $pdf, 'mcupr_bk_keep_on' => '1', 'mcupr_bk_keep_for' => $pdf, 'mcupr_bk_pdfn' => 6, 'mcupr_bk_keep' => array( '3', '1', '4', '99', '4', 'x', '6' ) ) );
+t( array( 3, 1, 4, 6 ) === mcupr_book_pdf_keep( $kb ) && 6 === (int) get_post_meta( $kb, '_mcupr_bk_pdfn', true ), 'pages: the pages kept are saved in the editor\'s order; a page beyond the PDF, a repeat and a non-number are dropped' );
+t( array( 3, 1, 4, 6 ) === json_decode( (string) json_encode( mcupr_book_pdf_keep( $kb ) ) ) && false !== strpos( mcupr_book_reader( $kb ), '&quot;keep&quot;:[3,1,4,6]' ), 'pages: the reader is given the pages to show' );
+$save( $kb, array( 'mcupr_bk_pdf' => $pdf ) );
+t( array( 3, 1, 4, 6 ) === mcupr_book_pdf_keep( $kb ), 'pages: saving without opening the page manager leaves the choice as it was' );
+$save( $kb, array( 'mcupr_bk_pdf' => $pdf, 'mcupr_bk_keep_on' => '1', 'mcupr_bk_keep_for' => $pdf, 'mcupr_bk_pdfn' => 6, 'mcupr_bk_keep' => array( '1', '2', '3', '4', '5', '6' ) ) );
+t( array() === mcupr_book_pdf_keep( $kb ) && '' === (string) get_post_meta( $kb, '_mcupr_bk_keep', true ), 'pages: every page in the PDF order is the same as no choice (nothing stored)' );
+$save( $kb, array( 'mcupr_bk_pdf' => $pdf, 'mcupr_bk_keep_on' => '1', 'mcupr_bk_keep_for' => $pdf, 'mcupr_bk_pdfn' => 6, 'mcupr_bk_keep' => array( '2', '5' ) ) );
+$pdf2 = side( $fx . 'book-landscape.pdf' );
+$save( $kb, array( 'mcupr_bk_pdf' => $pdf2 ) );
+t( $pdf2 && array() === mcupr_book_pdf_keep( $kb ), 'pages: a different PDF starts again with all its pages' );
+$save( $kb, array( 'mcupr_bk_pdf' => $pdf, 'mcupr_bk_keep_on' => '1', 'mcupr_bk_keep_for' => $pdf + 1, 'mcupr_bk_pdfn' => 6, 'mcupr_bk_keep' => array( '2' ) ) );
+t( array() === mcupr_book_pdf_keep( $kb ), 'pages: a choice made for another file is not taken' );
+ob_start(); mcupr_book_box( get_post( $kb ) ); $bx = ob_get_clean();
+t( false !== strpos( $bx, 'id="mcupr-bk-load-pages"' ) && false !== strpos( $bx, 'id="mcupr-bk-pdfpages"' ) && false !== strpos( $bx, 'name="mcupr_bk_keep_on"' ), 'pages: the e-book box has the page manager' );
+wp_delete_post( $kb, true );
+t( ! file_exists( get_theme_file_path( 'assets/vendor/pdfjs/pdf.min.mjs' ) ) && file_exists( get_theme_file_path( 'assets/vendor/pdfjs/pdf.min.js' ) ) && file_exists( get_theme_file_path( 'assets/vendor/pdfjs/pdf.worker.min.js' ) ), 'PDF.js is served as .js (a web server that sends .mjs with the wrong type would stop the module from loading)' );
 foreach ( array( $b1, $b2, $b3, $b4 ) as $x ) { wp_delete_post( $x, true ); }
 wp_delete_term( (int) $shelf['term_id'], 'mcupr_shelf' );
 echo $fails ? "\n$fails FAILED\n" : "\nall passed\n";

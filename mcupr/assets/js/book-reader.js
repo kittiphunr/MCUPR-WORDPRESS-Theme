@@ -162,11 +162,13 @@
 			return Math.min(3200, Math.round(w * Math.min(window.devicePixelRatio || 1, 2) * Math.max(1, Math.min(zoom, 3))));
 		}
 		/* the pages in reading order: the book's own pages, each followed by the "page of its own" extras of it */
+		/* a PDF whose editor took pages out (or moved them) shows cfg.keep: the pages of the PDF to show, in order; "page N" of the extras is then the Nth page shown */
 		function buildSeq(n) {
-			var i, k;
-			for (i = 0; i < n; i++) {
-				seqOf[i] = seq.length;
-				seq.push({ n: i });
+			var i, k, s, keep = cfg.src === 'pdf' && cfg.keep && cfg.keep.length ? cfg.keep.filter(function (x) { return x >= 1 && x <= n; }) : null, cnt = keep && keep.length ? keep.length : n;
+			for (i = 0; i < cnt; i++) {
+				s = keep && keep.length ? keep[i] - 1 : i;
+				seqOf[s] = seq.length;
+				seq.push({ n: s, p: i });
 				for (k = 0; k < media.length; k++) { if (media[k].mode === 'page' && media[k].page === i + 1) { seq.push({ m: media[k] }); } }
 			}
 		}
@@ -358,7 +360,7 @@
 			var n = 0;
 			s.forEach(function (i) {
 				if (i >= total) { return; }
-				var list = seq[i].m ? [seq[i].m] : media.filter(function (m) { return m.mode === 'button' && m.page === seq[i].n + 1; });
+				var list = seq[i].m ? [seq[i].m] : media.filter(function (m) { return m.mode === 'button' && m.page === seq[i].p + 1; });
 				list.forEach(function (m) { mbar.appendChild(mButton(m, 'bk-mbtn')); n++; });
 			});
 			mbar.hidden = !n;
@@ -633,7 +635,7 @@
 				}).then(function (doc) {
 					pdf = doc;
 					loadOutline();
-					return doc.getPage(1).then(function (pg) { var v = pg.getViewport({ scale: 1 }); start(doc.numPages, v.height / v.width); });
+					return doc.getPage(cfg.keep && cfg.keep.length && cfg.keep[0] <= doc.numPages ? cfg.keep[0] : 1).then(function (pg) { var v = pg.getViewport({ scale: 1 }); start(doc.numPages, v.height / v.width); });
 				}).catch(function (e) { if (window.console) { console.warn('mcupr e-book:', e); } fail(); });
 			}
 		}
