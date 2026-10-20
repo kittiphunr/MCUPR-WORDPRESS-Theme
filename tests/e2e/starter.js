@@ -4,6 +4,21 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
 
 (async () => {
   const br = await launch();
+  // when a sign-in or a redirect does not arrive, say what the page showed (a stuck login is otherwise a bare timeout)
+  const newContext0 = br.newContext.bind(br);
+  br.newContext = async (...a) => {
+    const c = await newContext0(...a);
+    const newPage0 = c.newPage.bind(c);
+    c.newPage = async () => {
+      const pg = await newPage0();
+      const wfu = pg.waitForURL.bind(pg);
+      pg.waitForURL = async (...x) => {
+        try { return await wfu(...x); } catch (e) { console.log('DIAG waitForURL stuck on ' + pg.url() + ' :: ' + (await pg.locator('#login_error, .message, .wp-die-message, body').first().innerText({ timeout: 2000 }).catch(() => '?')).replace(/\s+/g, ' ').slice(0, 300)); throw e; }
+      };
+      return pg;
+    };
+    return c;
+  };
   const ctx = await br.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
   await ctx.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* cross-origin frame (the map) */ } });
   const p = await ctx.newPage();
@@ -2592,6 +2607,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     const wl = await kc.newPage();
     await wl.goto(B + '/wp-login.php');
     await wl.fill('#user_login', 'carde2e1'); await wl.fill('#user_pass', 'Card-pass-12345'); await wl.click('#wp-submit');
+    await wl.waitForSelector('#login_error', { timeout: 10000 }).catch(() => {});
     ok(await wl.locator('#login_error').count() === 1 && !/wp-admin|student/.test(wl.url().replace('wp-login.php', '')), 'card login: a student cannot go in by the ordinary WordPress login page with the password alone');
     // typing allowed by staff
     phpK('update_option("mcupr_card", array("on"=>1,"typing"=>1));');
