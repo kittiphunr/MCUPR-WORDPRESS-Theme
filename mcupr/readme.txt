@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.29 =
+* All menu: groups rail on the left, the chosen group on the right
+
 = 1.54.28 =
 * All menu: bento safe without the script, measured again after fonts and resize
 
