@@ -60,16 +60,16 @@ function mcupr_office_style( $office_id ) {
 }
 
 /**
- * The office header: the name and the tabs. "full" on the office's own pages, "slim" above anything that belongs to the
- * office (a news article, a page, an event…). Printed right after the site header.
+ * The office header: the name and the tabs. "full" on the office's own pages and on its pages, "slim" above anything else that belongs to the
+ * office (a news article, an event…). Printed right after the site header.
  */
 function mcupr_office_chrome() {
 	$oid = mcupr_current_office();
 	if ( ! $oid || 'publish' !== get_post_status( $oid ) && ! current_user_can( 'edit_post', $oid ) ) {
 		return;
 	}
-	$full = is_singular( 'mcupr_office' );
-	$sec  = $full ? mcupr_office_section() : '-';
+	$full = is_singular( 'mcupr_office' ) || is_page(); // a page of the office wears the full band like its section pages
+	$sec  = is_singular( 'mcupr_office' ) ? mcupr_office_section() : '-';
 	$d    = mcupr_office_data( $oid );
 	$name = get_the_title( $oid );
 	$h1   = $full && '' === $sec;
@@ -381,10 +381,9 @@ add_action(
 add_action( 'delete_' . MCUPR_OFFICE_TAX, 'mcupr_office_counts_clear' );
 
 /** Print the body of an office page for a section ('' = the office home). */
-/** The head of a page that belongs to an office: the capsule back to the office, then the same panel as the section pages. */
+/** The head of a page that belongs to an office: the same panel as the section pages (the office band above it has the way back). */
 function mcupr_office_page_head( $oid, $title, $lead = '', $chips = '' ) {
-	$o  = '<p class="of-up of-up-page"><a href="' . esc_url( get_permalink( $oid ) ) . '">' . mcupr_feather( 'chevron-left', 14 ) . '<span>' . esc_html( get_the_title( $oid ) ) . '</span></a></p>';
-	$o .= '<header class="of-head"><span class="of-head-ic" aria-hidden="true">' . mcupr_feather( 'file-text', 28 ) . '</span><div class="of-head-t"><h1 class="of-h1">' . esc_html( $title ) . '</h1>';
+	$o  = '<header class="of-head"><span class="of-head-ic" aria-hidden="true">' . mcupr_feather( 'file-text', 28 ) . '</span><div class="of-head-t"><h1 class="of-h1">' . esc_html( $title ) . '</h1>';
 	if ( '' !== $lead ) {
 		$o .= '<p class="of-head-lead">' . esc_html( $lead ) . '</p>';
 	}
