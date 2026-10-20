@@ -398,9 +398,18 @@ function mcupr_si_msg( $code ) {
 
 /* ------------------------------------------------------------------ the saved upload (one file per import) */
 
-function mcupr_si_dir() {
+/** The folder for the saved uploads: next to the site folder (outside what the web server shows) when PHP may write there, otherwise inside uploads/. */
+function mcupr_si_dir( $inside_uploads = false ) {
 	$up  = wp_upload_dir();
 	$dir = trailingslashit( $up['basedir'] ) . 'mcupr-import';
+	if ( ! $inside_uploads ) {
+		$out = trailingslashit( dirname( untrailingslashit( ABSPATH ) ) ) . 'mcupr-private-import';
+		if ( is_dir( $out ) || ( is_writable( dirname( $out ) ) && wp_mkdir_p( $out ) ) ) {
+			if ( is_writable( $out ) ) {
+				return $out; // outside the web: nothing to protect with index.php or .htaccess
+			}
+		}
+	}
 	if ( ! is_dir( $dir ) ) {
 		wp_mkdir_p( $dir );
 	}
@@ -443,9 +452,11 @@ function mcupr_si_save( $token, $d ) {
 
 /** Delete saved uploads older than $age seconds (when the import page is opened: a day; the daily cron: 2 hours). */
 function mcupr_si_cleanup( $age = DAY_IN_SECONDS ) {
-	foreach ( (array) glob( mcupr_si_dir() . '/*.json' ) as $f ) {
-		if ( $f && filemtime( $f ) < time() - (int) $age ) {
-			wp_delete_file( $f );
+	foreach ( array_unique( array( mcupr_si_dir(), mcupr_si_dir( true ) ) ) as $dir ) { // the old folder inside uploads/ is cleaned too
+		foreach ( (array) glob( $dir . '/*.json' ) as $f ) {
+			if ( $f && filemtime( $f ) < time() - (int) $age ) {
+				wp_delete_file( $f );
+			}
 		}
 	}
 }
