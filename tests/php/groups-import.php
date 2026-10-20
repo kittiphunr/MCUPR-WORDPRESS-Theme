@@ -24,7 +24,7 @@ $res = mcupr_groups_import_apply( $table );
 t( 13 === $res['added'] && 0 === $res['skipped'] && ! $res['problems'], 'import: 13 groups added, nothing skipped, no problems' );
 $g = mcupr_office_groups( $offices[ $names[0] ] );
 t( 5 === count( $g ) && 'กลุ่มงานบริหาร' === $g[0]->post_title && 'กลุ่มงานคลังและทรัพย์สิน' === $g[4]->post_title, 'import: the campus office has its 5 groups in the order of the file' );
-t( 'Administration Group' === get_post_meta( $g[0]->ID, '_mcupr_g_name_en', true ) && 'ส่วนงานบริหาร' === get_post_meta( $g[0]->ID, '_mcupr_g_division', true ) && '' === $g[0]->post_excerpt && $offices[ $names[0] ] === mcupr_group_office( $g[0]->ID ), 'import: English name, the division in its own field (not in the short text), owned by the office' );
+t( 'Administration Group' === get_post_meta( $g[0]->ID, '_mcupr_g_name_en', true ) && 'ส่วนงานบริหาร' === get_post_meta( $g[0]->ID, '_mcupr_g_division', true ) && false === strpos( $g[0]->post_excerpt, 'ส่วนงานบริหาร' ) && '' !== $g[0]->post_excerpt && $offices[ $names[0] ] === mcupr_group_office( $g[0]->ID ), 'import: English name, the division in its own field (not in the short text, which is the description), owned by the office' );
 t( 4 === count( mcupr_office_groups( $offices[ $names[1] ] ) ) && 4 === count( mcupr_office_groups( $offices[ $names[2] ] ) ), 'import: the other two offices have 4 groups each' );
 t( 'กลุ่มงานบริหาร' === mcupr_office_groups( $offices[ $names[2] ] )[0]->post_title, 'import: a group with the same name in another office is its own group' );
 
@@ -54,7 +54,18 @@ $lib = null; $fin = null;
 foreach ( mcupr_office_groups( $offices[ $names[1] ] ) as $x ) { if ( 'กลุ่มงานห้องสมุดและสารสนเทศ' === $x->post_title ) { $lib = $x; } }
 foreach ( mcupr_office_groups( $offices[ $names[0] ] ) as $x ) { if ( 'กลุ่มงานการเงิน' === $x->post_title ) { $fin = $x; } }
 $ls = $lib ? get_post_meta( $lib->ID, '_mcupr_g_services', true ) : array(); $lt = $lib ? get_post_meta( $lib->ID, '_mcupr_g_stats', true ) : array(); $fs = $fin ? get_post_meta( $fin->ID, '_mcupr_g_services', true ) : array();
-t( is_array( $ls ) && 4 === count( $ls ) && 'ยืม-คืนและต่ออายุหนังสือ' === $ls[0]['title'] && 'book-open' === $ls[0]['icon'] && is_array( $lt ) && 4 === count( $lt ) && '12,480' === $lt[0]['num'] && is_array( $fs ) && 3 === count( $fs ) && '' === (string) get_post_meta( $fin->ID, '_mcupr_g_stats', true ), 'import: the service tiles and the figures of the sample are saved (4 + 4 for the library, 3 + none for finance)' );
+t( is_array( $ls ) && 4 === count( $ls ) && 0 === strpos( $ls[0]['title'], 'ยืม-คืนและต่ออายุหนังสือ' ) && 'book-open' === $ls[0]['icon'] && is_array( $lt ) && 4 === count( $lt ) && '12,480' === $lt[0]['num'] && is_array( $fs ) && 3 === count( $fs ), 'import: the service tiles and the figures of the sample are saved (4 + 4 for the library, 3 services for finance)' );
+// every one of the 13 groups of the sample has its description, contact, 3-4 service tiles and 2-4 figures, all marked as examples
+$all = 0; $okall = 0;
+foreach ( $offices as $oid ) {
+	foreach ( mcupr_office_groups( $oid ) as $x ) {
+		if ( false === strpos( $x->post_title, 'กลุ่มงาน' ) || 'กลุ่มงานเก่า' === $x->post_title || 'กลุ่มงานทดสอบ' === $x->post_title || 'กลุ่มงานตัวเลข' === $x->post_title ) { continue; }
+		$all++;
+		$sv = get_post_meta( $x->ID, '_mcupr_g_services', true ); $st = get_post_meta( $x->ID, '_mcupr_g_stats', true );
+		if ( is_array( $sv ) && count( $sv ) >= 3 && count( $sv ) <= 4 && is_array( $st ) && count( $st ) >= 2 && count( $st ) <= 4 && '' !== get_post_meta( $x->ID, '_mcupr_g_tel', true ) && false !== strpos( (string) $x->post_excerpt, '(ตัวอย่าง)' ) && false !== strpos( $sv[0]['title'], '(ตัวอย่าง)' ) && false !== strpos( $st[0]['label'], '(ตัวอย่าง)' ) && 'example.org' === substr( (string) get_post_meta( $x->ID, '_mcupr_g_email', true ), -11 ) ) { $okall++; }
+	}
+}
+t( 13 === $all && 13 === $okall, 'sample: all 13 groups come with a description, contact, 3-4 services and 2-4 figures, each marked "(ตัวอย่าง)" and with an example.org address (' . $okall . '/' . $all . ')' );
 $tab = mcupr_groups_import_table( array( array( 'office', 'name', 'service1_title', 'service1_icon', 'service1_url', 'service2_title', 'stat1_num', 'stat1_label', 'stat2_num', 'stat5_num' ), array( $names[0], 'กลุ่มงานตัวเลข', 'ขอบริการ', 'not-an-icon', 'javascript:alert(1)', '', '1,000', 'ครั้ง', '', '9' ) ) );
 $rn = mcupr_groups_import_apply( $tab );
 $ng = null; foreach ( mcupr_office_groups( $offices[ $names[0] ] ) as $x ) { if ( 'กลุ่มงานตัวเลข' === $x->post_title ) { $ng = $x; } }

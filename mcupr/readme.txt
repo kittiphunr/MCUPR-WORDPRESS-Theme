@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.35 =
+* Work group sample file: all 13 groups filled with marked examples
+
 = 1.54.34 =
 * Work group import file: service tiles and figures
 
