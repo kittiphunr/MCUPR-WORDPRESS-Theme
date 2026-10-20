@@ -201,12 +201,12 @@ foreach ( array( 'save_post', 'deleted_post', 'transition_post_status', 'set_obj
 
 /** The parts of a group page, in their order. "about" is the text of the group (it has no switch: no text, no part). */
 function mcupr_group_section_keys() {
-	return array( 'about', 'services', 'news', 'people', 'docs', 'contact' );
+	return array( 'services', 'stats', 'about', 'news', 'people', 'docs', 'contact' );
 }
 
 /** The parts that can be switched off on a group. */
 function mcupr_group_toggle_keys() {
-	return array( 'services', 'news', 'people', 'docs', 'contact' );
+	return array( 'services', 'stats', 'news', 'people', 'docs', 'contact' );
 }
 
 /** The icons a service card may have (a short list, so every group page looks alike): Feather name => what it is for. */
@@ -259,6 +259,7 @@ function mcupr_group_data( $gid ) {
 		'form'     => (int) $g( 'form' ),
 		'services' => is_array( $sv ) ? $sv : array(),
 		'docs'     => is_array( $dc ) ? $dc : array(),
+		'stats'    => is_array( $g( 'stats' ) ) ? $g( 'stats' ) : array(),
 		'off'      => is_array( $off ) ? array_values( array_intersect( mcupr_group_toggle_keys(), $off ) ) : array(),
 	);
 }
@@ -292,6 +293,26 @@ function mcupr_group_clean_services( $rows ) {
 			'url'   => mcupr_group_clean_url( $s( 'url' ) ),
 		);
 		if ( count( $out ) >= 8 ) {
+			break;
+		}
+	}
+	return $out;
+}
+
+/** The figures as sent by the form: a number (needed, written as it should show, e.g. "12,480" or "96%") and what it counts; at most 4. */
+function mcupr_group_clean_stats( $rows ) {
+	$out = array();
+	foreach ( is_array( $rows ) ? $rows : array() as $r ) {
+		if ( ! is_array( $r ) ) {
+			continue;
+		}
+		$num = isset( $r['num'] ) && is_scalar( $r['num'] ) ? trim( sanitize_text_field( (string) $r['num'] ) ) : '';
+		if ( '' === $num ) {
+			continue;
+		}
+		$lab   = isset( $r['label'] ) && is_scalar( $r['label'] ) ? sanitize_text_field( (string) $r['label'] ) : '';
+		$out[] = array( 'num' => mb_substr( $num, 0, 12 ), 'label' => mb_substr( $lab, 0, 48 ) );
+		if ( count( $out ) >= 4 ) {
 			break;
 		}
 	}
@@ -351,6 +372,7 @@ function mcupr_group_sections( $gid ) {
 	$has = array(
 		'about'    => '' !== trim( (string) get_post_field( 'post_content', $gid ) ),
 		'services' => ! empty( $d['services'] ),
+		'stats'    => ! empty( $d['stats'] ),
 		'news'     => in_array( 'news', $d['off'], true ) ? false : (bool) mcupr_group_news( $gid ),
 		'people'   => in_array( 'people', $d['off'], true ) ? false : (bool) mcupr_group_people( $gid ),
 		'docs'     => (bool) mcupr_group_docs( $gid ),
@@ -705,6 +727,7 @@ add_action(
 	static function () {
 		add_meta_box( 'mcupr_group_parts', __( 'Parts of the page', 'mcupr' ), 'mcupr_group_box_parts', MCUPR_GROUP, 'normal', 'high' );
 		add_meta_box( 'mcupr_group_services', __( 'Services (shortcut cards)', 'mcupr' ), 'mcupr_group_box_services', MCUPR_GROUP, 'normal', 'high' );
+		add_meta_box( 'mcupr_group_stats', __( 'Achievements in numbers', 'mcupr' ), 'mcupr_group_box_stats', MCUPR_GROUP, 'normal', 'high' );
 		add_meta_box( 'mcupr_group_docs', __( 'Forms and documents to download', 'mcupr' ), 'mcupr_group_box_docs', MCUPR_GROUP, 'normal', 'default' );
 		add_meta_box( 'mcupr_group_contact', __( 'Contact', 'mcupr' ), 'mcupr_group_box_contact', MCUPR_GROUP, 'normal', 'default' );
 		add_meta_box( 'mcupr_group_who', __( 'News and people of the group', 'mcupr' ), 'mcupr_group_box_who', MCUPR_GROUP, 'side', 'default' );
@@ -715,6 +738,7 @@ function mcupr_group_box_parts( $post ) {
 	$d     = mcupr_group_data( $post->ID );
 	$names = array(
 		'services' => __( 'Services', 'mcupr' ),
+		'stats'    => __( 'Achievements in numbers', 'mcupr' ),
 		'news'     => __( 'Announcements and news', 'mcupr' ),
 		'people'   => __( 'People', 'mcupr' ),
 		'docs'     => __( 'Documents to download', 'mcupr' ),
@@ -794,6 +818,20 @@ function mcupr_group_box_services( $post ) {
 	);
 }
 
+function mcupr_group_box_stats( $post ) {
+	echo '<p class="mcg-help">' . esc_html__( 'Up to 4 figures that show what the group has achieved (e.g. “12,480” visitors a year). Leave it empty to leave the part out.', 'mcupr' ) . '</p>';
+	mcupr_group_repeater(
+		'stats',
+		mcupr_group_data( $post->ID )['stats'],
+		array(
+			'num'   => array( __( 'Number', 'mcupr' ), 'text', __( 'e.g. 12,480 or 96%', 'mcupr' ) ),
+			'label' => array( __( 'What it counts', 'mcupr' ), 'text', __( 'e.g. Visitors a year', 'mcupr' ) ),
+		),
+		__( '+ Add a figure', 'mcupr' ),
+		4
+	);
+}
+
 function mcupr_group_box_docs( $post ) {
 	echo '<p class="mcg-help">' . esc_html__( 'Forms and documents people can download. Choose a file from the Media Library (its kind, size and date are shown by themselves) or paste a link instead.', 'mcupr' ) . '</p>';
 	mcupr_group_repeater(
@@ -864,6 +902,7 @@ add_action(
 		$form = absint( $g( 'form' ) );
 		$set( 'form', $form && 'mcupr_fb' === get_post_type( $form ) ? (string) $form : '' );
 		$set( 'services', mcupr_group_clean_services( isset( $in['services'] ) ? $in['services'] : array() ) );
+		$set( 'stats', mcupr_group_clean_stats( isset( $in['stats'] ) ? $in['stats'] : array() ) );
 		$set( 'docs', mcupr_group_clean_docs( isset( $in['docs'] ) ? $in['docs'] : array() ) );
 	}
 );
