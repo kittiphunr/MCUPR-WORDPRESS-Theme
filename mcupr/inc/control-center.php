@@ -20,7 +20,7 @@ function mcupr_cc_data() {
 	static $d = null;
 	if ( null === $d ) {
 		require_once MCUPR_DIR . '/inc/control-center-data.php';
-		$d = mcupr_cc_data_all();
+		$d = mcupr_cc_arrange( mcupr_cc_data_all() );
 	}
 	return $d;
 }
