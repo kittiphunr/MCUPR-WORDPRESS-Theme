@@ -146,7 +146,8 @@ foreach ( array( 'services', 'news', 'people', 'docs', 'contact' ) as $k ) {
 	t( false !== strpos( $h, '<section id="gl-' . $k . '"' ) && false !== strpos( $h, 'href="#gl-' . $k . '"' ), 'page: part "' . $k . '" and its link in the in-page menu' );
 }
 t( false !== strpos( $h, 'class="gl-ask" href="#gl-contact"' ) && false !== strpos( $h, 'aria-label="' . esc_attr( mcupr_t( 'gr_on_page' ) ) . '"' ), 'page: the last item of the menu, "Ask the staff", goes to the contact part; the menu is a named nav' );
-t( false !== strpos( $h, '--of:#1d4ed8' ) && false !== strpos( $h, 'aria-label="' . esc_attr( mcupr_t( 'breadcrumb' ) ) . '"' ) && false !== strpos( $h, '>สำนักงานทดสอบกลุ่มงาน</a>' ), 'page: the office colour, a breadcrumb that ends Offices › office › group' );
+$tr = mcupr_office_trail( mcupr_group_office( $G1 ), $G1 );
+t( false !== strpos( $h, '--of:#1d4ed8' ) && false === strpos( $h, 'gl-crumb' ) && false !== strpos( $tr, 'aria-label="' . esc_attr( mcupr_t( 'breadcrumb' ) ) . '"' ) && false !== strpos( $tr, '>สำนักงานทดสอบกลุ่มงาน</a>' ) && false !== strpos( $tr, '<span aria-current="page">กลุ่มงานการเงินทดสอบ</span>' ), 'page: the office colour; the way home › Offices › office › group is the trail in the office band (not a second one on the page)' );
 t( strpos( $h, 'นางสมศรี หัวหน้าดี' ) < strpos( $h, 'นายวรเดช ใจดี' ) && 1 === substr_count( $h, 'gl-person is-head' ) && false !== strpos( $h, mcupr_t( 'gr_head' ) ), 'page: the head comes first, on the larger card, with the label' );
 t( false !== strpos( $h, 'ogroup=' . $G1 ) && false !== strpos( $h, 'ประกาศของกลุ่มงานการเงิน 2' ) && false === strpos( $h, 'ข่าวของสำนักงานที่ไม่อยู่ในกลุ่มงาน' ), 'page: the group\'s news with the link to all its news in the office' );
 t( false !== strpos( $h, 'class="gl-btn"' ) && false !== strpos( $h, 'PDF' ) && 8 === substr_count( $h, '<li class="gl-card gl-svc-i' ), 'page: download buttons with the kind of file, 8 service cards' );
