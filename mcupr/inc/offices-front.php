@@ -60,6 +60,26 @@ function mcupr_office_style( $office_id ) {
 }
 
 /**
+ * The way down the three levels, in the band: University (home) / Offices / the office / its work group. The levels above the page
+ * are links; the last one is the page you are on.
+ */
+function mcupr_office_trail( $oid, $gid = 0, $here_is_office = false ) {
+	$items = array( array( mcupr_t( 'home' ), mcupr_home_url() ), array( mcupr_t( 'of_offices' ), get_post_type_archive_link( 'mcupr_office' ) ), array( get_the_title( $oid ), $here_is_office ? '' : get_permalink( $oid ) ) );
+	if ( $gid ) {
+		$items[] = array( get_the_title( $gid ), '' );
+	}
+	$last = count( $items ) - 1;
+	$o    = '<nav class="of-trail" aria-label="' . esc_attr( mcupr_t( 'breadcrumb' ) ) . '"><ol>';
+	foreach ( $items as $i => $it ) {
+		$sep = $i ? '<span class="of-trail-sep" aria-hidden="true">' . mcupr_feather( 'chevron-right', 13 ) . '</span>' : '';
+		$o  .= $i === $last || '' === (string) $it[1]
+			? '<li>' . $sep . '<span aria-current="page">' . esc_html( $it[0] ) . '</span></li>'
+			: '<li>' . $sep . '<a href="' . esc_url( $it[1] ) . '">' . esc_html( $it[0] ) . '</a></li>';
+	}
+	return $o . '</ol></nav>';
+}
+
+/**
  * The office header: the name and the tabs. "full" on the office's own pages and on its pages, "slim" above anything else that belongs to the
  * office (a news article, an event…). Printed right after the site header.
  */
@@ -68,6 +88,7 @@ function mcupr_office_chrome() {
 	if ( ! $oid || 'publish' !== get_post_status( $oid ) && ! current_user_can( 'edit_post', $oid ) ) {
 		return;
 	}
+	$gid  = is_singular( 'mcupr_group' ) ? get_queried_object_id() : 0; // level 3: the band is the short one, the group has its own head
 	$full = is_singular( array( 'mcupr_office', 'mcupr_group' ) ) || is_page(); // the pages and the work groups of an office wear the full band like its section pages
 	$sec  = is_singular( 'mcupr_office' ) ? mcupr_office_section() : '-';
 	$d    = mcupr_office_data( $oid );
@@ -75,8 +96,8 @@ function mcupr_office_chrome() {
 	$h1   = $full && '' === $sec;
 	$tag  = $h1 ? 'h1' : 'p';
 	$cover = $full ? get_the_post_thumbnail_url( $oid, 'large' ) : '';
-	echo '<section class="office-chrome' . ( $cover ? ' has-cover' : '' ) . '" data-variant="' . ( $full ? 'full' : 'slim' ) . '" style="' . esc_attr( mcupr_office_style( $oid ) . ( $cover ? ';--of-cover:url(' . esc_url_raw( $cover ) . ')' : '' ) ) . '" aria-label="' . esc_attr( $name ) . '"><div class="of-band"><div class="wrap">';
-	echo '<p class="of-up"><a href="' . esc_url( get_post_type_archive_link( 'mcupr_office' ) ) . '">' . mcupr_feather( 'chevron-left', 14 ) . '<span>' . esc_html( mcupr_t( 'of_offices' ) ) . '</span></a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo '<section class="office-chrome' . ( $cover ? ' has-cover' : '' ) . '" data-variant="' . ( $full ? 'full' : 'slim' ) . '"' . ( $gid ? ' data-level="3"' : '' ) . ' style="' . esc_attr( mcupr_office_style( $oid ) . ( $cover ? ';--of-cover:url(' . esc_url_raw( $cover ) . ')' : '' ) ) . '" aria-label="' . esc_attr( $name ) . '"><div class="of-band"><div class="wrap">';
+	echo mcupr_office_trail( $oid, $gid, is_singular( 'mcupr_office' ) && '' === $sec ); // phpcs:ignore WordPress.Security.EscapeOutput
 	echo '<div class="of-id">' . mcupr_office_badge( $oid ) . '<div class="min-w-0">'; // phpcs:ignore WordPress.Security.EscapeOutput
 	echo '<' . $tag . ' class="of-name"><a href="' . esc_url( get_permalink( $oid ) ) . '">' . esc_html( $name ) . '</a></' . $tag . '>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	if ( '' !== $d['name_en'] ) {
@@ -85,7 +106,7 @@ function mcupr_office_chrome() {
 	if ( $full && '' === $sec && has_excerpt( $oid ) ) {
 		echo '<p class="of-tag">' . esc_html( get_the_excerpt( $oid ) ) . '</p>';
 	}
-	if ( $full && ( '' !== $d['tel'] || '' !== $d['email'] ) ) {
+	if ( $full && ! $gid && ( '' !== $d['tel'] || '' !== $d['email'] ) ) {
 		echo '<ul class="of-chips">';
 		if ( '' !== $d['tel'] ) {
 			echo '<li><a href="tel:' . esc_attr( preg_replace( '/[^0-9+]/', '', $d['tel'] ) ) . '">' . mcupr_icon( 'phone', 16 ) . '<span class="sr-only">' . esc_html( mcupr_t( 'about_tel' ) ) . ': </span>' . esc_html( $d['tel'] ) . '</a></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
