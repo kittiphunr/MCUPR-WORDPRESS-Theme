@@ -146,7 +146,7 @@ t( mcupr_card_state( $s4 ) === array( 'rfid' => true, 'idcard' => true ), 'staff
 ob_start(); mcupr_card_box( get_post( $s4 ) ); $bx0 = ob_get_clean();
 t( '••••••5555' === mcupr_card_rfid_shown( $s4 ) && false !== strpos( $bx0, 'placeholder="••••••5555"' ) && false === strpos( $bx0, '5555555555' ), 'staff: the card code is shown by its last 4 digits, never in full' );
 $s6 = wp_insert_post( array( 'post_type' => MCUPR_STU, 'post_status' => 'publish', 'post_title' => 'Old card' ) ); update_post_meta( $s6, MCUPR_CARD_RFID, str_repeat( 'a', 64 ) );
-t( '' === mcupr_card_rfid_shown( $s6 ) && mcupr_card_state( $s6 )['rfid'], 'staff: a card set before the last digits were kept just says "set"' ); wp_delete_post( $s6, true );
+t( '' === mcupr_card_rfid_shown( $s6 ) && mcupr_card_state( $s6 )['rfid'], 'staff: a card set before the last digits were kept just says "set"' ); ob_start(); mcupr_card_box( get_post( $s6 ) ); $bx6 = ob_get_clean(); t( false !== strpos( $bx6, '<em>' ), 'staff: such a card shows a hint how to get its last digits' ); wp_delete_post( $s6, true );
 $_POST = array( 'mcupr_card_box_nonce' => wp_create_nonce( 'mcupr_card_box' ), 'mcupr_card_rfid' => '4028251661' );
 do_action( 'save_post_mcupr_student', $s2, get_post( $s2 ), true );
 t( ! mcupr_card_state( $s2 )['rfid'], 'staff: a card code that belongs to another student is not set' );
