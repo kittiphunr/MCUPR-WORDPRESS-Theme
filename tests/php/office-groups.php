@@ -53,7 +53,7 @@ if ( ! $pretty ) { update_option( 'permalink_structure', '' ); $wp_rewrite->init
 // ================================================================= 3. the parts that show (pure) and on a real group
 t( array( 'services', 'news', 'contact' ) === mcupr_group_sections_pick( array(), array( 'about' => false, 'services' => true, 'news' => true, 'people' => false, 'docs' => false, 'contact' => true ) ), 'pick: only the parts that have something, in the page order' );
 t( array( 'news' ) === mcupr_group_sections_pick( array( 'services', 'contact' ), array( 'services' => true, 'news' => true, 'contact' => true ) ), 'pick: a part switched off is left out even when it has content' );
-t( array() === mcupr_group_sections_pick( array(), array() ) && array( 'about', 'services', 'news', 'people', 'docs', 'contact' ) === mcupr_group_sections_pick( array(), array_fill_keys( mcupr_group_section_keys(), true ) ), 'pick: nothing → no part; everything → all six in order' );
+t( array() === mcupr_group_sections_pick( array(), array() ) && array( 'services', 'stats', 'about', 'news', 'people', 'docs', 'contact' ) === mcupr_group_sections_pick( array(), array_fill_keys( mcupr_group_section_keys(), true ) ), 'pick: nothing → no part; everything → all seven in order (services first: they are at the top)' );
 $empty = array( 'tel' => '', 'email' => '', 'place' => '', 'hours' => array() );
 t( ! mcupr_group_has_contact( $empty ) && mcupr_group_has_contact( $empty, true ) && mcupr_group_has_contact( array_merge( $empty, array( 'hours' => array( 'จันทร์–ศุกร์' ) ) ) ), 'contact: hidden with nothing, shown with only a form or only hours' );
 t( array() === mcupr_group_sections( $G2 ), 'a new group with nothing in it shows no part at all' );
@@ -80,13 +80,15 @@ t( 'PDF' === mcupr_group_file_kind( '/up/2026/x.pdf' ) && 'DOCX' === mcupr_group
 
 // saving the group screen
 $_POST = array( 'mcupr_group_nonce' => wp_create_nonce( 'mcupr_group_save' ), 'mcupr_g' => array(
-	'show' => array( 'services', 'news', 'people', 'docs', 'contact' ), 'name_en' => '<i>Finance</i> Group', 'tel' => '054-000-011', 'email' => 'not an email', 'place' => 'อาคาร 1 ห้อง 105', 'hours' => "จันทร์–ศุกร์ 08.30–16.30 น.\n\n  พักเที่ยง 12.00–13.00 น.  \n", 'form' => '0',
+	'show' => array( 'services', 'stats', 'news', 'people', 'docs', 'contact' ), 'name_en' => '<i>Finance</i> Group', 'tel' => '054-000-011', 'email' => 'not an email', 'place' => 'อาคาร 1 ห้อง 105', 'hours' => "จันทร์–ศุกร์ 08.30–16.30 น.\n\n  พักเที่ยง 12.00–13.00 น.  \n", 'form' => '0',
 	'services' => $rows, 'docs' => array( array( 'title' => 'แบบคำร้อง', 'att' => (string) $att ), array( 'title' => 'ตาราง', 'url' => 'https://example.org/fees.docx' ) ),
 ) );
 do_action( 'save_post_mcupr_group', $G1, get_post( $G1 ), true );
 $_POST = array();
 $d = mcupr_group_data( $G1 );
 t( 'Finance Group' === $d['name_en'] && '' === $d['email'] && array( 'จันทร์–ศุกร์ 08.30–16.30 น.', 'พักเที่ยง 12.00–13.00 น.' ) === $d['hours'] && 8 === count( $d['services'] ) && 2 === count( $d['docs'] ) && array() === $d['off'], 'saving: tags removed, a bad e-mail dropped, one line per opening hour, 8 services, 2 documents, every part on' );
+$cs = mcupr_group_clean_stats( array( array( 'num' => ' 12,480 ', 'label' => '<b>Visitors</b> a year' ), array( 'num' => '', 'label' => 'no number' ), array( 'num' => str_repeat( '9', 30 ), 'label' => 'long' ), 'x', array( 'num' => '96%' ), array( 'num' => '5' ), array( 'num' => '6' ), array( 'num' => '7' ) ) );
+t( 4 === count( $cs ) && '12,480' === $cs[0]['num'] && 'Visitors a year' === $cs[0]['label'] && 12 === mb_strlen( $cs[1]['num'] ) && '96%' === $cs[2]['num'] && '' === $cs[2]['label'], 'stats: a number is needed, tags are removed, a number is cut at 12 characters, at most 4' );
 $_POST = array( 'mcupr_g' => array( 'name_en' => 'hack' ) );
 do_action( 'save_post_mcupr_group', $G1, get_post( $G1 ), true );
 $_POST = array();
@@ -140,6 +142,12 @@ global $wp_query, $wp_the_query, $post;
 $wp_query = $wp_the_query = new WP_Query( array( 'post_type' => 'mcupr_group', 'p' => $G1 ) );
 $wp_query->the_post();
 ob_start(); mcupr_group_render( $G1 ); $h = ob_get_clean();
+t( 1 === substr_count( $h, 'id="gl-services"' ) && preg_match( '#class="gl-top has-svc">\s*<header class="gl-band".*?</header><section id="gl-services"#s', $h ) && strpos( $h, 'class="gl-tabs"' ) > strpos( $h, 'id="gl-services"' ), 'page: the group (left) and its services as tiles (right) are the top; the in-page menu comes after it, and the services are shown once' );
+update_post_meta( $G1, '_mcupr_g_stats', mcupr_group_clean_stats( array( array( 'num' => '12,480', 'label' => 'Visitors a year' ), array( 'num' => '96%', 'label' => 'Satisfied' ) ) ) );
+mcupr_group_memo_reset();
+ob_start(); mcupr_group_render( $G1 ); $hs = ob_get_clean();
+t( false !== strpos( $hs, 'class="gl-card gl-figs"' ) && 2 === substr_count( $hs, '<li><b>' ) && false !== strpos( $hs, 'id="gl-stats-t"' ) && false !== strpos( $hs, 'href="#gl-stats"' ), 'page: the figures are a part of their own, with a heading and a place in the menu' );
+delete_post_meta( $G1, '_mcupr_g_stats' ); mcupr_group_memo_reset();
 t( ! $bad( $h ) && 1 === substr_count( $h, '<h1 ' ) && false !== strpos( $h, '<h1 class="gl-name">กลุ่มงานการเงินทดสอบ</h1>' ), 'page: no PHP errors, one h1 – the name of the group' );
 t( 5 === substr_count( $h, '<h2 id="gl-' ) && false === strpos( $h, '<h4' ), 'page: an h2 for each of the five parts (and no heading skips a level)' );
 foreach ( array( 'services', 'news', 'people', 'docs', 'contact' ) as $k ) {
