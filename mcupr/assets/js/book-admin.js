@@ -28,6 +28,95 @@
 		pdfFrame.open();
 	});
 
+	// the pages of the PDF: shown as pictures, taken out / put back / moved
+	var $pm = $('#mcupr-bk-pages'), $grid = $('#mcupr-bk-pdfpages'), $gone = $('#mcupr-bk-removed'), pmDoc = null, pmUrlFor = 0, pmN = 0, pmBusy = false;
+	function fmt(t, a, b) { return String(t).replace('%1$d', a).replace('%2$d', b).replace('%d', a); }
+	function pmCount() {
+		var k = $grid.children().length;
+		$('#mcupr-bk-pages-msg').text(fmt(I.count, k, pmN));
+		$('#mcupr-bk-removed-wrap').prop('hidden', !$gone.children().length);
+		$grid.children().each(function () { var n = $(this).attr('data-n'); $(this).find('input[type=hidden]').val(n); });
+		$grid.find('.mcupr-pg-rm').prop('disabled', k <= 1).attr('title', k <= 1 ? I.keepOne : '');
+	}
+	function pmItem(n, kept) {
+		var $li = $('<li style="width:118px;border:1px solid #c3c4c7;background:#fff;padding:4px;text-align:center"></li>').attr('data-n', n);
+		var $c = $('<div class="mcupr-pg-th" style="min-height:140px;background:#f6f7f7;display:flex;align-items:center;justify-content:center"></div>');
+		$li.append($c, $('<div style="font-size:12px;margin:.25rem 0"></div>').text(fmt(I.pageN, n)));
+		if (kept) {
+			$li.css('cursor', 'move').append($('<input type="hidden" name="mcupr_bk_keep[]">').val(n));
+			$li.append(
+				$('<button type="button" class="button button-small mcupr-pg-l"></button>').text('←').attr('aria-label', I.earlier + ': ' + fmt(I.pageN, n)),
+				' ',
+				$('<button type="button" class="button button-small mcupr-pg-rm"></button>').text('×').attr('aria-label', fmt(I.takeOut, n)),
+				' ',
+				$('<button type="button" class="button button-small mcupr-pg-r"></button>').text('→').attr('aria-label', I.later + ': ' + fmt(I.pageN, n))
+			);
+		} else {
+			$li.append($('<button type="button" class="button button-small mcupr-pg-back"></button>').text(I.back).attr('aria-label', fmt(I.putBack, n)));
+		}
+		return $li;
+	}
+	function pmThumbs() {
+		var items = $pm.find('li[data-n]').toArray(), i = 0;
+		(function next() {
+			if (i >= items.length) { return; }
+			var $li = $(items[i++]), n = parseInt($li.attr('data-n'), 10);
+			if ($li.find('canvas').length) { return next(); }
+			pmDoc.getPage(n).then(function (pg) {
+				var v1 = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: 110 / v1.width }), cv = document.createElement('canvas');
+				cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height); cv.style.maxWidth = '100%'; cv.style.height = 'auto';
+				var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+				return pg.render({ canvasContext: cx, viewport: vp }).promise.then(function () { $li.find('.mcupr-pg-th').empty().append(cv); });
+			}).catch(function () { /* one page that does not draw is still listed */ }).then(next);
+		})();
+	}
+	function pmLoad() {
+		var id = parseInt($('#mcupr-bk-pdf').val(), 10), post = $('#post_ID').val();
+		if (!id || !post || pmBusy) { return; }
+		pmBusy = true;
+		$('#mcupr-bk-pages-msg').text(I.loadingPages);
+		$.ajax({ url: A.ajax, data: { action: 'mcupr_book_pdf_url', post: post, att: id, nonce: A.nonce }, method: 'POST' }).then(function (r) {
+			if (!r || !r.success) { throw new Error('url'); }
+			return import(A.pdf).then(function (lib) {
+				lib.GlobalWorkerOptions.workerSrc = A.worker;
+				return lib.getDocument({ url: r.data.url, cMapUrl: A.cmaps, cMapPacked: true, standardFontDataUrl: A.fonts }).promise;
+			});
+		}).then(function (doc) {
+			pmDoc = doc; pmN = doc.numPages;
+			var keep = [], saved = [];
+			try { saved = JSON.parse($pm.attr('data-keep') || '[]'); } catch (e) { saved = []; }
+			if (parseInt($pm.attr('data-for'), 10) === id && saved.length) { keep = saved.filter(function (n) { return n >= 1 && n <= pmN; }); }
+			if (!keep.length) { for (var n = 1; n <= pmN; n++) { keep.push(n); } }
+			$grid.empty(); $gone.empty();
+			keep.forEach(function (n) { $grid.append(pmItem(n, true)); });
+			for (var m = 1; m <= pmN; m++) { if (keep.indexOf(m) === -1) { $gone.append(pmItem(m, false)); } }
+			$('#mcupr-bk-pdfn').val(pmN); $('#mcupr-bk-keep-for').val(id); $('#mcupr-bk-keep-on').val(1);
+			if ($.fn.sortable) { $grid.sortable({ tolerance: 'pointer', update: pmCount }); }
+			pmCount(); pmThumbs();
+		}).catch(function () { $('#mcupr-bk-pages-msg').text(I.pagesFail); }).then(function () { pmBusy = false; });
+	}
+	$('#mcupr-bk-load-pages').on('click', pmLoad);
+	$grid.on('click', '.mcupr-pg-rm', function () {
+		if ($grid.children().length <= 1) { window.alert(I.keepOne); return; }
+		var n = $(this).closest('li').attr('data-n'), $c = $(this).closest('li').find('canvas').detach();
+		$(this).closest('li').remove();
+		var $g = pmItem(n, false); if ($c.length) { $g.find('.mcupr-pg-th').empty().append($c); }
+		var placed = false;
+		$gone.children().each(function () { if (parseInt($(this).attr('data-n'), 10) > parseInt(n, 10)) { $g.insertBefore(this); placed = true; return false; } });
+		if (!placed) { $gone.append($g); }
+		pmCount();
+	});
+	$gone.on('click', '.mcupr-pg-back', function () {
+		var n = $(this).closest('li').attr('data-n'), $c = $(this).closest('li').find('canvas').detach();
+		$(this).closest('li').remove();
+		var $k = pmItem(n, true); if ($c.length) { $k.find('.mcupr-pg-th').empty().append($c); }
+		$grid.append($k); pmCount();
+	});
+	$grid.on('click', '.mcupr-pg-l', function () { var $li = $(this).closest('li'); $li.prev().before($li); pmCount(); $li.find('.mcupr-pg-l').trigger('focus'); });
+	$grid.on('click', '.mcupr-pg-r', function () { var $li = $(this).closest('li'); $li.next().after($li); pmCount(); $li.find('.mcupr-pg-r').trigger('focus'); });
+	// a different PDF: its own pages are shown at once
+	$('#mcupr-bk-pick-pdf').on('click', function () { pdfFrame && pdfFrame.once && pdfFrame.once('select', function () { $pm.prop('hidden', false); $pm.attr('data-keep', '[]'); $('#mcupr-bk-keep-on').val(0); $grid.empty(); $gone.empty(); setTimeout(pmLoad, 50); }); });
+
 	// the EPUB
 	var epFrame = null;
 	$('#mcupr-bk-pick-epub').on('click', function () {
@@ -138,7 +227,7 @@
 				return lib.getDocument({ url: r.data.url, cMapUrl: A.cmaps, cMapPacked: true, standardFontDataUrl: A.fonts }).promise;
 			});
 		}).then(function (doc) {
-			return doc.getPage(1);
+			return doc.getPage(parseInt($('#mcupr-bk-pdfpages').children().first().attr('data-n'), 10) || 1); // the first page the book shows
 		}).then(function (pg) {
 			var v1 = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: 800 / v1.width }), cv = document.createElement('canvas');
 			cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
