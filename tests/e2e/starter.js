@@ -3530,6 +3530,19 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       }
       phpR('foreach(array(' + rids.join(',') + ') as $i){ wp_delete_post($i,true); }');
     }
+    // the home hero fills the frame edge to edge with the side menu
+    {
+      for (const w of [1428, 1920]) {
+        const hc = await br.newContext({ viewport: { width: w, height: 800 } });
+        const hp = await hc.newPage();
+        await hp.addInitScript(() => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); } catch (e) { /* */ } });
+        await hp.goto(B + '/');
+        await hp.waitForTimeout(700);
+        const hg = await hp.evaluate(() => { const h = document.querySelector('.hero').getBoundingClientRect(); const f = document.querySelector('.site-page').getBoundingClientRect(); return { l: Math.abs(h.left - f.left), t: Math.abs(h.top - f.top), r: Math.abs(h.right - f.right), sw: document.documentElement.scrollWidth - innerWidth }; });
+        ok(hg.l <= 1 && hg.t <= 1 && hg.r <= 1 && hg.sw <= 0, 'home hero (' + w + ' px, side menu): fills the frame edge to edge (' + hg.l + ' / ' + hg.t + ' / ' + hg.r + ' px off)');
+        await hc.close();
+      }
+    }
     // the WordPress toolbar as a floating icon for signed-in editors (and the classic bar when chosen)
     {
       const { execSync: execC } = require('child_process');
