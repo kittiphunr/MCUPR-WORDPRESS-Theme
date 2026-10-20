@@ -53,7 +53,7 @@ if ( ! $pretty ) { update_option( 'permalink_structure', '' ); $wp_rewrite->init
 // ================================================================= 3. the parts that show (pure) and on a real group
 t( array( 'services', 'news', 'contact' ) === mcupr_group_sections_pick( array(), array( 'about' => false, 'services' => true, 'news' => true, 'people' => false, 'docs' => false, 'contact' => true ) ), 'pick: only the parts that have something, in the page order' );
 t( array( 'news' ) === mcupr_group_sections_pick( array( 'services', 'contact' ), array( 'services' => true, 'news' => true, 'contact' => true ) ), 'pick: a part switched off is left out even when it has content' );
-t( array() === mcupr_group_sections_pick( array(), array() ) && array( 'services', 'stats', 'about', 'news', 'people', 'docs', 'contact' ) === mcupr_group_sections_pick( array(), array_fill_keys( mcupr_group_section_keys(), true ) ), 'pick: nothing → no part; everything → all seven in order (services first: they are at the top)' );
+t( array() === mcupr_group_sections_pick( array(), array() ) && array( 'services', 'stats', 'news', 'people', 'about', 'docs', 'contact' ) === mcupr_group_sections_pick( array(), array_fill_keys( mcupr_group_section_keys(), true ) ), 'pick: nothing → no part; everything → all seven in the order they are shown (services first: they are at the top)' );
 $empty = array( 'tel' => '', 'email' => '', 'place' => '', 'hours' => array() );
 t( ! mcupr_group_has_contact( $empty ) && mcupr_group_has_contact( $empty, true ) && mcupr_group_has_contact( array_merge( $empty, array( 'hours' => array( 'จันทร์–ศุกร์' ) ) ) ), 'contact: hidden with nothing, shown with only a form or only hours' );
 t( array() === mcupr_group_sections( $G2 ), 'a new group with nothing in it shows no part at all' );
@@ -147,6 +147,7 @@ update_post_meta( $G1, '_mcupr_g_stats', mcupr_group_clean_stats( array( array( 
 mcupr_group_memo_reset();
 ob_start(); mcupr_group_render( $G1 ); $hs = ob_get_clean();
 t( false !== strpos( $hs, 'class="gl-card gl-figs"' ) && 2 === substr_count( $hs, '<li><b>' ) && false !== strpos( $hs, 'id="gl-stats-t"' ) && false !== strpos( $hs, 'href="#gl-stats"' ), 'page: the figures are a part of their own, with a heading and a place in the menu' );
+t( preg_match( '#class="gl-rows gl-rows-a n\d">\s*<section id="gl-stats"#', $hs ) && false !== strpos( $hs, 'gl-rows gl-rows-b' ), 'page: figures, news and people sit in one row, the documents and the contact in another' );
 delete_post_meta( $G1, '_mcupr_g_stats' ); mcupr_group_memo_reset();
 t( ! $bad( $h ) && 1 === substr_count( $h, '<h1 ' ) && false !== strpos( $h, '<h1 class="gl-name">กลุ่มงานการเงินทดสอบ</h1>' ), 'page: no PHP errors, one h1 – the name of the group' );
 t( 5 === substr_count( $h, '<h2 id="gl-' ) && false === strpos( $h, '<h4' ), 'page: an h2 for each of the five parts (and no heading skips a level)' );

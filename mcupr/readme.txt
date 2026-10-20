@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.33 =
+* Work group page: figures, news and people in one row; documents beside the contact
+
 = 1.54.32 =
 * All menu: groups rail on the left, the chosen group on the right
 
