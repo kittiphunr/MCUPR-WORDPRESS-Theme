@@ -4,7 +4,7 @@ Theme URI: https://github.com/kittiphunr/mcupr-wordpress-theme
 Author: Kittiphun Ruttanakorn (kittiphunr)
 Author URI: https://github.com/kittiphunr
 Description: MCUPR-S.A.T.U.R.N – พัฒนาโดย Kittiphun Ruttanakorn (kittiphunr) · ธีมสำหรับเว็บไซต์หน่วยงานภาครัฐ/สถาบันการศึกษา โครงสร้างอ้างอิงเว็บไซต์ www.chula.ac.th รองรับ 4 ภาษา (ไทย/English/中文/日本語) ปรับขนาดอักษร โหมดมืด/สว่าง โหมดสำหรับผู้มีปัญหาทางสายตา (คอนทราสต์สูง สีเทา ฟอนต์อ่านง่าย ฯลฯ) UI สร้างด้วย Tailwind CSS (build ด้วย npm run build) แจ้งเตือนด้วย SweetAlert2 ออกแบบตาม WCAG 2.2 ระดับ AA และมาตรฐานเว็บไซต์ภาครัฐ (DGA)
-Version: 1.54.22
+Version: 1.54.25
 Requires at least: 5.9
 Requires PHP: 7.0
 License: GNU General Public License v2 or later
