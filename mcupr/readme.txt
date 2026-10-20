@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.20 =
+* Page head title: clear gap between the breadcrumb and the tone marks
+
 = 1.54.19 =
 * Page head title: Thai vowels and tone marks are no longer clipped
 
