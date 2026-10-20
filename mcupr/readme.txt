@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.31 =
+* Work group page: services first as tiles beside the group, figures part
+
 = 1.54.28 =
 * All menu: bento safe without the script, measured again after fonts and resize
 
