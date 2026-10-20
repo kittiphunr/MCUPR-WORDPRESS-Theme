@@ -231,7 +231,9 @@ add_action(
 		$path = mcupr_ins_norm_path( $uri );
 		$m    = mcupr_ins_match( $path, mcupr_redirects() );
 		if ( $m ) {
-			mcupr_redirect_hit( $m[1]['from'] ); // a small option of its own: the rules are not rewritten
+			if ( mcupr_throttle( 'rdr|' . mcupr_client_net(), 60, MINUTE_IN_SECONDS ) ) { // one address cannot make the database write at will; the redirect itself always works
+				mcupr_redirect_hit( $m[1]['from'] ); // a small option of its own: the rules are not rewritten
+			}
 			$to = $m[1]['to'];
 			if ( '*' === substr( $m[1]['from'], -1 ) && false !== strpos( $to, '{rest}' ) ) {
 				$to = str_replace( '{rest}', ltrim( substr( $path, strlen( rtrim( substr( $m[1]['from'], 0, -1 ), '/' ) ) ), '/' ), $to );
@@ -243,7 +245,9 @@ add_action(
 		if ( empty( $o['log404'] ) || mcupr_is_bot() || preg_match( '#^/(wp-|favicon|apple-touch|robots|\.well-known)|\.(map|png|jpe?g|gif|svg|ico|css|js|woff2?|webp|php)$#', $path ) ) {
 			return;
 		}
-		mcupr_ins_add( 'mcupr_404log', md5( $path ), array( 'p' => $path, 'n' => 1, 't' => time() ) );
+		if ( mcupr_throttle( '404|' . mcupr_client_net(), 30, MINUTE_IN_SECONDS ) ) { // a flood of made-up addresses from one place is not written to the database
+			mcupr_ins_add( 'mcupr_404log', md5( $path ), array( 'p' => $path, 'n' => 1, 't' => time() ) );
+		}
 	},
 	2
 );
