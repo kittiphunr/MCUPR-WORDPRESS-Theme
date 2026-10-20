@@ -3391,6 +3391,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
           };
         }, parts);
         ok(r.status() === 200 && g.h1 === 1 && /กลุ่มงานการเงินและบัญชี e2e/.test(g.name), tag + ': 200, one h1 – the name of the group');
+        ok((await gp.locator('.office-chrome[data-variant=full]').count()) === 1 && (await gp.locator('.gl-band').evaluate((e) => getComputedStyle(e).backgroundColor !== getComputedStyle(document.querySelector('.office-chrome .of-band')).backgroundColor)), tag + ': the full office band is above the group, and the group head is a light panel (not a second band of the same colour)');
         ok(g.parts === 6 && g.h2 === 6, tag + ': the six parts are there, each with its h2 (' + g.parts + ')');
         ok(g.links === 7 && g.targets && g.last === '#gl-contact' && g.ask && g.minH >= 24, tag + ': the in-page menu links every part (' + g.links + ' links, each target exists), the last one "ask the staff" goes to contact, each link at least 24 px tall (' + Math.round(g.minH) + ')');
         ok(g.crumb.length === 4 && /สำนักงานทดสอบกลุ่มงาน e2e/.test(g.crumb[2]) && /กลุ่มงานการเงิน/.test(g.crumb[3]), tag + ': breadcrumb home / offices / office / group (' + g.crumb.join(' | ') + ')');
