@@ -3383,7 +3383,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
             links: links.length, targets: links.every((a) => document.getElementById(a.getAttribute('href').slice(1))),
             last: links.length ? links[links.length - 1].getAttribute('href') : '', ask: !!(nav && nav.querySelector('.gl-ask')),
             minH: links.length ? Math.min(...links.map((a) => a.getBoundingClientRect().height)) : 0,
-            crumb: [...document.querySelectorAll('.gl-crumb li')].map((li) => li.textContent.replace(/›/g, '').trim()),
+            crumb: [...document.querySelectorAll('.office-chrome .of-trail li')].map((li) => li.textContent.trim()),
             head: !!document.querySelector('.gl-people > li:first-child.is-head'),
             svc: document.querySelectorAll('.gl-svc > li').length, docs: document.querySelectorAll('.gl-docs .gl-btn').length, news: document.querySelectorAll('.gl-news li').length,
             hs: document.documentElement.scrollWidth > innerWidth + 1,
@@ -3394,7 +3394,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         ok((await gp.locator('.office-chrome[data-variant=full]').count()) === 1 && (await gp.locator('.gl-band').evaluate((e) => getComputedStyle(e).backgroundColor !== getComputedStyle(document.querySelector('.office-chrome .of-band')).backgroundColor)), tag + ': the full office band is above the group, and the group head is a light panel (not a second band of the same colour)');
         ok(g.parts === 6 && g.h2 === 6, tag + ': the six parts are there, each with its h2 (' + g.parts + ')');
         ok(g.links === 7 && g.targets && g.last === '#gl-contact' && g.ask && g.minH >= 24, tag + ': the in-page menu links every part (' + g.links + ' links, each target exists), the last one "ask the staff" goes to contact, each link at least 24 px tall (' + Math.round(g.minH) + ')');
-        ok(g.crumb.length === 4 && /สำนักงานทดสอบกลุ่มงาน e2e/.test(g.crumb[2]) && /กลุ่มงานการเงิน/.test(g.crumb[3]), tag + ': breadcrumb home / offices / office / group (' + g.crumb.join(' | ') + ')');
+        ok(g.crumb.length === 4 && /สำนักงานทดสอบกลุ่มงาน e2e/.test(g.crumb[2]) && /กลุ่มงานการเงิน/.test(g.crumb[3]), tag + ': three-level trail in the band: home / offices / office / group (' + g.crumb.join(' | ') + ')');
         ok(g.head && g.svc === 3 && g.docs === 2 && g.news === 2, tag + ': the head first, 3 services, 2 documents to download, 2 news');
         ok(!g.hs && !g.out, tag + ': no sideways scroll, nothing outside the window');
         if (w === 1428 || w === 390) {
