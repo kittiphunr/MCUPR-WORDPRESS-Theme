@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.23 =
+* Editor tools card fits a phone screen
+
 = 1.54.22 =
 * Editor tools: picture + words, tiles like a start menu
 
