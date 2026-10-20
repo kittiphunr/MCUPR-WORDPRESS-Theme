@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.36 =
+* Round buttons in the all-menu: hover/pressed/contrast states fixed.
+
 = 1.54.35 =
 * Work group sample file: all 13 groups filled with marked examples
 
