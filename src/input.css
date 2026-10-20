@@ -666,13 +666,15 @@ html.fs-open-lock { overflow: hidden; }
 .fs-tab { display: flex; align-items: center; gap: .9rem; width: 100%; padding: .65rem .8rem; border: 0; border-radius: 1.3rem; background: transparent; color: var(--text-2); font: inherit; font-size: 1.1em; font-weight: 700; line-height: 1.25; text-align: left; cursor: pointer; transition: background-color .18s, color .18s, box-shadow .18s; }
 .fs-tab:hover { background: var(--hover-bg); color: var(--text); }
 .fs-tab:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
-.fs-tab[aria-selected="true"] { background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 80%, #fff)); color: var(--on-primary); box-shadow: 0 14px 26px -16px var(--primary); }
+.fs-tab[aria-selected="true"] { background: var(--primary); color: var(--on-primary); box-shadow: 0 14px 26px -16px var(--primary); }
 .fs-tab[aria-selected="true"]:focus-visible { outline-color: var(--text); }
 .fs-tab.is-dim { opacity: .4; }
 .fs-split.is-searching .fs-tab[aria-selected="true"] { background: transparent; color: var(--text-2); box-shadow: none; }
+.fs-split.is-searching .fs-tab[aria-selected="true"] .fs-tc { color: var(--muted); }
 .fs-split.is-searching .fs-tab[aria-selected="true"] .ic { background: var(--tint); color: var(--link); }
 .fs-tn { min-width: 0; overflow-wrap: anywhere; }
-.fs-tc { margin-left: auto; padding-left: .5rem; font-size: .8em; font-weight: 600; opacity: .7; }
+.fs-tc { margin-left: auto; padding-left: .5rem; font-size: .85em; font-weight: 600; color: var(--muted); }
+.fs-tab[aria-selected="true"] .fs-tc { color: inherit; }
 .fs-tab .ic { display: inline-grid; place-items: center; flex: none; width: 2.5rem; height: 2.5rem; background: var(--tint); color: var(--link); border-radius: .95rem; }
 .fs-tab[aria-selected="true"] .ic { background: color-mix(in srgb, var(--on-primary) 22%, transparent); color: inherit; }
 .fs-pane[hidden] { display: none; }
