@@ -36,24 +36,6 @@ function mcupr_group_news_url( $gid ) {
 	return $oid ? add_query_arg( 'ogroup', (int) $gid, mcupr_office_url( $oid, 'news' ) ) : '';
 }
 
-/** Breadcrumb: Home / Offices / the office / the group (the same markup as mcupr_breadcrumb()). */
-function mcupr_group_breadcrumb( $gid, $oid ) {
-	$items = array( array( mcupr_t( 'home' ), mcupr_home_url() ), array( mcupr_t( 'of_offices' ), get_post_type_archive_link( 'mcupr_office' ) ) );
-	if ( $oid ) {
-		$items[] = array( get_the_title( $oid ), get_permalink( $oid ) );
-	}
-	$items[] = array( get_the_title( $gid ), '' );
-	$o       = '<nav class="gl-crumb text-[.9375rem] text-muted" aria-label="' . esc_attr( mcupr_t( 'breadcrumb' ) ) . '"><ol class="m-0 flex list-none flex-wrap gap-x-2 gap-y-1 p-0">';
-	$last    = count( $items ) - 1;
-	foreach ( $items as $i => $it ) {
-		$sep = $i ? '<span class="mr-2" aria-hidden="true">›</span>' : '';
-		$o  .= $i === $last || '' === (string) $it[1]
-			? '<li>' . $sep . '<span aria-current="page">' . esc_html( $it[0] ) . '</span></li>'
-			: '<li>' . $sep . '<a href="' . esc_url( $it[1] ) . '">' . esc_html( $it[0] ) . '</a></li>';
-	}
-	return $o . '</ol></nav>';
-}
-
 /** The heading of a part. */
 function mcupr_group_h2( $key ) {
 	$n = mcupr_group_part_names()[ $key ];
@@ -242,7 +224,6 @@ function mcupr_group_render( $gid ) {
 	$d    = mcupr_group_data( $gid );
 	$secs = mcupr_group_sections( $gid );
 	echo '<div class="wrap gl mt-6 pb-6"' . ( $d['office'] ? ' style="' . esc_attr( mcupr_office_style( $d['office'] ) ) . '"' : '' ) . '>';
-	echo mcupr_group_breadcrumb( $gid, $d['office'] ); // phpcs:ignore WordPress.Security.EscapeOutput
 	echo mcupr_group_band( $gid, $d ); // phpcs:ignore WordPress.Security.EscapeOutput
 	echo mcupr_group_tabs( $secs ); // phpcs:ignore WordPress.Security.EscapeOutput
 	foreach ( $secs as $k ) {
