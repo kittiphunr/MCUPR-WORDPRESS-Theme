@@ -98,7 +98,7 @@ t( '1' === get_post_meta( $other, '_mcupr_s_central', true ), 'labels: and it go
 
 // ---- who sees
 ob_start(); mcupr_sp_box( get_post( $a ) ); $box = ob_get_clean();
-t( false !== strpos( $box, '1101700999998' ) && false !== strpos( $box, 'วัดตัวอย่าง' ), 'staff: the record shows everything (the ID number in full)' );
+t( false !== strpos( $box, '•••••••••9998' ) && false === strpos( $box, '1101700999998' ) && false !== strpos( $box, 'วัดตัวอย่าง' ), 'staff: the record shows the details, the ID number only by its last four digits' );
 $ev = array_map( function ( $p ) { return $p->post_title; }, get_posts( array( 'post_type' => MCUPR_AUDIT, 'post_status' => 'any', 'posts_per_page' => -1 ) ) );
 $lg = implode( ' ', array_map( function ( $p ) { return get_post_meta( $p->ID, '_mcupr_a', true ); }, get_posts( array( 'post_type' => MCUPR_AUDIT, 'post_status' => 'any', 'posts_per_page' => -1 ) ) ) );
 t( in_array( 'profileview', $ev, true ) && false === strpos( $lg, '1101700999998' ) && isset( mcupr_audit_actions()['profileview'] ), 'staff: opening it is in the log, without the details' );
