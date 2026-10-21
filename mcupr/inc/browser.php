@@ -84,17 +84,49 @@ function mcupr_browser_zones() {
 	return $zones;
 }
 
+/**
+ * Does this visitor see fewer posts than the database holds?  Office content kept off the main site and
+ * posts limited to an audience are left out of every list, so the stored counts (term counts, the total of
+ * published posts) would promise more than the list shows.
+ */
+function mcupr_browser_filtered() {
+	return ( function_exists( 'mcupr_office_hidden_terms' ) && mcupr_office_hidden_terms() ) || ( function_exists( 'mcupr_aud_hidden_ids' ) && mcupr_aud_hidden_ids() );
+}
+
+/** Posts the visitor can see in a list, counted by the same query the list uses (0 = all posts). */
+function mcupr_browser_count( $args = array() ) {
+	$q = new WP_Query( array_merge( array( 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => false, 'ignore_sticky_posts' => true ), $args ) );
+	return (int) $q->found_posts;
+}
+
+/** All posts the visitor can see (the "All" entry). */
+function mcupr_browser_all_total() {
+	return mcupr_browser_filtered() ? mcupr_browser_count() : (int) wp_count_posts()->publish;
+}
+
+/** Posts of a tag or category the visitor can see (the stored count when nothing is left out). */
+function mcupr_browser_term_count( $term ) {
+	static $memo = array();
+	$key = $term->taxonomy . ':' . $term->term_id . ':' . get_current_user_id() . ':' . count( (array) mcupr_office_hidden_terms() );
+	if ( ! isset( $memo[ $key ] ) ) {
+		$memo[ $key ] = mcupr_browser_filtered()
+			? mcupr_browser_count( 'post_tag' === $term->taxonomy ? array( 'tag_id' => $term->term_id ) : array( 'cat' => $term->term_id ) )
+			: (int) $term->count;
+	}
+	return $memo[ $key ];
+}
+
 /** Posts in a parent category including its children (what its archive page lists). */
 function mcupr_browser_total( $term ) {
 	static $memo = array();
-	if ( isset( $memo[ $term->term_id ] ) ) {
-		return $memo[ $term->term_id ];
+	$key = $term->term_id . ':' . get_current_user_id() . ':' . count( (array) mcupr_office_hidden_terms() );
+	if ( isset( $memo[ $key ] ) ) {
+		return $memo[ $key ];
 	}
 	if ( ! get_term_children( $term->term_id, 'category' ) ) {
-		return $memo[ $term->term_id ] = (int) $term->count;
+		return $memo[ $key ] = mcupr_browser_term_count( $term );
 	}
-	$q = new WP_Query( array( 'cat' => $term->term_id, 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => false, 'ignore_sticky_posts' => true ) );
-	return $memo[ $term->term_id ] = (int) $q->found_posts;
+	return $memo[ $key ] = mcupr_browser_count( array( 'cat' => $term->term_id ) );
 }
 
 /** Non-empty categories grouped by parent id: array( parent_id => WP_Term[] ). */
@@ -242,7 +274,7 @@ function mcupr_browser_sidebar() {
 	$zones   = $custom ? mcupr_browser_zones() : array();
 	$tags    = get_tags( array( 'hide_empty' => true, 'orderby' => 'count', 'order' => 'DESC' ) );
 	$cat_ids = $cur_cat ? array_merge( array( $cur_cat->term_id ), get_ancestors( $cur_cat->term_id, 'category' ) ) : array();
-	$total   = (int) wp_count_posts()->publish;
+	$total   = mcupr_browser_all_total();
 	ob_start();
 	?>
 	<aside class="fb-side" aria-label="<?php echo esc_attr( mcupr_t( 'fb_browse' ) ); ?>">
@@ -277,7 +309,7 @@ function mcupr_browser_sidebar() {
 								echo mcupr_browser_item( get_category_link( $z['root'] ), $z['root']->name, mcupr_browser_total( $z['root'] ), $cur_cat && $cur_cat->term_id === $z['root']->term_id ); // phpcs:ignore WordPress.Security.EscapeOutput
 							}
 							foreach ( $z['terms'] as $t ) {
-								echo mcupr_browser_item( get_category_link( $t ), $t->name, $t->count, $cur_cat && $cur_cat->term_id === $t->term_id ); // phpcs:ignore WordPress.Security.EscapeOutput
+								echo mcupr_browser_item( get_category_link( $t ), $t->name, mcupr_browser_term_count( $t ), $cur_cat && $cur_cat->term_id === $t->term_id ); // phpcs:ignore WordPress.Security.EscapeOutput
 							}
 							?>
 						</ul>
@@ -288,7 +320,7 @@ function mcupr_browser_sidebar() {
 				<h2 class="fb-h fb-h-tags"><?php mcupr_e( 'fb_tags' ); ?></h2>
 				<ul class="fb-list fb-tags">
 					<?php foreach ( array_slice( $tags, 0, 12 ) as $t ) : ?>
-						<?php echo mcupr_browser_item( get_tag_link( $t ), $t->name, $t->count, (int) $t->term_id === $cur_tag, 'tag' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+						<?php echo mcupr_browser_item( get_tag_link( $t ), $t->name, mcupr_browser_term_count( $t ), (int) $t->term_id === $cur_tag, 'tag' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 					<?php endforeach; ?>
 				</ul>
 				<?php if ( count( $tags ) > 12 ) : ?>
@@ -296,7 +328,7 @@ function mcupr_browser_sidebar() {
 						<summary><span class="fb-z"><?php mcupr_e( 'fb_all_tags' ); ?></span><span class="fb-n"><?php echo (int) count( $tags ); ?></span></summary>
 						<ul class="fb-list fb-tags">
 							<?php foreach ( array_slice( $tags, 12 ) as $t ) : ?>
-								<?php echo mcupr_browser_item( get_tag_link( $t ), $t->name, $t->count, (int) $t->term_id === $cur_tag, 'tag' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+								<?php echo mcupr_browser_item( get_tag_link( $t ), $t->name, mcupr_browser_term_count( $t ), (int) $t->term_id === $cur_tag, 'tag' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 							<?php endforeach; ?>
 						</ul>
 					</details>

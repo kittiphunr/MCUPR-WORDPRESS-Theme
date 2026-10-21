@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.38 =
+* News browser counts match the list (posts kept off the main site or limited to an audience are not counted).
+
 = 1.54.37 =
 * News browser: Finder/Files-style category tree, folders with descriptions, path bar.
 
