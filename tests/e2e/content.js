@@ -403,7 +403,7 @@ const speechStub = (speakMs) => `(() => {
     ok(fieldRadius >= 16 && (await p.locator('#author').evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))) >= 14, 'comment form: rounded fields');
     ok((await p.locator('#submit').evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))) >= 20, 'comment form: pill submit button');
     ok((await p.locator('label[for=comment]').count()) === 1 && (await p.locator('label[for=author]').count()) === 1 && (await p.locator('label[for=email]').count()) === 1, 'comment form: every field has a label');
-    ok((await p.locator('article .pill-tabs a, article .pill-tabs button').count()) >= 4, 'article tools: capsule toolbar');
+    ok((await p.locator('article .tool-share a, article .tool-share button').count()) >= 4 && (await p.locator('.tool-share .tool-tile svg').count()) >= 2, 'article tools: share card with brand buttons and icon tiles');
     ok((await p.locator('nav a.soft-card[rel=next], nav a.soft-card[rel=prev]').count()) >= 1, 'post navigation: soft cards');
     ok((await p.locator('article header svg').count()) >= 2, 'article meta: date and reading-time icons');
     ok(external.every((u) => !/gravatar/.test(u)), 'no request to gravatar.com (PDPA)');
@@ -431,7 +431,7 @@ const speechStub = (speakMs) => `(() => {
     await p.goto(B + '/about/');
     ok((await p.locator('ul[aria-label] a.soft-card').count()) === 3, 'page: section root shows its 3 sub-pages as tiles');
     ok((await p.locator('aside .side-tabs a[aria-current]').count()) === 1 && (await p.locator('aside .side-tabs a[aria-current]').evaluate((el) => getComputedStyle(el).borderRadius)) !== '0px', 'page: "in this section" list is a pill menu with the current page highlighted');
-    ok((await p.locator('.pill-tabs [data-print]').count()) === 1, 'page: print button inside the capsule toolbar');
+    ok((await p.locator('.tool-share [data-print]').count()) === 1, 'page: print button inside the share card');
     await p.goto(B + '/about-2/');
     ok((await p.locator('ul[aria-label] a.soft-card').count()) === 0, 'page: child pages show no tile grid');
     await p.click('#a11y-toggle'); await p.waitForSelector('.swal2-popup');
