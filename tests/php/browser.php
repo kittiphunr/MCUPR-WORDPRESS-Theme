@@ -78,6 +78,30 @@ t( strpos( mcupr_browser_toolbar(), 'class="fb-up is-off"' ) !== false && substr
 wp_update_term( $ac->term_id, 'category', array( 'description' => '' ) );
 wp_update_term( $res->term_id, 'category', array( 'description' => '' ) );
 
+// ---- counts match the list: posts kept off the main site are not promised
+wp_set_current_user( 0 );
+$published = (int) wp_count_posts()->publish;
+$unc       = get_term_by( 'slug', 'uncategorized', 'category' );
+t( ! mcupr_browser_filtered() && mcupr_browser_all_total() === $published && mcupr_browser_term_count( $unc ) === (int) $unc->count, 'counts: with nothing left out the stored counts are used' );
+$ids = get_posts( array( 'numberposts' => 2, 'fields' => 'ids', 'category' => $unc->term_id, 'suppress_filters' => true ) );
+$ot  = wp_insert_term( 'office-count-test', MCUPR_OFFICE_TAX );
+$otid = is_wp_error( $ot ) ? (int) get_term_by( 'slug', 'office-count-test', MCUPR_OFFICE_TAX )->term_id : (int) $ot['term_id'];
+foreach ( $ids as $pid ) { wp_set_object_terms( $pid, array( $otid ), MCUPR_OFFICE_TAX ); }
+update_option( 'mcupr_office_hidden', array( $otid ), true );
+unset( $GLOBALS['mcupr_office_hidden'] );
+$hidden = count( $ids );
+t( mcupr_browser_filtered() && mcupr_browser_all_total() === $published - $hidden, 'counts: "All" leaves out the posts of an office kept off the main site (' . mcupr_browser_all_total() . ' of ' . $published . ')' );
+t( mcupr_browser_term_count( $unc ) === (int) $unc->count - $hidden, 'counts: a category counts only what its list shows (' . mcupr_browser_term_count( $unc ) . ')' );
+$listed = new WP_Query( array( 'posts_per_page' => 1, 'no_found_rows' => false ) );
+t( (int) $listed->found_posts === mcupr_browser_all_total(), 'counts: "All" equals the number of posts the list itself finds' );
+$tr = mcupr_browser_tree( 0, 0, array() );
+t( preg_match( '/Uncategorized<\/span><span class="fb-n">' . ( (int) $unc->count - $hidden ) . '</', $tr ) === 1 || preg_match( '/fb-n">' . ( (int) $unc->count - $hidden ) . '<\/span>/', $tr ) === 1, 'counts: the tree shows the visible count too' );
+foreach ( $ids as $pid ) { wp_set_object_terms( $pid, array(), MCUPR_OFFICE_TAX ); }
+wp_delete_term( $otid, MCUPR_OFFICE_TAX );
+delete_option( 'mcupr_office_hidden' );
+unset( $GLOBALS['mcupr_office_hidden'] );
+t( ! mcupr_browser_filtered() && mcupr_browser_all_total() === $published, 'counts: back to the stored counts once nothing is left out' );
+
 // ---- sidebar markup on a tag archive: tags apart from categories
 $tag = get_term_by( 'name', 'โครงการ', 'post_tag' );
 global $wp_query;
