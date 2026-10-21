@@ -82,7 +82,7 @@ function mcupr_customize_register_extra( $wp_customize ) {
 	}
 
 	$wp_customize->add_setting( 'mcupr_show_views', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
-	$wp_customize->add_control( 'mcupr_show_views', array( 'section' => 'mcupr_display', 'label' => __( 'Show the number of views on news, pages, events and works', 'mcupr' ), 'type' => 'checkbox' ) );
+	$wp_customize->add_control( 'mcupr_show_views', array( 'section' => 'mcupr_display', 'priority' => 28, 'label' => __( 'Number of views', 'mcupr' ), 'description' => __( 'Shown on news, pages, events and works.', 'mcupr' ), 'type' => 'checkbox' ) );
 }
 add_action( 'customize_register', 'mcupr_customize_register_extra', 20 );
 
