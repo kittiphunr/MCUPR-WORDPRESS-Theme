@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.39 =
+* Article tools as two cards (listen / share); the display panel of the Customizer grouped with switches.
+
 = 1.54.38 =
 * News browser counts match the list (posts kept off the main site or limited to an audience are not counted).
 
