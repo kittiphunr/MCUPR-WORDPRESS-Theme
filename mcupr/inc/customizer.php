@@ -147,14 +147,23 @@ function mcupr_customize_register( $wp_customize ) {
 
 	// ---- display
 	$wp_customize->add_section( 'mcupr_display', array( 'title' => __( 'MCUPR: Animation, news & reading', 'mcupr' ), 'priority' => 33 ) );
+	require_once get_theme_file_path( 'inc/customizer-heading.php' );
+	foreach ( array(
+		'mcupr_h_menu' => array( 10, __( 'Menu and toolbar', 'mcupr' ), __( 'How visitors move around the site, and what signed-in editors see.', 'mcupr' ) ),
+		'mcupr_h_news' => array( 20, __( 'News and reading', 'mcupr' ), __( 'The news list and the article page.', 'mcupr' ) ),
+		'mcupr_h_fx'   => array( 30, __( 'Effects and background', 'mcupr' ), __( 'Visitors can always turn these off themselves.', 'mcupr' ) ),
+	) as $hid => $h ) {
+		$wp_customize->add_setting( $hid, array( 'sanitize_callback' => '__return_empty_string' ) );
+		$wp_customize->add_control( new MCUPR_Customize_Heading( $wp_customize, $hid, array( 'section' => 'mcupr_display', 'priority' => $h[0], 'label' => $h[1], 'description' => $h[2], 'settings' => array() ) ) );
+	}
 	$wp_customize->add_setting( 'mcupr_menu_layout', array( 'default' => 'top', 'sanitize_callback' => static function ( $v ) { return in_array( $v, array( 'side', 'hybrid' ), true ) ? 'side' : ( 'bar' === $v ? 'bar' : 'top' ); } ) );
-	$wp_customize->add_control( 'mcupr_menu_layout', array( 'section' => 'mcupr_display', 'label' => __( 'Menu position (default for new visitors – each visitor can change it)', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'top' => __( 'Top navigation bar', 'mcupr' ), 'bar' => __( 'One bar (logo, menu and tools in a single capsule)', 'mcupr' ), 'side' => __( 'Sidebar (left)', 'mcupr' ) ) ) );
+	$wp_customize->add_control( 'mcupr_menu_layout', array( 'section' => 'mcupr_display', 'priority' => 12, 'label' => __( 'Menu position', 'mcupr' ), 'description' => __( 'The default for new visitors – each visitor can change it.', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'top' => __( 'Top navigation bar', 'mcupr' ), 'bar' => __( 'One bar (logo, menu and tools in a single capsule)', 'mcupr' ), 'side' => __( 'Sidebar (left)', 'mcupr' ) ) ) );
 	$wp_customize->add_setting( 'mcupr_toolbar', array( 'default' => 'float', 'sanitize_callback' => static function ( $v ) { return 'wp' === $v ? 'wp' : 'float'; } ) );
-	$wp_customize->add_control( 'mcupr_toolbar', array( 'section' => 'mcupr_display', 'label' => __( 'Toolbar for signed-in editors', 'mcupr' ), 'description' => __( 'The black WordPress bar at the top of the page. As a floating icon it takes no room: one button at the bottom left opens a card with the same links, in groups.', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'float' => __( 'Floating icon (default)', 'mcupr' ), 'wp' => __( 'The WordPress bar across the top', 'mcupr' ) ) ) );
+	$wp_customize->add_control( 'mcupr_toolbar', array( 'section' => 'mcupr_display', 'priority' => 14, 'label' => __( 'Toolbar for signed-in editors', 'mcupr' ), 'description' => __( 'The black WordPress bar at the top of the page. As a floating icon it takes no room: one button at the bottom left opens a card with the same links, in groups.', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'float' => __( 'Floating icon (default)', 'mcupr' ), 'wp' => __( 'The WordPress bar across the top', 'mcupr' ) ) ) );
 	$wp_customize->add_setting( 'mcupr_util_inline', array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
-	$wp_customize->add_control( 'mcupr_util_inline', array( 'section' => 'mcupr_display', 'label' => __( 'Show the quick links (students, staff, alumni…) in the header instead of tucking them into a "Quick links" button', 'mcupr' ), 'type' => 'checkbox' ) );
+	$wp_customize->add_control( 'mcupr_util_inline', array( 'section' => 'mcupr_display', 'priority' => 16, 'label' => __( 'Quick links in the header', 'mcupr' ), 'description' => __( 'Students, staff, alumni… shown in the header instead of a "Quick links" button.', 'mcupr' ), 'type' => 'checkbox' ) );
 	$wp_customize->add_setting( 'mcupr_cat_zones', array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
-	$wp_customize->add_control( 'mcupr_cat_zones', array( 'section' => 'mcupr_display', 'label' => __( 'Category zones for the news browser (one per line: Zone name: slug, slug, …). Leave empty to group by parent category.', 'mcupr' ), 'type' => 'textarea' ) );
+	$wp_customize->add_control( 'mcupr_cat_zones', array( 'section' => 'mcupr_display', 'priority' => 24, 'label' => __( 'Category zones', 'mcupr' ), 'description' => __( 'One zone per line: Zone name: slug, slug. Leave empty to group by parent category.', 'mcupr' ), 'type' => 'textarea', 'input_attrs' => array( 'rows' => 3, 'placeholder' => 'Academic: research, service', 'spellcheck' => 'false' ) ) );
 	$wp_customize->add_setting( 'mcupr_credit_name', array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
 	$wp_customize->add_control( 'mcupr_credit_name', array( 'section' => 'mcupr_org', 'label' => __( 'Site credit: made by (leave empty to use the built-in creator, with photo and contacts)', 'mcupr' ), 'type' => 'text' ) );
 	$wp_customize->add_setting( 'mcupr_credit_url', array( 'default' => '', 'sanitize_callback' => 'esc_url_raw' ) );
@@ -181,13 +190,13 @@ function mcupr_customize_register( $wp_customize ) {
 		$wp_customize->add_control( "mcupr_about_{$code}", array( 'section' => 'mcupr_org', 'label' => sprintf( /* translators: %s: language */ __( 'About text (%s) – shown in the About dialog', 'mcupr' ), mcupr_admin_lang_name( $l['name'] ) ), 'type' => 'textarea' ) );
 	}
 	$wp_customize->add_setting( 'mcupr_anim_default', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
-	$wp_customize->add_control( 'mcupr_anim_default', array( 'section' => 'mcupr_display', 'label' => __( 'Animations on by default (visitors can switch them off in the accessibility dialog)', 'mcupr' ), 'type' => 'checkbox' ) );
+	$wp_customize->add_control( 'mcupr_anim_default', array( 'section' => 'mcupr_display', 'priority' => 32, 'label' => __( 'Animations on by default', 'mcupr' ), 'description' => __( 'Visitors can switch them off in the accessibility dialog.', 'mcupr' ), 'type' => 'checkbox' ) );
 	$wp_customize->add_setting( 'mcupr_news_layout', array( 'default' => 'reader', 'sanitize_callback' => 'mcupr_sanitize_layout' ) );
-	$wp_customize->add_control( 'mcupr_news_layout', array( 'section' => 'mcupr_display', 'label' => __( 'Default news article layout', 'mcupr' ), 'description' => __( 'Can be overridden per post in the "News layout" box on the post editor.', 'mcupr' ), 'type' => 'select', 'choices' => mcupr_layouts() ) );
+	$wp_customize->add_control( 'mcupr_news_layout', array( 'section' => 'mcupr_display', 'priority' => 22, 'label' => __( 'Default news article layout', 'mcupr' ), 'description' => __( 'Can be overridden per post in the "News layout" box on the post editor.', 'mcupr' ), 'type' => 'select', 'choices' => mcupr_layouts() ) );
 	$wp_customize->add_setting( 'mcupr_pattern', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
-	$wp_customize->add_control( 'mcupr_pattern', array( 'section' => 'mcupr_display', 'label' => __( 'Show the ashoka flower background pattern (visitors can hide it)', 'mcupr' ), 'type' => 'checkbox' ) );
+	$wp_customize->add_control( 'mcupr_pattern', array( 'section' => 'mcupr_display', 'priority' => 34, 'label' => __( 'Ashoka flower background', 'mcupr' ), 'description' => __( 'The soft flower pattern behind the pages.', 'mcupr' ), 'type' => 'checkbox' ) );
 	$wp_customize->add_setting( 'mcupr_listen', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
-	$wp_customize->add_control( 'mcupr_listen', array( 'section' => 'mcupr_display', 'label' => __( 'Show the "listen to this article" (text-to-speech) tool', 'mcupr' ), 'type' => 'checkbox' ) );
+	$wp_customize->add_control( 'mcupr_listen', array( 'section' => 'mcupr_display', 'priority' => 26, 'label' => __( 'Listen to this article', 'mcupr' ), 'description' => __( 'Show the text-to-speech tool.', 'mcupr' ), 'type' => 'checkbox' ) );
 }
 add_action( 'customize_register', 'mcupr_customize_register' );
 
@@ -262,3 +271,11 @@ function mcupr_post_layout( $post_id = 0 ) {
 	$override = $post_id ? get_post_meta( $post_id, '_mcupr_layout', true ) : '';
 	return $override && isset( mcupr_layouts()[ $override ] ) ? $override : mcupr_sanitize_layout( get_theme_mod( 'mcupr_news_layout', 'reader' ) );
 }
+
+/** The look of the theme's own sections in the Customizer panel (grouped, with switches). */
+add_action(
+	'customize_controls_enqueue_scripts',
+	static function () {
+		wp_enqueue_style( 'mcupr-customizer-pane', get_theme_file_uri( 'assets/css/customizer-pane.css' ), array(), MCUPR_VERSION );
+	}
+);
