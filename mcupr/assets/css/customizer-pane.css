@@ -1,0 +1,34 @@
+/* The theme's own sections of the Customizer panel: grouped, with switches instead of tick boxes. */
+[id^="sub-accordion-section-mcupr_"] .customize-control-mcupr_heading { margin: 0; padding: 14px 0 6px; border-top: 1px solid #dcdcde; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-mcupr_heading:first-of-type { border-top: 0; padding-top: 4px; }
+.mcupr-cz-head { display: block; }
+.mcupr-cz-head-t { display: flex; align-items: center; gap: 8px; color: #1d2327; font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.mcupr-cz-head-t::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--wp-admin-theme-color, #2271b1); }
+.mcupr-cz-head-d { display: block; margin: 3px 0 0 16px; color: #646970; font-size: 12px; line-height: 1.5; }
+
+/* check boxes become switches (label on the left, switch on the right) */
+[id^="sub-accordion-section-mcupr_"] .customize-control-checkbox { margin: 0; padding: 10px 0; border-top: 1px solid #f0f0f1; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-checkbox .customize-inside-control-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "t s" "d s"; align-items: center; column-gap: 14px; row-gap: 2px; margin: 0; padding: 0; text-indent: 0; line-height: 1.45; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-checkbox input[type="checkbox"] { appearance: none; -webkit-appearance: none; position: relative; flex: none; width: 38px; height: 22px; margin: 0; border: 0; border-radius: 99px; background: #a7aaad; box-shadow: none; cursor: pointer; transition: background-color .15s; grid-area: s; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-checkbox input[type="checkbox"]::before { content: ""; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; margin: 0; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .35); transform: none; transition: transform .15s; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-checkbox input[type="checkbox"]:checked { background: var(--wp-admin-theme-color, #2271b1); }
+[id^="sub-accordion-section-mcupr_"] .customize-control-checkbox input[type="checkbox"]:checked::before { transform: translateX(16px); }
+[id^="sub-accordion-section-mcupr_"] .customize-control-checkbox input[type="checkbox"]:focus { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--wp-admin-theme-color, #2271b1); outline: 2px solid transparent; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-checkbox label { grid-area: t; margin: 0; font-weight: 600; color: #1d2327; cursor: pointer; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-checkbox .description { grid-area: d; margin: 0; color: #646970; font-size: 12px; font-style: normal; line-height: 1.5; }
+
+/* the other controls: a short bold label, help in grey, tidy fields */
+[id^="sub-accordion-section-mcupr_"] .customize-control-radio,
+[id^="sub-accordion-section-mcupr_"] .customize-control-select,
+[id^="sub-accordion-section-mcupr_"] .customize-control-textarea { padding: 10px 0; border-top: 1px solid #f0f0f1; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-title { margin-bottom: 4px; font-weight: 700; color: #1d2327; }
+[id^="sub-accordion-section-mcupr_"] .customize-control .description.customize-control-description { margin: 0 0 8px; color: #646970; font-size: 12px; font-style: normal; line-height: 1.5; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-textarea textarea { width: 100%; min-height: 4.5em; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; line-height: 1.6; resize: vertical; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-textarea textarea::placeholder { color: #a7aaad; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-select select { width: 100%; max-width: 100%; border-radius: 4px; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-radio .customize-inside-control-row { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; padding: 7px 10px; text-indent: 0; line-height: 1.45; border: 1px solid transparent; border-radius: 6px; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-radio .customize-inside-control-row:hover { background: #f6f7f7; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-radio .customize-inside-control-row:has(input:checked) { border-color: var(--wp-admin-theme-color, #2271b1); background: #f0f6fc; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-radio input[type="radio"] { flex: none; margin: 0; }
+[id^="sub-accordion-section-mcupr_"] .customize-control-radio label { display: block; flex: 1; margin: 0; padding: 0; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { [id^="sub-accordion-section-mcupr_"] .customize-control-checkbox input[type="checkbox"], [id^="sub-accordion-section-mcupr_"] .customize-control-checkbox input[type="checkbox"]::before { transition: none; } }

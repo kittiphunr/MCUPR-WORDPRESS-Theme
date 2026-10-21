@@ -554,6 +554,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await sp.locator('[data-listen] select').count()) === 0 && (await sp.locator('[data-listen] [data-listen-rate]').count()) === 4, 'speed: four buttons, no drop-down');
     const sb = await sp.$$eval('.speed-b', (a) => a.map((x) => { const r = x.getBoundingClientRect(); return [x.textContent.trim(), r.width, r.height]; }));
     ok(sb.map((x) => x[0]).join(' ') === '0.75× 1× 1.25× 1.5×' && sb.every((x) => x[1] >= 44 && x[2] >= 40), 'speed: 0.75× 1× 1.25× 1.5×, each at least 44 wide');
+    const cardTops = await sp.$$eval('.tool-listen .speed-b', (a) => a.map((x) => Math.round(x.getBoundingClientRect().top)));
+    ok(cardTops.length === 4 && cardTops.every((t) => t === cardTops[0]) && (await sp.locator('.tool-listen .tool-play').isVisible()) && (await sp.locator('.tool-listen').evaluate((e) => getComputedStyle(e).borderRadius)) !== '0px', 'tools: the listen card keeps the four speeds on one row, with a full play button');
     ok((await sp.locator('input[data-listen-rate][value="1"]').isChecked()) && (await sp.locator('.speed').getAttribute('role')) === 'radiogroup', 'speed: 1× is selected by default; the group is a labelled radio group');
     await sp.click('.speed-b >> text=1.25×');
     ok((await sp.locator('input[data-listen-rate][value="1.25"]').isChecked()) && (await sp.evaluate(() => localStorage.getItem('mcupr_rate'))) === '1.25', 'speed: clicking selects and remembers the speed');
