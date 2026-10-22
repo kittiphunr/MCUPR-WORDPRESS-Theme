@@ -41,15 +41,7 @@ get_header();
 	<div class="wrap <?php echo $mcupr_of ? 'mt-2' : 'mt-10'; ?> grid gap-10 <?php echo $has_side ? 'min-[1000px]:grid-cols-[minmax(0,1fr)_18rem]' : ''; ?>">
 		<div class="panel-card min-w-0 <?php echo $has_side ? '' : 'mx-auto w-full max-w-[52rem]'; ?>">
 			<?php mcupr_missing_translation_notice(); ?>
-			<div class="no-print mb-6 space-y-3">
-				<?php get_template_part( 'template-parts/listen', null, array( 'target' => '#article-body', 'title' => wp_strip_all_tags( get_the_title() ) ) ); ?>
-				<div class="flex flex-wrap items-center gap-3">
-					<div class="pill-tabs !flex items-center" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'article_tools' ) ); ?>">
-						<button type="button" class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border-0 bg-transparent px-4 font-semibold text-fg2 hover:bg-tint hover:text-link" data-print><?php mcupr_e( 'print' ); ?></button>
-					</div>
-					<?php echo mcupr_views_html(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-				</div>
-			</div>
+			<div class="no-print mb-6"><?php get_template_part( 'template-parts/tools-bar', null, array( 'target' => '#article-body', 'title' => wp_strip_all_tags( get_the_title() ) ) ); ?></div>
 			<div id="article-body" class="reader"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 				<?php
 				the_content();
