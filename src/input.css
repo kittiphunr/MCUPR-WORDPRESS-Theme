@@ -770,14 +770,14 @@ html[data-contrast] .profile-none { border: 2px solid var(--border); }
 .cal { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; border: 1px solid var(--edge); border-radius: 1rem; overflow: hidden; background: var(--bg); }
 .cal th { padding: .6rem .25rem; background: var(--tint); color: var(--link); font-size: .875rem; font-weight: 800; text-align: center; }
 .cal th abbr { text-decoration: none; }
-.cal td { height: 5.5rem; padding: .35rem; border-top: 1px solid var(--edge); border-left: 1px solid var(--edge); vertical-align: top; overflow: hidden; }
+.cal td { height: 5.5rem; padding: .35rem; border-top: 1px solid var(--edge); border-left: 1px solid var(--edge); vertical-align: top; overflow-wrap: anywhere; }
 .cal tr td:first-child { border-left: 0; }
 .cal-out { background: var(--surface); }
 .cal-n { display: inline-grid; place-items: center; min-width: 1.75rem; height: 1.75rem; border-radius: 9999px; font-size: .9rem; font-weight: 700; color: var(--text-2); }
 .cal-d.is-sun .cal-n { color: var(--link); }
 .cal-d.is-today .cal-n { background: var(--primary); color: var(--on-primary); }
 .cal-evs { margin: .15rem 0 0; padding: 0; list-style: none; display: grid; gap: .2rem; }
-.cal-evs a { display: block; padding: .25rem .4rem; min-height: 1.5rem; border-radius: .4rem; background: var(--tint); color: var(--link); font-size: .8rem; font-weight: 600; line-height: 1.3; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-evs a { display: block; padding: .25rem .4rem; min-height: 1.5rem; border-radius: .4rem; background: var(--tint); color: var(--link); font-size: .8rem; font-weight: 600; line-height: 1.35; text-decoration: none; white-space: normal; overflow-wrap: anywhere; } /* the whole title, on as many lines as it needs: the row grows */
 .cal-evs a:hover, .cal-evs a:focus-visible { background: var(--primary); color: var(--on-primary); }
 @media (max-width: 699px) {
 	.cal td { height: 3.25rem; padding: .2rem; text-align: center; }
