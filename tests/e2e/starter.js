@@ -239,6 +239,13 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   }
   await p.goto(B + '/events/');
   ok((await p.$$('.ev-row')).length >= 1 && (await p.$$('.cal-evs a')).length >= 1, '/events/ lists the sample events in the grid and in the list');
+  for (const w of [1440, 1024, 768]) { // a long title is shown whole, on several lines, never cut off with "…"
+    await p.setViewportSize({ width: w, height: 900 });
+    await p.evaluate(() => { const a = document.querySelector('.cal-evs a'); if (a) a.textContent = 'ชื่อกิจกรรมที่ยาวมากเพื่อทดสอบว่าข้อความในช่องปฏิทินไม่ถูกตัดทอนและขึ้นบรรทัดใหม่ได้ครบทุกตัวอักษร'; });
+    const clipped = await p.$$eval('.cal-evs a', (as) => as.filter((a) => a.scrollWidth > a.clientWidth + 1 || a.scrollHeight > a.clientHeight + 1 || getComputedStyle(a).textOverflow === 'ellipsis' || getComputedStyle(a).whiteSpace === 'nowrap').length);
+    ok(clipped === 0, 'calendar at ' + w + 'px: the event titles are shown whole (' + clipped + ' cut off)');
+  }
+  await p.setViewportSize({ width: 1280, height: 800 });
   const before = await p.textContent('.cal-title');
   await p.click('a[rel=next]');
   ok((await p.textContent('.cal-title')) !== before && /ev_m=\d{4}-\d{2}/.test(p.url()), 'next month navigates (plain link, no JavaScript needed)');
