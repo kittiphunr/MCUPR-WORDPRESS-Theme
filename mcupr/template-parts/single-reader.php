@@ -8,6 +8,9 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 <article data-layout="reader" id="post-<?php the_ID(); ?>" <?php post_class( 'pb-4' ); ?>>
+	<?php if ( mcupr_office_shown() ) : ?>
+		<?php get_template_part( 'template-parts/office-article-head' ); ?>
+	<?php else : ?>
 	<header class="mcu-wheel bg-tint py-10"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<div class="mx-auto w-[min(100%-1.5rem,46rem)] min-[400px]:w-[min(100%-2rem,46rem)]">
 			<?php mcupr_breadcrumb( false ); ?>
@@ -15,8 +18,9 @@ defined( 'ABSPATH' ) || exit;
 			<?php get_template_part( 'template-parts/article-meta' ); ?>
 		</div>
 	</header>
+	<?php endif; ?>
 
-	<div class="panel-card mx-auto -mt-6 w-[min(100%-1.5rem,48rem)] min-[400px]:w-[min(100%-2rem,48rem)] relative">
+	<div class="panel-card mx-auto <?php echo mcupr_office_shown() ? 'mt-6' : '-mt-6'; ?> w-[min(100%-1.5rem,48rem)] min-[400px]:w-[min(100%-2rem,48rem)] relative">
 		<?php mcupr_missing_translation_notice(); ?>
 		<?php if ( has_post_thumbnail() ) : ?>
 			<figure class="noimg:hidden m-0 mb-8"><?php the_post_thumbnail( 'mcupr-hero', array( 'class' => 'w-full rounded-2xl', 'sizes' => '(min-width: 800px) 704px, calc(100vw - 4rem)', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></figure>

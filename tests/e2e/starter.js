@@ -1349,17 +1349,33 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       }
       ok((await vp.goto(url + 'videos/')).status() === 200 && /ยังไม่มีเนื้อหา/.test(await vp.locator('main').innerText()), 'office videos: an empty section says so');
       ok((await vp.goto(B + '/office/does-not-exist/')).status() === 404, 'an office that does not exist is a 404');
+      // the news of an office: the same window as the news of the whole site (bar, category chips, view switcher)
+      await vp.goto(url + 'news/');
+      const colsOf = () => vp.$eval('.fb-items', (e) => getComputedStyle(e).gridTemplateColumns.split(' ').length);
+      ok((await vp.locator('.fb.fb-solo .fb-views button').count()) === 3 && (await vp.locator('.fb-items .news-card').count()) >= 1 && (await vp.locator('.fb-side').count()) === 0, 'office news: cards in the same window as the site news, with a view switcher and no side list');
+      const c3 = await colsOf();
+      await vp.click('.fb-views [data-fb-view=list]');
+      ok((await colsOf()) === 1 && c3 >= 2 && (await vp.locator('.fb').getAttribute('data-view')) === 'list', 'office news: the list view is one row per news (' + c3 + ' columns -> 1)');
+      await vp.reload();
+      ok((await vp.locator('.fb-items').getAttribute('data-view')) === 'list', 'office news: the chosen view is remembered');
+      await vp.click('.fb-views [data-fb-view=grid]');
+      const chips = await vp.$$eval('.fb-cat-chips a', (a) => a.map((x) => x.textContent.trim()));
+      if (chips.length > 1) { ok(chips.length >= 2 && (await vp.locator('.fb-cat-chips a[aria-current]').count()) === 1, 'office news: the categories are chips, the current one marked (' + chips.join(' | ') + ')'); }
       // an office article and an office page carry the slim header
       await vp.goto(url + 'news/');
       await vp.locator('.news-card a[href]').first().click();
       await vp.waitForSelector('.office-chrome');
       ok((await vp.locator('.office-chrome[data-variant=slim]').count()) === 1 && (await vp.locator('.of-tabs a').count()) >= 7 && (await vp.locator('main h1').count()) === 1, 'office article: the slim office header with the tabs, and still exactly one h1');
-      const ov = await vp.evaluate(() => { const c = document.querySelector('.office-chrome').getBoundingClientRect(); const h = document.querySelector('#content > article > .mcu-wheel'); return h ? { gap: h.getBoundingClientRect().top - c.bottom } : null; });
+      const ov = await vp.evaluate(() => { const c = document.querySelector('.office-chrome').getBoundingClientRect(); const h = document.querySelector('#content > article > .mcu-wheel, #content > article > .of-article-head'); return h ? { gap: h.getBoundingClientRect().top - c.bottom } : null; });
       const top = await vp.evaluate(() => Math.round(document.querySelector('.office-chrome .of-band').getBoundingClientRect().top + scrollY));
       ok(top <= 16, 'office article: the office band reaches the top of the page (top ' + top + 'px)');
       ok(!ov || ov.gap >= -1, 'office article: the page band starts below the office header (not pulled up under it) (gap ' + (ov && ov.gap) + ')');
       await vp.addScriptTag({ content: axeSource() });
       const ax2 = await vp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+      const oa = await vp.evaluate(() => { const hd = document.querySelector('.of-article-head'); if (!hd) { return null; } const r = hd.getBoundingClientRect(); const crumbs = [...hd.querySelectorAll('.of-crumbs a')].map((a) => a.getAttribute('href')); const cur = [...document.querySelectorAll('.of-tabs a[aria-current]')].map((a) => a.textContent.trim()); return { h: r.height, crumbs: crumbs, cur: cur, h1: hd.querySelectorAll('h1').length, dark: getComputedStyle(hd).backgroundImage.includes('gradient') }; });
+      ok(!!oa && oa.h < 320 && oa.h1 === 1 && oa.dark, 'office article: a short head in the office colour, not a tall dark hero (' + (oa ? Math.round(oa.h) + 'px' : 'none') + ')');
+      ok(!!oa && oa.crumbs.length >= 2 && /\/office\/phrae-campus-office\/$/.test(oa.crumbs[0]) && /\/news\/$/.test(oa.crumbs[1]), 'office article: the way back goes office > news');
+      ok(!!oa && oa.cur.length === 1 && oa.cur[0] === 'ข่าวสาร', 'office article: the News tab of the office is marked as the place you are (' + (oa ? oa.cur.join(',') : '') + ')');
       ok(ax2.violations.length === 0, 'axe (office article): ' + (ax2.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
       {
         const vs0 = vp.viewportSize();
