@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.44 =
+* News inside an office: a short head in the office colour, the News tab marked, the office news list as the site's news window.
+
 = 1.54.43 =
 * Compact page bar (listen, speed, print, PDF, views); download as PDF made in the browser.
 
