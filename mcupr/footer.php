@@ -51,26 +51,26 @@ foreach ( $policy as $row ) {
 			<?php foreach ( array( 'footer-1', 'footer-2', 'footer-3' ) as $area ) { mcupr_widget_area( $area, 'space-y-6' ); } ?>
 		</div>
 	<?php endif; ?>
-	<div class="fgrid px-6 py-10<?php echo $policy_links ? '' : ' fgrid-2'; ?>">
-		<div>
-			<div class="flex items-start gap-4">
-				<?php echo mcupr_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-				<div>
-					<p class="mb-1 text-xl font-bold"><?php echo esc_html( mcupr_org_name() ); ?></p>
-					<?php if ( $alt ) : ?>
-						<p class="mb-0" lang="<?php echo esc_attr( 'th' === mcupr_ui_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></p>
-					<?php endif; ?>
-				</div>
+	<div class="fhead px-6">
+		<div class="fid">
+			<?php echo mcupr_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+			<div class="fid-t">
+				<p class="fid-n"><?php echo esc_html( mcupr_org_name() ); ?></p>
+				<?php if ( $alt ) : ?>
+					<p class="fid-a" lang="<?php echo esc_attr( 'th' === mcupr_ui_lang() ? 'en' : 'th' ); ?>"><?php echo esc_html( $alt ); ?></p>
+				<?php endif; ?>
 			</div>
-			<?php mcupr_contact_list(); ?>
-			<?php mcupr_social_links(); ?>
 		</div>
+		<?php mcupr_social_links(); ?>
+	</div>
+	<div class="fgrid px-6 pb-10<?php echo $policy_links ? '' : ' fgrid-2'; ?>">
+		<div><?php mcupr_contact_list(); ?></div>
 
 		<div class="fmap-col"><?php mcupr_map_card(); ?></div>
 
 		<?php if ( $policy_links ) : ?>
-		<nav aria-label="<?php echo esc_attr( mcupr_t( 'footer_nav' ) ); ?>">
-			<h2 class="mb-3 text-lg font-bold"><?php mcupr_e( 'footer_nav' ); ?></h2>
+		<nav class="flinks" aria-label="<?php echo esc_attr( mcupr_t( 'footer_nav' ) ); ?>">
+			<h2 class="flinks-h"><?php mcupr_e( 'footer_nav' ); ?></h2>
 			<ul class="footer-menu">
 				<?php foreach ( $policy_links as $row ) : ?>
 					<li><a href="<?php echo esc_url( $row[0] ); ?>"><?php mcupr_e( $row[1] ); ?></a></li>
@@ -79,10 +79,10 @@ foreach ( $policy as $row ) {
 		</nav>
 		<?php endif; ?>
 	</div>
-	<div class="border-t border-line py-4 text-[.9375rem] text-muted">
+	<div class="fbar border-t border-line py-4 text-[.9375rem] text-muted">
 		<div class="px-6">
 			<p class="m-0">© <?php echo esc_html( wp_date( 'Y' ) ); ?> <?php echo esc_html( mcupr_org_name() ); ?>. <?php mcupr_e( 'rights' ); ?></p>
-			<p class="m-0 mt-1">
+			<p class="m-0">
 				<?php
 				// the site creator is credited in the About dialog
 				echo esc_html( mcupr_t( 'theme_credit' ) . ' ' . MCUPR_VERSION ) . ' · ';
