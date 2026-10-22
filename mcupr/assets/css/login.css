@@ -1,0 +1,57 @@
+/* The sign-in page, dressed like the theme: a card in the middle of a soft page, round fields, the site colour on the button. */
+body.mcupr-login {
+	--bg: #ffffff; --text: #1f2937; --muted: #6b7280; --edge: #e5e7eb; --field: #ffffff; --page-a: color-mix(in srgb, var(--tint) 90%, #fff); --page-b: #eef0f6;
+	display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 24px 16px;
+	font-family: Sarabun, "Noto Sans Thai", "Leelawadee UI", Tahoma, system-ui, sans-serif; font-size: 16px; color: var(--text);
+	background: radial-gradient(circle at 18% 12%, var(--page-a) 0, transparent 46%), radial-gradient(circle at 88% 92%, color-mix(in srgb, var(--primary) 10%, var(--page-b)) 0, transparent 42%), var(--page-b);
+}
+.mcupr-login #login { width: min(24rem, 100%); max-width: 100%; padding: 0; margin: 0; }
+.mcupr-login #login h1 { margin: 0 0 .25rem; }
+.mcupr-login #login h1 a {
+	display: block; width: 100%; height: 5.5rem; margin: 0 auto .35rem; background: var(--logo-img) center / contain no-repeat; text-indent: -9999px; overflow: hidden; outline-offset: 4px;
+}
+.mcupr-login .mcupr-login-sub { margin: 0 0 1rem; text-align: center; color: var(--muted); font-size: .9rem; }
+.mcupr-login form {
+	margin: 0; padding: 1.75rem 1.6rem 1.5rem; border: 1px solid var(--edge); border-radius: 1.75rem; background: var(--bg); box-shadow: 0 30px 60px -36px rgb(15 23 42 / .45);
+}
+.mcupr-login label { margin: 0 0 .3rem .25rem; font-size: .9rem; font-weight: 700; color: var(--text); }
+.mcupr-login form .input, .mcupr-login input[type="text"], .mcupr-login input[type="password"], .mcupr-login input[type="email"] {
+	min-height: 2.9rem; margin: 0 0 .85rem; padding: 0 1.1rem; border: 1px solid #c3c8d4; border-radius: 9999px; background: var(--field); color: var(--text); font: inherit; font-size: 1rem; box-shadow: none;
+}
+.mcupr-login .user-pass-wrap .wp-pwd { position: relative; }
+.mcupr-login .user-pass-wrap input { padding-right: 3rem; }
+.mcupr-login .button.wp-hide-pw { right: .3rem; top: .15rem; height: 2.6rem; min-height: 2.6rem; width: 2.6rem; border-radius: 50%; color: var(--muted); }
+.mcupr-login input:focus { border-color: var(--primary); outline: 3px solid color-mix(in srgb, var(--primary) 35%, transparent); outline-offset: 1px; box-shadow: none; }
+.mcupr-login .forgetmenot { margin: .2rem 0 0 .25rem; float: none; display: flex; align-items: center; min-height: 2.75rem; }
+.mcupr-login .forgetmenot label { margin: 0; font-weight: 600; }
+.mcupr-login input[type="checkbox"] { width: 1.15rem; height: 1.15rem; min-height: 0; margin: 0 .55rem 0 0; border: 2px solid #8a90a0; border-radius: .3rem; background: var(--field); }
+.mcupr-login input[type="checkbox"]:checked { border-color: var(--primary); background-color: var(--primary); }
+.mcupr-login input[type="checkbox"]:checked::before { content: ""; display: block; width: .35rem; height: .65rem; margin: .06rem 0 0 .27rem; border: solid var(--on-primary); border-width: 0 2px 2px 0; transform: rotate(45deg); background: none; }
+.mcupr-login .submit { margin: .6rem 0 0; }
+.mcupr-login .button-primary, .mcupr-login #wp-submit {
+	float: none; display: block; width: 100%; min-height: 3rem; border: 0; border-radius: 9999px; background: var(--primary); color: var(--on-primary); font: inherit; font-size: 1.05rem; font-weight: 700; text-shadow: none; box-shadow: 0 10px 20px -10px var(--primary); cursor: pointer; transition: background-color .15s, transform .15s;
+}
+.mcupr-login .button-primary:hover, .mcupr-login .button-primary:focus { background: color-mix(in srgb, var(--primary) 88%, #000); color: var(--on-primary); border: 0; }
+.mcupr-login .button-primary:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+.mcupr-login .button-primary:active { transform: translateY(1px); }
+.mcupr-login #nav, .mcupr-login #backtoblog { margin: 1rem .5rem 0; padding: 0; text-align: center; font-size: .92rem; }
+.mcupr-login #backtoblog { margin-top: .5rem; }
+.mcupr-login #nav a, .mcupr-login #backtoblog a, .mcupr-login .privacy-policy-page-link a { color: var(--link-light, var(--primary)); text-underline-offset: 3px; }
+.mcupr-login #nav a:hover, .mcupr-login #backtoblog a:hover { text-decoration: underline; }
+.mcupr-login .message, .mcupr-login .success, .mcupr-login #login_error, .mcupr-login .notice {
+	margin: 0 0 1rem; padding: .85rem 1rem; border: 1px solid var(--edge); border-left: 4px solid var(--primary); border-radius: 1rem; background: var(--bg); box-shadow: none; color: var(--text);
+}
+.mcupr-login #login_error { border-left-color: #b42318; background: #fff4f2; }
+.mcupr-login .language-switcher { margin-top: 1rem; text-align: center; }
+.mcupr-login .language-switcher select { border-radius: 9999px; }
+.mcupr-login .privacy-policy-page-link { margin: 1rem 0 0; text-align: center; }
+
+@media (prefers-color-scheme: dark) {
+	body.mcupr-login { --bg: #1e293b; --text: #f1f5f9; --muted: #aab4c4; --edge: #334155; --field: #0f172a; --page-a: #3a1d2c; --page-b: #0f172a; }
+	.mcupr-login form .input, .mcupr-login input[type="text"], .mcupr-login input[type="password"], .mcupr-login input[type="email"] { border-color: #475569; }
+	.mcupr-login #nav a, .mcupr-login #backtoblog a, .mcupr-login .privacy-policy-page-link a { color: var(--link-dark, #fff); }
+	.mcupr-login #login_error { background: #3b1a17; }
+	.mcupr-login #login h1 a { filter: drop-shadow(0 0 1px #fff8); }
+}
+@media (prefers-reduced-motion: reduce) { .mcupr-login .button-primary { transition: none; } }
+@media (max-width: 400px) { .mcupr-login form { padding: 1.4rem 1.1rem 1.2rem; border-radius: 1.4rem; } }
