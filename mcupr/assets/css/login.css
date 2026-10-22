@@ -55,3 +55,22 @@ body.mcupr-login {
 }
 @media (prefers-reduced-motion: reduce) { .mcupr-login .button-primary { transition: none; } }
 @media (max-width: 400px) { .mcupr-login form { padding: 1.4rem 1.1rem 1.2rem; border-radius: 1.4rem; } }
+
+/* Social sign-in buttons: first in the form, then "or use your username" */
+.mcupr-login #loginform { display: flex; flex-direction: column; }
+.mcupr-login .social-login { order: -1; margin: 0 0 .25rem; }
+.mcupr-login .user-pass-wrap, .mcupr-login #loginform > p { width: 100%; }
+.social-btns { display: grid; gap: .5rem; }
+.social-btn { display: flex; align-items: center; gap: .75rem; min-height: 2.9rem; padding: 0 1.1rem; border: 1px solid #c3c8d4; border-radius: 9999px; background: #fff; color: #1f2937; font-weight: 700; text-decoration: none; transition: background-color .15s, border-color .15s; }
+.social-btn b { display: inline-grid; place-items: center; flex: none; width: 1.5rem; height: 1.5rem; border-radius: 50%; color: #fff; font-size: .72rem; line-height: 1; }
+.social-btn span { flex: 1; margin-right: 1.5rem; text-align: center; }
+.social-btn:hover, .social-btn:focus-visible { background: #f6f7fb; border-color: #8a90a0; color: #1f2937; }
+.social-btn:focus-visible { outline: 3px solid #1f2937; outline-offset: 2px; }
+.social-or { display: flex; align-items: center; gap: .75rem; margin: 1rem .25rem .75rem; color: #6b7280; font-size: .85rem; }
+.social-or::before, .social-or::after { content: ""; flex: 1; border-top: 1px solid #e5e7eb; }
+@media (prefers-color-scheme: dark) {
+	.mcupr-login .social-btn { background: #0f172a; border-color: #475569; color: #f1f5f9; }
+	.mcupr-login .social-btn:hover, .mcupr-login .social-btn:focus-visible { background: #1b2740; color: #fff; }
+	.mcupr-login .social-or { color: #aab4c4; }
+	.mcupr-login .social-or::before, .mcupr-login .social-or::after { border-color: #334155; }
+}

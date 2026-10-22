@@ -57,6 +57,7 @@ get_template_part( 'template-parts/band', null, array( 'title' => esc_html( mcup
 					<p class="stu-check"><label><input type="checkbox" name="rememberme" value="1"> <?php mcupr_e( 'stu_remember' ); ?></label></p>
 					<p><button type="submit" class="btn"><?php mcupr_e( 'stu_login' ); ?></button></p>
 				</form>
+				<?php echo mcupr_social_buttons( array( 'from' => 'student', 'divider' => false, 'skip' => mcupr_sso_ready() ? array( 'google' ) : array() ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				<?php if ( mcupr_sso_ready() ) : ?><p class="stu-sso"><a class="btn stu-btn2" href="<?php echo esc_url( mcupr_sso_start_url() ); ?>"><?php mcupr_e( 'stu_sso' ); ?></a></p><?php endif; ?>
 			</section>
 			<section class="stu-card" aria-labelledby="stu-first-t">
