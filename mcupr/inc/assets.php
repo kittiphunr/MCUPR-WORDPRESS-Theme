@@ -65,6 +65,7 @@ function mcupr_assets() {
 			'aboutTitle'  => mcupr_t( 'about' ),
 			'searchUrl'   => esc_url_raw( add_query_arg( 's', '', mcupr_home_url() ) ),
 				'swalUrl'     => esc_url_raw( MCUPR_URI . '/assets/vendor/sweetalert2.all.min.js?ver=11.26.25' ),
+				'pdfScripts'  => array( esc_url_raw( MCUPR_URI . '/assets/vendor/pdf/html2canvas.min.js?ver=1.4.1' ), esc_url_raw( MCUPR_URI . '/assets/vendor/pdf/jspdf.umd.min.js?ver=4.2.1' ), esc_url_raw( MCUPR_URI . '/assets/js/pdf-export.js?ver=' . MCUPR_VERSION ) ),
 		)
 	);
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
