@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.40 =
+* Sign-in page dressed like the theme; a private sign-in address (wp-login.php and wp-admin answer not found).
+
 = 1.54.39 =
 * Article tools as two cards (listen / share); the display panel of the Customizer grouped with switches.
 
