@@ -180,6 +180,25 @@ add_filter(
 	}
 );
 
+/** The same for links typed in a page ("/events/"): on a site in a sub-folder they would otherwise leave the site. Nothing to do when the site is at the top. */
+add_filter(
+	'the_content',
+	static function ( $html ) {
+		$base = (string) wp_parse_url( home_url(), PHP_URL_PATH );
+		if ( '' === $base || '/' === $base || false === strpos( $html, 'href="/' ) ) {
+			return $html;
+		}
+		return preg_replace_callback(
+			'#(\shref=")(/(?!/)[^"]*)"#',
+			static function ( $m ) use ( $base ) {
+				return 0 === strpos( $m[2], rtrim( $base, '/' ) . '/' ) ? $m[0] : $m[1] . esc_url( home_url( $m[2] ) ) . '"';
+			},
+			$html
+		);
+	},
+	12
+);
+
 /**
  * After the starter file (mcupr/starter/mcupr-starter.xml) was imported: put each imported menu into the
  * location named by its term meta "_mcupr_location" – only into locations that have no menu yet.

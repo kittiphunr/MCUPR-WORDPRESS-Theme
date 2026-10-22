@@ -148,6 +148,10 @@
 <p>รวมระบบและข้อมูลที่นิสิตปัจจุบันใช้บ่อยไว้ในที่เดียว</p>
 <h2>ระบบที่ใช้บ่อย</h2>
 <ul>
+<li><a href="/student/">พอร์ทัลนิสิต (เข้าสู่ระบบ ดูตารางเรียนและผลการเรียน ยื่นคำร้อง)</a></li>
+<li><a href="/request/">ติดตามคำร้อง</a></li>
+</ul>
+<ul>
 <li>ระบบทะเบียนและผลการเรียน: [ลิงก์]</li>
 <li>ระบบเรียนออนไลน์ (e-Learning): [ลิงก์]</li>
 <li>อีเมลนิสิต: [ลิงก์]</li>
@@ -155,7 +159,10 @@
 </ul>
 <h2>ข้อมูลที่ควรรู้</h2>
 <ul>
-<li><a href="/calendar/">ปฏิทินการศึกษา</a></li>
+<li><a href="/academics/calendar/">ปฏิทินการศึกษา</a></li>
+<li><a href="/events/">ปฏิทินกิจกรรมและวันสำคัญ</a></li>
+<li><a href="/students/forum/">กระดานสนทนา</a></li>
+<li><a href="/policies/faq/">คำถามที่พบบ่อย</a></li>
 <li>ประกาศและกำหนดการสำคัญ: [ลิงก์]</li>
 <li>เอกสารและแบบฟอร์มดาวน์โหลด: [mcupr_documents หรือลิงก์ศูนย์เอกสาร]</li>
 </ul>
@@ -394,8 +401,8 @@
 		<wp:postmeta><wp:meta_key>_mcupr_en_title</wp:meta_key><wp:meta_value><![CDATA[Opening ceremony (sample)]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_zh_title</wp:meta_key><wp:meta_value><![CDATA[开学典礼（示例）]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ja_title</wp:meta_key><wp:meta_value><![CDATA[新学期開会式（サンプル）]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-10-22 09:00:00]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-10-22 12:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-10-29 09:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-10-29 12:00:00]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_place</wp:meta_key><wp:meta_value><![CDATA[[สถานที่จัดงาน]]]></wp:meta_value></wp:postmeta>
 </item>
 <item>
@@ -424,8 +431,8 @@
 		<wp:postmeta><wp:meta_key>_mcupr_en_title</wp:meta_key><wp:meta_value><![CDATA[Academic seminar (sample)]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_zh_title</wp:meta_key><wp:meta_value><![CDATA[学术研讨会（示例）]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ja_title</wp:meta_key><wp:meta_value><![CDATA[学術セミナー（サンプル）]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-10-29 13:30:00]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-10-29 16:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-11-05 13:30:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-11-05 16:00:00]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_place</wp:meta_key><wp:meta_value><![CDATA[[ห้องประชุม]]]></wp:meta_value></wp:postmeta>
 </item>
 <item>
@@ -454,8 +461,8 @@
 		<wp:postmeta><wp:meta_key>_mcupr_en_title</wp:meta_key><wp:meta_value><![CDATA[Open House (sample)]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_zh_title</wp:meta_key><wp:meta_value><![CDATA[开放日（示例）]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ja_title</wp:meta_key><wp:meta_value><![CDATA[オープンハウス（サンプル）]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-11-14 00:00:00]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-11-14 23:59:59]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-11-21 00:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-11-21 23:59:59]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_allday</wp:meta_key><wp:meta_value><![CDATA[1]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_place</wp:meta_key><wp:meta_value><![CDATA[[มหาวิทยาลัย]]]></wp:meta_value></wp:postmeta>
 </item>
