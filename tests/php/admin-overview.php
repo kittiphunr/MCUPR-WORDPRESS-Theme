@@ -31,6 +31,24 @@ foreach ( $data['checklist'] as $st ) { if ( ! isset( $set_icons[ $st['icon'] ] 
 t( ! $bad, 'the data is complete: every menu has a group, an icon from the Feather set, a sentence, what it is and steps' . ( $bad ? ' (' . implode( ', ', $bad ) . ')' : '' ) );
 t( ! $nolink, 'every link in the data is of a known kind' . ( $nolink ? ' (' . implode( ', ', $nolink ) . ')' : '' ) );
 t( count( $data['items'] ) >= 40 && count( $data['guides'] ) >= 12 && 10 === count( $data['checklist'] ), 'the content: ' . count( $data['items'] ) . ' menus, ' . count( $data['guides'] ) . ' guides, 10 steps for a new campus' );
+t( isset( $data['items']['stats'] ) && admin_url( 'index.php?page=mcupr-stats' ) === mcupr_cc_url( $data['items']['stats']['open'] ), 'a menu for the website statistics page (Dashboard → Website statistics) which the theme adds' );
+t( false !== strpos( $data['items']['media']['what'], 'โฟลเดอร์' ) && false !== strpos( implode( ' ', $data['items']['media']['steps'] ), 'ลาก' ), 'the media menu explains the folders' );
+t( false !== strpos( $data['items']['print']['what'], 'PDF' ) && false !== strpos( $data['items']['display']['what'], 'PDF' ), 'the reading and printing menus mention the PDF button' );
+$pages_in_menu = array();
+foreach ( $submenu['mcupr'] ?? array() as $e ) { // (filled further below for the real list; here only the slugs the theme registers itself)
+	$pages_in_menu[] = $e[2];
+}
+foreach ( array( 'mcupr-stats' ) as $slug ) {
+	$found = false;
+	foreach ( $data['items'] as $it ) {
+		foreach ( isset( $it['screens'] ) ? $it['screens'] : array() as $sp ) {
+			if ( false !== strpos( $sp, 'page=' . $slug ) || $sp === 'page:' . $slug ) {
+				$found = true;
+			}
+		}
+	}
+	t( $found, 'the page ' . $slug . ' belongs to a menu of the control center' );
+}
 $fe = mcupr_feather( 'edit-3', 20 );
 t( false !== strpos( $fe, '<svg' ) && false !== strpos( $fe, 'aria-hidden="true"' ) && false !== strpos( $fe, 'width="20"' ) && false !== strpos( mcupr_feather( 'no-such-icon' ), '<circle' ) && is_file( MCUPR_DIR . '/inc/feather-LICENSE.txt' ), 'Feather icons: inline svg, hidden from screen readers, an unknown name gives a circle, the MIT licence is kept' );
 t( count( $set_icons ) >= 280, 'the whole Feather set is there (' . count( $set_icons ) . ' icons)' );
