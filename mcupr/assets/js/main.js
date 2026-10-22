@@ -432,6 +432,32 @@
 			return;
 		}
 		if (e.target.closest('[data-print]')) { window.print(); }
+		var pdf = e.target.closest('[data-pdf]');
+		if (pdf && !pdf.hasAttribute('aria-busy')) {
+			/* the PDF is made in the browser; the libraries (about 600 KB) are fetched only now, one after the other */
+			var urls = (window.mcuprI18n && window.mcuprI18n.pdfScripts) || [];
+			var label = $('span', pdf), was = label ? label.textContent : '';
+			pdf.setAttribute('aria-busy', 'true');
+			if (label) { label.textContent = pdf.getAttribute('data-pdf-busy') || was; }
+			var done = function (msg) {
+				pdf.removeAttribute('aria-busy');
+				if (label) { label.textContent = was; }
+				if (msg) { announce(msg); }
+			};
+			var load = function (i) {
+				if (i >= urls.length) { return Promise.resolve(); }
+				if (i === urls.length - 1 && window.mcuprPdf) { return Promise.resolve(); }
+				return new Promise(function (ok, no) {
+					if ((i === 0 && window.html2canvas) || (i === 1 && window.jspdf)) { ok(); return; }
+					var s = document.createElement('script');
+					s.src = urls[i];
+					s.onload = ok;
+					s.onerror = no;
+					document.head.appendChild(s);
+				}).then(function () { return load(i + 1); });
+			};
+			load(0).then(function () { return window.mcuprPdf(pdf); }).then(function () { done(''); }, function () { done(pdf.getAttribute('data-pdf-fail') || 'PDF failed'); });
+		}
 	});
 
 	/* ---------------------------------------------------------------- navigation */

@@ -423,7 +423,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await pp.goto(B + '/print-long/');
     ok((await pp.locator('.print-sheet').count()) === 1 && (await pp.locator('.print-sheet').isHidden()), 'print: the letterhead exists but is not shown on screen');
     await pp.emulateMedia({ media: 'print' });
-    const g = await pp.evaluate(() => { const mm = (n) => n * 96 / 25.4; const r = (s) => document.querySelector(s).getBoundingClientRect(); const h = r('.print-head'), f = r('.print-foot'); return { headH: h.height / mm(1), footH: f.height / mm(1), headPos: getComputedStyle(document.querySelector('.print-head')).position, top: h.top, padTop: parseFloat(getComputedStyle(document.body).paddingTop) / mm(1), padSide: parseFloat(getComputedStyle(document.body).paddingLeft) / mm(1), header: getComputedStyle(document.querySelector('.site-header')).display, tools: !!document.querySelector('.tool-card') && getComputedStyle(document.querySelector('.tool-card')).display, share: document.querySelector('.share-bar') && getComputedStyle(document.querySelector('.share-bar')).display, imgs: document.querySelectorAll('.print-fill').length }; });
+    const g = await pp.evaluate(() => { const mm = (n) => n * 96 / 25.4; const r = (s) => document.querySelector(s).getBoundingClientRect(); const h = r('.print-head'), f = r('.print-foot'); return { headH: h.height / mm(1), footH: f.height / mm(1), headPos: getComputedStyle(document.querySelector('.print-head')).position, top: h.top, padTop: parseFloat(getComputedStyle(document.body).paddingTop) / mm(1), padSide: parseFloat(getComputedStyle(document.body).paddingLeft) / mm(1), header: getComputedStyle(document.querySelector('.site-header')).display, tools: !!document.querySelector('.tool-card, .tool-bar') && getComputedStyle(document.querySelector('.tool-card, .tool-bar')).display, share: document.querySelector('.share-bar') && getComputedStyle(document.querySelector('.share-bar')).display, imgs: document.querySelectorAll('.print-fill').length }; });
     ok(Math.abs(g.headH - 36) < 0.6 && Math.abs(g.footH - 20) < 0.6 && g.headPos === 'fixed' && g.top === 0, 'print: header band 36 mm and footer band 20 mm, fixed (repeated on every sheet) ' + JSON.stringify([g.headH, g.footH]));
     ok(Math.abs(g.padTop - 36) < 0.6 && Math.abs(g.padSide - 18) < 0.6, 'print: the text keeps clear of the header (36 mm) and the side margins (18 mm)');
     ok(g.header === 'none' && g.tools === 'none' && g.share === 'none' && g.imgs === 2, 'print: site header, share buttons and tools are not printed; header + footer graphics are');
@@ -554,8 +554,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok((await sp.locator('[data-listen] select').count()) === 0 && (await sp.locator('[data-listen] [data-listen-rate]').count()) === 4, 'speed: four buttons, no drop-down');
     const sb = await sp.$$eval('.speed-b', (a) => a.map((x) => { const r = x.getBoundingClientRect(); return [x.textContent.trim(), r.width, r.height]; }));
     ok(sb.map((x) => x[0]).join(' ') === '0.75× 1× 1.25× 1.5×' && sb.every((x) => x[1] >= 44 && x[2] >= 40), 'speed: 0.75× 1× 1.25× 1.5×, each at least 44 wide');
-    const cardTops = await sp.$$eval('.tool-listen .speed-b', (a) => a.map((x) => Math.round(x.getBoundingClientRect().top)));
-    ok(cardTops.length === 4 && cardTops.every((t) => t === cardTops[0]) && (await sp.locator('.tool-listen .tool-play').isVisible()) && (await sp.locator('.tool-listen').evaluate((e) => getComputedStyle(e).borderRadius)) !== '0px', 'tools: the listen card keeps the four speeds on one row, with a full play button');
+    const cardTops = await sp.$$eval('.tool-bar .speed-b', (a) => a.map((x) => Math.round(x.getBoundingClientRect().top)));
+    ok(cardTops.length === 4 && cardTops.every((t) => t === cardTops[0]) && (await sp.locator('.tool-bar .tool-play').isVisible()) && (await sp.locator('.tool-bar').evaluate((e) => getComputedStyle(e).borderRadius)) !== '0px', 'tools: the page bar keeps the four speeds on one row, with a play button');
     ok((await sp.locator('input[data-listen-rate][value="1"]').isChecked()) && (await sp.locator('.speed').getAttribute('role')) === 'radiogroup', 'speed: 1× is selected by default; the group is a labelled radio group');
     await sp.click('.speed-b >> text=1.25×');
     ok((await sp.locator('input[data-listen-rate][value="1.25"]').isChecked()) && (await sp.evaluate(() => localStorage.getItem('mcupr_rate'))) === '1.25', 'speed: clicking selects and remembers the speed');
@@ -3041,6 +3041,40 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       ok(((left.data || {}).folders || []).filter((f) => f.name === 'ปี 2569' || f.name === 'ข่าวทดสอบ').length === 0, 'media folders: the test folders are removed again');
       await mc.close();
     }
+  }
+
+  // ---------- the compact page bar (listen, speed, print, PDF, views) and the PDF download
+  {
+    const pc = await br.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
+    await pc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const pp = await pc.newPage();
+    const pErr = []; pp.on('pageerror', (e) => pErr.push(e.message));
+    await pp.goto(B + '/about/');
+    const bar = await pp.evaluate(() => { const b = document.querySelector('.tool-bar'); if (!b) { return null; } const r = b.getBoundingClientRect(); const ys = [...b.querySelectorAll('.tool-play, .speed-g, .tool-act, .tool-views')].map((x) => { const q = x.getBoundingClientRect(); return q.top + q.height / 2; }); return { h: r.height, w: r.width, one: Math.max(...ys) - Math.min(...ys) < 8, acts: [...b.querySelectorAll('.tool-act')].map((a) => a.textContent.trim()), svg: b.querySelectorAll('.tool-act svg').length }; });
+    ok(!!bar && bar.h < 70 && bar.one, 'page bar: listen, speed, print, PDF and views are one slim row (' + (bar ? Math.round(bar.w) + 'x' + Math.round(bar.h) : 'none') + ')');
+    ok(!!bar && bar.acts.length === 2 && bar.svg === 2 && /พิมพ์/.test(bar.acts[0]) && /PDF/.test(bar.acts[1]), 'page bar: print and download PDF are an icon with its text (' + (bar ? bar.acts.join(' | ') : '') + ')');
+    ok((await pp.locator('.tool-bar .speed-b').count()) === 4 && (await pp.locator('.tool-bar [data-listen-play]').isVisible()) && (await pp.locator('.tool-bar [data-listen-rates][role=radiogroup]').count()) === 1, 'page bar: the listen button and the four speeds are inside the bar, the speeds a radio group');
+    await pp.click('.tool-bar input[data-listen-rate][value="1.25"]', { force: true });
+    ok(await pp.locator('.tool-bar input[data-listen-rate][value="1.25"]').isChecked(), 'page bar: a speed can be chosen');
+    ok((await pp.locator('.pdf-clip').count()) === 0 && !(await pp.evaluate(() => !!window.html2canvas)), 'PDF: nothing of the PDF code is loaded until the button is pressed');
+    const [dl] = await Promise.all([pp.waitForEvent('download', { timeout: 120000 }), pp.click('.tool-bar [data-pdf]')]);
+    const fs = require('fs');
+    const buf = fs.readFileSync(await dl.path());
+    ok(/^[a-z0-9-]+\.pdf$/.test(dl.suggestedFilename()) && buf.slice(0, 5).toString() === '%PDF-' && buf.length > 5000, 'PDF: a real PDF file is downloaded (' + dl.suggestedFilename() + ', ' + buf.length + ' bytes)');
+    ok((buf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length >= 1, 'PDF: the file has at least one page');
+    ok((await pp.locator('.pdf-clip').count()) === 0 && (await pp.locator('.tool-bar [data-pdf]').getAttribute('aria-busy')) === null && /PDF/.test(await pp.locator('.tool-bar [data-pdf] span').innerText()), 'PDF: the off-screen sheet is removed and the button is back to its label');
+    await pp.goto(B + '/?p=' + (await pp.evaluate(() => (document.querySelector('link[rel=shortlink]') || {}).href || '').then((h) => (h.match(/p=(\d+)/) || [0, 0])[1] || 0)));
+    // the news article: a PDF tile beside print, in the share card
+    const art = await pp.evaluate(() => [...document.querySelectorAll('.tool-share .tool-tile')].map((t) => t.textContent.trim()));
+    ok(art.length === 0 || art.some((t) => /PDF/.test(t)), 'PDF: on a news article the share card has a PDF tile as well');
+    ok(pErr.length === 0, 'PDF: no script errors' + (pErr.length ? ' :: ' + pErr.join(' | ') : ''));
+    const mc = await br.newContext({ viewport: { width: 390, height: 800 } });
+    const mp2 = await mc.newPage();
+    await mp2.goto(B + '/about/');
+    const mob = await mp2.evaluate(() => ({ w: document.documentElement.scrollWidth <= innerWidth + 1, tall: document.querySelector('.tool-bar').getBoundingClientRect().height, btns: [...document.querySelectorAll('.tool-bar button, .tool-bar .speed-b')].filter((b) => b.getBoundingClientRect().height > 0).every((b) => b.getBoundingClientRect().height >= 36) }));
+    ok(mob.w && mob.btns, 'page bar on a phone: wraps tidily, nothing scrolls sideways, every button at least 36px high (' + Math.round(mob.tall) + 'px tall)');
+    await mc.close();
+    await pc.close();
   }
 
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
