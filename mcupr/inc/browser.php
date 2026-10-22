@@ -342,10 +342,19 @@ function mcupr_browser_sidebar() {
 	return ob_get_clean();
 }
 
+/** The view switcher (cards / list / gallery): one radio group, the choice is remembered by main.js. */
+function mcupr_browser_views() {
+	$views = array( 'grid' => 'grid', 'list' => 'rows', 'gallery' => 'image' );
+	$h     = '<div class="fb-views" role="radiogroup" aria-label="' . esc_attr( mcupr_t( 'fb_view' ) ) . '">';
+	foreach ( $views as $v => $icon ) {
+		$h .= '<button type="button" role="radio" aria-checked="' . ( 'grid' === $v ? 'true' : 'false' ) . '" data-fb-view="' . esc_attr( $v ) . '" title="' . esc_attr( mcupr_t( 'fb_' . $v ) ) . '">' . mcupr_icon( $icon, 18 ) . '<span>' . esc_html( mcupr_t( 'fb_' . $v ) ) . '</span></button>';
+	}
+	return $h . '</div>';
+}
+
 /** Toolbar: up one level, where you are + how many folders / items, view switcher. */
 function mcupr_browser_toolbar() {
 	global $wp_query;
-	$views = array( 'grid' => 'grid', 'list' => 'rows', 'gallery' => 'image' );
 	$up    = '';
 	$title = mcupr_t( 'all_cats' );
 	$folds = 0;
@@ -376,11 +385,7 @@ function mcupr_browser_toolbar() {
 			<p class="fb-name"><?php echo esc_html( $title ); ?></p>
 			<p class="fb-count" role="status"><?php echo esc_html( ( $folds ? sprintf( mcupr_t( 'fb_n_folders' ), $folds ) . ' · ' : '' ) . $count ); ?></p>
 		</div>
-		<div class="fb-views" role="radiogroup" aria-label="<?php echo esc_attr( mcupr_t( 'fb_view' ) ); ?>">
-			<?php foreach ( $views as $v => $icon ) : ?>
-				<button type="button" role="radio" aria-checked="<?php echo 'grid' === $v ? 'true' : 'false'; ?>" data-fb-view="<?php echo esc_attr( $v ); ?>" title="<?php echo esc_attr( mcupr_t( 'fb_' . $v ) ); ?>"><?php echo mcupr_icon( $icon, 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'fb_' . $v ); ?></span></button>
-			<?php endforeach; ?>
-		</div>
+		<?php echo mcupr_browser_views(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 	</div>
 	<?php
 	return ob_get_clean();
