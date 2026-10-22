@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.41 =
+* Sign in with Google, Facebook, LINE and ThaID for visitors and students.
+
 = 1.54.40 =
 * Sign-in page dressed like the theme; a private sign-in address (wp-login.php and wp-admin answer not found).
 

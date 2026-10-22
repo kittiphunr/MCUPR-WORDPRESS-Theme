@@ -247,6 +247,8 @@ return array(
 	'sr_try'        => array( 'ลองค้นหา', 'Try', '试试搜索', 'こんな検索' ),
 	'sr_go'         => array( 'ค้นหา', 'Search', '搜索', '検索' ),
 	'sr_hint'       => array( 'กด Enter เพื่อค้นหา · กด Esc เพื่อปิด', 'Press Enter to search · Esc to close', '按 Enter 搜索 · 按 Esc 关闭', 'Enter で検索 · Esc で閉じる' ),
+	'soc_with'      => array( 'เข้าสู่ระบบด้วย %s', 'Sign in with %s', '使用 %s 登录', '%s でログイン' ),
+	'soc_or'        => array( 'หรือใช้ชื่อผู้ใช้', 'or use your username', '或使用用户名', 'またはユーザー名で' ),
 	'login_staff'   => array( 'เข้าสู่ระบบเจ้าหน้าที่', 'Staff sign-in', '工作人员登录', '職員ログイン' ),
 	'tool_listen'   => array( 'ฟังบทความ', 'Listen', '收听', '聞く' ),
 	'tool_share'    => array( 'แชร์บทความ', 'Share', '分享文章', '記事を共有' ),
