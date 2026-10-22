@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.42 =
+* Media library folders (virtual): panel, drag to move, filters in the grid and the pop-up.
+
 = 1.54.41 =
 * Sign in with Google, Facebook, LINE and ThaID for visitors and students.
 

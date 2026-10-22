@@ -2968,6 +2968,81 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     }
   }
 
+  // ---------- media folders: the panel on the media page, making folders, dragging a file onto one, the filters, the list view, the pop-up
+  {
+    const mc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    const mp = await mc.newPage();
+    const mErr = []; mp.on('pageerror', (e) => mErr.push(e.message));
+    const api = (action, data) => mp.evaluate(async ([a, d]) => { const n = window.mcuprMF && window.mcuprMF.nonce; const r = await fetch(window.mcuprMF.ajax, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(Object.assign({ action: 'mcupr_mf_' + a, _wpnonce: n }, d)).toString() }); return r.json(); }, [action, data || {}]);
+    try {
+      await mp.goto(B + '/wp-login.php');
+      await mp.fill('#user_login', 'e2eadmin'); await mp.fill('#user_pass', 'e2e-Admin-pass-1'); await mp.click('#wp-submit');
+      await mp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+      await mp.goto(B + '/wp-admin/upload.php?mode=grid');
+      await mp.waitForSelector('.attachments .attachment');
+      ok((await mp.locator('.mf-panel').isVisible()) && (await mp.locator('.mf-chip').count()) === 5 && (await mp.locator('.mf-layout .attachments').count()) >= 1, 'media folders: the media page has a folder panel and type chips beside the grid');
+      const all0 = parseInt(await mp.locator('.mf-row:has(.mf-name:text-is("ไฟล์ทั้งหมด")) .mf-n').innerText(), 10);
+      ok(all0 >= 5 && (await mp.locator('.mf-row:has(.mf-name:text-is("ยังไม่จัดโฟลเดอร์"))').count()) === 1, 'media folders: "All files" and "Unfiled" are there with counts (' + all0 + ' files)');
+      await mp.click('[data-act=new]'); await mp.fill('.mf-dlg input[type=text]', 'ข่าวทดสอบ'); await mp.click('.mf-dlg button[type=submit]');
+      await mp.waitForSelector('.mf-tree [data-choose]:has-text("ข่าวทดสอบ")');
+      await mp.click('[data-act=new]'); await mp.fill('.mf-dlg input[type=text]', 'ปี 2569'); await mp.click('.mf-dlg button[type=submit]');
+      await mp.waitForSelector('.mf-tree [data-choose]:has-text("ปี 2569")');
+      ok((await mp.locator('.mf-path').innerText()).replace(/\s+/g, ' ').includes('ข่าวทดสอบ › ปี 2569'), 'media folders: a folder and a sub-folder are made from the panel; the path shows where you are');
+      await mp.click('[data-act=new]'); await mp.fill('.mf-dlg input[type=text]', 'ปี 2569');
+      await mp.selectOption('.mf-dlg select', String(await mp.evaluate(() => (window.mcuprMF.folders.filter((f) => f.name === 'ข่าวทดสอบ')[0] || {}).id)));
+      await mp.click('.mf-dlg button[type=submit]');
+      await mp.waitForSelector('.mf-dlg-e:not(:empty)');
+      ok(await mp.locator('.mf-dlg-e').isVisible() && (await mp.locator('.mf-dlg-e').innerText()).length > 0, 'media folders: the same name in the same place is refused with a message');
+      await mp.click('.mf-dlg [data-x]');
+      await mp.click('.mf-link:has-text("ยังไม่จัดโฟลเดอร์")'); await mp.waitForTimeout(900);
+      const n0 = await mp.locator('.attachments .attachment').count();
+      const dest = mp.locator('.mf-row[data-drop]:has(.mf-name:text-is("ปี 2569"))');
+      await mp.locator('.attachments .attachment').first().dragTo(dest);
+      await mp.waitForTimeout(1300);
+      const n1 = await mp.locator('.attachments .attachment').count();
+      ok(n1 === n0 - 1 && (await dest.locator('.mf-n').innerText()) === '1', 'media folders: dragging a file onto a folder moves it (unfiled ' + n0 + ' -> ' + n1 + ', the folder counts 1)');
+      ok((await mp.locator('.mf-row:has(.mf-name:text-is("ข่าวทดสอบ")) .mf-n').innerText()) === '1', 'media folders: a parent counts the files of its sub-folders');
+      await mp.click('.mf-link:has(.mf-name:text-is("ข่าวทดสอบ"))'); await mp.waitForTimeout(900);
+      ok((await mp.locator('.attachments .attachment').count()) === 1 && (await mp.locator('.mf-sub li').count()) === 1, 'media folders: opening the parent shows its file and its sub-folder tile');
+      ok((await mp.locator('.mf-filter').inputValue()) !== '' , 'media folders: the grid\'s folder filter follows the panel');
+      await mp.selectOption('.mf-filter', 'none'); await mp.waitForTimeout(900);
+      ok((await mp.locator('.attachments .attachment').count()) >= 20 && (await mp.locator('.mf-row.is-cur .mf-name').innerText()) === 'ยังไม่จัดโฟลเดอร์', 'media folders: choosing "unfiled" in the filter shows the files with no folder and lights the panel');
+      await mp.click('.mf-chip[data-type=image]'); await mp.waitForTimeout(900);
+      ok((await mp.locator('.mf-chip.is-on').innerText()) === (await mp.evaluate(() => window.mcuprMF.t.types.image)), 'media folders: the type chips filter the grid too');
+      await mp.click('.mf-chip[data-type=""]'); await mp.waitForTimeout(500);
+      // details of a file: the Folder field
+      await mp.click('.mf-link:has(.mf-name:text-is("ข่าวทดสอบ"))'); await mp.waitForTimeout(800);
+      await mp.locator('.attachments .attachment').first().click();
+      await mp.waitForSelector('.attachment-details select[name$="[mcupr_folder]"]');
+      ok(((await mp.locator('.attachment-details select[name$="[mcupr_folder]"] option:checked').innerText()).replace(/\s+/g, ' ').trim()) === '— ปี 2569', 'media folders: the file\'s details show its folder');
+      await mp.keyboard.press('Escape');
+      // list view
+      const listUrl = B + '/wp-admin/upload.php?mode=list&mcupr_folder=' + (await mp.evaluate(() => (window.mcuprMF.folders.filter((f) => f.name === 'ข่าวทดสอบ')[0] || {}).id));
+      await mp.goto(listUrl);
+      ok((await mp.locator('#the-list tr').count()) === 1 && (await mp.locator('thead th.column-mcupr_folder').count()) === 1 && (await mp.locator('.mf-panel').isVisible()), 'media folders: the list view filters by folder, has a Folder column and the same panel');
+      ok((await mp.locator('#bulk-action-selector-top option').allInnerTexts()).some((t) => /ปี 2569/.test(t)), 'media folders: the list view\'s bulk actions can move to a folder');
+      await mp.goto(listUrl.replace('ข่าวทดสอบ', ''));
+      // the pop-up in the editor
+      await mp.goto(B + '/wp-admin/post-new.php');
+      await mp.waitForFunction(() => window.wp && wp.media && wp.media.view && wp.media.view.AttachmentsBrowser);
+      await mp.evaluate(() => { window.__mf = wp.media({ title: 't', multiple: false }); window.__mf.open(); window.__mf.content.mode('browse'); });
+      await mp.waitForSelector('.media-modal .mf-filter');
+      ok((await mp.locator('.media-modal .mf-filter option').count()) >= 4, 'media folders: the media pop-up in the editor has the folder filter (' + (await mp.locator('.media-modal .mf-filter option').count()) + ' choices)');
+      const sub = await mp.evaluate(() => (window.mcuprMF.folders.filter((f) => f.name === 'ปี 2569')[0] || {}).id);
+      await mp.selectOption('.media-modal .mf-filter', String(sub)); await mp.waitForTimeout(1000);
+      ok((await mp.locator('.media-modal .attachments .attachment').count()) === 1, 'media folders: in the pop-up the filter narrows the pictures to that folder');
+      ok(mErr.length === 0, 'media folders: no script errors on any of these pages' + (mErr.length ? ' :: ' + mErr.join(' | ') : ''));
+    } finally {
+      await mp.goto(B + '/wp-admin/upload.php?mode=grid').catch(() => {});
+      await mp.waitForFunction(() => window.mcuprMF).catch(() => {});
+      const names = await mp.evaluate(() => (window.mcuprMF ? window.mcuprMF.folders : [])).catch(() => []);
+      for (const f of names.filter((x) => x.name === 'ปี 2569').concat(names.filter((x) => x.name === 'ข่าวทดสอบ'))) { await api('delete', { id: f.id }).catch(() => {}); }
+      const left = await mp.evaluate(() => fetch(window.mcuprMF.ajax, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'action=mcupr_mf_list&_wpnonce=' + window.mcuprMF.nonce }).then((r) => r.json())).catch(() => ({ data: { folders: [] } }));
+      ok(((left.data || {}).folders || []).filter((f) => f.name === 'ปี 2569' || f.name === 'ข่าวทดสอบ').length === 0, 'media folders: the test folders are removed again');
+      await mc.close();
+    }
+  }
+
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
   {
     const { execSync } = require('child_process');
