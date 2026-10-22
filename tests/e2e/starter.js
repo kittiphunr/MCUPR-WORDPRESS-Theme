@@ -293,7 +293,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   }
   await p.setViewportSize(vp0);
   await p.locator('#colophon iframe.fmap-frame').scrollIntoViewIfNeeded(); // as before: the floating header must not cover the footer when axe measures it
-  await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); // the sticky header must not cover footer links while axe measures them
+  await p.evaluate(() => { const m = document.querySelector('#colophon .footer-cols'); const y = m ? m.getBoundingClientRect().top + scrollY - 120 : document.body.scrollHeight; window.scrollTo(0, y); }); // the footer is taller than a laptop screen: the first menu row goes below the sticky header, not under it
   await p.waitForTimeout(300);
   await p.addScriptTag({ content: axeSource() });
   const fx = await p.evaluate(() => axe.run(document.getElementById('colophon'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
