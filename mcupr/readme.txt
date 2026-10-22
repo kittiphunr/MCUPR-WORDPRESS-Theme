@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.46 =
+* Control center: statistics menu added; media folders, PDF and office news described.
+
 = 1.54.45 =
 * Maintenance page: caution-tape look, animated repair scene, fits 13-inch laptop screens.
 
