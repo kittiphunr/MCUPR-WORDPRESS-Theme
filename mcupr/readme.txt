@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.43 =
+* Compact page bar (listen, speed, print, PDF, views); download as PDF made in the browser.
+
 = 1.54.42 =
 * Media library folders (virtual): panel, drag to move, filters in the grid and the pop-up.
 
