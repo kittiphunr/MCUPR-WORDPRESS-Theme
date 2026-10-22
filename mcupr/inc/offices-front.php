@@ -32,7 +32,7 @@ function mcupr_office_tabs( $office_id ) {
 		if ( 'contact' === $key ) {
 			continue; // last, after the pages
 		}
-		$tabs[] = array( $key, mcupr_t( $label ), mcupr_office_url( $office_id, $key ), $sec === $key );
+		$tabs[] = array( $key, mcupr_t( $label ), mcupr_office_url( $office_id, $key ), $sec === $key || ( 'news' === $key && is_singular( 'post' ) ) );
 	}
 	$cur = is_page() ? get_queried_object_id() : 0;
 	foreach ( mcupr_office_pages( $office_id ) as $p ) {
@@ -83,9 +83,15 @@ function mcupr_office_trail( $oid, $gid = 0, $here_is_office = false ) {
  * The office header: the name and the tabs. "full" on the office's own pages and on its pages, "slim" above anything else that belongs to the
  * office (a news article, an event…). Printed right after the site header.
  */
-function mcupr_office_chrome() {
+/** The office whose header is printed on this page (0: none) – a draft office shows its header only to those who may edit it. */
+function mcupr_office_shown() {
 	$oid = mcupr_current_office();
-	if ( ! $oid || 'publish' !== get_post_status( $oid ) && ! current_user_can( 'edit_post', $oid ) ) {
+	return $oid && ( 'publish' === get_post_status( $oid ) || current_user_can( 'edit_post', $oid ) ) ? $oid : 0;
+}
+
+function mcupr_office_chrome() {
+	$oid = mcupr_office_shown();
+	if ( ! $oid ) {
 		return;
 	}
 	$gid  = is_singular( 'mcupr_group' ) ? get_queried_object_id() : 0; // level 3: the band is the short one, the group has its own head
@@ -274,9 +280,9 @@ function mcupr_office_more( $oid, $section ) {
 }
 
 /** News cards of an office (a loop over a query). */
-function mcupr_office_news_html( $q, $heading = 'h3' ) {
+function mcupr_office_news_html( $q, $heading = 'h3', $browser = false ) {
 	ob_start();
-	echo '<div class="grid grid-cols-[repeat(auto-fill,minmax(min(17rem,100%),1fr))] gap-6" data-reveal-group>';
+	echo $browser ? '<div class="fb-items" data-view="grid" data-fb-items data-reveal-group>' : '<div class="grid grid-cols-[repeat(auto-fill,minmax(min(17rem,100%),1fr))] gap-6" data-reveal-group>';
 	while ( $q->have_posts() ) {
 		$q->the_post();
 		get_template_part( 'template-parts/card', null, array( 'heading' => $heading ) );
@@ -450,14 +456,20 @@ function mcupr_office_render( $oid, $section ) {
 			if ( $grp ) {
 				echo '<p class="of-filter"><span>' . esc_html( sprintf( mcupr_t( 'gr_news_of' ), get_the_title( $grp ) ) ) . '</span> <a href="' . esc_url( get_permalink( $grp ) ) . '">' . esc_html( mcupr_t( 'gr_back' ) ) . '</a> <a href="' . esc_url( mcupr_office_url( $oid, 'news' ) ) . '">' . esc_html( mcupr_t( 'gr_news_clear' ) ) . '</a></p>';
 			}
+			// the same Finder-style window as the news of the whole site: a bar (what and how many, cards / list / gallery), the categories as chips, the items
+			echo '<div class="fb fb-solo" data-fb data-view="grid"><section class="fb-main" aria-label="' . esc_attr( mcupr_t( 'of_news' ) ) . '">';
+			echo '<div class="fb-solo-bar">';
 			if ( count( $cats ) > 1 ) {
-				echo '<nav class="mb-6" aria-label="' . esc_attr( mcupr_t( 'news_categories' ) ) . '"><ul class="pill-tabs m-0 list-none"><li class="contents"><a href="' . esc_url( mcupr_office_url( $oid, 'news' ) ) . '"' . ( '' === $cat ? ' aria-current="page"' : '' ) . '>' . esc_html( mcupr_t( 'all_cats' ) ) . '</a></li>';
+				echo '<nav class="fb-chips-nav" aria-label="' . esc_attr( mcupr_t( 'news_categories' ) ) . '"><ul class="fb-cat-chips"><li><a href="' . esc_url( mcupr_office_url( $oid, 'news' ) ) . '"' . ( '' === $cat ? ' aria-current="page"' : '' ) . '>' . esc_html( mcupr_t( 'all_cats' ) ) . '</a></li>';
 				foreach ( $cats as $c ) {
-					echo '<li class="contents"><a href="' . esc_url( add_query_arg( 'ocat', $c->slug, mcupr_office_url( $oid, 'news' ) ) ) . '"' . ( $cat === $c->slug ? ' aria-current="page"' : '' ) . '>' . esc_html( $c->name ) . '</a></li>';
+					echo '<li><a href="' . esc_url( add_query_arg( 'ocat', $c->slug, mcupr_office_url( $oid, 'news' ) ) ) . '"' . ( $cat === $c->slug ? ' aria-current="page"' : '' ) . '>' . mcupr_icon( 'folder', 15 ) . esc_html( $c->name ) . '</a></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
 				}
 				echo '</ul></nav>';
 			}
-			echo $q->have_posts() ? mcupr_office_news_html( $q, 'h2' ) : '<p class="text-muted">' . esc_html( mcupr_t( 'of_none' ) ) . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput
+			echo mcupr_browser_views() . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+			echo $q->have_posts() ? mcupr_office_news_html( $q, 'h2', true ) : '<p class="text-muted">' . esc_html( mcupr_t( 'of_none' ) ) . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput
+			echo '</section></div>';
+			echo '<script>(function(){try{var v=localStorage.getItem("mcupr_view");if(v!=="list"&&v!=="gallery"){return;}var r=document.querySelector("[data-fb]"),i=document.querySelector("[data-fb-items]");if(r){r.setAttribute("data-view",v);}if(i){i.setAttribute("data-view",v);}var b=document.querySelectorAll("[data-fb-view]");for(var k=0;k<b.length;k++){b[k].setAttribute("aria-checked",b[k].getAttribute("data-fb-view")===v?"true":"false");}}catch(e){}})();</script>';
 			echo mcupr_office_pager( $oid, 'news', $page, (int) $q->max_num_pages ); // phpcs:ignore WordPress.Security.EscapeOutput
 			break;
 		case 'events':
