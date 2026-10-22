@@ -318,6 +318,13 @@ function mcupr_cc_data_all() {
 				'screens' => array( 'page:mcupr-speed' ),
 				'desc' => 'เว็บเร็วแค่ไหน และอะไรทำให้ช้า', 'what' => 'วัดขนาดหน้า จำนวนคำขอ และบอกสิ่งที่ควรแก้ เช่น รูปใหญ่เกินไป', 'steps' => array( 'กด "ตรวจตอนนี้"', 'อ่านคำแนะนำท้ายผล' ), 'tips' => array( 'รูปที่ใหญ่เกินเป็นสาเหตุอันดับหนึ่ง ใช้ "รูปภาพ (WebP)" ช่วย' ),
 			),
+			'login'    => array(
+				'cat' => 'system', 'icon' => 'lock', 'title' => 'ที่อยู่หน้าเข้าสู่ระบบ', 'open' => 'page:mcupr-login', 'cap' => 'manage_options',
+				'screens' => array( 'page:mcupr-login' ),
+				'desc' => 'ซ่อนหน้าเข้าสู่ระบบไว้ที่ที่อยู่ลับ กันบอทลองรหัสผ่าน', 'what' => 'ปกติทุกเว็บ WordPress เข้าสู่ระบบได้ที่ wp-login.php และ wp-admin ซึ่งบอทลองเดารหัสผ่านตลอดเวลา เมื่อเปิดที่อยู่ลับ สองที่อยู่นั้นจะตอบว่า "ไม่พบหน้านี้" สำหรับคนที่ยังไม่ล็อกอิน และหน้าเข้าสู่ระบบจะอยู่ที่ที่อยู่ที่ตั้งเองเท่านั้น',
+				'steps' => array( 'เปิดหน้านี้ ติ๊ก "ใช้ที่อยู่เข้าสู่ระบบแบบส่วนตัว"', 'พิมพ์ที่อยู่ที่ต้องการ (อังกฤษ ตัวเลข ขีดกลาง 4-40 ตัว) แล้วกดบันทึก', 'จดที่อยู่ใหม่ไว้ ระบบส่งสำเนาไปที่อีเมลผู้ดูแลเว็บให้ด้วย' ),
+				'tips' => array( 'ลืมที่อยู่: เพิ่มบรรทัด define( \'MCUPR_LOGIN_OFF\', true ); ใน wp-config.php เพื่อปิดชั่วคราว', 'อย่าตั้งเป็น admin หรือ login เพราะเดาง่าย' ),
+			),
 			'images'   => array(
 				'cat' => 'system', 'icon' => 'aperture', 'title' => 'รูปภาพ (WebP)', 'open' => 'page:mcupr-images', 'cap' => 'manage_options',
 				'screens' => array( 'page:mcupr-images' ),
@@ -387,7 +394,7 @@ function mcupr_cc_order() {
 		'visitors' => array( 'messages', 'answers', 'forms', 'forum', 'polls' ),
 		'students' => array( 'students', 'student_import', 'requests', 'student_grades', 'student_settings', 'student_mail', 'student_codes', 'student_log' ),
 		'people'   => array( 'offices', 'groups', 'units', 'persons', 'staff_hub' ),
-		'system'   => array( 'status', 'users', 'settings_io', 'insights', 'images', 'speed', 'updates' ),
+		'system'   => array( 'status', 'login', 'users', 'settings_io', 'insights', 'images', 'speed', 'updates' ),
 	);
 }
 
