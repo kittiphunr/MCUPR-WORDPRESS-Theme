@@ -777,7 +777,7 @@ html[data-contrast] .profile-none { border: 2px solid var(--border); }
 .cal-d.is-sun .cal-n { color: var(--link); }
 .cal-d.is-today .cal-n { background: var(--primary); color: var(--on-primary); }
 .cal-evs { margin: .15rem 0 0; padding: 0; list-style: none; display: grid; gap: .2rem; }
-.cal-evs a { display: block; padding: .1rem .4rem; border-radius: .4rem; background: var(--tint); color: var(--link); font-size: .8rem; font-weight: 600; line-height: 1.3; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-evs a { display: block; padding: .25rem .4rem; min-height: 1.5rem; border-radius: .4rem; background: var(--tint); color: var(--link); font-size: .8rem; font-weight: 600; line-height: 1.3; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cal-evs a:hover, .cal-evs a:focus-visible { background: var(--primary); color: var(--on-primary); }
 @media (max-width: 699px) {
 	.cal td { height: 3.25rem; padding: .2rem; text-align: center; }
