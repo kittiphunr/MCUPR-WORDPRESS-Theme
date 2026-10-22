@@ -2830,6 +2830,77 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     phpC(cleanC);
     await cc.close(); await sc.close();
   }
+  // ---------- the sign-in page: the theme look, and a private address (set in the control center, tried as a visitor, then switched off again)
+  {
+    const lc = await br.newContext({ viewport: { width: 1100, height: 800 } });
+    const lp = await lc.newPage();
+    const slug = 'staff-door-e2e';
+    const signIn = async (pg, path) => {
+      await pg.goto(B + path);
+      await pg.fill('#user_login', 'e2eadmin'); await pg.fill('#user_pass', 'e2e-Admin-pass-1'); await pg.click('#wp-submit');
+      await pg.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    };
+    try {
+      await lp.goto(B + '/wp-login.php');
+      const look = await lp.evaluate(() => ({ cls: document.body.classList.contains('mcupr-login'), radius: parseFloat(getComputedStyle(document.querySelector('#loginform')).borderTopLeftRadius), btn: parseFloat(getComputedStyle(document.querySelector('#wp-submit')).borderTopLeftRadius), field: parseFloat(getComputedStyle(document.querySelector('#user_login')).borderTopLeftRadius), bg: getComputedStyle(document.querySelector('#wp-submit')).backgroundColor, sub: !!document.querySelector('.mcupr-login-sub'), logo: getComputedStyle(document.querySelector('#login h1 a')).backgroundImage }));
+      ok(look.cls && look.radius >= 20 && look.btn >= 20 && look.field >= 20 && look.sub && /url\(/.test(look.logo), 'sign-in page: a round card with round fields and button, the logo and a caption (' + look.radius + 'px card)');
+      const sg = await lp.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1);
+      ok(sg, 'sign-in page: no sideways scroll');
+      await lp.addScriptTag({ content: axeSource() });
+      const lax = await lp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] })); // WordPress's own page has no <main>: only the WCAG rules apply here
+      ok(lax.violations.length === 0, 'sign-in page: no axe violations (WCAG 2.2 AA)' + (lax.violations.length ? ' :: ' + lax.violations.map((v) => v.id + ' ' + v.nodes.length).join(', ') : ''));
+      await signIn(lp, '/wp-login.php');
+      await lp.goto(B + '/wp-admin/admin.php?page=mcupr-login');
+      await lp.check('input[name=on]'); await lp.fill('#mcupr-login-slug', 'admin');
+      await Promise.all([lp.waitForURL(/mcupr_msg=bad/), lp.click('button[type=submit]')]);
+      ok(await lp.locator('.notice-error').isVisible(), 'private address: a name like "admin" is refused with a message');
+      await lp.check('input[name=on]'); await lp.fill('#mcupr-login-slug', slug);
+      await Promise.all([lp.waitForURL(/mcupr_msg=saved/), lp.click('button[type=submit]')]);
+      ok(((await lp.locator('#mcupr-login-now').innerText()).trim()) === B + '/' + slug + '/', 'private address: saved, and the new address is shown');
+      const vc = await br.newContext({ viewport: { width: 1100, height: 800 } });
+      const vp = await vc.newPage();
+      const codes = {};
+      for (const u of ['/wp-login.php', '/wp-login.php?action=lostpassword', '/wp-admin/', '/wp-admin/options.php', '/wp-register.php', '/login', '/admin']) { const r = await vp.goto(B + u); codes[u] = r.status(); }
+      ok(Object.values(codes).every((c) => c === 404), 'private address: wp-login.php, wp-admin and the usual guesses answer "not found" to a visitor (' + JSON.stringify(codes) + ')');
+      ok(/ไม่พบ|404/.test(await vp.title() + ' ' + await vp.locator('h1, .state-card, main').first().innerText().catch(() => '')) && (await vp.locator('header, .site-header').count()) >= 1, 'private address: "not found" is the theme page, not a blank one');
+      const ra = await vp.goto(B + '/wp-admin/admin-ajax.php?action=nothing');
+      ok(ra.status() !== 404, 'private address: admin-ajax.php still answers (visitors use it)');
+      const rl = await vp.goto(B + '/' + slug + '/');
+      ok(rl.status() === 200 && (await vp.locator('#loginform').count()) === 1 && (await vp.locator('#loginform').getAttribute('action')) === B + '/' + slug + '/', 'private address: the sign-in form is there and posts to the private address');
+      ok((await vp.locator('a[href*="action=lostpassword"]').getAttribute('href')).startsWith(B + '/' + slug + '/'), 'private address: the lost-password link keeps to it too');
+      await vp.fill('#user_login', 'e2eadmin'); await vp.fill('#user_pass', 'not-the-password'); await vp.click('#wp-submit');
+      await vp.waitForSelector('#login_error');
+      ok(vp.url().startsWith(B + '/' + slug + '/'), 'private address: a wrong password stays on the private address and says so');
+      await signIn(vp, '/' + slug + '/');
+      ok(vp.url().includes('/wp-admin/') && (await vp.locator('#wpadminbar, #adminmenu').count()) >= 1, 'private address: signing in leads to wp-admin');
+      const r2 = await vp.goto(B + '/wp-login.php');
+      ok(r2.status() === 404, 'private address: even signed in, wp-login.php is not a way in');
+      await vp.goto(B + '/wp-admin/');
+      const lo = await vp.evaluate(() => { const a = document.querySelector('a[href*="action=logout"]'); return a ? a.href : ''; });
+      ok(lo.startsWith(B + '/' + slug + '/'), 'private address: the sign-out link points to the private address');
+      await vp.goto(lo);
+      if (await vp.locator('a:has-text("log out"), a:has-text("ออกจากระบบ")').count()) { await vp.click('a:has-text("log out"), a:has-text("ออกจากระบบ")'); }
+      await vp.waitForURL(new RegExp(slug + '/\\?.*loggedout'), { timeout: 10000 }).catch(() => {});
+      ok(vp.url().includes(slug), 'private address: signing out returns to the private address');
+      await vc.close();
+    } finally {
+      // always put the site back: the other checks use wp-login.php
+      const fc = await br.newContext({ viewport: { width: 1100, height: 800 } });
+      const fp = await fc.newPage();
+      try {
+        await signIn(fp, '/' + slug + '/');
+      } catch (e) {
+        await signIn(fp, '/wp-login.php').catch(() => {});
+      }
+      await fp.goto(B + '/wp-admin/admin.php?page=mcupr-login');
+      if (await fp.locator('input[name=on]').isChecked()) { await fp.uncheck('input[name=on]'); await Promise.all([fp.waitForURL(/mcupr_msg=saved/), fp.click('button[type=submit]')]); }
+      const back = await (await fc.newPage()).goto(B + '/wp-login.php');
+      ok(back.status() === 200, 'private address: switched off again, wp-login.php works as before');
+      await fc.close();
+      await lc.close();
+    }
+  }
+
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
   {
     const { execSync } = require('child_process');
