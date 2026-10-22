@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.48 =
+* Footer: identity band, contact cards, pill map links, link rows.
+
 = 1.54.47 =
 * Calendar: long event titles wrap and show in full.
 
