@@ -285,12 +285,14 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   await p.waitForSelector('#colophon iframe.fmap-frame');
   ok((await p.getAttribute('#colophon iframe', 'src')).includes('output=embed') && !!(await p.getAttribute('#colophon iframe', 'title')), 'footer: pressing "Show map" loads the titled Google map');
   ok((await p.$$eval('#colophon a[href*="google.com/maps"]', (a) => a.length)) === 2, 'footer: "Open in Google Maps" and "Directions" links');
+  const vp0 = p.viewportSize();
   for (const w of [1440, 768, 390]) { // the identity band, contact cards and link rows; nothing sticks out sideways
     await p.setViewportSize({ width: w, height: 900 });
     const f = await p.evaluate(() => { const q = (x) => document.querySelector(x); const r = (x) => q(x) ? q(x).getBoundingClientRect() : null; const rows = [...document.querySelectorAll('#colophon .flinks .footer-menu a')]; const cards = [...document.querySelectorAll('#colophon .fcontact > div')]; return { band: !!q('#colophon .fhead .fid-n'), cards: cards.length, rowsH: rows.length ? Math.min(...rows.map((a) => a.getBoundingClientRect().height)) : 99, wide: document.documentElement.scrollWidth > innerWidth + 1, out: [...document.querySelectorAll('#colophon *')].filter((e) => e.getBoundingClientRect().right > innerWidth + 1).length }; });
     ok(f.band && f.cards >= 2 && f.rowsH >= 44 && !f.wide && f.out === 0, 'footer at ' + w + 'px: identity band, ' + f.cards + ' contact cards, link rows at least 44px, nothing wider than the screen');
   }
-  await p.setViewportSize({ width: 1280, height: 800 });
+  await p.setViewportSize(vp0);
+  await p.locator('#colophon iframe.fmap-frame').scrollIntoViewIfNeeded(); // as before: the floating header must not cover the footer when axe measures it
   await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); // the sticky header must not cover footer links while axe measures them
   await p.waitForTimeout(300);
   await p.addScriptTag({ content: axeSource() });
