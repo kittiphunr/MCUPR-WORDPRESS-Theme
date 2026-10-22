@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.47 =
+* Calendar: long event titles wrap and show in full.
+
 = 1.54.46 =
 * Control center: statistics menu added; media folders, PDF and office news described.
 
