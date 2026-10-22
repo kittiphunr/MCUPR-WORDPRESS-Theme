@@ -145,6 +145,7 @@ add_action(
 		$take( 'mcupr-insights' );
 		$take( 'mcupr-status' );
 		$take( 'mcupr-login' );
+		$take( 'mcupr-social' );
 		$out[] = array( __( 'Theme options', 'mcupr' ), 'edit_theme_options', 'customize.php?return=' . rawurlencode( admin_url( 'admin.php?page=mcupr' ) ) );
 		foreach ( $by as $left ) { // anything else a module put here
 			$out[] = $left;
