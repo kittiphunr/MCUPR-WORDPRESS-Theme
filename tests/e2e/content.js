@@ -431,7 +431,7 @@ const speechStub = (speakMs) => `(() => {
     await p.goto(B + '/about/');
     ok((await p.locator('ul[aria-label] a.soft-card').count()) === 3, 'page: section root shows its 3 sub-pages as tiles');
     ok((await p.locator('aside .side-tabs a[aria-current]').count()) === 1 && (await p.locator('aside .side-tabs a[aria-current]').evaluate((el) => getComputedStyle(el).borderRadius)) !== '0px', 'page: "in this section" list is a pill menu with the current page highlighted');
-    ok((await p.locator('.pill-tabs [data-print]').count()) === 1, 'page: print button inside the capsule toolbar');
+    ok((await p.locator('.tool-bar [data-print]').count()) === 1, 'page: print button inside the page bar');
     await p.goto(B + '/about-2/');
     ok((await p.locator('ul[aria-label] a.soft-card').count()) === 0, 'page: child pages show no tile grid');
     await p.click('#a11y-toggle'); await p.waitForSelector('.swal2-popup');
