@@ -39,8 +39,8 @@ if ( 'welcome' === $mcupr_kind ) {
 	$mcupr_m   = $mcupr_s['maint'];
 	$mcupr_h1  = mcupr_status_text( $mcupr_m['title'], mcupr_t( 'mt_title' ) );
 	$mcupr_msg = mcupr_status_text( $mcupr_m['msg'], mcupr_t( 'mt_msg' ) );
-	$mcupr_c1  = '#1e293b';
-	$mcupr_c2  = '#334155';
+	$mcupr_c1  = '#1c1c1f';
+	$mcupr_c2  = '#34343a';
 	$mcupr_img = (int) $mcupr_m['image'] ? wp_get_attachment_image_url( (int) $mcupr_m['image'], 'full' ) : '';
 	$mcupr_ts  = mcupr_maintenance_end_ts( $mcupr_m );
 	$mcupr_tel = (string) get_theme_mod( 'mcupr_org_tel', '' );
@@ -60,11 +60,28 @@ $mcupr_style = '--s1:' . $mcupr_c1 . ';--s2:' . $mcupr_c2 . ( $mcupr_img ? ';--s
 </head>
 <body class="status-body status-<?php echo esc_attr( $mcupr_kind ); ?><?php echo $mcupr_img ? ' has-img' : ''; ?>" style="<?php echo esc_attr( $mcupr_style ); ?>">
 <?php wp_body_open(); ?>
+<?php if ( 'maint' === $mcupr_kind ) : ?>
+<div class="status-tape status-tape-top" aria-hidden="true"></div>
+<div class="status-tape status-tape-bottom" aria-hidden="true"></div>
+<?php endif; ?>
 <main id="content" class="status-card">
-	<div class="status-logo"><?php echo mcupr_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
-	<p class="status-org"><?php echo esc_html( $mcupr_name ); ?></p>
 	<?php if ( 'maint' === $mcupr_kind ) : ?>
+		<div class="status-side">
+			<div class="status-logo"><?php echo mcupr_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+			<p class="status-org"><?php echo esc_html( $mcupr_name ); ?></p>
+			<svg class="status-scene" viewBox="0 0 220 180" width="220" height="180" aria-hidden="true" focusable="false">
+				<g class="sc-gear sc-g1"><circle cx="78" cy="116" r="40" fill="none" stroke="#facc15" stroke-width="12" stroke-dasharray="11.2 11.2"/><circle cx="78" cy="116" r="34" fill="#facc15"/><circle cx="78" cy="116" r="12" fill="#1c1c1f"/></g>
+				<g class="sc-gear sc-g2"><circle cx="146" cy="136" r="26" fill="none" stroke="#e5e7eb" stroke-width="9" stroke-dasharray="9.1 9.1"/><circle cx="146" cy="136" r="21" fill="#e5e7eb"/><circle cx="146" cy="136" r="8" fill="#1c1c1f"/></g>
+				<g class="sc-hat"><path d="M52 62a46 46 0 0 1 92 0z" fill="#facc15"/><rect x="92" y="14" width="12" height="48" rx="3" fill="#f59e0b"/><path d="M44 62h108a7 7 0 0 1 0 14H44a7 7 0 0 1 0-14z" fill="#f59e0b"/><path d="M62 52a36 36 0 0 1 14-22" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="4" stroke-linecap="round"/></g>
+				<g class="sc-wrench"><path d="M172 38a14 14 0 0 0-17 17l-36 36a8 8 0 0 0 11 11l36-36a14 14 0 0 0 17-17l-9 9-8-3-3-8z" fill="#f3f4f6" stroke="#111827" stroke-width="3" stroke-linejoin="round"/></g>
+				<g class="sc-spark"><path d="M186 30l8-8M192 44l11-2M176 22l1-11" stroke="#facc15" stroke-width="3" stroke-linecap="round"/></g>
+			</svg>
+		</div>
+		<div class="status-main">
 		<p class="status-badge"><span class="status-gear" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M14.7 6.3a4 4 0 0 0 5 5L21 17.5a2.1 2.1 0 0 1-3 3l-6.2-6.2a4 4 0 0 1-5-5l2.9 2.9 2.4-.6.6-2.4z"/></svg></span><?php mcupr_e( 'mt_badge' ); ?></p>
+	<?php else : ?>
+		<div class="status-logo"><?php echo mcupr_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+		<p class="status-org"><?php echo esc_html( $mcupr_name ); ?></p>
 	<?php endif; ?>
 	<h1 class="status-h"><?php echo esc_html( $mcupr_h1 ); ?></h1>
 	<?php if ( '' !== $mcupr_msg ) : ?>
@@ -95,6 +112,9 @@ $mcupr_style = '--s1:' . $mcupr_c1 . ';--s2:' . $mcupr_c2 . ( $mcupr_img ? ';--s
 		<?php endif; ?>
 		<p class="status-retry"><a class="status-btn2" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php mcupr_e( 'mt_retry' ); ?></a></p>
 	<?php endif; ?>
+<?php if ( 'maint' === $mcupr_kind ) : ?>
+		</div>
+<?php endif; ?>
 </main>
 <?php if ( 'welcome' === $mcupr_kind && (int) $mcupr_w['auto'] > 0 ) : ?>
 <script>
