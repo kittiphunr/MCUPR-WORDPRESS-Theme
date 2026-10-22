@@ -253,6 +253,7 @@ return array(
 	'pdf_busy'      => array( 'กำลังสร้าง PDF…', 'Making the PDF…', '正在生成 PDF…', 'PDFを作成中…' ),
 	'pdf_fail'      => array( 'สร้างไฟล์ PDF ไม่สำเร็จ ลองใช้ปุ่มพิมพ์แล้วเลือกบันทึกเป็น PDF', 'The PDF could not be made. Try Print and choose Save as PDF.', '无法生成 PDF。请尝试打印并选择另存为 PDF。', 'PDFを作成できませんでした。印刷から「PDFとして保存」をお試しください。' ),
 	'listen_short'  => array( 'ฟัง', 'Listen', '收听', '聞く' ),
+	'of_nav_news'   => array( 'เส้นทางของข่าว', 'Where this news is', '新闻所在位置', 'このニュースの場所' ),
 	'login_staff'   => array( 'เข้าสู่ระบบเจ้าหน้าที่', 'Staff sign-in', '工作人员登录', '職員ログイン' ),
 	'tool_listen'   => array( 'ฟังบทความ', 'Listen', '收听', '聞く' ),
 	'tool_share'    => array( 'แชร์บทความ', 'Share', '分享文章', '記事を共有' ),
