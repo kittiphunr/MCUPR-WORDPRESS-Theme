@@ -2901,6 +2901,73 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     }
   }
 
+  // ---------- social sign-in: set up in the control center, the buttons on the sign-in page and the student page, the way out to the provider, a bad return
+  {
+    const sc = await br.newContext({ viewport: { width: 1100, height: 800 } });
+    const sp = await sc.newPage();
+    const providers = ['google', 'facebook', 'line', 'thaid'];
+    const setAll = async (on) => {
+      await sp.goto(B + '/wp-admin/admin.php?page=mcupr-social');
+      for (const p of providers) {
+        if (on) {
+          await sp.check('input[name="' + p + '[on]"]'); await sp.fill('input[name="' + p + '[id]"]', p + '-client-id');
+          if (await sp.locator('input[name="' + p + '[secret]"]').count()) { await sp.fill('input[name="' + p + '[secret]"]', p + '-secret-value'); }
+        } else { await sp.uncheck('input[name="' + p + '[on]"]'); }
+      }
+      await Promise.all([sp.waitForURL(/saved=1/), sp.click('button[type=submit]')]);
+    };
+    try {
+      await sp.goto(B + '/wp-login.php');
+      await sp.fill('#user_login', 'e2eadmin'); await sp.fill('#user_pass', 'e2e-Admin-pass-1'); await sp.click('#wp-submit');
+      await sp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+      await sp.goto(B + '/wp-admin/admin.php?page=mcupr-social');
+      ok((await sp.locator('.card h2').count()) === 4 && (await sp.locator('code[id^=soc-]').count()) === 4, 'social sign-in settings: one card per provider, each with its redirect address');
+      await setAll(true);
+      const html = await sp.content();
+      ok(!/google-secret-value|facebook-secret-value|line-secret-value|thaid-secret-value/.test(html), 'social sign-in settings: a saved secret is not printed back');
+      const vc = await br.newContext({ viewport: { width: 1100, height: 900 } });
+      const vp = await vc.newPage();
+      await vp.goto(B + '/wp-login.php');
+      const names = await vp.$$eval('.social-btn', (a) => a.map((x) => x.textContent.trim()));
+      ok(names.length === 4 && names.every((n) => /Google|Facebook|LINE|ThaID/.test(n)), 'social sign-in: four buttons on the sign-in page (' + names.join(' | ') + ')');
+      const pos = await vp.evaluate(() => ({ b: document.querySelector('.social-btn').getBoundingClientRect().top, f: document.querySelector('#user_login').getBoundingClientRect().top, or: !!document.querySelector('.social-or'), w: document.documentElement.scrollWidth <= innerWidth + 1 }));
+      ok(pos.b < pos.f && pos.or && pos.w, 'social sign-in: the buttons come before the username field, with an "or" line, and nothing scrolls sideways');
+      const heights = await vp.$$eval('.social-btn', (a) => a.map((x) => x.getBoundingClientRect().height));
+      ok(heights.every((h) => h >= 44), 'social sign-in: each button is at least 44px high');
+      await vp.addScriptTag({ content: axeSource() });
+      const sax = await vp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+      ok(sax.violations.length === 0, 'social sign-in: no axe violations on the sign-in page' + (sax.violations.length ? ' :: ' + sax.violations.map((v) => v.id + ' ' + v.nodes.length).join(', ') : ''));
+      const dc = await br.newContext({ viewport: { width: 390, height: 800 }, colorScheme: 'dark' });
+      const dp = await dc.newPage();
+      await dp.goto(B + '/wp-login.php');
+      await dp.addScriptTag({ content: axeSource() });
+      const dax = await dp.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+      ok(dax.violations.length === 0 && (await dp.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)), 'social sign-in: on a phone in dark mode no axe violations and no sideways scroll' + (dax.violations.length ? ' :: ' + dax.violations.map((v) => v.id + ' ' + v.nodes.length).join(', ') : ''));
+      await dc.close();
+      const go = await vp.request.get(B + '/?mcupr_oauth=google&start=1', { maxRedirects: 0 });
+      const loc = go.headers()['location'] || '';
+      ok(go.status() === 302 && loc.startsWith('https://accounts.google.com/') && /client_id=google-client-id/.test(loc) && /state=[a-f0-9]{32}/.test(loc) && /nonce=/.test(loc) && /code_challenge_method=S256/.test(loc) && loc.includes(encodeURIComponent(B + '/?mcupr_oauth=google')), 'social sign-in: the button sends the browser to Google with client id, state, nonce, PKCE and the redirect address');
+      ok(/mcupr_oa_state=[a-f0-9]{32}/.test(go.headers()['set-cookie'] || '') && /httponly/i.test(go.headers()['set-cookie'] || ''), 'social sign-in: the state is bound to the browser by an HttpOnly cookie');
+      const tid = await vp.request.get(B + '/?mcupr_oauth=thaid&start=1', { maxRedirects: 0 });
+      ok(tid.status() === 302 && (tid.headers()['location'] || '').startsWith('https://imauth.bora.dopa.go.th/') && !/code_challenge/.test(tid.headers()['location'] || ''), 'social sign-in: ThaID goes to its own address');
+      const unknown = await vp.request.get(B + '/?mcupr_oauth=myspace&start=1', { maxRedirects: 0 });
+      ok(unknown.status() === 302 && !(unknown.headers()['location'] || '').includes('myspace'), 'social sign-in: an unknown provider is sent back to the sign-in page');
+      await vp.goto(B + '/?mcupr_oauth=google&state=' + 'a'.repeat(32) + '&code=x');
+      ok(vp.url().includes('wp-login.php') && (await vp.locator('#login_error').isVisible()) && /mcupr_social_err=state/.test(vp.url()), 'social sign-in: a return with a state that is not ours is refused with a message on the sign-in page');
+      await vp.goto(B + '/student/');
+      const stuBtns = await vp.$$eval('.stu-card .social-btn', (a) => a.map((x) => x.textContent.trim()));
+      ok(stuBtns.length >= 3 && stuBtns.some((t) => /LINE/.test(t)) && stuBtns.some((t) => /ThaID/.test(t)) && stuBtns.some((t) => /Facebook/.test(t)), 'social sign-in: the student page shows the buttons too (' + stuBtns.length + ')');
+      ok((await vp.$$eval('.stu-card .social-btn', (a) => a.map((x) => x.href))).every((h) => h.includes('from=student')), 'social sign-in: the student page buttons come back to the student page');
+      await vc.close();
+    } finally {
+      await setAll(false).catch(() => {});
+      const off = await (await br.newContext()).newPage();
+      await off.goto(B + '/wp-login.php');
+      ok((await off.locator('.social-btn').count()) === 0, 'social sign-in: all off again, no buttons');
+      await sc.close();
+    }
+  }
+
   // ---------- Plain permalinks: some servers allow nothing else (…/web/?p=123); no link of the website may use a pretty path then
   {
     const { execSync } = require('child_process');

@@ -325,6 +325,14 @@ function mcupr_cc_data_all() {
 				'steps' => array( 'เปิดหน้านี้ ติ๊ก "ใช้ที่อยู่เข้าสู่ระบบแบบส่วนตัว"', 'พิมพ์ที่อยู่ที่ต้องการ (อังกฤษ ตัวเลข ขีดกลาง 4-40 ตัว) แล้วกดบันทึก', 'จดที่อยู่ใหม่ไว้ ระบบส่งสำเนาไปที่อีเมลผู้ดูแลเว็บให้ด้วย' ),
 				'tips' => array( 'ลืมที่อยู่: เพิ่มบรรทัด define( \'MCUPR_LOGIN_OFF\', true ); ใน wp-config.php เพื่อปิดชั่วคราว', 'อย่าตั้งเป็น admin หรือ login เพราะเดาง่าย' ),
 			),
+			'social'   => array(
+				'cat' => 'visitors', 'icon' => 'log-in', 'title' => 'ล็อกอินด้วยบัญชีโซเชียล', 'open' => 'page:mcupr-social', 'cap' => 'manage_options',
+				'screens' => array( 'page:mcupr-social' ),
+				'desc' => 'ให้ผู้เยี่ยมชมและนิสิตเข้าสู่ระบบด้วย Google, Facebook, LINE หรือ ThaID',
+				'what' => 'แต่ละรายต้องสร้างแอปที่ผู้ให้บริการแล้วนำ Client ID กับ Client secret มาใส่ที่หน้านี้ ผู้เยี่ยมชมที่เข้าครั้งแรกได้บัญชีสมาชิก (อ่าน แสดงความเห็น กระดานสนทนา ฟอร์ม) นิสิตที่อีเมลตรงทะเบียนและเข้าด้วย Google ได้บัญชีนิสิต บุคลากรเข้าด้วยรหัสผ่านเท่านั้น',
+				'steps' => array( 'เปิดหน้านี้ เลือกผู้ให้บริการที่ต้องการ', 'คัดลอก "ที่อยู่เปลี่ยนเส้นทาง" ไปใส่ในแอปที่ผู้ให้บริการ แล้วนำ Client ID และ secret มาวางที่นี่', 'ติ๊ก "เปิด" แล้วบันทึก ปุ่มจะขึ้นที่หน้าเข้าสู่ระบบและหน้านิสิต' ),
+				'tips' => array( 'ThaID ต้องขอสิทธิ์กับ DGA ก่อน ระบบไม่เก็บเลขบัตรประชาชน', 'เก็บ secret ในไฟล์ wp-config.php ได้ด้วย MCUPR_SOCIAL_GOOGLE_SECRET (และ _FACEBOOK_ _LINE_ _THAID_)' ),
+			),
 			'images'   => array(
 				'cat' => 'system', 'icon' => 'aperture', 'title' => 'รูปภาพ (WebP)', 'open' => 'page:mcupr-images', 'cap' => 'manage_options',
 				'screens' => array( 'page:mcupr-images' ),
@@ -391,7 +399,7 @@ function mcupr_cc_order() {
 	return array(
 		'content'  => array( 'posts', 'pages', 'media', 'events', 'albums', 'videos', 'works', 'faq', 'books' ),
 		'look'     => array( 'identity', 'home', 'sections', 'blocks', 'numbers', 'notice', 'menus', 'logos', 'colors', 'display', 'print', 'policy', 'customizer' ),
-		'visitors' => array( 'messages', 'answers', 'forms', 'forum', 'polls' ),
+		'visitors' => array( 'messages', 'answers', 'forms', 'forum', 'polls', 'social' ),
 		'students' => array( 'students', 'student_import', 'requests', 'student_grades', 'student_settings', 'student_mail', 'student_codes', 'student_log' ),
 		'people'   => array( 'offices', 'groups', 'units', 'persons', 'staff_hub' ),
 		'system'   => array( 'status', 'login', 'users', 'settings_io', 'insights', 'images', 'speed', 'updates' ),
