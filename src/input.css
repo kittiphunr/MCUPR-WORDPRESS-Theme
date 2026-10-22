@@ -2492,6 +2492,13 @@ html[data-contrast] .sp-g { border: 2px solid var(--border); }
 .stu-card-f input { letter-spacing: .15em; }
 .stu-sso { margin: 1.25rem 0 0; padding-top: 1rem; border-top: 1px solid var(--border); }
 .stu-sso .btn { min-height: 2.75rem; }
+.stu-card .social-login { margin: 1rem 0 0; }
+.stu-card .social-btns { display: grid; gap: .5rem; }
+.stu-card .social-btn { display: flex; align-items: center; gap: .75rem; min-height: 2.75rem; padding: 0 1.1rem; border: 1px solid var(--border); border-radius: 9999px; background: var(--bg); color: var(--text); font-weight: 700; text-decoration: none; }
+.stu-card .social-btn b { display: inline-grid; place-items: center; flex: none; width: 1.5rem; height: 1.5rem; border-radius: 50%; color: #fff; font-size: .72rem; line-height: 1; }
+.stu-card .social-btn span { flex: 1; margin-right: 1.5rem; text-align: center; }
+.stu-card .social-btn:hover, .stu-card .social-btn:focus-visible { background: var(--tint); border-color: var(--primary); }
+html[data-contrast] .stu-card .social-btn { border: 2px solid var(--border); }
 .stu-note-err { border-left-color: #b91c1c; background: color-mix(in srgb, #b91c1c 8%, var(--bg)); }
 .stu-note-ok { border-left-color: #15803d; background: color-mix(in srgb, #15803d 9%, var(--bg)); }
 .stu-help { max-width: 62rem; margin: 1.25rem auto 0; color: var(--text-2); font-size: .95rem; }
