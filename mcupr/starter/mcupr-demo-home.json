@@ -197,24 +197,24 @@
     "book"
    ],
    [
-    "scholarships",
-    "ทุนการศึกษา",
-    "money"
-   ],
-   [
     "calendar",
     "ปฏิทินการศึกษา",
     "calendar"
    ],
    [
+    "/events/",
+    "ปฏิทินกิจกรรม",
+    "calendar"
+   ],
+   [
+    "/student/",
+    "พอร์ทัลนิสิต",
+    "users"
+   ],
+   [
     "library",
     "ห้องสมุด",
     "folder"
-   ],
-   [
-    "student-services",
-    "บริการนักศึกษา",
-    "users"
    ],
    [
     "contact",
@@ -276,8 +276,8 @@
   "mcupr_aud_2_icon": "user",
   "mcupr_aud_2_eyebrow": "นิสิตปัจจุบัน",
   "mcupr_aud_2_title": "พอร์ทัลนิสิต",
-  "mcupr_aud_2_desc": "เข้าสู่ระบบ ปฏิทิน และเอกสารดาวน์โหลด",
-  "mcupr_aud_2_url": "page:student-portal",
+  "mcupr_aud_2_desc": "เข้าสู่ระบบ ดูตารางเรียน ผลการเรียน และติดตามคำร้อง",
+  "mcupr_aud_2_url": "/student/",
   "mcupr_aud_3_icon": "book",
   "mcupr_aud_3_eyebrow": "การศึกษา",
   "mcupr_aud_3_title": "หลักสูตรที่เปิดสอน",
@@ -301,8 +301,8 @@
   "mcupr_svc_3_title": "อีเมล",
   "mcupr_svc_3_url": "page:eservice",
   "mcupr_svc_4_icon": "calendar",
-  "mcupr_svc_4_title": "ปฏิทินการศึกษา",
-  "mcupr_svc_4_url": "page:calendar",
+  "mcupr_svc_4_title": "ปฏิทินกิจกรรม",
+  "mcupr_svc_4_url": "/events/",
   "mcupr_lnk_1_icon": "book",
   "mcupr_lnk_1_title": "หลักสูตรที่เปิดสอน",
   "mcupr_lnk_1_url": "page:programs",
