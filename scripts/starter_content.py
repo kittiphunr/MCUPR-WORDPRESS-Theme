@@ -96,8 +96,9 @@ STAFF_PAGE_NOTE = ''
 
 
 def path(key):
-    """The real address of a starter page (a page under a parent has /parent/key/): links inside page text must not guess it."""
-    return '/%s%s/' % (PARENT[key] + '/' if key in PARENT else '', key)
+    """A link to a starter page inside page text: "page:slug" is turned into the page's real address when the page is shown (inc/menus.php),
+    because the same page sits under its parent on one site and at the top on another (the add-ons file)."""
+    return 'page:' + key
 
 # The addresses of what the theme itself provides (not pages): news, events calendar, albums, videos, works, e-books, student portal, request tracking.
 FEATURE = {'events': '/events/', 'albums': '/albums/', 'videos': '/videos/', 'works': '/works/', 'books': '/books/', 'student': '/student/', 'request': '/request/', 'news': '/?mcupr_all=1'}

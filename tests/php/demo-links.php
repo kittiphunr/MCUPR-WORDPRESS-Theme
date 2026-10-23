@@ -105,6 +105,8 @@ foreach ( get_posts( array( 'post_type' => 'any', 'post_status' => 'publish', 'p
 	$o['content'][] = array( $p->post_type . ':' . $p->post_name, apply_filters( 'the_content', $p->post_content ) );
 }
 foreach ( get_theme_mods() as $k => $v ) { if ( is_string( $v ) && preg_match( '/_url$/', $k ) && '' !== $v ) { $o['mods'][ $k ] = $v; } }
+$fp = get_posts( array( 'post_type' => 'page', 'name' => 'forum', 'post_status' => 'publish', 'numberposts' => 1 ) );
+$o['page_link'] = array( apply_filters( 'the_content', '<p><a href="page:forum">f</a> <a href="page:no-such-page-x">g</a></p>' ), $fp ? get_permalink( $fp[0] ) : '' );
 add_filter( 'pre_option_home', static function () { return 'http://localhost/sub'; } ); // a site in a sub-folder: links typed as "/events/" must stay inside it
 $o['sub'] = apply_filters( 'the_content', '<p><a href="/events/">a</a> <a href="/sub/books/">b</a> <a href="https://example.org/x">c</a></p>' );
 echo json_encode( $o );
@@ -112,6 +114,7 @@ PHP;
 file_put_contents( "$copy/dump.php", $dump );
 $d = json_decode( (string) shell_exec( 'php ' . escapeshellarg( "$copy/dump.php" ) . ' ' . escapeshellarg( $copy ) . ' 2>/dev/null | grep -v Deprecated' ), true );
 t( is_array( $d ) && count( $d['menus'] ) > 40 && count( $d['content'] ) > 60, 'the copy has the pack: ' . ( $d ? count( $d['menus'] ) . ' menu items, ' . count( $d['content'] ) . ' pages and posts' : 'nothing' ) );
+t( '' !== $d['page_link'][1] && false !== strpos( $d['page_link'][0], 'href="' . $d['page_link'][1] . '"' ) && false === strpos( $d['page_link'][0], 'page:' ), '"page:forum" typed in a page becomes the address the forum page really has (whether it sits under its parent or at the top); an unknown page goes to the home page' );
 t( false !== strpos( $d['sub'], 'href="http://localhost/sub/events/"' ) && false !== strpos( $d['sub'], 'href="/sub/books/"' ) && false !== strpos( $d['sub'], 'href="https://example.org/x"' ), 'a site in a sub-folder: "/events/" typed in a page becomes /sub/events/; addresses already inside the folder or outside the site stay as they are' );
 foreach ( $d['menus'] as $m ) { $collect( $m[2], 'menu ' . $m[0] . ': ' . $m[1] ); }
 foreach ( $d['content'] as $c ) { $dom_links( $c[1], $c[0] ); }

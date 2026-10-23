@@ -33,6 +33,9 @@ SweetAlert2: MIT License.
 
 
 = 1.54.49 =
+* Demo pack rebuilt: links point to the theme's real features; links typed in pages work in a sub-folder and by page name.
+
+= 1.54.49 =
 * Demo pack rebuilt: links point to the theme's real features; links typed in pages work in a sub-folder.
 
 = 1.54.48 =
