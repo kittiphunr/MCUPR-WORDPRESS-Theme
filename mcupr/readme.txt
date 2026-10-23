@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.51 =
+* Customizer first screen: groups, icons and a line of help; no repeated MCUPR: prefix.
+
 = 1.54.50 =
 * Round arrow buttons: arrows drawn in the exact centre.
 
