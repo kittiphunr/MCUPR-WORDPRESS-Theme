@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.52 =
+* Print and PDF are made from one A4 document with only the content and the letterhead.
+
 = 1.54.51 =
 * Customizer first screen: groups, icons and a line of help; no repeated MCUPR: prefix.
 
