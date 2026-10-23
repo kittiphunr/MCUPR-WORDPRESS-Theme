@@ -181,6 +181,38 @@ add_filter(
 );
 
 /**
+ * Links typed in a page: "page:slug" is the address of the page with that slug wherever it sits (the starter file puts a page under
+ * a parent on one site and at the top on another), and "/events/" means "on this site", also for a site in a sub-folder.
+ */
+add_filter(
+	'the_content',
+	static function ( $html ) {
+		if ( false !== strpos( $html, 'href="page:' ) ) {
+			$html = preg_replace_callback(
+				'#(\shref=")page:([a-z0-9-]+)"#',
+				static function ( $m ) {
+					$p = get_posts( array( 'post_type' => 'page', 'name' => $m[2], 'post_status' => 'publish', 'numberposts' => 1, 'no_found_rows' => true ) );
+					return $m[1] . esc_url( $p ? get_permalink( $p[0] ) : home_url( '/' ) ) . '"';
+				},
+				$html
+			);
+		}
+		$base = (string) wp_parse_url( home_url(), PHP_URL_PATH );
+		if ( '' === $base || '/' === $base || false === strpos( $html, 'href="/' ) ) {
+			return $html;
+		}
+		return preg_replace_callback(
+			'#(\shref=")(/(?!/)[^"]*)"#',
+			static function ( $m ) use ( $base ) {
+				return 0 === strpos( $m[2], rtrim( $base, '/' ) . '/' ) ? $m[0] : $m[1] . esc_url( home_url( $m[2] ) ) . '"';
+			},
+			$html
+		);
+	},
+	12
+);
+
+/**
  * After the starter file (mcupr/starter/mcupr-starter.xml) was imported: put each imported menu into the
  * location named by its term meta "_mcupr_location" – only into locations that have no menu yet.
  */
