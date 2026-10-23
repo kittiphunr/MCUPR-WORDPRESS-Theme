@@ -1994,6 +1994,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
   await p.goto(B + '/');
   ok((await p.$$('[data-hero] [data-slide]')).length === 3 && (await p.$$('[data-hero] h1')).length === 1 && (await p.$$eval('[data-hero] h1', (h) => h[0].classList.contains('sr-only'))), 'hero: 3 slides, one h1 that stays available to screen readers');
   ok(await p.isVisible('[data-hero-ctl]') && (await p.getAttribute('[data-hero]', 'data-auto')) === '0', 'hero: controls appear with JavaScript; automatic change is off by default');
+  const arrows = await p.evaluate(() => [...document.querySelectorAll('.hero-arrow:not(.hero-pause), .slide-btn')].map((b) => { const s = b.querySelector('svg'), a = b.getBoundingClientRect(); if (!s || !a.width) { return 99; } const q = s.getBoundingClientRect(); return Math.max(Math.abs(q.left + q.width / 2 - a.left - a.width / 2), Math.abs(q.top + q.height / 2 - a.top - a.height / 2)); }));
+  ok(arrows.length >= 4 && arrows.every((d) => d <= 0.5), 'round arrow buttons (hero, news slider): the arrow is drawn in the exact middle of the circle (' + arrows.length + ' buttons, off by at most ' + Math.max(...arrows).toFixed(2) + ' px)');
   ok(await p.evaluate(() => document.querySelectorAll('[data-slide]')[0].classList.contains('is-active')), 'hero: slide 1 first');
   await p.click('[data-hero-next]');
   ok(await p.evaluate(() => document.querySelectorAll('[data-slide]')[1].classList.contains('is-active') && document.querySelectorAll('[data-hero-dot]')[1].getAttribute('aria-current') === 'true'), 'hero: Next shows slide 2 and marks its dot');

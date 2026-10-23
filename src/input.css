@@ -3172,3 +3172,4 @@ html[data-contrast] .gl-rows-b .gl-cc.gl-write .gl-h3, html[data-contrast] .gl-r
 html[data-contrast] .gl-rows-a .gl-figs li { border: 2px solid var(--border); background: var(--bg); }
 .fbar > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem 1.5rem; }
 .fbar p { margin: 0; }
+.slide-btn svg, .hero-arrow svg { display: block; flex: none; } /* drawn arrows, not letters: they sit exactly in the middle of the circle whatever the font */

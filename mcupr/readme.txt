@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.50 =
+* Round arrow buttons: arrows drawn in the exact centre.
+
 = 1.54.49 =
 * Demo pack rebuilt: links point to the theme's real features; links typed in pages work in a sub-folder and by page name.
 
