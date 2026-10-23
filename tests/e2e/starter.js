@@ -454,6 +454,25 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       ok(near(px(1, .5, .02), [200, 40, 90]) && near(px(2, .5, .02), [200, 40, 90]) && near(px(pages, .5, .02), [200, 40, 90]), 'print: the header graphic is on the first, the second and the last sheet');
       ok(near(px(1, .5, .93), [30, 100, 160]) && near(px(pages, .5, .93), [30, 100, 160]), 'print: the footer graphic is on every sheet too');
       ok(near(px(2, .02, .5), [255, 255, 255]) && near(px(2, .98, .5), [255, 255, 255]), 'print: the side margins are clear paper');
+      // Print and "Download PDF" are made from one A4 document: the title, the date line and the text, with the letterhead on every sheet
+      await pp.emulateMedia({ media: 'screen' });
+      await pp.evaluate(() => { window.__realPrint = window.print; window.print = () => {}; });
+      await pp.click('[data-print]');
+      await pp.emulateMedia({ media: 'print' });
+      const pd = await pp.evaluate(() => ({ kids: [...document.body.children].filter((e) => getComputedStyle(e).display !== 'none' && !/^(SCRIPT|STYLE|LINK|TEMPLATE|NOSCRIPT)$/.test(e.tagName)).map((e) => e.className || e.tagName), title: (document.querySelector('.print-doc .pd-title') || {}).textContent || '', meta: (document.querySelector('.print-doc .pd-meta') || {}).textContent || '', text: (document.querySelector('.print-doc') || { textContent: '' }).textContent, junk: document.querySelectorAll('.print-doc nav, .print-doc button, .print-doc form, .print-doc .tool-bar, .print-doc .share-bar, .print-doc .post-nav, .print-doc .print-meta').length }));
+      ok(pd.kids.sort().join() === 'print-doc,print-sheet' && pd.title === 'ข่าวยาวสำหรับทดสอบการพิมพ์' && /เผยแพร่เมื่อ/.test(pd.meta) && pd.junk === 0 && !/เข้าชม|อ่านประมาณ|Previous/.test(pd.text), 'print: only the A4 document and the letterhead are on paper: the title, the date line and the text, no menu, counters, share buttons or previous/next (' + pd.kids.join('+') + ')');
+      const pdfP = await pp.pdf({ preferCSSPageSize: true, printBackground: true }); const fileP = path.join(dir, 'doc-print.pdf'); fs.writeFileSync(fileP, pdfP);
+      await pp.emulateMedia({ media: 'screen' });
+      await pp.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+      ok(await pp.evaluate(() => !document.querySelector('.print-doc') && !document.documentElement.classList.contains('printing-doc')), 'print: the document is taken away after printing, the page is as it was');
+      const [dl2] = await Promise.all([pp.waitForEvent('download', { timeout: 120000 }), pp.click('[data-pdf]')]);
+      const fileD = path.join(dir, 'doc-download.pdf'); await dl2.saveAs(fileD);
+      const infoP = cp.execFileSync('pdfinfo', [fileP]).toString(), infoD = cp.execFileSync('pdfinfo', [fileD]).toString();
+      const pgP = parseInt((infoP.match(/Pages:\s+(\d+)/) || [])[1], 10), pgD = parseInt((infoD.match(/Pages:\s+(\d+)/) || [])[1], 10);
+      ok(/59[45]\.\d+ x 84[12]\.\d+ pts \(A4\)/.test(infoD) && Math.abs(pgP - pgD) <= 1 && pgD >= 3, 'PDF download: A4 sheets like the print, about as many (print ' + pgP + ', PDF ' + pgD + ')');
+      const pxf = (f, page, fx, fy) => { cp.execFileSync('pdftoppm', ['-r', '20', '-f', String(page), '-l', String(page), '-singlefile', f, path.join(dir, 'q')]); const buf = fs.readFileSync(path.join(dir, 'q.ppm')); const m = buf.toString('latin1', 0, 20).match(/^P6\s+(\d+)\s+(\d+)\s+255\s/); const w = +m[1], h = +m[2]; const off = m[0].length + (Math.floor(h * fy) * w + Math.floor(w * fx)) * 3; return [buf[off], buf[off + 1], buf[off + 2]]; };
+      ok(near(pxf(fileD, 1, .5, .02), [200, 40, 90]) && near(pxf(fileD, 2, .5, .02), [200, 40, 90]) && near(pxf(fileD, pgD, .5, .02), [200, 40, 90]) && near(pxf(fileD, 1, .5, .95), [30, 100, 160]) && near(pxf(fileD, pgD, .5, .95), [30, 100, 160]), 'PDF download: the header and the footer graphic of the letterhead are on every sheet, as in the print');
+      ok(near(pxf(fileD, 2, .02, .5), [255, 255, 255]) && near(pxf(fileD, 2, .98, .5), [255, 255, 255]), 'PDF download: the side margins are clear paper');
     } else { console.log('  (poppler not installed: PDF page checks skipped)'); }
     await pc.close();
   }
