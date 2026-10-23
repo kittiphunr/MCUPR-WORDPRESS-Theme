@@ -13,6 +13,8 @@ git clone -q --depth 1 https://github.com/WordPress/wordpress-importer.git "$SIT
 status=0
 php php/starter-import.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
 php php/starter-addons.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || status=1
+# the demo pack is checked on the site as the importer left it (the tests below add and remove pages, forums and files of their own)
+php php/demo-links.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/formbuilder.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep -v "^PASS" || true
 php php/events.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
 php php/content-tools.php "$SITE_DIR" 2>&1 | grep -v Deprecated || status=1
@@ -73,7 +75,6 @@ php php/login.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" |
 php php/social-login.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/media-folders.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/office-news.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
-php php/demo-links.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 PHP_CLI_SERVER_WORKERS=4 php -d upload_max_filesize=16M -d post_max_size=20M -S "localhost:${PORT}" -t "$SITE_DIR" >.server.log 2>&1 &
 pid=$!; trap 'kill $pid 2>/dev/null' EXIT
 for _ in $(seq 1 30); do curl -fs "$BASE_URL/" >/dev/null && break; sleep 0.5; done
