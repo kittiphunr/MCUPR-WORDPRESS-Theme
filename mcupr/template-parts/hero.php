@@ -63,13 +63,13 @@ foreach ( $extra as $e ) {
 
 	<?php if ( $multi ) : ?>
 		<div class="hero-ctl" data-hero-ctl hidden>
-			<button type="button" class="hero-arrow" data-hero-prev aria-label="<?php echo esc_attr( mcupr_t( 'prev' ) ); ?>"><span aria-hidden="true">‹</span></button>
+			<button type="button" class="hero-arrow" data-hero-prev aria-label="<?php echo esc_attr( mcupr_t( 'prev' ) ); ?>"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg></button>
 			<ul class="hero-dots">
 				<?php for ( $d = 0; $d < $total; $d++ ) : ?>
 					<li><button type="button" data-hero-dot="<?php echo (int) $d; ?>" aria-label="<?php echo esc_attr( sprintf( mcupr_t( 'hero_goto' ), $d + 1 ) ); ?>"<?php echo 0 === $d ? ' aria-current="true"' : ''; ?>></button></li>
 				<?php endfor; ?>
 			</ul>
-			<button type="button" class="hero-arrow" data-hero-next aria-label="<?php echo esc_attr( mcupr_t( 'next' ) ); ?>"><span aria-hidden="true">›</span></button>
+			<button type="button" class="hero-arrow" data-hero-next aria-label="<?php echo esc_attr( mcupr_t( 'next' ) ); ?>"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 18l6-6-6-6"/></svg></button>
 			<button type="button" class="hero-arrow hero-pause" data-hero-pause hidden aria-pressed="false" aria-label="<?php echo esc_attr( mcupr_t( 'hero_pause' ) ); ?>"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg></button>
 		</div>
 	<?php endif; ?>
