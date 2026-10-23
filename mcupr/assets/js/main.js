@@ -431,7 +431,7 @@
 			navigator.share({ title: s.getAttribute('data-title'), url: s.getAttribute('data-url') }).catch(function () {});
 			return;
 		}
-		if (e.target.closest('[data-print]')) { window.print(); }
+		if (e.target.closest('[data-print]')) { if (window.mcuprDoc && window.mcuprDoc.print) { window.mcuprDoc.print(); } else { window.print(); } } /* the A4 document (print-doc.js) is put together just before the printing starts */
 		var pdf = e.target.closest('[data-pdf]');
 		if (pdf && !pdf.hasAttribute('aria-busy')) {
 			/* the PDF is made in the browser; the libraries (about 600 KB) are fetched only now, one after the other */

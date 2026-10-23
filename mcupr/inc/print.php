@@ -106,6 +106,47 @@ function mcupr_print_css() {
 }
 add_action( 'wp_head', 'mcupr_print_css', 30 );
 
+/**
+ * What the A4 document of this page is made of (assets/js/print-doc.js): the title, a line with the category and the date
+ * (posts only, when the Customizer keeps that line on) and the geometry of the sheet. Print and "Download PDF" both use it.
+ *
+ * @return array|null Null when this page is not printed with the letterhead.
+ */
+function mcupr_print_doc_data() {
+	if ( ! mcupr_print_enabled() ) {
+		return null;
+	}
+	$o    = mcupr_print_options();
+	$post = get_queried_object();
+	$meta = '';
+	if ( $o['meta'] && $post instanceof WP_Post && 'post' === $post->post_type ) {
+		$cat  = mcupr_first_category();
+		$meta = ( $cat ? $cat . ' · ' : '' ) . mcupr_t( 'posted_on' ) . ' ' . mcupr_date_text( get_post_timestamp( $post ), 'long' );
+	}
+	return array(
+		'target'   => '#article-body',
+		'title'    => wp_strip_all_tags( get_the_title( $post ) ),
+		'meta'     => $meta,
+		'noimg'    => $o['wide'],
+		'head_h'   => $o['head_h'],
+		'foot_h'   => $o['foot_h'],
+		'side'     => $o['side'],
+		'foot_img' => (bool) $o['foot_img'],
+	);
+}
+add_action(
+	'wp_enqueue_scripts',
+	static function () {
+		$d = mcupr_print_doc_data();
+		if ( ! $d ) {
+			return;
+		}
+		wp_register_script( 'mcupr-print-doc', get_theme_file_uri( 'assets/js/print-doc.js' ), array(), MCUPR_VERSION, true );
+		wp_add_inline_script( 'mcupr-print-doc', 'window.mcuprDoc=' . wp_json_encode( $d ) . ';', 'before' );
+		wp_enqueue_script( 'mcupr-print-doc' );
+	}
+);
+
 /** Customizer. */
 function mcupr_print_customize( $wp_customize ) {
 	$wp_customize->add_section( 'mcupr_print', array( 'title' => __( 'MCUPR: Print on A4', 'mcupr' ), 'description' => __( 'The Print button of a post or page prints an A4 sheet with a header and a footer graphic on every page, like a Thai government newsletter. Upload images made for A4 (210 mm wide); the article is printed in the space between.', 'mcupr' ), 'priority' => 36 ) );
