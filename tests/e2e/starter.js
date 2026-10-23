@@ -1217,6 +1217,15 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     const czFirst = (await ap.locator('#sub-accordion-panel-mcupr_home_panel > li.control-section').first().innerText()).replace(/\s+/g, ' ');
     ok(czSecs >= 8 && /เปิด\/ปิด|Show or hide/.test(czFirst), 'customizer: one panel “Home page sections” holds the show/hide section first, then numbers and the blocks (' + czSecs + ' sections)');
     ok((await ap.locator('#customize-control-mcupr_svc_8_title, #customize-control-mcupr_aud_3_url, #customize-control-mcupr_wx_lat').count()) === 3, 'customizer: the fields of the service cards, audience cards and weather bar exist');
+    // Customizer, first screen: groups with icon tiles and a line of help, no repeated "MCUPR:", still opens the section
+    await ap.goto(B + '/wp-admin/customize.php', { waitUntil: 'domcontentloaded' });
+    await ap.waitForSelector('.mcupr-cz-group', { timeout: 60000 });
+    await ap.waitForTimeout(1200);
+    const czRoot = await ap.evaluate(() => { const rows = [...document.querySelectorAll('#customize-theme-controls .mcupr-cz-row')]; const pane = document.querySelector('#customize-theme-controls'); return { groups: document.querySelectorAll('#customize-theme-controls .mcupr-cz-group').length, rows: rows.length, icons: rows.filter((r) => r.querySelector('.mcupr-cz-ic svg')).length, prefixed: rows.filter((r) => /MCUPR:/.test(r.textContent)).length, subs: rows.filter((r) => r.querySelector('.mcupr-cz-sub')).length, wide: pane.scrollWidth > pane.clientWidth + 1, order: rows.slice(0, 3).map((r) => r.closest('li').id) }; });
+    ok(czRoot.groups >= 5 && czRoot.rows >= 10 && czRoot.icons === czRoot.rows && czRoot.prefixed === 0 && czRoot.subs >= 8 && !czRoot.wide && czRoot.order[0] === 'accordion-section-title_tagline', 'customizer: first screen in ' + czRoot.groups + ' groups, ' + czRoot.rows + ' rows each with an icon, ' + czRoot.subs + ' with a line of help, no "MCUPR:" in front, nothing sideways');
+    await ap.click('#accordion-section-mcupr_logos .accordion-section-title button, #accordion-section-mcupr_logos > .accordion-section-title');
+    await ap.waitForSelector('#sub-accordion-section-mcupr_logos.open, #sub-accordion-section-mcupr_logos[style*="block"]', { timeout: 10000 }).catch(() => {});
+    ok(await ap.isVisible('#customize-control-mcupr_logo_dark, #sub-accordion-section-mcupr_logos .customize-control') && !/MCUPR:/.test(await ap.locator('#sub-accordion-section-mcupr_logos .customize-section-title').innerText()), 'customizer: a row still opens its section, and the section heading has no "MCUPR:" either');
     // import / export settings
     {
       const fs = require('fs');
