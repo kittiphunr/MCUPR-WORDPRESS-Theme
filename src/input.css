@@ -1039,18 +1039,46 @@ html[data-contrast] .tool-bar { border: 2px solid var(--border); box-shadow: non
 html[data-contrast] .tool-bar .tool-play { border: 2px solid var(--text); box-shadow: none; }
 html[data-motion="1"] .tool-play { transition: none; }
 
-/* ===== The sheet the PDF is drawn from (off screen, always light) ===== */
-.pdf-clip { position: absolute; left: -10000px; top: 0; width: 720px; overflow: hidden; background: #fff; pointer-events: none; }
-.pdf-sheet { width: 720px; background: #fff; color: #111; font-family: var(--font); font-size: 16px; line-height: 1.75; color-scheme: light; --text: #111; --text-2: #333; --muted: #555; --bg: #fff; --surface: #f3f4f6; --link: #a81f5b; --border: #cbd5e1; --edge: #cbd5e1; }
+/* ===== The A4 document (assets/js/print-doc.js): the same one is printed and drawn into the PDF ===== */
+.print-doc { display: none; color: #111; font-family: var(--font); }
+.pd-meta { margin: 0 0 .4em; font-size: 10.5pt; line-height: 1.4; color: #444; }
+.pd-title { margin: 0 0 .5em; padding: 0 0 .4em; border-bottom: .3mm solid #999; font-size: 20pt; line-height: 1.3; font-weight: 700; color: #111; overflow-wrap: anywhere; }
+.pd-body { color: #111; font-size: 11.5pt; line-height: 1.65; overflow-wrap: anywhere; }
+.pd-body p { margin: 0 0 .6em; }
+.pd-body h2 { margin: 1em 0 .4em; font-size: 15pt; line-height: 1.35; color: #111; break-after: avoid; }
+.pd-body h3, .pd-body h4 { margin: .9em 0 .35em; font-size: 13pt; line-height: 1.35; color: #111; break-after: avoid; }
+.pd-body ul, .pd-body ol { margin: 0 0 .6em; padding-left: 1.5em; }
+.pd-body img, .pd-body figure { max-width: 100%; height: auto; break-inside: avoid; }
+.pd-body figure { margin: .6em 0; }
+.pd-body figcaption { font-size: 9.5pt; color: #555; }
+.pd-body a { color: inherit; text-decoration: underline; }
+.pd-body table { width: 100%; border-collapse: collapse; break-inside: avoid; }
+.pd-body th, .pd-body td { padding: .25em .5em; border: .2mm solid #999; text-align: left; }
+.pd-body blockquote { margin: .6em 0; padding-left: 1em; border-left: .8mm solid #bbb; break-inside: avoid; }
+.pd-note { margin: .5em 0; font-size: 9.5pt; color: #555; overflow-wrap: anywhere; }
+@media print {
+	html.printing-doc body > :not(.print-doc):not(.print-sheet) { display: none !important; } /* only the document and the letterhead are on paper */
+	html.printing-doc .print-doc { display: block; }
+	html.printing-doc #page, html.printing-doc .site-page { display: none !important; } /* (the rules above that make the page a plain block name it by id) */
+}
+/* the off-screen sheets the PDF is drawn from: the page text (always light) and the header / footer of the letterhead */
+.pdf-clip { position: absolute; left: -10000px; top: 0; overflow: hidden; background: #fff; pointer-events: none; }
+.pdf-sheet { background: #fff; font-size: 16px; color-scheme: light; --text: #111; --text-2: #333; --muted: #555; --bg: #fff; --surface: #f3f4f6; --link: #a81f5b; --border: #cbd5e1; --edge: #cbd5e1; }
 .pdf-sheet * { animation: none !important; transition: none !important; }
-.pdf-head { margin: 0 0 18px; padding: 0 0 12px; border-bottom: 2px solid #333; }
-.pdf-site { margin: 0 0 4px; font-size: 13px; color: #555; }
-.pdf-title { margin: 0 0 8px; font-size: 28px; line-height: 1.35; font-weight: 700; color: #111; }
-.pdf-meta { margin: 0; font-size: 12px; color: #555; overflow-wrap: anywhere; }
-.pdf-body { color: #111; }
-.pdf-body img, .pdf-body figure { max-width: 100%; height: auto; }
-.pdf-body a { color: #a81f5b; text-decoration: underline; }
-.pdf-note { margin: .5rem 0; font-size: 13px; color: #555; overflow-wrap: anywhere; }
+.pdf-sheet .print-doc { display: block; }
+.pdf-letter { position: absolute; left: -10000px; top: 0; width: 210mm; overflow: hidden; background: #fff; pointer-events: none; }
+.pdf-letter .print-head, .pdf-letter .print-foot { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.pdf-letter .print-fill { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pdf-letter .print-lh { display: flex; align-items: center; justify-content: center; gap: 5mm; height: calc(100% - 4mm); padding-top: 3mm; text-align: left; }
+.pdf-letter .print-logo { height: 20mm; width: auto; }
+.pdf-letter .print-lh-t { display: flex; flex-direction: column; line-height: 1.25; font-family: var(--font); }
+.pdf-letter .print-lh-t b { font-size: 17pt; color: #111; }
+.pdf-letter .print-lh-t span { font-size: 11pt; color: #444; }
+.pdf-letter .print-rule { height: .7mm; margin: 0 auto; background: var(--primary); box-shadow: 0 1.4mm 0 -0.2mm var(--accent, var(--primary)); }
+.pdf-letter .print-foot { display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 6mm; font-family: var(--font); }
+.pdf-letter .print-foot .print-rule { width: 100%; margin-bottom: 2.5mm; }
+.pdf-letter .print-ft { margin: 0; text-align: center; font-size: 9.5pt; color: #333; line-height: 1.4; }
+.pdf-letter .print-src { margin: 1mm 0 0; text-align: center; font-size: 8pt; color: #666; }
 
 /* ===== Share buttons (Facebook, LINE) ===== */
 .share-btn { display: inline-flex; align-items: center; gap: .55rem; min-height: 2.75rem; padding: 0 1.15rem; border-radius: 9999px; font-weight: 700; font-size: .95rem; text-decoration: none; white-space: nowrap; transition: transform .15s ease, box-shadow .15s ease; }
