@@ -32,3 +32,18 @@
 [id^="sub-accordion-section-mcupr_"] .customize-control-radio input[type="radio"] { flex: none; margin: 0; }
 [id^="sub-accordion-section-mcupr_"] .customize-control-radio label { display: block; flex: 1; margin: 0; padding: 0; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { [id^="sub-accordion-section-mcupr_"] .customize-control-checkbox input[type="checkbox"], [id^="sub-accordion-section-mcupr_"] .customize-control-checkbox input[type="checkbox"]::before { transition: none; } }
+
+/* the first screen: groups, icon tiles, one line of help under each title */
+#customize-theme-controls .mcupr-cz-group { display: block; margin: 0; padding: 20px 16px 6px; color: #646970; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+#customize-theme-controls .mcupr-cz-group:lang(th), html:lang(th) #customize-theme-controls .mcupr-cz-group { font-size: 12px; letter-spacing: 0; text-transform: none; }
+#customize-theme-controls li.mcupr-cz-first:first-child > .mcupr-cz-group, #customize-theme-controls .mcupr-cz-first { margin-top: 0; }
+.mcupr-cz-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 40px 10px 16px; text-align: left; }
+.mcupr-cz-ic { display: inline-grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 10px; background: #f0f6fc; color: var(--wp-admin-theme-color, #2271b1); transition: background-color .15s, color .15s; }
+.mcupr-cz-ic svg { display: block; }
+.mcupr-cz-tx { display: grid; gap: 1px; min-width: 0; }
+.mcupr-cz-t { color: #1d2327; font-size: 14px; font-weight: 600; line-height: 1.35; }
+.mcupr-cz-sub { color: #646970; font-size: 12px; font-weight: 400; line-height: 1.4; }
+.mcupr-cz-row:hover .mcupr-cz-ic, .mcupr-cz-row:focus .mcupr-cz-ic { background: var(--wp-admin-theme-color, #2271b1); color: #fff; }
+.mcupr-cz-row:hover .mcupr-cz-t, .mcupr-cz-row:focus .mcupr-cz-t { color: var(--wp-admin-theme-color, #2271b1); }
+@media (prefers-reduced-motion: reduce) { .mcupr-cz-ic { transition: none; } }
+@media (forced-colors: active) { .mcupr-cz-ic { border: 1px solid CanvasText; } }

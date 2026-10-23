@@ -272,10 +272,74 @@ function mcupr_post_layout( $post_id = 0 ) {
 	return $override && isset( mcupr_layouts()[ $override ] ) ? $override : mcupr_sanitize_layout( get_theme_mod( 'mcupr_news_layout', 'reader' ) );
 }
 
-/** The look of the theme's own sections in the Customizer panel (grouped, with switches). */
+/**
+ * The first screen of the Customizer: the sections in labelled groups, each with an icon and one line of what it holds,
+ * and without the repeated "MCUPR:" in front (assets/js/customizer-pane.js does the arranging; the words come from here, translated).
+ */
+function mcupr_cz_pane_data() {
+	$item = static function ( $id, $icon, $sub ) {
+		return array( 'id' => $id, 'icon' => $icon, 'sub' => $sub );
+	};
+	return array(
+		'groups' => array(
+			array(
+				'title' => __( 'Basics', 'mcupr' ),
+				'items' => array(
+					$item( 'title_tagline', 'flag', __( 'Site name, tagline and browser icon', 'mcupr' ) ),
+					$item( 'mcupr_logos', 'image', __( 'Logos of the site and of each unit', 'mcupr' ) ),
+					$item( 'mcupr_org', 'building', __( 'Name, address, phone, e-mail, map and languages', 'mcupr' ) ),
+				),
+			),
+			array(
+				'title' => __( 'Home page', 'mcupr' ),
+				'items' => array(
+					$item( 'mcupr_home', 'layout', __( 'Main picture, headline and buttons', 'mcupr' ) ),
+					$item( 'mcupr_home_panel', 'grid', __( 'Show, hide and fill in each part of the page', 'mcupr' ) ),
+					$item( 'mcupr_notice', 'bell', __( 'Announcement or mourning bar', 'mcupr' ) ),
+					$item( 'static_front_page', 'home', __( 'Which page is the front page', 'mcupr' ) ),
+				),
+			),
+			array(
+				'title' => __( 'Look and reading', 'mcupr' ),
+				'items' => array(
+					$item( 'colors', 'palette', '' ),
+					$item( 'header_image', 'image', '' ),
+					$item( 'background_image', 'image', '' ),
+					$item( 'mcupr_display', 'sliders', __( 'Menu place, motion, news and reading tools', 'mcupr' ) ),
+					$item( 'mcupr_print', 'printer', __( 'Header and footer of the A4 print', 'mcupr' ) ),
+				),
+			),
+			array(
+				'title' => __( 'Pages required by the government standard', 'mcupr' ),
+				'items' => array(
+					$item( 'mcupr_policy', 'shield', __( 'Privacy, cookie and accessibility pages', 'mcupr' ) ),
+				),
+			),
+			array(
+				'title' => __( 'Menus and widgets', 'mcupr' ),
+				'items' => array(
+					$item( 'nav_menus', 'menu', __( 'Main menu, quick links and footer', 'mcupr' ) ),
+					$item( 'widgets', 'box', __( 'Footer columns and side boxes', 'mcupr' ) ),
+				),
+			),
+			array(
+				'title' => __( 'Advanced', 'mcupr' ),
+				'items' => array(
+					$item( 'mcupr_shortcodes', 'code', __( 'Your own HTML or shortcode blocks', 'mcupr' ) ),
+					$item( 'custom_css', 'brush', __( 'Extra styling, for developers', 'mcupr' ) ),
+				),
+			),
+		),
+		'rest'   => __( 'Other', 'mcupr' ),
+	);
+}
+
+/** The look of the theme's own sections in the Customizer panel (grouped, with switches), and the first screen arranged in groups. */
 add_action(
 	'customize_controls_enqueue_scripts',
 	static function () {
 		wp_enqueue_style( 'mcupr-customizer-pane', get_theme_file_uri( 'assets/css/customizer-pane.css' ), array(), MCUPR_VERSION );
+		wp_enqueue_script( 'mcupr-customizer-pane', get_theme_file_uri( 'assets/js/customizer-pane.js' ), array( 'customize-controls' ), MCUPR_VERSION, true );
+		wp_localize_script( 'mcupr-customizer-pane', 'mcuprCzPane', mcupr_cz_pane_data() );
 	}
 );
