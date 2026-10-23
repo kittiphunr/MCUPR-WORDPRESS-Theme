@@ -94,6 +94,15 @@ for root, kids in SECTIONS.items():
         PARENT[k] = root
 STAFF_PAGE_NOTE = ''
 
+
+def path(key):
+    """A link to a starter page inside page text: "page:slug" is turned into the page's real address when the page is shown (inc/menus.php),
+    because the same page sits under its parent on one site and at the top on another (the add-ons file)."""
+    return 'page:' + key
+
+# The addresses of what the theme itself provides (not pages): news, events calendar, albums, videos, works, e-books, student portal, request tracking.
+FEATURE = {'events': '/events/', 'albums': '/albums/', 'videos': '/videos/', 'works': '/works/', 'books': '/books/', 'student': '/student/', 'request': '/request/', 'news': '/?mcupr_all=1'}
+
 # ------------------------------------------------------------------ content helpers
 def todo(text):
     return ('<p class="mcupr-todo"><strong>โครงร่างหน้า (Draft):</strong> ' + text +
@@ -181,8 +190,8 @@ C['donate'] = (todo('ใส่ช่องทางบริจาคจริ�
     '<h2>ช่องทางการบริจาค</h2>\n' + ul(['โอนเข้าบัญชี: [ชื่อบัญชี] ธนาคาร [ธนาคาร] เลขที่ [เลขบัญชี]', 'สแกน QR Code: [แทรกรูป QR Code]', 'บริจาคออนไลน์ / e-Donation: [ลิงก์]']) +
     '<h2>การนำไปใช้</h2>\n<p>[อธิบายว่าเงินบริจาคนำไปใช้ในเรื่องใด เช่น ทุนการศึกษา อุปกรณ์การเรียน กิจกรรมนิสิต]</p>\n<h2>การลดหย่อนภาษีและหลักฐาน</h2>\n<p>[แจ้งสิทธิลดหย่อนภาษีและวิธีขอใบเสร็จ]</p>\n<h2>ติดต่อ</h2>\n<p>[มอบหมายผู้ประสานงาน] โทร [mcupr_org field="tel"] อีเมล [mcupr_org field="email"]</p>\n')
 C['student-portal'] = (todo('ใส่ลิงก์ระบบจริงของหน่วยงานในแต่ละรายการ (ระบบทะเบียน e-Learning อีเมลนิสิต ฯลฯ)') +
-    '<p>รวมระบบและข้อมูลที่นิสิตปัจจุบันใช้บ่อยไว้ในที่เดียว</p>\n<h2>ระบบที่ใช้บ่อย</h2>\n' + ul(['ระบบทะเบียนและผลการเรียน: [ลิงก์]', 'ระบบเรียนออนไลน์ (e-Learning): [ลิงก์]', 'อีเมลนิสิต: [ลิงก์]', 'ห้องสมุดและฐานข้อมูลออนไลน์: [ลิงก์]']) +
-    '<h2>ข้อมูลที่ควรรู้</h2>\n<ul>\n<li><a href="/calendar/">ปฏิทินการศึกษา</a></li>\n<li>ประกาศและกำหนดการสำคัญ: [ลิงก์]</li>\n<li>เอกสารและแบบฟอร์มดาวน์โหลด: [mcupr_documents หรือลิงก์ศูนย์เอกสาร]</li>\n</ul>\n'
+    '<p>รวมระบบและข้อมูลที่นิสิตปัจจุบันใช้บ่อยไว้ในที่เดียว</p>\n<h2>ระบบที่ใช้บ่อย</h2>\n<ul>\n<li><a href="' + FEATURE['student'] + '">พอร์ทัลนิสิต (เข้าสู่ระบบ ดูตารางเรียนและผลการเรียน ยื่นคำร้อง)</a></li>\n<li><a href="' + FEATURE['request'] + '">ติดตามคำร้อง</a></li>\n</ul>\n' + ul(['ระบบทะเบียนและผลการเรียน: [ลิงก์]', 'ระบบเรียนออนไลน์ (e-Learning): [ลิงก์]', 'อีเมลนิสิต: [ลิงก์]', 'ห้องสมุดและฐานข้อมูลออนไลน์: [ลิงก์]']) +
+    '<h2>ข้อมูลที่ควรรู้</h2>\n<ul>\n<li><a href="' + path('calendar') + '">ปฏิทินการศึกษา</a></li>\n<li><a href="' + FEATURE['events'] + '">ปฏิทินกิจกรรมและวันสำคัญ</a></li>\n<li><a href="' + path('forum') + '">กระดานสนทนา</a></li>\n<li><a href="' + path('faq') + '">คำถามที่พบบ่อย</a></li>\n<li>ประกาศและกำหนดการสำคัญ: [ลิงก์]</li>\n<li>เอกสารและแบบฟอร์มดาวน์โหลด: [mcupr_documents หรือลิงก์ศูนย์เอกสาร]</li>\n</ul>\n'
     '<h2>ต้องการความช่วยเหลือ</h2>\n<p>ติดต่องานบริการนักศึกษา: [ช่องทางติดต่อ]</p>\n')
 
 C['research'] = (todo('หน้าแรกของหมวด “วิจัยและบริการวิชาการ”') + '<p>[เขียนภาพรวมงานวิจัยและบริการวิชาการของหน่วยงาน]</p>\n')
@@ -299,7 +308,7 @@ C['faq'] = (todo('แก้คำถาม-คำตอบที่เมนู 
 C['contact'] = (todo('กรอกที่อยู่ โทรศัพท์ และอีเมลที่ Customizer → MCUPR: Organisation & languages ข้อมูลด้านล่างจะแสดงเอง') +
  '[mcupr_contact]\n<h2>เวลาทำการ</h2>\n<p>[วันจันทร์–ศุกร์ 08.30–16.30 น. (เว้นวันหยุดราชการ)]</p>\n<h2>ช่องทางอื่น</h2>\n' + ul(['Facebook: [ลิงก์]', 'LINE Official: [ลิงก์]', 'แบบฟอร์มติดต่อออนไลน์: [ใส่ลิงก์หรือ shortcode ของปลั๊กอินฟอร์ม]']) +
  '<h2>ส่งข้อความถึงเรา</h2>\n[mcupr_form type="contact"]\n<h2>ติดต่อเรื่องเฉพาะ</h2>\n' + table(['เรื่อง', 'หน่วยงาน', 'ติดต่อ'], [['รับสมัครนักศึกษา', '[หน่วยงาน]', '[โทร/อีเมล]'], ['ข้อมูลข่าวสารของราชการ', 'ศูนย์ข้อมูลข่าวสาร', '[โทร/อีเมล]'], ['ร้องเรียน/แจ้งเบาะแส', '[หน่วยงาน]', '[โทร/อีเมล]'], ['คุ้มครองข้อมูลส่วนบุคคล (DPO)', '[ชื่อ]', '[อีเมล]']]) +
- '<h2>แผนที่</h2>\n<p>ดูที่หน้า <a href="/location/">ที่ตั้งและการเดินทาง</a></p>\n')
+ '<h2>แผนที่</h2>\n<p>ดูที่หน้า <a href="' + path('location') + '">ที่ตั้งและการเดินทาง</a></p>\n')
 
 C['events-calendar'] = (todo('เพิ่มกิจกรรมที่เมนู “กิจกรรม” ในหลังบ้าน (วัน เวลา สถานที่ ลิงก์ลงทะเบียน) ปฏิทินและรายการด้านล่างอัปเดตเอง') +
     '[mcupr_calendar]\n<h2>กิจกรรมที่กำลังจะมาถึง</h2>\n[mcupr_events count="6"]\n')
@@ -325,6 +334,7 @@ L = {  # menu-only labels (th, en, zh, ja)
  'news': ('ข่าวสาร', 'News', '新闻', 'ニュース'),
  'albums': ('อัลบั้มภาพ', 'Photo albums', '相册', 'フォトアルバム'),
  'videos': ('วิดีโอ', 'Videos', '视频', '動画'),
+ 'books': ('หนังสืออิเล็กทรอนิกส์', 'E-books', '电子书', '電子書籍'),
  'works': ('ผลงานและรางวัล', 'Works and awards', '作品与奖项', '実績・受賞'),
  'cat-pr': ('ข่าวประชาสัมพันธ์', 'Press releases', '新闻公告', 'お知らせ'),
  'cat-act': ('ข่าวกิจกรรม', 'Activities', '活动', '活動'),
@@ -370,9 +380,10 @@ MAIN = [
    LBL('col-during', [P('calendar'), P('registrar'), P('library')]),
    LBL('col-students', [P('students'), P('career'), P('alumni')])]),
  P('research', 'bulb', kids=[P('research-policy'), P('research-centers'), P('journals'), P('academic-service'), P('research-grants'), P('research-ethics'), {'label': L['works'], 'target': ('url', '/works/'), 'icon': 'trophy', 'kids': []}]),
- {'label': L['news'], 'target': ('url', '/?mcupr_all=1'), 'icon': 'news', 'kids': [CAT('cat-pr', 'press-releases'), CAT('cat-act', 'activities'), CAT('cat-ann', 'announcements'), P('events-calendar', 'calendar'),
+ {'label': L['news'], 'target': ('url', '/?mcupr_all=1'), 'icon': 'news', 'kids': [CAT('cat-pr', 'press-releases'), CAT('cat-act', 'activities'), CAT('cat-ann', 'announcements'), {'label': T['events-calendar'], 'target': ('url', FEATURE['events']), 'icon': 'calendar', 'kids': []},
    {'label': L['albums'], 'target': ('url', '/albums/'), 'icon': 'image', 'kids': []},
-   {'label': L['videos'], 'target': ('url', '/videos/'), 'icon': 'play', 'kids': []}]},
+   {'label': L['videos'], 'target': ('url', '/videos/'), 'icon': 'play', 'kids': []},
+   {'label': L['books'], 'target': ('url', FEATURE['books']), 'icon': 'book', 'kids': []}]},
  P('governance', 'shield', mega=3, kids=[
    LBL('col-transparent', [P('ita'), P('oic'), P('open-data')]),
    LBL('col-ops', [P('plans-reports'), P('procurement'), P('hr')]),
