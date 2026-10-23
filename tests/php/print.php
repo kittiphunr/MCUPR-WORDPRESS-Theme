@@ -56,6 +56,20 @@ ob_start(); mcupr_print_markup(); mcupr_print_css(); $h = ob_get_clean();
 t( '' === $h && ! mcupr_print_enabled(), 'a post can switch the letterhead off' );
 delete_post_meta( $long->ID, '_mcupr_print' );
 t( mcupr_print_enabled(), 'and on again' );
+$dd = mcupr_print_doc_data();
+t( is_array( $dd ) && '#article-body' === $dd['target'] && 'ข่าวยาวสำหรับทดสอบการพิมพ์' === $dd['title'] && mcupr_print_options()['head_h'] === $dd['head_h'] && mcupr_print_options()['foot_h'] === $dd['foot_h'] && mcupr_print_options()['side'] === $dd['side'], 'the A4 document: the target, the title and the geometry of the sheet' );
+t( false !== strpos( $dd['meta'], mcupr_t( 'posted_on' ) ) && false === strpos( $dd['meta'], 'อ่านประมาณ' ), 'the date line has the category and the date, not the reading time or the views' );
+mods( array( 'mcupr_print_meta' => false ) );
+t( '' === mcupr_print_doc_data()['meta'], 'the date line is left out when the Customizer says so' );
+mods( array( 'mcupr_print_meta' => null ) );
+$page = get_page_by_path( 'history', OBJECT, 'page' );
+if ( $page ) {
+	$GLOBALS['wp_query'] = new WP_Query( array( 'page_id' => $page->ID ) ); $GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+	t( '' === mcupr_print_doc_data()['meta'], 'a page has no date line' );
+	$GLOBALS['wp_query'] = new WP_Query( array( 'p' => $long->ID ) ); $GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+}
+$js = file_get_contents( MCUPR_DIR . '/assets/js/print-doc.js' );
+t( false !== strpos( $js, 'beforeprint' ) && false !== strpos( $js, 'afterprint' ), 'the document is put together just before any printing (the button and Ctrl+P) and taken away after' );
 $GLOBALS['wp_query'] = new WP_Query( array( 'post_type' => 'post' ) ); $GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
 t( ! mcupr_print_enabled(), 'listings do not get a letterhead' );
 
