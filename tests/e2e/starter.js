@@ -1306,6 +1306,21 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       // tags follow a rename
       await ap.click('.fm-tree .fm-row >> nth=0');
       await ap.waitForSelector('.fm-it[data-path="e2e-fm"]');
+      // dropping an item on a colour of the sidebar tags it; a double click on a colour renames it (the colour stays)
+      await ap.dragAndDrop('.fm-it[data-path="e2e-fm"]', '.fm-tagrow >> nth=1');
+      await ap.waitForFunction(() => (document.querySelectorAll('.fm-tagrow .fm-n')[1] || {}).textContent === '1', null, { timeout: 15000 });
+      ok((await fmPost('list', { tag: '2' })).json.data.items.map((e) => e.path).join() === 'e2e-fm', 'file manager: dropping a folder on a colour of the sidebar puts that tag on it');
+      await ap.locator('.fm-tagrow').nth(1).dblclick();
+      await ap.waitForSelector('.fm-tagrow .fm-edit', { timeout: 10000 });
+      await ap.fill('.fm-tagrow .fm-edit', 'เร่งด่วน');
+      await ap.keyboard.press('Enter');
+      await ap.waitForFunction(() => document.querySelectorAll('.fm-tagrow .fm-tl')[1] && document.querySelectorAll('.fm-tagrow .fm-tl')[1].textContent === 'เร่งด่วน', null, { timeout: 10000 });
+      ok(await ap.evaluate(() => getComputedStyle(document.querySelectorAll('.fm-tagrow .fm-dot')[1]).backgroundColor === 'rgb(255, 159, 10)' && window.mcuprFM.tags[1].name === 'เร่งด่วน'), 'file manager: a double click on a colour renames the tag, the colour stays');
+      await ap.locator('.fm-tagrow').nth(1).dblclick();
+      await ap.fill('.fm-tagrow .fm-edit', 'ส้ม');
+      await ap.keyboard.press('Enter');
+      await ap.waitForFunction(() => document.querySelectorAll('.fm-tagrow .fm-tl')[1].textContent === 'ส้ม');
+      ok(await ap.evaluate(() => !!document.querySelector('.fm-defs') && getComputedStyle(document.querySelector('.fm-defs')).display !== 'none'), 'file manager: the folder colours are defined once where they are always drawn (also when the sidebar is hidden on a phone)');
       await ap.click('.fm-it[data-path="e2e-fm"]');
       await ap.keyboard.press('Enter');
       await ap.waitForSelector('.fm-edit');
@@ -1376,7 +1391,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await ap.click('.fm-box [data-yes]');
       await ap.waitForFunction(() => !document.querySelector('.fm-it[data-path="e2e-fm2"]'), null, { timeout: 15000 });
       const left = await fmPost('list', { tag: '4' });
-      ok((await fmPost('list', { path: '' })).json.data.items.every((e) => !/^e2e-fm/.test(e.name)) && left.json.data.items.length === 0, 'file manager: the folder and its colour tags are gone after the delete');
+      const left2 = await fmPost('list', { tag: '2' });
+      ok((await fmPost('list', { path: '' })).json.data.items.every((e) => !/^e2e-fm/.test(e.name)) && left.json.data.items.length === 0 && left2.json.data.items.length === 0, 'file manager: the folder and its colour tags are gone after the delete');
       fsF.unlinkSync(pngF); fsF.unlinkSync(phpF);
       await ap.setViewportSize({ width: 1366, height: 900 });
     }

@@ -13,6 +13,7 @@
 }
 .fm button { font: inherit; color: inherit; cursor: pointer; }
 .fm svg { display: block; }
+.fm .fm-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
 
 /* sidebar */
 .fm-side { padding: 12px 8px; overflow: auto; background: var(--fm-side); border-right: 1px solid var(--fm-line); }

@@ -66,7 +66,8 @@
 	}
 
 	/* ------------------------------------------------------------ glyphs */
-	var FOLDER = '<svg viewBox="0 0 64 52" aria-hidden="true" focusable="false"><defs><linearGradient id="fmf1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc4fb"/><stop offset="1" stop-color="#3a9bf0"/></linearGradient><linearGradient id="fmf2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#58b3fa"/><stop offset="1" stop-color="#1f86e8"/></linearGradient></defs><path d="M4 8a4 4 0 0 1 4-4h14l5 5h29a4 4 0 0 1 4 4v3H4z" fill="url(#fmf1)"/><rect x="4" y="14" width="56" height="34" rx="4" fill="url(#fmf2)"/></svg>';
+	var DEFS = '<svg class="fm-defs" width="0" height="0" aria-hidden="true" focusable="false"><defs><linearGradient id="fmf1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc4fb"/><stop offset="1" stop-color="#3a9bf0"/></linearGradient><linearGradient id="fmf2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#58b3fa"/><stop offset="1" stop-color="#1f86e8"/></linearGradient></defs></svg>'; /* the folder's colours live here, once, where they are always drawn (a hidden sidebar would take them away) */
+	var FOLDER = '<svg viewBox="0 0 64 52" aria-hidden="true" focusable="false"><path d="M4 8a4 4 0 0 1 4-4h14l5 5h29a4 4 0 0 1 4 4v3H4z" fill="url(#fmf1)"/><rect x="4" y="14" width="56" height="34" rx="4" fill="url(#fmf2)"/></svg>';
 	var COLORS = { image: '#ff7a59', video: '#8e6bf0', audio: '#e0568f', pdf: '#e5483f', doc: '#3a86e8', sheet: '#2fa35b', slides: '#f08a24', archive: '#a07a4f', other: '#8e8e93' };
 	function fileGlyph( e ) {
 		var c = COLORS[ e.kind ] || COLORS.other, label = esc( ( e.ext || '' ).slice( 0, 4 ).toUpperCase() );
@@ -104,6 +105,7 @@
 		'</div>' +
 		'<input type="file" class="fm-file" multiple hidden>' +
 		'<div class="fm-menu" role="menu" hidden></div><div class="fm-drop-note" hidden>' + esc( T.dropHere ) + '</div>';
+	root.insertAdjacentHTML( 'afterbegin', DEFS );
 	root.appendChild( live );
 	var $ = function ( s ) { return root.querySelector( s ); };
 	var elTree = $( '.fm-tree' ), elTags = $( '.fm-tags' ), elBody = $( '.fm-body' ), elTitle = $( '.fm-title' ), elPath = $( '.fm-path' ), elCount = $( '.fm-count' ), elMenu = $( '.fm-menu' ), elFile = $( '.fm-file' ), elQ = $( '.fm-search input' ), elDrop = $( '.fm-drop-note' );
@@ -215,8 +217,9 @@
 			b.setAttribute( 'data-drop-tag', d.id );
 			b.innerHTML = '<i class="fm-dot fm-dot-l" style="background:' + d.color + '"></i><span class="fm-tl"></span><span class="fm-n">' + ( S.counts[ d.id ] || '' ) + '</span>';
 			b.querySelector( '.fm-tl' ).textContent = d.name;
-			b.addEventListener( 'click', function () { if ( S.tag === d.id ) { go( '' ); } else { load( '', d.id ); } } );
-			b.addEventListener( 'dblclick', function ( ev ) { ev.preventDefault(); renameTag( d, b ); } );
+			var wait;
+			b.addEventListener( 'click', function ( ev ) { if ( ev.detail > 1 ) { return; } clearTimeout( wait ); wait = setTimeout( function () { if ( S.tag === d.id ) { go( '' ); } else { load( '', d.id ); } }, 230 ); } ); // a double click renames: it must not filter first
+			b.addEventListener( 'dblclick', function ( ev ) { ev.preventDefault(); clearTimeout( wait ); renameTag( d, b ); } );
 			b.addEventListener( 'contextmenu', function ( ev ) { ev.preventDefault(); showMenu( ev.clientX, ev.clientY, [ { label: T.renameTag, run: function () { renameTag( d, b ); } } ] ); } );
 			li.appendChild( b );
 			elTags.appendChild( li );
