@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.53 =
+* File manager for the uploads folder: Finder-like screen, colour tags, safe by construction.
+
 = 1.54.52 =
 * Print and PDF are made from one A4 document with only the content and the letterhead.
 
