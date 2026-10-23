@@ -192,7 +192,7 @@ function mcupr_demo_apply( $d ) {
 		if ( ! is_wp_error( $mid ) ) {
 			$pos = 0;
 			foreach ( $d['menu']['items'] as $it ) {
-				$url = mcupr_blk_page_url( $it[0] );
+				$url = 0 === strpos( (string) $it[0], '/' ) ? '/' . ltrim( (string) $it[0], '/' ) : mcupr_blk_page_url( $it[0] ); // a path such as /events/ is a feature of the theme, a word is a page
 				if ( '' === $url ) {
 					continue;
 				}
