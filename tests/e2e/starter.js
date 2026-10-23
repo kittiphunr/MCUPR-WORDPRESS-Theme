@@ -1245,6 +1245,157 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.click('#accordion-section-mcupr_logos .accordion-section-title button, #accordion-section-mcupr_logos > .accordion-section-title');
     await ap.waitForSelector('#sub-accordion-section-mcupr_logos.open, #sub-accordion-section-mcupr_logos[style*="block"]', { timeout: 10000 }).catch(() => {});
     ok(await ap.isVisible('#customize-control-mcupr_logo_dark, #sub-accordion-section-mcupr_logos .customize-control') && !/MCUPR:/.test(await ap.locator('#sub-accordion-section-mcupr_logos .customize-section-title').innerText()), 'customizer: a row still opens its section, and the section heading has no "MCUPR:" either');
+    // File manager of the uploads folder: Finder-like, colour tags, safe paths, administrators only
+    {
+      const fsF = require('fs');
+      const fmUrl = B + '/wp-admin/admin.php?page=mcupr-files';
+      const fmReady = async () => { await ap.waitForSelector('#mcupr-fm .fm-tw', { timeout: 30000 }); await ap.waitForTimeout(600); };
+      const fmPost = (action, data) => ap.evaluate(async ([a, d]) => { const fd = new FormData(); fd.append('action', 'mcupr_fm_' + a); fd.append('_wpnonce', window.mcuprFM.nonce); Object.keys(d).forEach((k) => (Array.isArray(d[k]) ? d[k].forEach((x) => fd.append(k + '[]', x)) : fd.append(k, d[k]))); const r = await fetch(window.mcuprFM.ajax, { method: 'POST', body: fd, credentials: 'same-origin' }); return { status: r.status, json: await r.json() }; }, [action, data]);
+      await ap.setViewportSize({ width: 1440, height: 900 });
+      await ap.goto(fmUrl, { waitUntil: 'domcontentloaded' });
+      await fmReady();
+      const fm0 = await ap.evaluate(() => ({ tags: document.querySelectorAll('.fm-tagrow').length, tree: !!document.querySelector('.fm-tree [role="treeitem"]'), bar: !!document.querySelector('.fm-bar [data-view="icons"]') && !!document.querySelector('.fm-bar [data-act="mkdir"]') && !!document.querySelector('.fm-search input'), path: !!document.querySelector('.fm-path .fm-crumb'), items: document.querySelectorAll('.fm-it').length }));
+      ok(fm0.tags === 7 && fm0.tree && fm0.bar && fm0.path && fm0.items >= 1, 'file manager: sidebar with the folders and seven colour tags, a bar with the views, new folder and search, a path bar (' + JSON.stringify(fm0) + ')');
+      // a new folder, named at once, like the Finder
+      await ap.click('[data-act="mkdir"]');
+      await ap.waitForSelector('.fm-edit', { timeout: 10000 });
+      await ap.fill('.fm-edit', 'e2e-fm');
+      await ap.keyboard.press('Enter');
+      await ap.waitForSelector('.fm-it[data-path="e2e-fm"]', { timeout: 10000 });
+      ok((await ap.locator('.fm-it[data-path="e2e-fm"]').getAttribute('class')).includes('is-dir') && (await ap.locator('.fm-tree').innerText()).includes('e2e-fm'), 'file manager: "New folder" makes a folder you can name straight away, and the sidebar shows it');
+      await ap.dblclick('.fm-it[data-path="e2e-fm"]');
+      await ap.waitForFunction(() => document.querySelector('.fm-title') && document.querySelector('.fm-title').textContent === 'e2e-fm');
+      // upload: a picture goes in, a script is refused
+      const pngF = require('os').tmpdir() + '/e2e-fm-pic.png';
+      fsF.writeFileSync(pngF, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'));
+      await ap.setInputFiles('.fm-file', pngF);
+      await ap.waitForSelector('.fm-it[data-path="e2e-fm/e2e-fm-pic.png"]', { timeout: 20000 });
+      const phpF = require('os').tmpdir() + '/e2e-fm-shell.php';
+      fsF.writeFileSync(phpF, '<?php echo 1;');
+      await ap.setInputFiles('.fm-file', phpF);
+      await ap.waitForFunction(() => /e2e-fm-shell\.php/.test(document.querySelector('.fm-live').textContent), null, { timeout: 15000 });
+      ok((await ap.locator('.fm-it[data-path="e2e-fm/e2e-fm-shell.php"]').count()) === 0 && (await ap.locator('.fm-live.is-bad').count()) === 1, 'file manager: a picture uploads into the open folder; a .php file is refused with a message and is not saved');
+      // rename with Enter, and folders for the drag
+      await ap.click('[data-act="mkdir"]'); await ap.waitForSelector('.fm-edit'); await ap.fill('.fm-edit', 'ข่าว'); await ap.keyboard.press('Enter');
+      await ap.waitForSelector('.fm-it[data-path="e2e-fm/ข่าว"]');
+      await ap.click('.fm-it[data-path="e2e-fm/e2e-fm-pic.png"]');
+      await ap.keyboard.press('Enter');
+      await ap.waitForSelector('.fm-edit');
+      await ap.fill('.fm-edit', 'รูป.png');
+      await ap.keyboard.press('Enter');
+      await ap.waitForSelector('.fm-it[data-path="e2e-fm/รูป.png"]', { timeout: 10000 });
+      ok((await ap.locator('.fm-it[data-path="e2e-fm/e2e-fm-pic.png"]').count()) === 0, 'file manager: Enter renames the chosen item (Thai names work), the old name is gone');
+      // drag onto a folder moves it
+      await ap.dragAndDrop('.fm-it[data-path="e2e-fm/รูป.png"]', '.fm-it[data-path="e2e-fm/ข่าว"]');
+      await ap.waitForFunction(() => !document.querySelector('.fm-it[data-path="e2e-fm/รูป.png"]'), null, { timeout: 15000 });
+      await ap.dblclick('.fm-it[data-path="e2e-fm/ข่าว"]');
+      await ap.waitForSelector('.fm-it[data-path="e2e-fm/ข่าว/รูป.png"]', { timeout: 10000 });
+      ok((await ap.locator('.fm-it[data-path="e2e-fm/ข่าว/รูป.png"]').count()) === 1 && (await fmPost('list', { path: 'e2e-fm' })).json.data.items.every((e) => e.name !== 'รูป.png'), 'file manager: dragging a file onto a folder moves it (it is in the folder, no longer beside it)');
+      // colour tags: several on one file, the count and the filter in the sidebar, the dot beside the name
+      await ap.click('.fm-it[data-path="e2e-fm/ข่าว/รูป.png"]', { button: 'right' });
+      await ap.click('.fm-menu .fm-mdot[aria-label]:nth-child(1)');
+      await ap.waitForTimeout(500);
+      await ap.click('.fm-it[data-path="e2e-fm/ข่าว/รูป.png"]', { button: 'right' });
+      await ap.click('.fm-menu .fm-mdot[aria-label]:nth-child(4)');
+      await ap.waitForTimeout(500);
+      const tg = await ap.evaluate(() => ({ dots: document.querySelectorAll('.fm-it[data-path="e2e-fm/ข่าว/รูป.png"] .fm-dot').length, n1: (document.querySelectorAll('.fm-tagrow .fm-n')[0] || {}).textContent, n4: (document.querySelectorAll('.fm-tagrow .fm-n')[3] || {}).textContent }));
+      ok(tg.dots === 2 && tg.n1 === '1' && tg.n4 === '1', 'file manager: one file can carry two colours, shown as dots by its name, counted in the sidebar (' + JSON.stringify(tg) + ')');
+      await ap.click('.fm-tagrow >> nth=3');
+      await ap.waitForFunction(() => document.querySelector('.fm-title').textContent.trim() !== 'ข่าว' && document.querySelectorAll('.fm-it').length === 1);
+      ok((await ap.locator('.fm-it').first().getAttribute('data-path')) === 'e2e-fm/ข่าว/รูป.png', 'file manager: clicking a colour in the sidebar lists what carries it, from every folder');
+      // tags follow a rename
+      await ap.click('.fm-tree .fm-row >> nth=0');
+      await ap.waitForSelector('.fm-it[data-path="e2e-fm"]');
+      // dropping an item on a colour of the sidebar tags it; a double click on a colour renames it (the colour stays)
+      await ap.dragAndDrop('.fm-it[data-path="e2e-fm"]', '.fm-tagrow >> nth=1');
+      await ap.waitForFunction(() => (document.querySelectorAll('.fm-tagrow .fm-n')[1] || {}).textContent === '1', null, { timeout: 15000 });
+      ok((await fmPost('list', { tag: '2' })).json.data.items.map((e) => e.path).join() === 'e2e-fm', 'file manager: dropping a folder on a colour of the sidebar puts that tag on it');
+      await ap.locator('.fm-tagrow').nth(1).dblclick();
+      await ap.waitForSelector('.fm-tagrow .fm-edit', { timeout: 10000 });
+      await ap.fill('.fm-tagrow .fm-edit', 'เร่งด่วน');
+      await ap.keyboard.press('Enter');
+      await ap.waitForFunction(() => document.querySelectorAll('.fm-tagrow .fm-tl')[1] && document.querySelectorAll('.fm-tagrow .fm-tl')[1].textContent === 'เร่งด่วน', null, { timeout: 10000 });
+      ok(await ap.evaluate(() => getComputedStyle(document.querySelectorAll('.fm-tagrow .fm-dot')[1]).backgroundColor === 'rgb(255, 159, 10)' && window.mcuprFM.tags[1].name === 'เร่งด่วน'), 'file manager: a double click on a colour renames the tag, the colour stays');
+      await ap.locator('.fm-tagrow').nth(1).dblclick();
+      await ap.fill('.fm-tagrow .fm-edit', 'ส้ม');
+      await ap.keyboard.press('Enter');
+      await ap.waitForFunction(() => document.querySelectorAll('.fm-tagrow .fm-tl')[1].textContent === 'ส้ม');
+      ok(await ap.evaluate(() => !!document.querySelector('.fm-defs') && getComputedStyle(document.querySelector('.fm-defs')).display !== 'none'), 'file manager: the folder colours are defined once where they are always drawn (also when the sidebar is hidden on a phone)');
+      await ap.click('.fm-it[data-path="e2e-fm"]');
+      await ap.keyboard.press('Enter');
+      await ap.waitForSelector('.fm-edit');
+      await ap.fill('.fm-edit', 'e2e-fm2');
+      await ap.keyboard.press('Enter');
+      await ap.waitForSelector('.fm-it[data-path="e2e-fm2"]', { timeout: 10000 });
+      const afterRen = await fmPost('list', { tag: '4' });
+      ok(afterRen.json.success && afterRen.json.data.items.length === 1 && afterRen.json.data.items[0].path === 'e2e-fm2/ข่าว/รูป.png', 'file manager: the colour tags follow a renamed folder and what is inside it');
+      // quick look with the space bar
+      await ap.dblclick('.fm-it[data-path="e2e-fm2"]');
+      await ap.waitForSelector('.fm-it[data-path="e2e-fm2/ข่าว"]');
+      await ap.dblclick('.fm-it[data-path="e2e-fm2/ข่าว"]');
+      await ap.waitForSelector('.fm-it[data-path="e2e-fm2/ข่าว/รูป.png"]');
+      await ap.click('.fm-it[data-path="e2e-fm2/ข่าว/รูป.png"]');
+      await ap.keyboard.press(' ');
+      await ap.waitForSelector('.fm-ql img', { timeout: 10000 });
+      ok((await ap.locator('.fm-ql .fm-qt').innerText()) === 'รูป.png', 'file manager: the space bar opens Quick Look with the picture');
+      await ap.keyboard.press('Escape');
+      ok((await ap.locator('.fm-ql').count()) === 0, 'file manager: Escape closes Quick Look');
+      // the Media library keeps what is its own: a locked file cannot be renamed here
+      const lockedList = await fmPost('list', { path: '' });
+      const years = lockedList.json.data.items.filter((e) => /^20\d\d$/.test(e.name));
+      let lockedFile = '';
+      for (const y of years) { const months = (await fmPost('list', { path: y.path })).json.data.items; for (const m of months) { const files = (await fmPost('list', { path: m.path })).json.data.items.filter((e) => e.locked && !e.dir); if (files.length) { lockedFile = files[0].path; break; } } if (lockedFile) { break; } }
+      if (lockedFile) {
+        const rn = await fmPost('rename', { path: lockedFile, name: 'renamed-by-fm.jpg' });
+        const dl = await fmPost('delete', { paths: [lockedFile] });
+        const par = lockedFile.split('/').slice(0, -1).join('/');
+        ok(!rn.json.success && !dl.json.success && /Media library|คลังสื่อ/.test(rn.json.data.message), 'file manager: a file of the Media library (' + lockedFile + ') cannot be renamed or deleted here, and the message says why');
+        await ap.evaluate((p) => { document.querySelector('.fm-tree .fm-row').click(); }, par);
+      } else { console.log('  (no picture of the Media library in the test site: lock check skipped)'); }
+      // safety: paths, other users
+      for (const bad of ['../', '../../wp-config.php', 'mcupr-mail', '.git', 'a/../../x']) {
+        const r = await fmPost('list', { path: bad });
+        ok(!r.json.success, 'file manager: the path ' + JSON.stringify(bad) + ' is refused');
+      }
+      const upBad = await fmPost('mkdir', { path: 'e2e-fm2', name: '../escape' });
+      ok(upBad.json.success && upBad.json.data.path === 'e2e-fm2/escape' && !(await fmPost('list', { path: '' })).json.data.items.some((e) => e.name === 'escape'), 'file manager: a folder name with .. and a slash stays inside the folder it was made in');
+      const noNonce = await ap.evaluate(async () => { const fd = new FormData(); fd.append('action', 'mcupr_fm_list'); fd.append('path', ''); const r = await fetch(window.mcuprFM.ajax, { method: 'POST', body: fd, credentials: 'same-origin' }); return r.status; });
+      ok(noNonce === 403, 'file manager: a request without the security token is refused (403)');
+      const anon = await br.newContext();
+      const ar = await anon.request.post(B + '/wp-admin/admin-ajax.php', { form: { action: 'mcupr_fm_list', path: '', _wpnonce: 'abcdef1234' } });
+      const arTxt = await ar.text();
+      ok((ar.status() === 400 || ar.status() === 403) && !/"success":true/.test(arTxt), 'file manager: a visitor who is not logged in gets nothing (' + ar.status() + ')');
+      await anon.close();
+      // axe and a small screen
+      await ap.goto(fmUrl, { waitUntil: 'domcontentloaded' });
+      await fmReady();
+      await ap.addScriptTag({ content: axeSource() });
+      const axFm = await ap.evaluate(() => axe.run(document.querySelector('#mcupr-fm'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+      ok(axFm.violations.length === 0, 'file manager axe: ' + (axFm.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+      await ap.setViewportSize({ width: 390, height: 800 });
+      await ap.waitForTimeout(400);
+      ok(!(await ap.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) && (await ap.locator('.fm-it').count()) >= 1, 'file manager at 390px: no sideways scroll of the page');
+      await ap.setViewportSize({ width: 1440, height: 900 });
+      // delete: ask first, say how much, then really remove it
+      await ap.goto(fmUrl, { waitUntil: 'domcontentloaded' });
+      await fmReady();
+      await ap.click('.fm-it[data-path="e2e-fm2"]');
+      await ap.keyboard.press('Delete');
+      await ap.waitForSelector('.fm-box', { timeout: 10000 });
+      const ask = await ap.locator('.fm-box').innerText();
+      ok(/3/.test(ask) && /ถาวร|for good|undone|ย้อนกลับ/.test(ask), 'file manager: deleting asks first and says how many files and folders go and that it cannot be undone (' + ask.replace(/\s+/g, ' ').slice(0, 90) + ')');
+      await ap.click('.fm-box [data-no]');
+      ok((await ap.locator('.fm-it[data-path="e2e-fm2"]').count()) === 1, 'file manager: cancelling deletes nothing');
+      await ap.keyboard.press('Delete');
+      await ap.waitForSelector('.fm-box');
+      await ap.click('.fm-box [data-yes]');
+      await ap.waitForFunction(() => !document.querySelector('.fm-it[data-path="e2e-fm2"]'), null, { timeout: 15000 });
+      const left = await fmPost('list', { tag: '4' });
+      const left2 = await fmPost('list', { tag: '2' });
+      ok((await fmPost('list', { path: '' })).json.data.items.every((e) => !/^e2e-fm/.test(e.name)) && left.json.data.items.length === 0 && left2.json.data.items.length === 0, 'file manager: the folder and its colour tags are gone after the delete');
+      fsF.unlinkSync(pngF); fsF.unlinkSync(phpF);
+      await ap.setViewportSize({ width: 1366, height: 900 });
+    }
     // import / export settings
     {
       const fs = require('fs');
