@@ -26,8 +26,12 @@ function mcupr_languages() {
 }
 
 function mcupr_default_lang() {
-	$lang = get_theme_mod( 'mcupr_default_lang', 'th' );
-	return isset( mcupr_ui_languages()[ $lang ] ) ? $lang : 'th';
+	$lang  = get_theme_mod( 'mcupr_default_lang', 'th' );
+	$langs = mcupr_languages();
+	if ( isset( $langs[ $lang ] ) ) {
+		return $lang;
+	}
+	return isset( $langs['th'] ) ? 'th' : (string) key( $langs );
 }
 
 /** Language (slug) of the current request. */
@@ -135,10 +139,10 @@ add_action( 'wp_head', 'mcupr_hreflang', 3 );
 
 /** Per-language Customizer text (th/en/zh/ja), falling back to the default language. */
 function mcupr_text_mod( $base, $lang = '' ) {
-	$lang = $lang ? $lang : mcupr_ui_lang();
+	$lang = $lang ? $lang : mcupr_lang();
 	$val  = get_theme_mod( $base . '_' . $lang, '' );
 	if ( '' === $val ) {
-		$val = get_theme_mod( $base . '_' . mcupr_normalize_ui_lang( mcupr_default_lang() ), '' );
+		$val = get_theme_mod( $base . '_' . mcupr_default_lang(), '' );
 	}
 	return $val;
 }

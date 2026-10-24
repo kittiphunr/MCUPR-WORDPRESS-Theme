@@ -69,7 +69,7 @@ function mcupr_notice_customize( $wp_customize ) {
 	$wp_customize->add_control( 'mcupr_notice_style', array( 'section' => 'mcupr_notice', 'label' => __( 'Style of the bar', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'notice' => __( 'Announcement (calm colour)', 'mcupr' ), 'urgent' => __( 'Urgent notice (amber)', 'mcupr' ), 'mourning' => __( 'Mourning (black bar with a ribbon)', 'mcupr' ) ) ) );
 	$wp_customize->add_setting( 'mcupr_notice_gray', array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 	$wp_customize->add_control( 'mcupr_notice_gray', array( 'section' => 'mcupr_notice', 'label' => __( 'Mourning style only: show the whole website in black and white', 'mcupr' ), 'type' => 'checkbox' ) );
-	foreach ( mcupr_ui_languages() as $code => $l ) {
+	foreach ( mcupr_languages() as $code => $l ) {
 		$wp_customize->add_setting( "mcupr_notice_text_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
 		$wp_customize->add_control( "mcupr_notice_text_{$code}", array( 'section' => 'mcupr_notice', 'label' => sprintf( /* translators: %s: language */ __( 'Notice text (%s)', 'mcupr' ), mcupr_admin_lang_name( $l['name'] ) ), 'type' => 'text' ) );
 		$wp_customize->add_setting( "mcupr_notice_link_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
