@@ -4307,6 +4307,56 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     phpB('foreach(get_posts(array("post_type"=>"mcupr_book","post_status"=>"any","numberposts"=>-1,"fields"=>"ids")) as $x){wp_delete_post($x,true);} foreach(get_terms(array("taxonomy"=>"mcupr_shelf","hide_empty"=>false,"fields"=>"ids")) as $t){wp_delete_term($t,"mcupr_shelf");}');
     await bc.close();
   }
+  // animated icons (Lordicon): the normal SVG until the player is ready, then the moving icon; nothing moves when animations are off
+  {
+    const { execSync: execL } = require('child_process');
+    const fsL = require('fs');
+    const phpL = (code) => { const f = require('os').tmpdir() + '/e2e-lord-' + process.pid + '.php'; fsL.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execL('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const lottie = fsL.readFileSync(require('path').resolve(__dirname, '../fixtures/lord-test.json'), 'utf8');
+    phpL('set_theme_mod( "mcupr_lord_on", true ); set_theme_mod( "mcupr_lord_map", "news = /lord-test.json\npin = /lord-missing.json" ); set_theme_mod( "mcupr_lord_trigger", "hover" );');
+    const routeL = async (c) => { await c.route('**/lord-test.json', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: lottie })); await c.route('**/lord-missing.json', (r) => r.fulfill({ status: 404, body: 'no' })); };
+    const lc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    await lc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+    await routeL(lc);
+    const lp = await lc.newPage();
+    const lerr = [];
+    lp.on('pageerror', (e) => lerr.push(String(e)));
+    await lp.goto(B + '/');
+    await lp.waitForSelector('.lord[data-lord-state="live"]', { state: 'attached', timeout: 20000 });
+    const li = await lp.evaluate(() => {
+      const b = Array.from(document.querySelectorAll('.lord[data-lord-state="live"]')).find((x) => x.getBoundingClientRect().width > 0) || document.querySelector('.lord[data-lord-state="live"]');
+      const r = b.getBoundingClientRect(); const ic = b.querySelector('lord-icon'); const sv = b.querySelector(':scope > svg');
+      return { w: Math.round(r.width), h: Math.round(r.height), has: !!ic, op: ic ? getComputedStyle(ic).opacity : '', svOp: sv ? getComputedStyle(sv).opacity : '', trig: ic && ic.getAttribute('trigger'), hidden: ic && ic.getAttribute('aria-hidden'), pw: sv ? sv.getAttribute('width') : '' };
+    });
+    ok(li.has && li.w === +li.pw && li.h === +li.pw, 'animated icons: the moving icon has the size of the line icon it replaces (' + li.w + '×' + li.h + ')');
+    ok(li.op === '1' && li.svOp === '0' && li.trig === 'hover' && li.hidden === 'true', 'animated icons: once ready the moving icon shows (hover trigger, hidden from screen readers) and the line icon is hidden');
+    await lp.waitForSelector('.lord[data-lord-state="fail"]', { state: 'attached', timeout: 20000 });
+    const lf = await lp.evaluate(() => { const b = document.querySelector('.lord[data-lord-state="fail"]'); const sv = b.querySelector(':scope > svg'); return { ic: !!b.querySelector('lord-icon'), op: getComputedStyle(sv).opacity }; });
+    ok(!lf.ic && lf.op === '1', 'animated icons: an icon file that cannot be loaded leaves the normal line icon');
+    ok(lerr.length === 0, 'animated icons: no script error' + (lerr.length ? ': ' + lerr.slice(0, 2).join(' | ') : ''));
+    // the About dialog carries the credit Lordicon asks for
+    ok(/<a [^>]*href="https:\/\/lordicon\.com\/"[^>]*>Lordicon<\/a>/.test(await lp.content()), 'animated icons: the About dialog credits Lordicon (a link to lordicon.com)');
+    await lc.close();
+    // animations off by the visitor: the player is not even fetched, the line icons stay
+    const oc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    await oc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ motion: '1' })); } catch (e) { /* */ } });
+    await routeL(oc);
+    const op = await oc.newPage();
+    let fetched = false;
+    op.on('request', (rq) => { if (/vendor\/lordicon\/lordicon\.js/.test(rq.url())) { fetched = true; } });
+    await op.goto(B + '/');
+    await op.waitForTimeout(1500);
+    const off = await op.evaluate(() => ({ n: document.querySelectorAll('.lord').length, live: document.querySelectorAll('.lord[data-lord-state]').length, op: getComputedStyle(document.querySelector('.lord > svg')).opacity }));
+    ok(off.n > 0 && off.live === 0 && off.op === '1' && !fetched, 'animated icons: with animations off the player is not downloaded and the line icons stay');
+    await oc.close();
+    // nothing listed: no .lord box at all, no player
+    phpL('remove_theme_mod( "mcupr_lord_map" ); remove_theme_mod( "mcupr_lord_on" ); remove_theme_mod( "mcupr_lord_trigger" );');
+    const nc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const np = await nc.newPage();
+    await np.goto(B + '/');
+    ok((await np.evaluate(() => document.querySelectorAll('.lord').length)) === 0 && !/lordicon/i.test(await np.content()), 'animated icons: when nothing is listed the page has no .lord box, no credit and does not name the player');
+    await nc.close();
+  }
   await br.close();
   finish();
 })();
