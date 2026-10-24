@@ -3227,6 +3227,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await mp.goto(B + '/wp-admin/upload.php?mode=grid');
       await mp.waitForSelector('.attachments .attachment');
       ok((await mp.locator('.mf-panel').isVisible()) && (await mp.locator('.mf-chip').count()) === 5 && (await mp.locator('.mf-layout .attachments').count()) >= 1, 'media folders: the media page has a folder panel and type chips beside the grid');
+      const mfLook = await mp.evaluate(() => { const g = document.querySelector('.mf-defs'), ic = document.querySelector('.mf-tree .mf-ic-none'), panel = document.querySelector('.mf-panel'), chips = document.querySelector('.mf-chips'); return { defs: !!g && getComputedStyle(g).display !== 'none', grad: !!document.getElementById('mff1') && !!ic && /mff1/.test(ic.innerHTML), radius: getComputedStyle(panel).borderTopLeftRadius, seg: getComputedStyle(chips).display === 'inline-flex' && getComputedStyle(chips).borderTopLeftRadius === '10px' }; });
+      ok(mfLook.defs && mfLook.grad && mfLook.radius === '12px' && mfLook.seg, 'media folders: the panel, the folder icon and the type switch look like the file manager (round sidebar, the blue folder, a segmented switch) ' + JSON.stringify(mfLook));
       const all0 = parseInt(await mp.locator('.mf-row:has(.mf-name:text-is("ไฟล์ทั้งหมด")) .mf-n').innerText(), 10);
       ok(all0 >= 5 && (await mp.locator('.mf-row:has(.mf-name:text-is("ยังไม่จัดโฟลเดอร์"))').count()) === 1, 'media folders: "All files" and "Unfiled" are there with counts (' + all0 + ' files)');
       await mp.click('[data-act=new]'); await mp.fill('.mf-dlg input[type=text]', 'ข่าวทดสอบ'); await mp.click('.mf-dlg button[type=submit]');
