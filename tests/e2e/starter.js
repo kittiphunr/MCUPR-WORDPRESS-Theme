@@ -4366,6 +4366,48 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     ok((await np.evaluate(() => document.querySelectorAll('.lord').length)) === 0 && !/lordicon/i.test(await np.content()), 'animated icons: when nothing is listed the page has no .lord box, no credit and does not name the player');
     await nc.close();
   }
+  // "I am…" picker over the home quick links (the starter file marks its quick links for kinds of visitor)
+  {
+    const pc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    await pc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); if (!sessionStorage.getItem('pe0')) { sessionStorage.setItem('pe0', '1'); localStorage.removeItem('mcupr_persona'); } } catch (e) { /* */ } });
+    const pp = await pc.newPage();
+    await pp.goto(B + '/');
+    await pp.waitForSelector('[data-persona-picker]:not([hidden])', { timeout: 15000 });
+    const vis = () => pp.evaluate(() => [...document.querySelectorAll('.hero-menu > li')].filter((li) => !li.hidden).map((li) => li.textContent.trim()));
+    const first = await vis();
+    ok(first.length === 4 && first[0] === 'สมัครเรียน' && first.includes('ติดต่อ') && !first.includes('ศิษย์เก่า'), 'persona picker: the first kind (future student) shows its links and the links for everyone (' + first.join(' · ') + ')');
+    ok((await pp.locator('[data-persona-cur]').innerText()) === 'ผู้สนใจเข้าศึกษา' && (await pp.locator('.persona-btn').getAttribute('aria-expanded')) === 'false' && (await pp.locator('.persona-list').isHidden()), 'persona picker: it says "ฉันคือ… ผู้สนใจเข้าศึกษา" and is closed');
+    const sym = await pp.evaluate(() => { const n = document.querySelector('.hero-quick').getBoundingClientRect(); const l = [...document.querySelectorAll('.hero-menu > li')].filter((x) => !x.hidden); const a = l[0].getBoundingClientRect(); const b = l[l.length - 1].getBoundingClientRect(); return Math.abs((a.left - n.left) - (n.right - b.right)); });
+    ok(sym <= 2, 'persona picker: fewer tiles stay centred under the picker (off by ' + Math.round(sym) + ' px)');
+    await pp.click('.persona-btn');
+    ok((await pp.locator('.persona-list').isVisible()) && (await pp.locator('.persona-btn').getAttribute('aria-expanded')) === 'true' && (await pp.locator('[data-persona-opt]').count()) === 5 && (await pp.locator('[data-persona-opt][aria-selected="true"]').innerText()) === 'ผู้สนใจเข้าศึกษา', 'persona picker: opens a list of the 5 kinds with the current one marked');
+    await pp.click('[data-persona-opt="alumni"]');
+    const alum = await vis();
+    ok(alum.length === 2 && alum.includes('ศิษย์เก่า') && alum.includes('ติดต่อ') && (await pp.locator('[data-persona-cur]').innerText()) === 'ศิษย์เก่า' && (await pp.locator('.persona-list').isHidden()), 'persona picker: choosing "ศิษย์เก่า" swaps the tiles (' + alum.join(' · ') + ') and closes the list');
+    ok(/ศิษย์เก่า/.test(await pp.locator('[data-persona-live]').innerText()), 'persona picker: a screen reader is told what is shown now');
+    await pp.reload();
+    await pp.waitForSelector('[data-persona-picker]:not([hidden])');
+    ok((await vis()).length === 2 && (await pp.locator('[data-persona-cur]').innerText()) === 'ศิษย์เก่า', 'persona picker: the choice is remembered on the next visit');
+    // keyboard: ArrowDown opens on the current one, arrows move, Enter chooses, Esc closes and gives the focus back
+    await pp.focus('.persona-btn');
+    await pp.keyboard.press('ArrowDown');
+    ok((await pp.evaluate(() => document.activeElement.getAttribute('data-persona-opt'))) === 'alumni', 'persona picker keyboard: the arrow opens the list on the current kind');
+    await pp.keyboard.press('ArrowUp'); await pp.keyboard.press('ArrowUp');
+    await pp.keyboard.press('Enter');
+    const stf = await vis();
+    ok((await pp.locator('[data-persona-cur]').innerText()) === 'ผู้ปกครอง' && stf.includes('ปฏิทินการศึกษา') && stf.length === 3 && (await pp.evaluate(() => document.activeElement.classList.contains('persona-btn'))), 'persona picker keyboard: arrows and Enter choose "ผู้ปกครอง" (3 tiles) and the focus returns to the button');
+    await pp.keyboard.press('ArrowDown'); await pp.keyboard.press('Escape');
+    ok((await pp.locator('.persona-list').isHidden()) && (await pp.evaluate(() => document.activeElement.classList.contains('persona-btn'))), 'persona picker keyboard: Esc closes the list and keeps the choice');
+    await pp.click('.persona-btn'); await pp.mouse.click(5, 450);
+    ok(await pp.locator('.persona-list').isHidden(), 'persona picker: a click outside closes the list');
+    await pc.close();
+    // without script the picker stays hidden and every link is there
+    const nj = await br.newContext({ viewport: { width: 1366, height: 900 }, javaScriptEnabled: false });
+    const njp = await nj.newPage();
+    await njp.goto(B + '/');
+    ok((await njp.locator('[data-persona-picker]').isHidden()) && (await njp.locator('.hero-menu > li:visible').count()) === 7, 'persona picker: without script no picker and all 7 links');
+    await nj.close();
+  }
   await br.close();
   finish();
 })();

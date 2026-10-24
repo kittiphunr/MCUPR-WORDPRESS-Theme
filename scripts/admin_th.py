@@ -1,4 +1,7 @@
 TH = {
+"Quick links on the home page: who is this link for?": "ลิงก์ลัดหน้าแรก: ลิงก์นี้สำหรับใคร",
+"Tick none to show it to everyone. When some links are ticked, the home page shows an “I am…” picker above the quick links.": "ไม่ติ๊กเลย = แสดงให้ทุกคน เมื่อมีลิงก์ที่ติ๊กไว้ หน้าแรกจะมีตัวเลือก “ฉันคือ…” เหนือลิงก์ลัด",
+"Hero: show the “I am…” picker above the quick links (when some quick links are marked for a kind of visitor in Appearance → Menus)": "ส่วนหัวหน้าแรก: แสดงตัวเลือก “ฉันคือ…” เหนือลิงก์ลัด (เมื่อมีลิงก์ลัดที่ระบุกลุ่มผู้เข้าชมไว้ใน ลักษณะ → เมนู)",
 "MCUPR: Animated icons (Lordicon)": "MCUPR: ไอคอนเคลื่อนไหว (Lordicon)",
 "Make an icon of the site move. Pick an animation on lordicon.com, copy its code (for example wxnxiano) and write it next to the name of the icon below. Icons you do not list stay as they are. Free Lordicon icons need a credit: it appears in the About dialog by itself.": "ทำให้ไอคอนของเว็บขยับได้ เลือกแอนิเมชันที่ lordicon.com คัดลอกรหัส (เช่น wxnxiano) แล้วเขียนไว้หลังชื่อไอคอนด้านล่าง ไอคอนที่ไม่ได้ใส่จะเหมือนเดิม ไอคอนฟรีของ Lordicon ต้องให้เครดิต ซึ่งจะแสดงในหน้าต่าง “เกี่ยวกับ” ให้เอง",
 "Use animated icons": "ใช้ไอคอนเคลื่อนไหว",
