@@ -203,7 +203,54 @@ mcupr_roles_page();
 t( '' === trim( (string) ob_get_clean() ), 'page: somebody without the capability is shown nothing' );
 wp_set_current_user( $adm[0]->ID );
 
-// 11. a role made on this site, and deleting it again
+// 11. the page hangs under Users, not under MCUPR
+$GLOBALS['menu'] = array();
+$GLOBALS['submenu'] = array();
+wp_set_current_user( $adm[0]->ID );
+do_action( 'admin_menu' );
+$slugs = static function ( $parent ) {
+	$out = array();
+	foreach ( isset( $GLOBALS['submenu'][ $parent ] ) ? $GLOBALS['submenu'][ $parent ] : array() as $it ) {
+		$out[] = $it[2];
+	}
+	return $out;
+};
+t( in_array( 'mcupr-roles', $slugs( 'users.php' ), true ), 'menu: the roles page is under WordPress\' own "Users"' );
+t( ! in_array( 'mcupr-roles', $slugs( 'mcupr' ), true ), 'menu: and no longer under MCUPR' );
+t( false !== strpos( mcupr_roles_url(), 'users.php?page=mcupr-roles' ), 'menu: everything the page links back to goes to the new address' );
+$card = null;
+foreach ( mcupr_cc_items() as $k => $it ) {
+	if ( 'roles' === $k ) {
+		$card = $it;
+	}
+}
+t( $card && false !== strpos( mcupr_cc_url( $card['open'] ), 'users.php?page=mcupr-roles' ), 'menu: the card in the control centre opens the page where it now lives' );
+
+// 12. the role a new account gets
+$was_default = get_option( 'default_role' );
+update_option( 'default_role', 'editor' );
+delete_option( 'mcupr_default_role_was' );
+mcupr_default_role_settle();
+t( 'subscriber' === get_option( 'default_role' ) && 'editor' === mcupr_default_role_was(), 'default role: a new account starts as the news subscriber, and what it was before is remembered' );
+mcupr_default_role_settle();
+t( 'subscriber' === get_option( 'default_role' ), 'default role: running it again changes nothing' );
+update_option( 'default_role', 'a-role-that-is-not-there' );
+t( 'subscriber' === mcupr_default_role(), 'default role: a stored role that no longer exists falls back to the news subscriber' );
+update_option( 'default_role', 'mcupr_lecturer' );
+t( 'mcupr_lecturer' === mcupr_default_role(), 'default role: an administrator may set it to something else' );
+false === $was_default ? delete_option( 'default_role' ) : update_option( 'default_role', $was_default );
+delete_option( 'mcupr_default_role_was' );
+
+// 13. "Subscriber" reads as the news subscriber
+t( isset( mcupr_role_renames()['Subscriber'] ), 'naming: the theme has its own word for WordPress\' lowest role' );
+$shown = translate_user_role( 'Subscriber' );
+t( $shown === mcupr_role_renames()['Subscriber'] && 'Subscriber' !== $shown, 'naming: WordPress shows that word wherever it names the role (' . $shown . ')' );
+t( 'Editor' === translate_user_role( 'Editor' ) || '' !== translate_user_role( 'Editor' ), 'naming: the other roles keep the word WordPress gives them' );
+add_filter( 'mcupr_admin_thai', '__return_false' );
+t( 'Subscriber' === translate_user_role( 'Subscriber' ), 'naming: with the theme\'s Thai switched off, WordPress\' own word stands' );
+remove_filter( 'mcupr_admin_thai', '__return_false' );
+
+// 14. a role made on this site, and deleting it again
 $made = 'mcupr_r_librarian';
 remove_role( $made );
 add_role( $made, 'RL librarian', array( 'read' => true, 'mcupr_manage_files' => true ) );

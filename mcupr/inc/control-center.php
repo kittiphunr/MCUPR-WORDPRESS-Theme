@@ -69,7 +69,6 @@ function mcupr_cc_page_caps() {
 		'mcupr-login'            => 'mcupr_manage_site_access',
 		'mcupr-social'           => 'mcupr_manage_site_access',
 		'mcupr-settings-io'      => 'mcupr_manage_site_access',
-		'mcupr-roles'            => 'mcupr_manage_roles',
 		'mcupr-student-import'   => MCUPR_STU_CAP,
 		'mcupr-student-settings' => MCUPR_STU_CAP,
 		'mcupr-student-log'      => MCUPR_STU_CAP,
