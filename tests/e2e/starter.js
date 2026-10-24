@@ -4408,6 +4408,30 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     ok((await njp.locator('[data-persona-picker]').isHidden()) && (await njp.locator('.hero-menu > li:visible').count()) === 7, 'persona picker: without script no picker and all 7 links');
     await nj.close();
   }
+  // home hero: Thai lines do not touch each other, the picker and the slider controls do not overlap, tile labels sit clear of their icons
+  {
+    for (const [w, h] of [[1440, 900], [1024, 800], [390, 844], [320, 700]]) {
+      const hc = await br.newContext({ viewport: { width: w, height: h } });
+      await hc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+      const hp = await hc.newPage();
+      await hp.goto(B + '/');
+      await hp.waitForSelector('[data-persona-picker]:not([hidden])', { timeout: 15000 });
+      const m = await hp.evaluate(() => {
+        const r = (el) => el.getBoundingClientRect();
+        const spans = [...document.querySelectorAll('.hero-slide.is-active .hero-title > span, .hero-title > span')].filter((s) => s.offsetParent);
+        const lh = spans.map((s) => { const cs = getComputedStyle(s); return parseFloat(cs.lineHeight) / parseFloat(cs.fontSize); });
+        const ctl = document.querySelector('[data-hero-ctl]'); const pk = document.querySelector('.persona');
+        const ctlBottom = ctl && !ctl.hidden && ctl.offsetParent ? r(ctl).bottom : -1; const pkTop = r(pk).top;
+        const tiles = [...document.querySelectorAll('.hero-menu > li:not([hidden]) > a')].map((a) => { const ic = r(a.firstElementChild); const t = a.lastElementChild === a.firstElementChild ? null : r(a.lastElementChild); const ar = r(a); return { gap: t ? t.top - ic.bottom : 99, inside: t ? t.bottom <= ar.bottom && t.right <= ar.right + 1 && t.left >= ar.left - 1 : true, over: a.scrollWidth > a.clientWidth + 1 }; });
+        return { lh, ctlBottom, pkTop, tiles, sw: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1 };
+      });
+      ok(m.lh.length >= 1 && m.lh.every((x) => x >= 1.35), 'hero ' + w + ' px: the headline lines have a Thai-safe line height (' + m.lh.map((x) => x.toFixed(2)).join(', ') + ')');
+      ok(m.ctlBottom < 0 || m.ctlBottom <= m.pkTop, 'hero ' + w + ' px: the slider controls end above the "I am…" picker (' + Math.round(m.ctlBottom) + ' ≤ ' + Math.round(m.pkTop) + ')');
+      ok(m.tiles.length >= 2 && m.tiles.every((t) => t.gap >= 4 && t.inside && !t.over), 'hero ' + w + ' px: every tile label sits below its icon, inside the tile, nothing cut');
+      ok(m.sw, 'hero ' + w + ' px: no sideways scroll');
+      await hc.close();
+    }
+  }
   await br.close();
   finish();
 })();
