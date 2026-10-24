@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.55 =
+* List page links: one pill bar with Previous/Next, current page and Page X of N.
+
 = 1.54.54 =
 * File manager: a trash (put back, undo, empties itself after 30 days).
 
