@@ -33,7 +33,7 @@ function mcupr_setup() {
 
 	// One main menu per language (falls back to the default language's menu).
 	$locations = array();
-	foreach ( mcupr_ui_languages() as $code => $l ) {
+	foreach ( array_merge( mcupr_ui_languages(), mcupr_languages() ) as $code => $l ) { // (a language switched off keeps its menu place, so the menu you built is not lost)
 		/* translators: %s: language name */
 		$locations[ 'primary_' . $code ] = sprintf( __( 'Main menu (%s)', 'mcupr' ), mcupr_admin_lang_name( $l['name'] ) );
 	}

@@ -32,7 +32,7 @@ function mcupr_hero_options() {
 
 function mcupr_customize_register_extra( $wp_customize ) {
 	$sec = 'mcupr_home';
-	foreach ( mcupr_ui_languages() as $code => $l ) {
+	foreach ( mcupr_languages() as $code => $l ) {
 		$name = mcupr_admin_lang_name( $l['name'] );
 		$text = array(
 			'hero_eyebrow' => array( /* translators: %s: language */ __( 'Hero: small line above the headline (%s)', 'mcupr' ), 'text' ),
@@ -69,7 +69,7 @@ function mcupr_customize_register_extra( $wp_customize ) {
 	foreach ( array( 2, 3 ) as $n ) {
 		$wp_customize->add_setting( "mcupr_hero{$n}_image", array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
 		$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, "mcupr_hero{$n}_image", array( 'section' => $sec, 'label' => sprintf( /* translators: %d: slide number */ __( 'Slide %d: photo (leave empty to use only the slides before it)', 'mcupr' ), $n ), 'mime_type' => 'image' ) ) );
-		foreach ( mcupr_ui_languages() as $code => $l ) {
+		foreach ( mcupr_languages() as $code => $l ) {
 			$name = mcupr_admin_lang_name( $l['name'] );
 			foreach ( array(
 				'title' => array( /* translators: 1: slide number, 2: language */ __( 'Slide %1$d: headline (%2$s)', 'mcupr' ), 'text' ),
