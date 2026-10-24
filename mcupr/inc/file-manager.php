@@ -10,7 +10,8 @@
  *  - what the Media library knows about (a picture, its sizes) is shown with a lock and cannot be moved, renamed or deleted
  *    here (the pictures in posts would break); use the Media library for those;
  *  - uploads and renames are limited to the file types WordPress allows, never scripts; a name with ".php" in it is refused;
- *  - deleting is permanent (there is no trash): the screen asks first and says how much goes.
+ *  - deleting moves an item to the trash (a hidden folder inside uploads, one unguessable folder per item, closed to the web where the
+ *    server reads .htaccess); it can be put back, or deleted for good, and the trash empties itself after 30 days.
  * The colour tags live in an option (path → tags), they follow an item when it is moved or renamed here.
  *
  * @package MCUPR
@@ -493,7 +494,81 @@ function mcupr_fm_rm( $abs ) {
 	return wp_delete_file_from_directory( $abs, mcupr_fm_root() );
 }
 
-/** Delete items for good. Returns array( files, folders ) removed, or a WP_Error. */
+/* ------------------------------------------------------------------ the trash */
+
+const MCUPR_FM_TRASH = '.mcupr-trash';
+
+/** The real path of the trash (made, with a file that closes it to the web), or '' when it cannot be made. */
+function mcupr_fm_trash_dir() {
+	$root = mcupr_fm_root();
+	if ( '' === $root ) {
+		return '';
+	}
+	$dir = $root . '/' . MCUPR_FM_TRASH;
+	if ( ! is_dir( $dir ) && ! wp_mkdir_p( $dir ) ) {
+		return '';
+	}
+	if ( ! is_file( $dir . '/.htaccess' ) ) {
+		@file_put_contents( $dir . '/.htaccess', "Require all denied\n<IfModule !mod_authz_core.c>\nOrder allow,deny\nDeny from all\n</IfModule>\n" ); // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
+	}
+	if ( ! is_file( $dir . '/index.php' ) ) {
+		@file_put_contents( $dir . '/index.php', "<?php // Silence is golden.\n" ); // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
+	}
+	return $dir;
+}
+
+/** What is in the trash: id => array( name, from (the path it had), time, dir, files, folders, bytes, tags ). Entries whose files are gone are dropped. */
+function mcupr_fm_trash_all() {
+	$all = get_option( 'mcupr_fm_trash', array() );
+	$all = is_array( $all ) ? $all : array();
+	$dir = mcupr_fm_root() . '/' . MCUPR_FM_TRASH;
+	$out = array();
+	foreach ( $all as $id => $e ) {
+		if ( is_string( $id ) && preg_match( '/^[a-f0-9]{16}$/', $id ) && ! empty( $e['name'] ) && file_exists( $dir . '/' . $id . '/' . $e['name'] ) ) {
+			$out[ $id ] = $e;
+		}
+	}
+	if ( count( $out ) !== count( $all ) ) {
+		update_option( 'mcupr_fm_trash', $out, false );
+	}
+	return $out;
+}
+
+/** The trash for the screen: newest first, in the shape of the list entries. */
+function mcupr_fm_trash_items() {
+	$items = array();
+	foreach ( mcupr_fm_trash_all() as $id => $e ) {
+		$ext    = ! empty( $e['dir'] ) ? '' : strtolower( pathinfo( $e['name'], PATHINFO_EXTENSION ) );
+		$items[] = array(
+			'name'    => $e['name'],
+			'path'    => $id,
+			'trash'   => true,
+			'dir'     => ! empty( $e['dir'] ),
+			'size'    => (int) $e['bytes'],
+			'mtime'   => (int) $e['time'],
+			'ext'     => $ext,
+			'kind'    => ! empty( $e['dir'] ) ? 'folder' : mcupr_fm_kind( $ext ),
+			'tags'    => isset( $e['tags'][ $e['from'] ] ) ? array_values( array_map( 'intval', (array) $e['tags'][ $e['from'] ] ) ) : array(),
+			'locked'  => false,
+			'att'     => 0,
+			'url'     => '',
+			'from'    => (string) mcupr_fm_split( (string) $e['from'] )[0],
+			'files'   => (int) $e['files'],
+			'folders' => (int) $e['folders'],
+		);
+	}
+	usort( $items, static function ( $a, $b ) { return $b['mtime'] - $a['mtime']; } );
+	return $items;
+}
+
+function mcupr_fm_trash_count() {
+	return count( mcupr_fm_trash_all() );
+}
+
+/**
+ * Move items to the trash (nothing is lost): their colour tags go with them. Returns the ids in the trash or a WP_Error.
+ * What the Media library owns, the top and anything outside uploads are refused, as before.
+ */
 function mcupr_fm_delete( $rels ) {
 	$abss = array();
 	foreach ( $rels as $rel ) {
@@ -503,19 +578,139 @@ function mcupr_fm_delete( $rels ) {
 		}
 		$abss[ mcupr_fm_clean( $rel ) ] = $abs;
 	}
-	$files   = 0;
-	$folders = 0;
-	foreach ( $abss as $rel => $abs ) {
-		$w = mcupr_fm_weigh( $abs );
-		if ( ! mcupr_fm_rm( $abs ) && file_exists( $abs ) ) {
-			return new WP_Error( 'fs', __( 'Something could not be deleted (check the rights of the uploads folder).', 'mcupr' ) );
-		}
-		$files   += $w[0];
-		$folders += $w[1];
-		mcupr_fm_tags_forget( $rel );
+	$dir = mcupr_fm_trash_dir();
+	if ( '' === $dir ) {
+		return new WP_Error( 'fs', __( 'The trash could not be made (check the rights of the uploads folder).', 'mcupr' ) );
 	}
-	return array( $files, $folders );
+	$all = mcupr_fm_trash_all();
+	$map = mcupr_fm_tags_all();
+	$ids = array();
+	foreach ( $abss as $rel => $abs ) {
+		$id   = bin2hex( random_bytes( 8 ) );
+		$name = basename( $abs );
+		if ( ! wp_mkdir_p( $dir . '/' . $id ) || ! @rename( $abs, $dir . '/' . $id . '/' . $name ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
+			@rmdir( $dir . '/' . $id ); // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
+			update_option( 'mcupr_fm_trash', $all, false );
+			return new WP_Error( 'fs', __( 'Something could not be moved to the trash (check the rights of the uploads folder).', 'mcupr' ) );
+		}
+		$w    = mcupr_fm_weigh( $dir . '/' . $id . '/' . $name );
+		$mine = array();
+		foreach ( $map as $k => $v ) {
+			if ( $k === $rel || 0 === strpos( $k, $rel . '/' ) ) {
+				$mine[ $k ] = $v;
+			}
+		}
+		$all[ $id ] = array( 'name' => $name, 'from' => $rel, 'time' => time(), 'dir' => is_dir( $dir . '/' . $id . '/' . $name ), 'files' => $w[0], 'folders' => $w[1], 'bytes' => $w[2], 'tags' => $mine );
+		mcupr_fm_tags_forget( $rel );
+		$ids[] = $id;
+	}
+	update_option( 'mcupr_fm_trash', $all, false );
+	return $ids;
 }
+
+/** A name that is free in a folder: "name 2.ext". */
+function mcupr_fm_free_name( $abs_dir, $name ) {
+	if ( ! file_exists( $abs_dir . '/' . $name ) ) {
+		return $name;
+	}
+	$ext  = pathinfo( $name, PATHINFO_EXTENSION );
+	$base = '' === $ext ? $name : substr( $name, 0, -( strlen( $ext ) + 1 ) );
+	for ( $n = 2; $n < 1000; $n++ ) {
+		$try = $base . ' ' . $n . ( '' === $ext ? '' : '.' . $ext );
+		if ( ! file_exists( $abs_dir . '/' . $try ) ) {
+			return $try;
+		}
+	}
+	return $base . ' ' . wp_generate_password( 6, false ) . ( '' === $ext ? '' : '.' . $ext );
+}
+
+/** Put items back where they were (the folder is made again if it is gone; a name that is taken gets a number). Returns the new paths. */
+function mcupr_fm_trash_restore( $ids ) {
+	$all   = mcupr_fm_trash_all();
+	$trash = mcupr_fm_root() . '/' . MCUPR_FM_TRASH;
+	$out   = array();
+	foreach ( $ids as $id ) {
+		if ( ! isset( $all[ $id ] ) ) {
+			return new WP_Error( 'missing', __( 'That item is not in the trash any more.', 'mcupr' ) );
+		}
+		$e = $all[ $id ];
+		list( $parent, $old ) = mcupr_fm_split( (string) $e['from'] );
+		$parent = mcupr_fm_clean( $parent );
+		if ( is_wp_error( $parent ) ) {
+			$parent = '';
+		}
+		$root = mcupr_fm_root();
+		$dest = '' === $parent ? $root : $root . '/' . $parent;
+		if ( ! is_dir( $dest ) && ( ! wp_mkdir_p( $dest ) || ! is_dir( $dest ) ) ) {
+			$parent = '';
+			$dest   = $root;
+		}
+		$real = realpath( $dest );
+		if ( false === $real || ( wp_normalize_path( $real ) !== $root && 0 !== strpos( wp_normalize_path( $real ), $root . '/' ) ) ) {
+			return new WP_Error( 'path', __( 'That place is not allowed.', 'mcupr' ) );
+		}
+		$name = mcupr_fm_free_name( $dest, $e['name'] );
+		if ( ! @rename( $trash . '/' . $id . '/' . $e['name'], $dest . '/' . $name ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
+			return new WP_Error( 'fs', __( 'The item could not be put back.', 'mcupr' ) );
+		}
+		@rmdir( $trash . '/' . $id ); // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
+		$to  = ( '' === $parent ? '' : $parent . '/' ) . $name;
+		$map = mcupr_fm_tags_all();
+		foreach ( (array) $e['tags'] as $k => $v ) {
+			$nk = $to . substr( $k, strlen( (string) $e['from'] ) );
+			if ( ! is_wp_error( mcupr_fm_clean( $nk ) ) && file_exists( $root . '/' . $nk ) ) {
+				$map[ $nk ] = $v;
+			}
+		}
+		mcupr_fm_tags_save( $map );
+		unset( $all[ $id ] );
+		$out[] = $to;
+	}
+	update_option( 'mcupr_fm_trash', $all, false );
+	return $out;
+}
+
+/** Delete items from the trash for good (ids; none = all). Returns array( files, folders ) removed. */
+function mcupr_fm_trash_purge( $ids = null, $older_than = 0 ) {
+	$all   = mcupr_fm_trash_all();
+	$trash = mcupr_fm_root() . '/' . MCUPR_FM_TRASH;
+	$files = 0;
+	$dirs  = 0;
+	foreach ( $all as $id => $e ) {
+		if ( null !== $ids && ! in_array( $id, $ids, true ) ) {
+			continue;
+		}
+		if ( $older_than && (int) $e['time'] > $older_than ) {
+			continue;
+		}
+		mcupr_fm_rm( $trash . '/' . $id );
+		if ( ! file_exists( $trash . '/' . $id ) ) {
+			$files += (int) $e['files'];
+			$dirs  += (int) $e['folders'];
+			unset( $all[ $id ] );
+		}
+	}
+	update_option( 'mcupr_fm_trash', $all, false );
+	return array( $files, $dirs );
+}
+
+/** The trash empties itself of what is older than 30 days (once a day). */
+add_action(
+	'admin_init',
+	static function () {
+		if ( ! wp_next_scheduled( 'mcupr_fm_purge' ) ) {
+			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'mcupr_fm_purge' );
+		}
+	}
+);
+add_action(
+	'mcupr_fm_purge',
+	static function () {
+		if ( '' !== mcupr_fm_root() && is_dir( mcupr_fm_root() . '/' . MCUPR_FM_TRASH ) ) {
+			mcupr_fm_trash_purge( null, time() - (int) apply_filters( 'mcupr_fm_trash_days', 30 ) * DAY_IN_SECONDS );
+		}
+	}
+);
 
 /** Put tags on items (mode add), take them off (remove) or replace them (set). */
 function mcupr_fm_tag( $rels, $tag_ids, $mode ) {
@@ -617,7 +812,7 @@ $mcupr_fm_actions = array(
 	'list'     => static function () {
 		$tag = (int) mcupr_fm_req( 'tag' );
 		if ( $tag ) {
-			wp_send_json_success( array( 'path' => '', 'tag' => $tag, 'crumbs' => array(), 'items' => mcupr_fm_list_tag( $tag ), 'counts' => mcupr_fm_tag_counts() ) );
+			wp_send_json_success( array( 'path' => '', 'tag' => $tag, 'crumbs' => array(), 'items' => mcupr_fm_list_tag( $tag ), 'counts' => mcupr_fm_tag_counts(), 'trash' => mcupr_fm_trash_count() ) );
 		}
 		$rel = mcupr_fm_clean( mcupr_fm_req( 'path' ) );
 		if ( is_wp_error( $rel ) ) {
@@ -627,7 +822,7 @@ $mcupr_fm_actions = array(
 		if ( is_wp_error( $items ) ) {
 			mcupr_fm_fail( $items );
 		}
-		wp_send_json_success( array( 'path' => $rel, 'crumbs' => mcupr_fm_crumbs( $rel ), 'items' => $items, 'counts' => mcupr_fm_tag_counts() ) );
+		wp_send_json_success( array( 'path' => $rel, 'crumbs' => mcupr_fm_crumbs( $rel ), 'items' => $items, 'counts' => mcupr_fm_tag_counts(), 'trash' => mcupr_fm_trash_count() ) );
 	},
 	'mkdir'    => static function () {
 		$r = mcupr_fm_mkdir( mcupr_fm_req( 'path' ), mcupr_fm_req( 'name' ) );
@@ -641,25 +836,21 @@ $mcupr_fm_actions = array(
 		$r = mcupr_fm_move( mcupr_fm_post_paths(), mcupr_fm_req( 'dest' ) );
 		is_wp_error( $r ) ? mcupr_fm_fail( $r ) : wp_send_json_success( array( 'paths' => $r ) );
 	},
-	'weigh'    => static function () {
-		$f = 0;
-		$d = 0;
-		$b = 0;
-		foreach ( mcupr_fm_post_paths() as $rel ) {
-			$abs = mcupr_fm_changeable( $rel );
-			if ( is_wp_error( $abs ) ) {
-				mcupr_fm_fail( $abs );
-			}
-			$w  = mcupr_fm_weigh( $abs );
-			$f += $w[0];
-			$d += $w[1];
-			$b += $w[2];
-		}
-		wp_send_json_success( array( 'files' => $f, 'folders' => $d, 'bytes' => $b ) );
-	},
 	'delete'   => static function () {
 		$r = mcupr_fm_delete( mcupr_fm_post_paths() );
-		is_wp_error( $r ) ? mcupr_fm_fail( $r ) : wp_send_json_success( array( 'files' => $r[0], 'folders' => $r[1] ) );
+		is_wp_error( $r ) ? mcupr_fm_fail( $r ) : wp_send_json_success( array( 'ids' => $r, 'trash' => mcupr_fm_trash_count() ) );
+	},
+	'trash'    => static function () {
+		wp_send_json_success( array( 'items' => mcupr_fm_trash_items(), 'counts' => mcupr_fm_tag_counts(), 'trash' => mcupr_fm_trash_count() ) );
+	},
+	'restore'  => static function () {
+		$r = mcupr_fm_trash_restore( mcupr_fm_post_paths() );
+		is_wp_error( $r ) ? mcupr_fm_fail( $r ) : wp_send_json_success( array( 'paths' => $r, 'trash' => mcupr_fm_trash_count(), 'counts' => mcupr_fm_tag_counts() ) );
+	},
+	'purge'    => static function () {
+		$ids = mcupr_fm_post_paths();
+		$r   = mcupr_fm_trash_purge( 'all' === mcupr_fm_req( 'scope' ) ? null : $ids );
+		wp_send_json_success( array( 'files' => $r[0], 'folders' => $r[1], 'trash' => mcupr_fm_trash_count() ) );
 	},
 	'tag'      => static function () {
 		$ids  = isset( $_POST['tags'] ) ? array_map( 'intval', (array) wp_unslash( $_POST['tags'] ) ) : array(); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
@@ -782,7 +973,7 @@ add_action(
 
 function mcupr_fm_icons() {
 	$out = array();
-	foreach ( array( 'folder', 'file', 'file-text', 'image', 'film', 'music', 'archive', 'trash-2', 'upload', 'download', 'grid', 'list', 'search', 'chevron-left', 'chevron-right', 'tag', 'x', 'edit-2', 'folder-plus', 'lock', 'hard-drive', 'eye', 'external-link', 'info', 'check', 'refresh-cw' ) as $n ) {
+	foreach ( array( 'folder', 'file', 'file-text', 'image', 'film', 'music', 'archive', 'trash-2', 'upload', 'download', 'grid', 'list', 'search', 'chevron-left', 'chevron-right', 'rotate-ccw', 'tag', 'x', 'edit-2', 'folder-plus', 'lock', 'hard-drive', 'eye', 'external-link', 'info', 'check', 'refresh-cw' ) as $n ) {
 		$out[ $n ] = mcupr_feather( $n, 18 );
 	}
 	return $out;
@@ -838,7 +1029,17 @@ add_action(
 					'locked'     => __( 'In the Media library: change it there', 'mcupr' ),
 					'inMedia'    => __( 'Edit in the Media library', 'mcupr' ),
 					'confirm'    => __( 'Delete for good?', 'mcupr' ),
-					'confirmTxt' => __( 'This removes %1$d files and %2$d folders (%3$s). There is no trash: it cannot be undone.', 'mcupr' ),
+					'confirmTxt' => __( 'This removes %1$d files and %2$d folders (%3$s) from the trash. It cannot be undone.', 'mcupr' ),
+					'trash'      => __( 'Trash', 'mcupr' ),
+					'trashEmpty' => __( 'The trash is empty. What you delete waits here for 30 days.', 'mcupr' ),
+					'trashed'    => __( 'Moved to the trash.', 'mcupr' ),
+					'undo'       => __( 'Undo', 'mcupr' ),
+					'putBack'    => __( 'Put back', 'mcupr' ),
+					'restored'   => __( 'Put back.', 'mcupr' ),
+					'deleteNow'  => __( 'Delete permanently', 'mcupr' ),
+					'emptyTrash' => __( 'Empty the trash', 'mcupr' ),
+					'deletedOn'  => __( 'Date deleted', 'mcupr' ),
+					'whereFrom'  => __( 'Where it was', 'mcupr' ),
 					'cancel'     => __( 'Cancel', 'mcupr' ),
 					'failed'     => __( 'That did not work. Try again.', 'mcupr' ),
 					'uploading'  => __( 'Uploading…', 'mcupr' ),

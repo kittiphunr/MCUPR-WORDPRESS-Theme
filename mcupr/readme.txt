@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.54 =
+* File manager: a trash (put back, undo, empties itself after 30 days).
+
 = 1.54.53 =
 * File manager for the uploads folder: Finder-like screen, colour tags, safe by construction.
 
