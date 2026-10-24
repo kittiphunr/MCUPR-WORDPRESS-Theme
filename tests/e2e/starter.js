@@ -3247,6 +3247,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       const dest = mp.locator('.mf-row[data-drop]:has(.mf-name:text-is("ปี 2569"))');
       await mp.locator('.attachments .attachment').first().dragTo(dest);
       await mp.waitForTimeout(1300);
+      // the synthetic drag never ends the way a real one does, so WordPress's "drop files to upload" layer can stay over the page and swallow the next click: close it as the end of a real drag would
+      await mp.evaluate(() => { ['dragleave', 'dragend'].forEach((t) => document.dispatchEvent(new Event(t, { bubbles: true }))); document.querySelectorAll('.uploader-window').forEach((w) => { w.style.display = 'none'; }); });
       const n1 = await mp.locator('.attachments .attachment').count();
       ok(n1 === n0 - 1 && (await dest.locator('.mf-n').innerText()) === '1', 'media folders: dragging a file onto a folder moves it (unfiled ' + n0 + ' -> ' + n1 + ', the folder counts 1)');
       ok((await mp.locator('.mf-row:has(.mf-name:text-is("ข่าวทดสอบ")) .mf-n').innerText()) === '1', 'media folders: a parent counts the files of its sub-folders');
