@@ -308,12 +308,12 @@ function mcupr_ss_message( $rep ) {
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'mcupr', __( 'Import / export settings', 'mcupr' ), __( 'Import / export settings', 'mcupr' ), 'manage_options', 'mcupr-settings-io', 'mcupr_ss_page' );
+		add_submenu_page( 'mcupr', __( 'Import / export settings', 'mcupr' ), __( 'Import / export settings', 'mcupr' ), 'mcupr_manage_site_access', 'mcupr-settings-io', 'mcupr_ss_page' );
 	}
 );
 
 function mcupr_ss_page() {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'mcupr_manage_site_access' ) ) {
 		return;
 	}
 	$msg = get_transient( 'mcupr_ss_msg_' . get_current_user_id() );
@@ -368,7 +368,7 @@ function mcupr_ss_page() {
 add_action(
 	'admin_post_mcupr_ss',
 	static function () {
-		if ( ! mcupr_check_request( 'mcupr_ss_nonce', 'mcupr_ss', 'manage_options' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_ss_nonce', 'mcupr_ss', 'mcupr_manage_site_access' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$do  = isset( $_POST['do'] ) ? sanitize_key( wp_unslash( $_POST['do'] ) ) : '';

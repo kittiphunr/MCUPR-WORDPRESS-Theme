@@ -279,7 +279,7 @@ add_action(
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'mcupr', __( 'Redirects & insights', 'mcupr' ), __( 'Redirects & insights', 'mcupr' ), 'manage_options', 'mcupr-insights', 'mcupr_ins_page' );
+		add_submenu_page( 'mcupr', __( 'Redirects & insights', 'mcupr' ), __( 'Redirects & insights', 'mcupr' ), 'mcupr_view_insights', 'mcupr-insights', 'mcupr_ins_page' );
 	}
 );
 
@@ -298,7 +298,7 @@ function mcupr_ins_notice_text( $code ) {
 }
 
 function mcupr_ins_page() {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'mcupr_view_insights' ) ) {
 		return;
 	}
 	$o     = mcupr_ins_opts();
@@ -373,7 +373,7 @@ function mcupr_ins_page() {
 add_action(
 	'admin_post_mcupr_ins',
 	static function () {
-		if ( ! mcupr_check_request( 'mcupr_ins_nonce', 'mcupr_ins', 'manage_options' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_ins_nonce', 'mcupr_ins', 'mcupr_view_insights' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$do  = isset( $_POST['do'] ) ? sanitize_key( wp_unslash( $_POST['do'] ) ) : '';
