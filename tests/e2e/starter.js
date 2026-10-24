@@ -4534,6 +4534,103 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await sc.close();
     phpS('update_option( "mcupr_php_sec_ack", array( "v" => PHP_VERSION, "by" => 0, "t" => time() ), false );'); // back to the quiet state the other tests expect
   }
+  // Elementor pages printed by the theme without the plugin
+  {
+    const { execSync: execE } = require('child_process');
+    const phpE = (code) => { const f = require('os').tmpdir() + '/e2e-el-' + process.pid + '.php'; require('fs').writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execE('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const data = [
+      { id: 'esec1', elType: 'section', settings: { layout: 'boxed', content_width: { size: 1140, unit: 'px' }, padding: { top: '40', right: '0', bottom: '40', left: '0', unit: 'px' }, background_background: 'classic', background_color: '#f5f5f5' }, elements: [
+        { id: 'ecol1', elType: 'column', settings: { _column_size: 50, _inline_size: 60 }, elements: [
+          { id: 'ehead', elType: 'widget', widgetType: 'heading', settings: { title: 'หัวข้อจาก Elementor', header_size: 'h2', align: 'center', title_color: '#c2185b', typography_typography: 'custom', typography_font_size: { size: 42, unit: 'px' }, typography_font_size_mobile: { size: 22, unit: 'px' }, typography_font_weight: '700' } },
+          { id: 'etext', elType: 'widget', widgetType: 'text-editor', settings: { editor: '<p>ย่อหน้าทดสอบ <strong>ตัวหนา</strong></p>' } },
+          { id: 'ebtn', elType: 'widget', widgetType: 'button', settings: { text: 'กดที่นี่', link: { url: 'https://example.org/', is_external: 'on' }, size: 'md', background_color: '#0b5f3a', button_text_color: '#ffffff' } } ] },
+        { id: 'ecol2', elType: 'column', settings: { _column_size: 50, _inline_size: 40 }, elements: [
+          { id: 'elist', elType: 'widget', widgetType: 'icon-list', settings: { icon_list: [{ _id: 'i1', text: 'ข้อหนึ่ง' }, { _id: 'i2', text: 'ข้อสอง' }] } } ] } ] },
+      { id: 'esec2', elType: 'section', settings: {}, elements: [
+        { id: 'ecol3', elType: 'column', settings: { _column_size: 100 }, elements: [
+          { id: 'etabs', elType: 'widget', widgetType: 'tabs', settings: { tabs: [{ _id: 't1', tab_title: 'แท็บหนึ่ง', tab_content: '<p>เนื้อหาหนึ่ง</p>' }, { _id: 't2', tab_title: 'แท็บสอง', tab_content: '<p>เนื้อหาสอง</p>' }] } },
+          { id: 'eacc', elType: 'widget', widgetType: 'accordion', settings: { tabs: [{ _id: 'a1', tab_title: 'คำถามหนึ่ง', tab_content: '<p>คำตอบหนึ่ง</p>' }, { _id: 'a2', tab_title: 'คำถามสอง', tab_content: '<p>คำตอบสอง</p>' }] } },
+          { id: 'eform', elType: 'widget', widgetType: 'form', settings: { form_name: 'ติดต่อ', email_to: 'to@example.org', button_text: 'ส่ง', form_fields: [{ _id: 'n', custom_id: 'name', field_type: 'text', field_label: 'ชื่อ', required: 'true', width: '50' }, { _id: 'e', custom_id: 'email', field_type: 'email', field_label: 'อีเมล', required: 'true', width: '50' }] } },
+          { id: 'enope', elType: 'widget', widgetType: 'lottie', settings: {} } ] } ] },
+      { id: 'econ1', elType: 'container', settings: { flex_direction: 'row', flex_gap: { size: 20, unit: 'px', column: '20', row: '20' }, boxed_width: { size: 1200, unit: 'px' } }, elements: [
+        { id: 'econh', elType: 'widget', widgetType: 'heading', settings: { title: 'ในคอนเทนเนอร์', header_size: 'h3' } } ] } ];
+    const mk = (slug, tpl) => phpE('$d = json_decode( ' + JSON.stringify(JSON.stringify(data)) + ', true ); $id = wp_insert_post( array( "post_type" => "page", "post_status" => "publish", "post_title" => "E2E Elementor", "post_name" => "' + slug + '", "post_content" => "<p>เนื้อหาเก่าที่ไม่ควรแสดง</p>" ) ); update_post_meta( $id, "_elementor_edit_mode", "builder" ); update_post_meta( $id, "_elementor_data", wp_slash( wp_json_encode( $d ) ) ); update_post_meta( $id, "_elementor_template_type", "wp-page" );' + (tpl ? ' update_post_meta( $id, "_wp_page_template", "' + tpl + '" );' : '') + ' echo $id;');
+    const elId = mk('e2e-elementor', '');
+    const canvasId = mk('e2e-elementor-canvas', 'elementor_canvas');
+    const ec = await br.newContext({ viewport: { width: 1440, height: 900 } });
+    await ec.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+    const ep = await ec.newPage();
+    const eerr = [];
+    ep.on('pageerror', (e) => eerr.push(String(e)));
+    ep.on('console', (m) => { if (m.type() === 'error' && !/favicon|example\.org/.test(m.text())) { eerr.push(m.text()); } });
+    await ep.goto(B + '/e2e-elementor/');
+    const look = await ep.evaluate(() => {
+      const cs = (sel) => { const e = document.querySelector(sel); return e ? getComputedStyle(e) : null; };
+      const sec = document.querySelector('.elementor-element-esec1');
+      const col = document.querySelector('.elementor-element-ecol1');
+      return {
+        wrapper: !!document.querySelector('.elementor.elementor-' + document.querySelector('[data-elementor-id]').getAttribute('data-elementor-id')),
+        secPad: cs('.elementor-element-esec1').paddingTop,
+        secBg: cs('.elementor-element-esec1').backgroundColor,
+        colPct: Math.round((col.getBoundingClientRect().width / sec.querySelector('.elementor-container').getBoundingClientRect().width) * 100),
+        headColor: cs('.elementor-element-ehead .elementor-heading-title').color,
+        headSize: cs('.elementor-element-ehead .elementor-heading-title').fontSize,
+        headAlign: cs('.elementor-element-ehead').textAlign,
+        btnBg: cs('.elementor-element-ebtn .elementor-button').backgroundColor,
+        twoCols: col.getBoundingClientRect().top === document.querySelector('.elementor-element-ecol2').getBoundingClientRect().top,
+        container: !!document.querySelector('.elementor-element-econ1.e-con'),
+        containerRow: cs('.elementor-element-econ1').flexDirection,
+        oldContent: /เนื้อหาเก่าที่ไม่ควรแสดง/.test(document.querySelector('main, body').innerText),
+        missing: document.querySelectorAll('.mcupr-el-missing').length,
+        sw: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
+      };
+    });
+    ok(look.wrapper && look.secPad === '40px' && look.secBg === 'rgb(245, 245, 245)', 'elementor: the page is printed in its own wrapper and the section keeps the padding and background it was given');
+    ok(look.colPct === 60 && look.twoCols, 'elementor: the two columns keep their widths side by side (' + look.colPct + '% / 40%)');
+    ok(look.headColor === 'rgb(194, 24, 91)' && look.headSize === '42px' && look.headAlign === 'center' && look.btnBg === 'rgb(11, 95, 58)', 'elementor: the colours, the size and the alignment of the widgets are the ones that were saved');
+    ok(look.container && look.containerRow === 'row', 'elementor: a flexbox container of the newer Elementor is laid out as a row');
+    ok(!look.oldContent, 'elementor: the old content of the post is not shown next to the Elementor page');
+    ok(look.missing === 0 && look.sw, 'elementor: a widget the theme cannot print leaves nothing for a visitor, and the page does not scroll sideways');
+    // the script: tabs and accordion
+    await ep.click('.elementor-element-etabs .elementor-tab-desktop-title[data-tab="2"]');
+    const tab = await ep.evaluate(() => ({ shown: document.querySelector('.elementor-element-etabs .elementor-tab-content[data-tab="2"]').hidden === false, other: document.querySelector('.elementor-element-etabs .elementor-tab-content[data-tab="1"]').hidden }));
+    ok(tab.shown && tab.other, 'elementor: the tabs work (the second shows, the first hides)');
+    await ep.click('.elementor-element-eacc .elementor-accordion-item:nth-child(2) .elementor-tab-title');
+    const acc = await ep.evaluate(() => [...document.querySelectorAll('.elementor-element-eacc .elementor-tab-content')].map((c) => !c.hidden));
+    ok(acc[1] === true && acc[0] === false, 'elementor: the accordion opens the item that is pressed and closes the other');
+    // the style and the font of the icons are in the head, the page has no script error
+    const head = await ep.evaluate(() => ({ base: !!document.querySelector('link[href*="elementor-base.css"]'), inline: !!document.querySelector('style#mcupr-elementor-inline-css'), js: !!document.querySelector('script[src*="elementor-compat.js"]') }));
+    ok(head.base && head.inline && head.js, 'elementor: the base style, the style of this page and the little script are on the page');
+    ok(eerr.length === 0, 'elementor: no script error' + (eerr.length ? ': ' + eerr.slice(0, 2).join(' | ') : ''));
+    // the form is sent and answered
+    await ep.fill('.elementor-element-eform input[name="form_fields[name]"]', 'ผู้ทดสอบ');
+    await ep.fill('.elementor-element-eform input[name="form_fields[email]"]', 'me@example.org');
+    await Promise.all([ep.waitForNavigation({ waitUntil: 'domcontentloaded' }), ep.click('.elementor-element-eform button[type=submit]')]);
+    ok(/mcupr_form=eform-(ok|err)/.test(ep.url()) && (await ep.locator('.elementor-message').count()) === 1, 'elementor: the form is sent to the theme and the visitor is told what happened (' + ep.url().replace(B, '') + ')');
+    // on a phone the columns stack
+    await ep.setViewportSize({ width: 390, height: 844 });
+    await ep.goto(B + '/e2e-elementor/');
+    const m = await ep.evaluate(() => { const a = document.querySelector('.elementor-element-ecol1').getBoundingClientRect(); const b = document.querySelector('.elementor-element-ecol2').getBoundingClientRect(); return { stacked: b.top >= a.bottom - 1, head: getComputedStyle(document.querySelector('.elementor-element-ehead .elementor-heading-title')).fontSize, sw: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1 }; });
+    ok(m.stacked && m.head === '22px' && m.sw, 'elementor on a phone: the columns stack, the headline takes its phone size, nothing scrolls sideways');
+    await ep.setViewportSize({ width: 1440, height: 900 });
+    // the canvas template: only the page
+    await ep.goto(B + '/e2e-elementor-canvas/');
+    const cv = await ep.evaluate(() => ({ header: !!document.querySelector('#masthead, .site-header'), footer: !!document.querySelector('#colophon, .site-footer'), page: !!document.querySelector('.elementor-element-ehead'), cls: document.body.className.indexOf('elementor-template-canvas') > -1 }));
+    ok(cv.page && cv.cls && !cv.header && !cv.footer, 'elementor: a page saved with the Canvas template is shown alone, without the header and footer of the theme');
+    // an editor sees a note where a widget cannot be printed; the admin page lists everything
+    const ac = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    const ap2 = await ac.newPage();
+    await ap2.goto(B + '/wp-login.php');
+    await ap2.fill('#user_login', 'e2eadmin'); await ap2.fill('#user_pass', 'e2e-Admin-pass-1'); await ap2.click('#wp-submit');
+    await ap2.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    await ap2.goto(B + '/e2e-elementor/');
+    ok((await ap2.locator('.mcupr-el-missing').count()) === 1, 'elementor: an editor who is logged in sees a note where the unsupported widget was');
+    await ap2.goto(B + '/wp-admin/admin.php?page=mcupr-elementor');
+    const adm = await ap2.evaluate(() => ({ rows: document.querySelectorAll('.wrap table.widefat tbody tr').length, lottie: /lottie/.test(document.body.innerText), files: !!document.querySelector('input[name="use_files"]') }));
+    ok(adm.rows >= 2 && adm.lottie && adm.files, 'elementor: the admin page lists the pages, names the widget it cannot print and has the switch for the style files (' + adm.rows + ' rows)');
+    await ac.close(); await ec.close();
+    phpE('foreach ( array( get_page_by_path( "e2e-elementor" ), get_page_by_path( "e2e-elementor-canvas" ) ) as $p ) { if ( $p ) { wp_delete_post( $p->ID, true ); } } delete_option( "mcupr_el_report" ); delete_transient( "mcupr_el_count" );');
+  }
   await br.close();
   finish();
 })();
