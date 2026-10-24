@@ -554,7 +554,8 @@ function mcupr_staff_hub_save() {
 				'sections'     => $sec,
 				'card_honors'  => isset( $_POST['card_honors'] ) ? 1 : 0,
 				'org_photo'    => isset( $_POST['org_photo'] ) ? 1 : 0,
-			)
+			),
+			false
 		);
 		flush_rewrite_rules( false );
 	}
@@ -595,7 +596,7 @@ function mcupr_staff_hub_save() {
 					'on'    => empty( $r['on'] ) ? 0 : 1,
 				);
 			}
-			update_option( 'mcupr_honors', $out );
+			update_option( 'mcupr_honors', $out, false );
 		}
 	}
 	wp_safe_redirect( add_query_arg( array( 'post_type' => 'mcupr_person', 'page' => 'mcupr-staff-hub', 'saved' => $what ), admin_url( 'edit.php' ) ) );

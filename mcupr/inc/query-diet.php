@@ -29,10 +29,18 @@ add_action(
 
 /* ------------------------------------------------------------------ published posts per type */
 
-/** array( post type => published posts ), from one saved option; counted again after any post changes. */
+/**
+ * array( post type => published posts ). Kept as a transient and not as an option: it is one COUNT(*) to work out
+ * again and it is thrown away on every publish and every delete, so an autoloaded row would be read on every request
+ * and written away far more often than it is used.
+ */
 function mcupr_published_counts() {
-	$c = get_option( 'mcupr_pubcounts', null );
+	if ( isset( $GLOBALS['mcupr_pubcounts'] ) ) {
+		return $GLOBALS['mcupr_pubcounts'];
+	}
+	$c = get_transient( 'mcupr_pubcounts' );
 	if ( is_array( $c ) ) {
+		$GLOBALS['mcupr_pubcounts'] = $c;
 		return $c;
 	}
 	global $wpdb;
@@ -40,7 +48,8 @@ function mcupr_published_counts() {
 	foreach ( (array) $wpdb->get_results( "SELECT post_type, COUNT(*) AS n FROM {$wpdb->posts} WHERE post_status = 'publish' GROUP BY post_type" ) as $r ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$c[ $r->post_type ] = (int) $r->n;
 	}
-	update_option( 'mcupr_pubcounts', $c, true );
+	set_transient( 'mcupr_pubcounts', $c, 12 * HOUR_IN_SECONDS );
+	$GLOBALS['mcupr_pubcounts'] = $c;
 	return $c;
 }
 function mcupr_published_count( $type ) {
@@ -51,18 +60,18 @@ add_action(
 	'transition_post_status',
 	static function ( $new, $old ) {
 		if ( $new !== $old && ( 'publish' === $new || 'publish' === $old ) ) {
-			delete_option( 'mcupr_pubcounts' );
+			mcupr_published_counts_reset();
 		}
 	},
 	10,
 	2
 );
-add_action(
-	'deleted_post',
-	static function () {
-		delete_option( 'mcupr_pubcounts' );
-	}
-);
+add_action( 'deleted_post', 'mcupr_published_counts_reset' );
+
+function mcupr_published_counts_reset() {
+	delete_transient( 'mcupr_pubcounts' );
+	unset( $GLOBALS['mcupr_pubcounts'] );
+}
 
 /* ------------------------------------------------------------------ the pictures of a list */
 

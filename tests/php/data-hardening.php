@@ -308,6 +308,96 @@ t( is_array( $rf_row ) && 'REQ-2026-99003' === (string) $rf_row['note'], 'log: o
 wp_delete_post( $served, true );
 wp_delete_post( $pd_topic, true );
 
+// ---- what the theme keeps in the options table
+wp_set_current_user( $adm[0]->ID );
+global $wpdb;
+$autoloaded = static function ( $name ) use ( $wpdb ) {
+	return (string) $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s", $name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL
+};
+$on = static function ( $v ) {
+	return in_array( (string) $v, array( 'yes', 'on', 'auto', 'auto-on' ), true ); // WordPress has used several words for it
+};
+// put the rows back the way an older version of the theme left them, then let the tidy-up run
+$tidy_rows = array( 'mcupr_forum' => array( 'enabled' => 1 ), 'mcupr_staff' => array( 'profiles' => 1 ), 'mcupr_honors' => array( array( 'key' => 'x' ) ), 'mcupr_office_role_v' => 'v1', 'mcupr_student_roles_v' => 'v1', 'mcupr_forum_boards_seeded' => 1, 'mcupr_aud_index2' => array( 1 => array() ), 'mcupr_pubcounts' => array( 'post' => 3 ), 'mcupr_office_hidden' => array( 7 ) );
+$tidy_was = array();
+foreach ( $tidy_rows as $name => $value ) {
+	$tidy_was[ $name ] = get_option( $name, null ); // every one of these is a real setting on a real site: put it back after
+	delete_option( $name );
+	add_option( $name, $value, '', true );
+}
+$before = $on( $autoloaded( 'mcupr_staff' ) ) && $on( $autoloaded( 'mcupr_aud_index2' ) );
+delete_option( 'mcupr_db_tidy' );
+mcupr_db_tidy_run();
+$still = array();
+foreach ( mcupr_db_tidy_keep() as $name ) {
+	if ( $on( $autoloaded( $name ) ) ) {
+		$still[] = $name;
+	}
+}
+t( $before && array() === $still, 'options: the settings that used to be read on every request are not any more (' . implode( ', ', mcupr_db_tidy_keep() ) . ')' );
+t( array( 1 ) === array( (int) ( get_option( 'mcupr_forum' )['enabled'] ) ) && 'v1' === get_option( 'mcupr_office_role_v' ) && is_array( get_option( 'mcupr_honors' ) ), 'options: and they kept what they held' );
+$left = array();
+foreach ( mcupr_db_tidy_drop() as $name ) {
+	if ( null !== get_option( $name, null ) ) {
+		$left[] = $name;
+	}
+}
+t( array() === $left, 'options: the rows the theme can work out again are gone (' . implode( ', ', mcupr_db_tidy_drop() ) . ')' );
+t( (int) get_option( 'mcupr_db_tidy' ) === MCUPR_DB_TIDY && ! $on( $autoloaded( 'mcupr_db_tidy' ) ), 'options: the tidy-up marks itself done, without being read on every request either' );
+
+// the two derived ones are transients now, and work themselves out again
+delete_transient( 'mcupr_pubcounts' );
+unset( $GLOBALS['mcupr_pubcounts'] );
+$counts = mcupr_published_counts();
+t( is_array( $counts ) && is_array( get_transient( 'mcupr_pubcounts' ) ) && null === get_option( 'mcupr_pubcounts', null ), 'options: the count of published posts is a transient, not an option' );
+$fresh = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'DH counted' ) );
+t( false === get_transient( 'mcupr_pubcounts' ), 'options: publishing something forgets the count' );
+wp_delete_post( $fresh, true );
+mcupr_office_hidden_reset();
+$hidden = mcupr_office_hidden_terms();
+t( is_array( $hidden ) && null === get_option( 'mcupr_office_hidden', null ), 'options: the offices kept off the main site are a transient too' );
+// the index of students-only content is rebuilt on demand and no longer read on every request
+delete_option( 'mcupr_aud_index2' );
+mcupr_aud_reset();
+$idx = mcupr_aud_index();
+t( is_array( $idx ) && ! $on( $autoloaded( 'mcupr_aud_index2' ) ), 'options: the index of content kept for students is written again without being read on every request' );
+
+// the settings this test overwrote go back the way they were (the rest of the suite reads them)
+foreach ( $tidy_was as $name => $value ) {
+	delete_option( $name );
+	if ( null !== $value ) {
+		add_option( $name, $value, '', false );
+	}
+}
+mcupr_people_register();
+mcupr_aud_reset();
+mcupr_office_hidden_reset();
+mcupr_published_counts_reset();
+
+// ---- the mark that a visitor has voted lasts as long as the poll, at most a month
+$poll_open   = wp_insert_post( array( 'post_type' => 'mcupr_poll', 'post_status' => 'publish', 'post_title' => 'DH poll open' ) );
+$poll_closes = wp_insert_post( array( 'post_type' => 'mcupr_poll', 'post_status' => 'publish', 'post_title' => 'DH poll closes' ) );
+update_post_meta( $poll_closes, '_mcupr_poll_close', gmdate( 'Y-m-d', time() + 2 * DAY_IN_SECONDS ) );
+t( 30 * DAY_IN_SECONDS === mcupr_poll_voted_ttl( $poll_open ), 'polls: a poll with no closing date keeps the mark a month' );
+$ttl = mcupr_poll_voted_ttl( $poll_closes );
+t( $ttl > DAY_IN_SECONDS && $ttl < 4 * DAY_IN_SECONDS, 'polls: a poll that closes in two days keeps it only that long' );
+wp_delete_post( $poll_open, true );
+wp_delete_post( $poll_closes, true );
+
+// ---- the file manager forgets the tags of files that are no longer there
+$fm_root = mcupr_fm_root();
+if ( '' !== $fm_root ) {
+	$live = 'dh-tagged-' . wp_generate_password( 6, false ) . '.txt';
+	file_put_contents( $fm_root . '/' . $live, "x\n" );
+	$old_tags = get_option( 'mcupr_fm_tags' );
+	mcupr_fm_tags_save( array( $live => array( 1 ), 'dh-gone-forever.txt' => array( 2 ) ) );
+	$dropped = mcupr_fm_tags_prune();
+	$after   = mcupr_fm_tags_all();
+	t( 1 === $dropped && isset( $after[ $live ] ) && ! isset( $after['dh-gone-forever.txt'] ), 'file manager: the tags of a file that is gone are dropped, the tags of one still there are kept' );
+	unlink( $fm_root . '/' . $live );
+	false === $old_tags ? delete_option( 'mcupr_fm_tags' ) : update_option( 'mcupr_fm_tags', $old_tags, false );
+}
+
 foreach ( array( $rq, $pa, $rform, $pform, $p_open, $p_nobio, $p_off ) as $id ) {
 	wp_delete_post( $id, true );
 }

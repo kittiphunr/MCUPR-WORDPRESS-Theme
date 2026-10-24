@@ -284,12 +284,16 @@ function mcupr_office_pages( $office_id ) {
 
 /* ------------------------------------------------------------------ the university's own lists leave office content out */
 
-/** Term ids of the offices that are kept off the main site (remembered in one option, so a page costs no query for it). */
+/**
+ * Term ids of the offices that are kept off the main site. Kept as a transient and not as an autoloaded option: it
+ * grows with the number of offices and is thrown away whenever an office is saved or any post is deleted, so it would
+ * be read on every request and written away far more often than it is used. One page works it out at most once.
+ */
 function mcupr_office_hidden_terms() {
 	if ( isset( $GLOBALS['mcupr_office_hidden'] ) ) {
 		return $GLOBALS['mcupr_office_hidden'];
 	}
-	$ids = get_option( 'mcupr_office_hidden', null );
+	$ids = get_transient( 'mcupr_office_hidden' );
 	if ( ! is_array( $ids ) ) {
 		$ids = array();
 		foreach ( mcupr_offices( 'any' ) as $o ) {
@@ -300,7 +304,7 @@ function mcupr_office_hidden_terms() {
 				}
 			}
 		}
-		update_option( 'mcupr_office_hidden', $ids, true );
+		set_transient( 'mcupr_office_hidden', $ids, 12 * HOUR_IN_SECONDS );
 	}
 	$GLOBALS['mcupr_office_hidden'] = $ids;
 	return $ids;
@@ -308,7 +312,7 @@ function mcupr_office_hidden_terms() {
 
 /** Forget it: an office was saved or deleted, or its "also show on the main site" switch changed. */
 function mcupr_office_hidden_reset() {
-	delete_option( 'mcupr_office_hidden' );
+	delete_transient( 'mcupr_office_hidden' );
 	unset( $GLOBALS['mcupr_office_hidden'] );
 }
 add_action( 'save_post_mcupr_office', 'mcupr_office_hidden_reset', 99 );
@@ -605,7 +609,7 @@ add_action(
 		if ( get_option( 'mcupr_office_role_v' ) !== $v || ! get_role( MCUPR_OFFICE_ROLE ) ) {
 			remove_role( MCUPR_OFFICE_ROLE );
 			add_role( MCUPR_OFFICE_ROLE, __( 'Office editor', 'mcupr' ), mcupr_office_role_caps() );
-			update_option( 'mcupr_office_role_v', $v );
+			update_option( 'mcupr_office_role_v', $v, false );
 		}
 	},
 	7

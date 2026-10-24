@@ -281,7 +281,7 @@ add_action(
 				$admin->add_cap( $c );
 			}
 		}
-		update_option( 'mcupr_student_roles_v', $v );
+		update_option( 'mcupr_student_roles_v', $v, false );
 	},
 	8
 );

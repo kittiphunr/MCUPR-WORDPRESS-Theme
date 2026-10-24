@@ -98,7 +98,9 @@ function mcupr_aud_index() {
 			$idx[ $id ] = mcupr_aud_rules_norm( mcupr_aud_rules( $id ) );
 		}
 		$GLOBALS['mcupr_aud_building'] = false;
-		update_option( 'mcupr_aud_index2', $idx, true );
+		// not autoloaded: the index grows with the content, is wanted on few requests, and is thrown away on every
+		// change of a post anyway (mcupr_aud_reset below), so it would be re-read far more often than it is used
+		update_option( 'mcupr_aud_index2', $idx, false );
 	}
 	$GLOBALS['mcupr_aud_cache']['idx'] = $idx;
 	return $idx;
