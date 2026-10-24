@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.71 =
+* Elementor pages without the plugin: the theme prints what Elementor saved
+
 = 1.54.70 =
 * Inner pages: Thai-safe line heights on every title and button, a flowing date line on posts, notes for empty sections, pill calendar links
 
