@@ -1944,7 +1944,9 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await rpg.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
       await rpg.goto(B + '/wp-admin/admin.php?page=mcupr', { waitUntil: 'domcontentloaded' });
       const rm = await rpg.evaluate(() => ({ menu: !!document.querySelector('#adminmenu .toplevel_page_mcupr'), cards: [...document.querySelectorAll('.mcc .mcc-card .mcc-card-h b')].map((e) => e.textContent), denied: !!document.querySelector('.wp-die-message') }));
-      ok(rm.menu && !rm.denied && rm.cards.length === 2, 'registrar: sees the MCUPR menu and two cards, Students and Help (' + rm.cards.join(', ') + ')');
+      // their standard role (inc/roles.php) also allows uploading a file and opening the answers of the forms, where
+      // the requests are listed, so four groups show: content, visitors, students, help
+      ok(rm.menu && !rm.denied && rm.cards.length === 4, 'registrar: sees the MCUPR menu and the four groups their role allows (' + rm.cards.join(', ') + ')');
       const rl = await rpg.goto(B + '/wp-admin/edit.php?post_type=mcupr_student');
       ok(rl.status() === 200 && (await rpg.locator('#the-list tr.iedit').count()) >= 20, 'registrar: opens the list of students');
       const rimp = await rpg.goto(B + '/wp-admin/admin.php?page=mcupr-student-import');
