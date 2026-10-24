@@ -11,9 +11,9 @@
 @media (max-width: 782px) { .mf-panel { position: static; max-height: none; } }
 .mf-h { margin: 2px 8px 6px; font-size: 11px; font-weight: 700; letter-spacing: .02em; text-transform: none; color: var(--fm-muted); }
 .mf-tree, .mf-tree ul { margin: 0; padding: 0; list-style: none; }
-.mf-tree ul { margin-left: 12px; padding-left: 0; border-left: 0; }
+.mf-tree ul { margin-left: 0; padding-left: 0; border-left: 0; } /* the depth is the indent of the row itself, so the arrows and the folders line up level by level */
 .mf-tree ul[hidden] { display: none; }
-.mf-row { display: flex; align-items: center; border-radius: 7px; }
+.mf-row { display: flex; align-items: center; padding-left: calc(var(--d, 0) * 16px); border-radius: 7px; }
 .mf-row:hover { background: var(--fm-hover); }
 .mf-row.is-cur { background: var(--fm-sel); color: var(--fm-text); }
 .mf-row.is-cur .mf-name { font-weight: 600; }
@@ -28,6 +28,7 @@
 .mf-tog::before { content: ""; border-left: 5px solid currentColor; border-block: 4px solid transparent; transition: transform .12s; }
 li[aria-expanded="true"] > .mf-row > .mf-tog::before { transform: rotate(90deg); }
 .mf-tog-none { cursor: default; }
+.mf-panel .mf-row > .mf-tog.mf-tog-none { position: relative; inset: auto; } /* a folder without sub-folders keeps the room of the arrow, so its icon stands under its brothers' */
 .mf-tog-none::before { display: none; }
 .mf-tog:focus-visible { outline: 2px solid var(--fm-sel-strong); outline-offset: -2px; }
 .mf-row.mf-over, .mf-sub li.mf-over { background: var(--fm-sel); outline: 2px solid var(--fm-sel-strong); outline-offset: -2px; }
@@ -86,3 +87,23 @@ body.mf-dragging .mf-row[data-drop], body.mf-dragging .mf-sub li { box-shadow: i
 .mf-main .attachments-browser .attachment, .mf-main .attachments-browser .attachment:focus, .mf-main .attachments-browser .attachment.selected, .mf-main .attachments-browser .attachment.details { box-shadow: none; outline: 0; } /* the ring is drawn on the picture, with its round corners */
 .mf-main .attachments-browser .attachment:focus-visible .attachment-preview { box-shadow: 0 0 0 3px var(--fm-sel-strong); }
 .mf-tools .button { min-height: 28px; padding: 0 10px; line-height: 26px; font-size: 12px; }
+
+/* the bar above the files (view, filters, Bulk select, search): one rounded row in the style of the file manager's bar */
+.mf-main .media-toolbar.wp-filter { position: static; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; height: auto; margin: 0 0 14px; padding: 8px 12px; border: 1px solid var(--fm-line); border-radius: 12px; background: var(--fm-bar); box-shadow: none; }
+.mf-main .media-toolbar-secondary, .mf-main .media-toolbar-primary { position: static; float: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; height: auto; max-width: none; margin: 0; padding: 0; }
+.mf-main .media-toolbar-secondary { flex: 0 1 auto; }
+.mf-main .media-toolbar-primary.search-form { flex: 1 1 12rem; justify-content: flex-end; margin-left: auto; }
+.mf-main .media-toolbar .view-switch { display: inline-flex; gap: 2px; margin: 0; padding: 2px; border-radius: 9px; background: rgb(0 0 0 / .06); }
+.mf-main .media-toolbar .view-switch a { display: grid; place-items: center; float: none; width: 32px; height: 28px; margin: 0; padding: 0; border-radius: 7px; color: var(--fm-text); text-decoration: none; }
+.mf-main .media-toolbar .view-switch a::before { margin: 0; float: none; width: auto; height: auto; line-height: 1; }
+.mf-main .media-toolbar .view-switch a.current { background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .2); }
+.mf-main .media-toolbar .view-switch a:hover:not(.current) { background: var(--fm-hover); }
+.mf-main .media-toolbar select { max-width: 11.5rem; margin: 0; padding: 0 28px 0 12px; background-color: #fff; }
+.mf-main .media-toolbar .select-mode-toggle-button { margin: 0; padding: 0 14px; border-color: var(--fm-line); background: #fff; color: var(--fm-text); font-weight: 600; }
+.mf-main .media-toolbar .select-mode-toggle-button:hover { background: var(--fm-hover); color: var(--fm-text); }
+.mf-main .media-toolbar .delete-selected-button, .mf-main .media-toolbar .media-button { margin: 0; }
+.mf-main .media-toolbar .media-search-input-label { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.mf-main .media-toolbar #media-search-input { width: 100%; max-width: 20rem; padding: 0 14px 0 36px; border-radius: 9999px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 13px center; }
+.mf-main .media-toolbar #media-search-input:focus { border-color: var(--fm-sel-strong); box-shadow: 0 0 0 3px var(--fm-sel); outline: none; }
+.mf-main .media-toolbar .spinner { margin: 0; }
+@media (max-width: 782px) { .mf-main .media-toolbar-primary.search-form { flex: 1 1 100%; margin-left: 0; } .mf-main .media-toolbar #media-search-input { width: 100%; } }
