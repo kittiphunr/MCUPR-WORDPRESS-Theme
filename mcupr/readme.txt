@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.59 =
+* Animated icons (Lordicon): an icon of the theme can be swapped for a moving one, chosen in the Customizer
+
 = 1.54.56 =
 * Media library page looks like the file manager.
 

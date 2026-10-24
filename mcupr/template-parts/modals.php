@@ -204,13 +204,13 @@ $checks = array(
 			<p class="text-sm text-muted"><?php mcupr_e( 'about_tech_note' ); ?></p>
 			<ul class="about-list">
 				<?php
-				foreach ( array(
+				foreach ( apply_filters( 'mcupr_about_resources', array(
 					array( 'WordPress', 'https://wordpress.org/', 'GPLv2+' ),
 					array( 'Tailwind CSS', 'https://tailwindcss.com/', 'MIT' ),
 					array( 'SweetAlert2', 'https://sweetalert2.github.io/', 'MIT' ),
 					array( 'Sarabun (Cadson Demak)', 'https://fonts.google.com/specimen/Sarabun', 'SIL OFL 1.1' ),
 					array( 'Feather Icons', 'https://feathericons.com/', 'MIT' ),
-				) as $r ) :
+				) ) as $r ) :
 					?>
 					<li><a href="<?php echo esc_url( $r[1] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $r[0] ); ?></a> (<?php echo esc_html( $r[2] ); ?>)</li>
 				<?php endforeach; ?>
