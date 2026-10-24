@@ -34,6 +34,9 @@ add_action(
 				'query_var'           => false,
 				'exclude_from_search' => true,
 				'supports'            => array( 'title', 'editor' ),
+				'can_export'          => false, // Tools -> Export must not put personal data in a plain file with no record of it: the theme's own audited exports are the way out
+				'capability_type'     => array( 'mcupr_student', 'mcupr_students' ),
+				'map_meta_cap'        => true,
 			)
 		);
 	},
@@ -156,14 +159,7 @@ function mcupr_mail_headers( $reply, $sid ) {
 /* ------------------------------------------------------------------ the attachment */
 
 function mcupr_mail_dir( $token = '' ) {
-	$up   = wp_upload_dir();
-	$base = trailingslashit( $up['basedir'] ) . 'mcupr-mail';
-	if ( ! is_dir( $base ) ) {
-		wp_mkdir_p( $base );
-		file_put_contents( $base . '/index.php', "<?php // silence\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-		file_put_contents( $base . '/.htaccess', "Require all denied\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-	}
-	return '' === $token ? $base : $base . '/' . preg_replace( '/[^a-f0-9]/', '', $token );
+	return '' === $token ? mcupr_private_dir( 'mail' ) : mcupr_private_token_dir( 'mail', $token );
 }
 function mcupr_mail_att_max() {
 	return (int) min( 2 * MB_IN_BYTES, wp_max_upload_size() );
@@ -385,7 +381,11 @@ add_action(
 				$keep[ $j['att']['k'] ] = 1;
 			}
 		}
-		foreach ( (array) glob( mcupr_mail_dir() . '/*', GLOB_ONLYDIR ) as $d ) {
+		$sweep = array();
+		foreach ( mcupr_private_bases( 'mail' ) as $mail_base ) {
+			$sweep = array_merge( $sweep, (array) glob( $mail_base . '/*', GLOB_ONLYDIR ) );
+		}
+		foreach ( $sweep as $d ) {
 			if ( ! isset( $keep[ basename( $d ) ] ) && filemtime( $d ) < time() - 3 * DAY_IN_SECONDS ) {
 				mcupr_mail_att_delete( array( 'k' => basename( $d ) ) );
 			}

@@ -247,6 +247,7 @@ function mcupr_students_register() {
 			'rewrite'             => false,
 			'query_var'           => false,
 			'supports'            => array( 'title' ),
+			'can_export'          => false, // Tools -> Export must not put personal data in a plain file with no record of it: the theme's own audited exports are the way out
 			'menu_icon'           => 'dashicons-id-alt',
 			'capability_type'     => array( 'mcupr_student', 'mcupr_students' ),
 			'map_meta_cap'        => true,
@@ -280,7 +281,7 @@ add_action(
 				$admin->add_cap( $c );
 			}
 		}
-		update_option( 'mcupr_student_roles_v', $v );
+		update_option( 'mcupr_student_roles_v', $v, false );
 	},
 	8
 );

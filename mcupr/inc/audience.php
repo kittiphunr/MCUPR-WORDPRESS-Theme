@@ -98,7 +98,9 @@ function mcupr_aud_index() {
 			$idx[ $id ] = mcupr_aud_rules_norm( mcupr_aud_rules( $id ) );
 		}
 		$GLOBALS['mcupr_aud_building'] = false;
-		update_option( 'mcupr_aud_index2', $idx, true );
+		// not autoloaded: the index grows with the content, is wanted on few requests, and is thrown away on every
+		// change of a post anyway (mcupr_aud_reset below), so it would be re-read far more often than it is used
+		update_option( 'mcupr_aud_index2', $idx, false );
 	}
 	$GLOBALS['mcupr_aud_cache']['idx'] = $idx;
 	return $idx;
@@ -127,7 +129,9 @@ function mcupr_aud_viewer() {
 	}
 	$v = array( 'staff' => false, 'student' => 0, 'level' => '', 'year' => '', 'fac' => '', 'maj' => '' );
 	if ( $uid ) {
-		$v['staff'] = current_user_can( 'edit_posts' ) || current_user_can( 'edit_pages' ) || current_user_can( MCUPR_STU_CAP );
+		// "staff" opens every piece of students-only content, so it is the editor boundary the theme uses elsewhere
+		// (the forum's moderation, the offices) and not edit_posts, which a contributor and an author hold as well.
+		$v['staff'] = current_user_can( 'edit_pages' ) || current_user_can( MCUPR_STU_CAP );
 		$sid        = mcupr_current_student();
 		if ( $sid ) {
 			$v['student'] = $sid;

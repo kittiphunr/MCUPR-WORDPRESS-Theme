@@ -710,8 +710,33 @@ add_action(
 		if ( '' !== mcupr_fm_root() && is_dir( mcupr_fm_root() . '/' . MCUPR_FM_TRASH ) ) {
 			mcupr_fm_trash_purge( null, time() - (int) apply_filters( 'mcupr_fm_trash_days', 30 ) * DAY_IN_SECONDS );
 		}
+		mcupr_fm_tags_prune();
 	}
 );
+
+/**
+ * The map of tags follows a file that is moved or renamed, but a file deleted outside the file manager (by FTP, by a
+ * plugin, by emptying the trash) leaves its row behind, and the map is rewritten whole on every change. Once a day the
+ * rows whose file or folder is no longer there are dropped, so the map stays the size of what is really on disk.
+ */
+function mcupr_fm_tags_prune() {
+	$root = mcupr_fm_root();
+	if ( '' === $root ) {
+		return 0;
+	}
+	$map  = mcupr_fm_tags_all();
+	$gone = 0;
+	foreach ( array_keys( $map ) as $path ) {
+		if ( ! file_exists( $root . '/' . ltrim( (string) $path, '/' ) ) ) {
+			unset( $map[ $path ] );
+			$gone++;
+		}
+	}
+	if ( $gone ) {
+		mcupr_fm_tags_save( $map );
+	}
+	return $gone;
+}
 
 /** Put tags on items (mode add), take them off (remove) or replace them (set). */
 function mcupr_fm_tag( $rels, $tag_ids, $mode ) {
