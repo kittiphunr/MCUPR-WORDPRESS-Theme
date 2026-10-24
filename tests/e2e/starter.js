@@ -4626,8 +4626,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await ap2.goto(B + '/e2e-elementor/');
     ok((await ap2.locator('.mcupr-el-missing').count()) === 1, 'elementor: an editor who is logged in sees a note where the unsupported widget was');
     await ap2.goto(B + '/wp-admin/admin.php?page=mcupr-elementor');
-    const adm = await ap2.evaluate(() => ({ rows: document.querySelectorAll('.wrap table.widefat tbody tr').length, lottie: /lottie/.test(document.body.innerText), files: !!document.querySelector('input[name="use_files"]') }));
-    ok(adm.rows >= 2 && adm.lottie && adm.files, 'elementor: the admin page lists the pages, names the widget it cannot print and has the switch for the style files (' + adm.rows + ' rows)');
+    const adm = await ap2.evaluate(() => ({ rows: document.querySelectorAll('.wrap table.widefat tbody tr').length, lottie: /lottie/.test(document.body.innerText), files: !!document.querySelector('input[name="use_files"]'), head: (document.querySelector('.wrap h1, body') || {}).innerText || '' }));
+    ok(adm.rows >= 2 && adm.lottie && adm.files, 'elementor: the admin page lists the pages, names the widget it cannot print and has the switch for the style files (' + adm.rows + ' rows)' + (adm.rows >= 2 ? '' : ' — page said: ' + adm.head.replace(/\s+/g, ' ').slice(0, 120)));
     await ac.close(); await ec.close();
     phpE('foreach ( array( get_page_by_path( "e2e-elementor" ), get_page_by_path( "e2e-elementor-canvas" ) ) as $p ) { if ( $p ) { wp_delete_post( $p->ID, true ); } } delete_option( "mcupr_el_report" ); delete_transient( "mcupr_el_count" );');
   }

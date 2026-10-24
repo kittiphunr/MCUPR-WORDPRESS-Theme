@@ -22,7 +22,10 @@ function mcupr_el_site_has_content() {
 add_action(
 	'admin_menu',
 	static function () {
-		if ( ! mcupr_el_site_has_content() ) {
+		// the page is in the menu only on a site that has Elementor content, but it stays reachable (a bookmark, a link from the control centre)
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$asked = isset( $_GET['page'] ) && 'mcupr-elementor' === $_GET['page'];
+		if ( ! $asked && ! mcupr_el_site_has_content() ) {
 			return;
 		}
 		add_submenu_page( 'mcupr', __( 'Elementor content', 'mcupr' ), __( 'Elementor content', 'mcupr' ), 'manage_options', 'mcupr-elementor', 'mcupr_el_admin_page' );
