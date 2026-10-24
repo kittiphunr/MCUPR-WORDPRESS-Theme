@@ -205,6 +205,7 @@ return array(
 	'prev'          => array( 'ก่อนหน้า', 'Previous', '上一页', '前へ' ),
 	'next'          => array( 'ถัดไป', 'Next', '下一页', '次へ' ),
 	'pagination'    => array( 'การแบ่งหน้า', 'Pagination', '分页', 'ページ送り' ),
+	'page_of'       => array( 'หน้า %1$d จาก %2$d', 'Page %1$d of %2$d', '第 %1$d 页，共 %2$d 页', '%1$d / %2$d ページ' ),
 	'not_found'     => array( 'ไม่พบหน้าที่ต้องการ', 'Page not found', '页面未找到', 'ページが見つかりません' ),
 	'not_found_txt' => array( 'ขออภัย ไม่พบหน้าที่คุณต้องการ', 'Sorry, the page you requested could not be found.', '抱歉，找不到您请求的页面。', 'お探しのページは見つかりませんでした。' ),
 	'back_home'     => array( 'กลับหน้าแรก', 'Back to home', '返回首页', 'ホームに戻る' ),
