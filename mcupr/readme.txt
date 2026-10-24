@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.56 =
+* Media library page looks like the file manager.
+
 = 1.54.54 =
 * File manager: a trash (put back, undo, empties itself after 30 days).
 
