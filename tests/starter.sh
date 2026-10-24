@@ -49,6 +49,7 @@ php php/toolbar.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED"
 php php/lordicon.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/personas.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/languages.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Warning\|Fatal" || true
+php php/php-security.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Warning\|Fatal" || true
 php php/no-emoji.php 2>&1 | grep "^FAIL\|FAILED" || true
 php php/security.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/low-risk.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true

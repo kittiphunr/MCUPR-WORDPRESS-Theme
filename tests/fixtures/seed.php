@@ -14,6 +14,8 @@ require_once ABSPATH . 'wp-admin/includes/media.php';
 wp_install( 'MCU Test', 'admin', 'a@example.com', true, '', 'pass1234!', 'th' );
 switch_theme( 'mcupr' );
 update_option( 'permalink_structure', '/%postname%/' );
+// the test server's PHP may be older than the October 2026 fixed release: the red admin notice about it would sit on every admin page the tests look at (its own test brings it back)
+update_option( 'mcupr_php_sec_ack', array( 'v' => PHP_VERSION, 'by' => 0, 't' => time() ), false );
 
 // MCUPR_NO_FIXTURES=1: a clean install (used by the starter-import test)
 if ( getenv( 'MCUPR_NO_FIXTURES' ) ) {
