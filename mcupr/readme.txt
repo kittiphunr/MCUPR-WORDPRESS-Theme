@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.58 =
+* Media library: tidy folder levels, one rounded bar for view, filters, Bulk select and search.
+
 = 1.54.57 =
 * List page links: one pill bar with Previous/Next, current page and Page X of N.
 
