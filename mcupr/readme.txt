@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.63 =
+* Home hero: Thai headline lines no longer touch; roomier quick-link tiles
+
 = 1.54.62 =
 * Home hero: an 'I am…' picker over the quick links, and nicer tiles
 
