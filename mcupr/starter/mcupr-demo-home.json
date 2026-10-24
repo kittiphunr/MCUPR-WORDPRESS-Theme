@@ -189,37 +189,58 @@
    [
     "admissions",
     "รับสมัคร",
-    "edit"
+    "edit",
+    [
+     "future"
+    ]
    ],
    [
     "programs",
     "หลักสูตร",
-    "book"
+    "book",
+    [
+     "future",
+     "student"
+    ]
    ],
    [
     "calendar",
     "ปฏิทินการศึกษา",
-    "calendar"
+    "calendar",
+    [
+     "student",
+     "parent",
+     "staff"
+    ]
    ],
    [
     "/events/",
     "ปฏิทินกิจกรรม",
-    "calendar"
+    "calendar",
+    []
    ],
    [
     "/student/",
     "พอร์ทัลนิสิต",
-    "users"
+    "users",
+    [
+     "student"
+    ]
    ],
    [
     "library",
     "ห้องสมุด",
-    "folder"
+    "folder",
+    [
+     "student",
+     "staff"
+    ]
    ],
    [
     "contact",
     "ติดต่อเรา",
-    "mail"
+    "mail",
+    []
    ]
   ]
  },
