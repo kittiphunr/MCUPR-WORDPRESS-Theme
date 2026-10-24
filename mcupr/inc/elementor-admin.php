@@ -28,7 +28,7 @@ add_action(
 		if ( ! $asked && ! mcupr_el_site_has_content() ) {
 			return;
 		}
-		add_submenu_page( 'mcupr', __( 'Elementor content', 'mcupr' ), __( 'Elementor content', 'mcupr' ), 'manage_options', 'mcupr-elementor', 'mcupr_el_admin_page' );
+		add_submenu_page( 'mcupr', __( 'Elementor content', 'mcupr' ), __( 'Elementor content', 'mcupr' ), 'mcupr_manage_theme', 'mcupr-elementor', 'mcupr_el_admin_page' );
 	},
 	30
 );
@@ -37,7 +37,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_el_settings',
 	static function () {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'mcupr_manage_theme' ) ) {
 			wp_die( esc_html__( 'You are not allowed to do this.', 'mcupr' ), '', array( 'response' => 403 ) );
 		}
 		check_admin_referer( 'mcupr_el_settings' );
@@ -49,7 +49,7 @@ add_action(
 );
 
 function mcupr_el_admin_page() {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'mcupr_manage_theme' ) ) {
 		return;
 	}
 	$inv    = mcupr_el_inventory();

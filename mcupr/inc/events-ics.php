@@ -449,7 +449,7 @@ add_action( 'init', 'mcupr_ics_schedule' );
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'mcupr', __( 'Import and sync calendar', 'mcupr' ), __( 'Import and sync calendar', 'mcupr' ), 'edit_pages', 'mcupr-ics', 'mcupr_ics_page' );
+		add_submenu_page( 'mcupr', __( 'Import and sync calendar', 'mcupr' ), __( 'Import and sync calendar', 'mcupr' ), 'mcupr_manage_calendar', 'mcupr-ics', 'mcupr_ics_page' );
 	}
 );
 
@@ -493,7 +493,7 @@ function mcupr_ics_notice_text( $q ) {
 }
 
 function mcupr_ics_page() {
-	if ( ! current_user_can( 'edit_pages' ) ) {
+	if ( ! current_user_can( 'mcupr_manage_calendar' ) ) {
 		return;
 	}
 	$feeds = mcupr_ics_feeds();
@@ -547,7 +547,7 @@ function mcupr_ics_back( $code, $args = array() ) {
 add_action(
 	'admin_post_mcupr_ics_upload',
 	static function () {
-		if ( ! mcupr_check_request( 'mcupr_ics_nonce', 'mcupr_ics_upload', 'edit_pages' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_ics_nonce', 'mcupr_ics_upload', 'mcupr_manage_calendar' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$f = isset( $_FILES['ics'] ) ? $_FILES['ics'] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
@@ -563,7 +563,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_ics_feed',
 	static function () {
-		if ( ! mcupr_check_request( 'mcupr_ics_nonce', 'mcupr_ics_feed', 'edit_pages' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_ics_nonce', 'mcupr_ics_feed', 'mcupr_manage_calendar' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$do    = isset( $_POST['do'] ) ? sanitize_key( wp_unslash( $_POST['do'] ) ) : '';

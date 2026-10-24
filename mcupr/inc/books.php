@@ -123,12 +123,12 @@ function mcupr_book_fx_list() {
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'mcupr', __( 'E-book settings', 'mcupr' ), __( 'E-book settings', 'mcupr' ), 'manage_options', 'mcupr-books', 'mcupr_books_settings_page' );
+		add_submenu_page( 'mcupr', __( 'E-book settings', 'mcupr' ), __( 'E-book settings', 'mcupr' ), 'mcupr_manage_theme', 'mcupr-books', 'mcupr_books_settings_page' );
 	}
 );
 
 function mcupr_books_settings_page() {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'mcupr_manage_theme' ) ) {
 		return;
 	}
 	$o = mcupr_books_opts();
@@ -168,7 +168,7 @@ function mcupr_books_settings_page() {
 add_action(
 	'admin_notices',
 	static function () {
-		if ( ! current_user_can( 'manage_options' ) || mcupr_books_opts()['fx_set'] ) {
+		if ( ! current_user_can( 'mcupr_manage_theme' ) || mcupr_books_opts()['fx_set'] ) {
 			return;
 		}
 		$sc = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
@@ -186,7 +186,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_books_settings',
 	static function () {
-		if ( ! mcupr_check_request( 'mcupr_books_nonce', 'mcupr_books_settings', 'manage_options' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_books_nonce', 'mcupr_books_settings', 'mcupr_manage_theme' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$st  = isset( $_POST['style'] ) ? sanitize_key( wp_unslash( $_POST['style'] ) ) : 'wood';

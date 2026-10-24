@@ -131,12 +131,12 @@ function mcupr_img_totals() {
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'mcupr', __( 'Pictures (WebP)', 'mcupr' ), __( 'Pictures (WebP)', 'mcupr' ), 'manage_options', 'mcupr-images', 'mcupr_img_page' );
+		add_submenu_page( 'mcupr', __( 'Pictures (WebP)', 'mcupr' ), __( 'Pictures (WebP)', 'mcupr' ), 'mcupr_manage_theme', 'mcupr-images', 'mcupr_img_page' );
 	}
 );
 
 function mcupr_img_page() {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'mcupr_manage_theme' ) ) {
 		return;
 	}
 	$o   = mcupr_img_opts();
@@ -170,7 +170,7 @@ function mcupr_img_page() {
 add_action(
 	'admin_post_mcupr_img',
 	static function () {
-		if ( ! mcupr_check_request( 'mcupr_img_nonce', 'mcupr_img', 'manage_options' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_img_nonce', 'mcupr_img', 'mcupr_manage_theme' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		update_option(

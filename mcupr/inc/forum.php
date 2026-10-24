@@ -112,7 +112,7 @@ add_action(
 add_action(
 	'template_redirect',
 	static function () {
-		if ( is_singular( 'mcupr_topic' ) && ! mcupr_forum_opts()['enabled'] && ! current_user_can( 'edit_pages' ) ) {
+		if ( is_singular( 'mcupr_topic' ) && ! mcupr_forum_opts()['enabled'] && ! current_user_can( 'mcupr_manage_forum' ) ) {
 			global $wp_query;
 			$wp_query->set_404();
 			status_header( 404 );
@@ -335,7 +335,7 @@ function mcupr_forum_submit( $kind, $data, $now = 0 ) {
 		return $fail( array( 'spam' => 'form_err_spam' ) );
 	}
 	$member = is_user_logged_in();
-	$staff  = current_user_can( 'edit_pages' );
+	$staff  = current_user_can( 'mcupr_manage_forum' );
 	$who    = 'topic' === $kind ? $o['post_who'] : $o['reply_who'];
 	if ( 'users' === $who && ! $member ) {
 		return $fail( array( 'login' => 'fm_err_login' ) );
@@ -534,7 +534,7 @@ function mcupr_forum_report( $type, $id ) {
 		}
 	}
 	$by = 'topic' === $type ? (int) get_post_field( 'post_author', $id ) : (int) $c->user_id;
-	if ( $n >= 3 && ! ( $by && user_can( $by, 'edit_pages' ) ) ) { // three anonymous reports must not take down a post of the staff: they go to the moderator's mail instead
+	if ( $n >= 3 && ! ( $by && user_can( $by, 'mcupr_manage_forum' ) ) ) { // three anonymous reports must not take down a post of the staff: they go to the moderator's mail instead
 		if ( 'topic' === $type ) {
 			wp_update_post( array( 'ID' => $id, 'post_status' => 'pending' ) );
 		} else {
@@ -651,14 +651,14 @@ add_action(
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'mcupr', __( 'Forum settings', 'mcupr' ), __( 'Forum settings', 'mcupr' ), 'edit_pages', 'mcupr-forum', 'mcupr_forum_settings_page', 0 );
+		add_submenu_page( 'mcupr', __( 'Forum settings', 'mcupr' ), __( 'Forum settings', 'mcupr' ), 'mcupr_manage_forum', 'mcupr-forum', 'mcupr_forum_settings_page', 0 );
 	}
 );
 
 add_action(
 	'admin_post_mcupr_forum_settings',
 	static function () {
-		if ( ! mcupr_check_request( 'mcupr_forum_nonce', 'mcupr_forum_settings', 'edit_pages' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_forum_nonce', 'mcupr_forum_settings', 'mcupr_manage_forum' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), '', array( 'response' => 403 ) );
 		}
 		$p = static function ( $k ) {
@@ -686,7 +686,7 @@ add_action(
 );
 
 function mcupr_forum_settings_page() {
-	if ( ! current_user_can( 'edit_pages' ) ) {
+	if ( ! current_user_can( 'mcupr_manage_forum' ) ) {
 		return;
 	}
 	$o = mcupr_forum_opts();

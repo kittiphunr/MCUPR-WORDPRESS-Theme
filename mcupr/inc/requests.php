@@ -59,14 +59,12 @@ add_filter(
 	'user_has_cap',
 	static function ( $all, $caps, $args, $user ) {
 		$uid = $user instanceof WP_User ? (int) $user->ID : 0;
-		if ( empty( $all[ MCUPR_RQ_CAP ] )
-			&& ( ! empty( $all['manage_options'] )
-				|| ( defined( 'MCUPR_STU_CAP' ) && ! empty( $all[ MCUPR_STU_CAP ] ) )
-				|| mcupr_rq_user_ticked( $uid ) ) ) {
+		// the role decides (MCUPR -> User roles); the tick on a profile is for one person rather than a whole role
+		if ( empty( $all[ MCUPR_RQ_CAP ] ) && mcupr_rq_user_ticked( $uid ) ) {
 			$all[ MCUPR_RQ_CAP ] = true;
 		}
-		// the answers screen opens for the people who handle requests and for the people who build the forms
-		if ( ! empty( $all[ MCUPR_RQ_CAP ] ) || ! empty( $all['edit_pages'] ) ) {
+		// whoever handles requests opens the answers screen, since that is where the requests are listed
+		if ( ! empty( $all[ MCUPR_RQ_CAP ] ) ) {
 			$all[ MCUPR_FE_CAP ] = true;
 		}
 		return $all;
