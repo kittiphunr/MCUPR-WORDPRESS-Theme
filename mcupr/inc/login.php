@@ -225,12 +225,12 @@ add_filter(
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'mcupr', __( 'Sign-in address', 'mcupr' ), __( 'Sign-in address', 'mcupr' ), 'manage_options', 'mcupr-login', 'mcupr_login_page' );
+		add_submenu_page( 'mcupr', __( 'Sign-in address', 'mcupr' ), __( 'Sign-in address', 'mcupr' ), 'mcupr_manage_site_access', 'mcupr-login', 'mcupr_login_page' );
 	}
 );
 
 function mcupr_login_page() {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'mcupr_manage_site_access' ) ) {
 		return;
 	}
 	$slug  = mcupr_login_slug();
@@ -287,7 +287,7 @@ function mcupr_login_save( $p ) {
 add_action(
 	'admin_post_mcupr_login_save',
 	static function () {
-		if ( ! mcupr_check_request( 'mcupr_login_nonce', 'mcupr_login_save', 'manage_options' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_login_nonce', 'mcupr_login_save', 'mcupr_manage_site_access' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$res = mcupr_login_save( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput

@@ -594,6 +594,7 @@ add_action(
 
 /* ------------------------------------------------------------------ the role "Office editor" and what it may touch */
 
+/** What the "Office editor" role may do on the content side; inc/roles.php adds the theme's own capabilities to it. */
 function mcupr_office_role_caps() {
 	return array(
 		'read' => true, 'upload_files' => true,
@@ -602,18 +603,10 @@ function mcupr_office_role_caps() {
 	);
 }
 
-add_action(
-	'init',
-	static function () {
-		$v = md5( wp_json_encode( mcupr_office_role_caps() ) ); // the role is made again whenever what it may do changes
-		if ( get_option( 'mcupr_office_role_v' ) !== $v || ! get_role( MCUPR_OFFICE_ROLE ) ) {
-			remove_role( MCUPR_OFFICE_ROLE );
-			add_role( MCUPR_OFFICE_ROLE, __( 'Office editor', 'mcupr' ), mcupr_office_role_caps() );
-			update_option( 'mcupr_office_role_v', $v, false );
-		}
-	},
-	7
-);
+/**
+ * The role is made and kept in step in inc/roles.php (it is one of the standard roles there). Nothing is rebuilt
+ * here any more: doing so threw away whatever an administrator had set on the user-roles page.
+ */
 
 /**
  * Who may edit / delete / publish what: someone who works in offices only touches content of their offices (their

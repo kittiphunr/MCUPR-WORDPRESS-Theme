@@ -65,9 +65,24 @@ function mcupr_admin_types() {
 /** May this person see the card / group of a post type? (The answers of the forms are for people who can edit pages; the registrar sees only the requests, through the "Requests" card of the students.) */
 function mcupr_admin_can_type( $o ) {
 	if ( 'mcupr_fe' === $o->name ) {
-		return current_user_can( 'edit_pages' );
+		return current_user_can( 'mcupr_see_answers' );
 	}
 	return current_user_can( $o->cap->edit_posts );
+}
+
+/**
+ * Which capability opens the MCUPR menu. Every screen under it asks a capability of its own now (inc/roles.php), so
+ * the menu has to open for anybody who holds any one of them — otherwise a person given only the file manager, say,
+ * would have nowhere to click. The answer is a capability this person actually holds, because that is what
+ * add_menu_page() wants; "edit_pages" is the fallback for somebody who holds none, which keeps the menu hidden.
+ */
+function mcupr_admin_menu_cap() {
+	foreach ( array_merge( array( 'edit_pages', MCUPR_STU_CAP ), function_exists( 'mcupr_theme_caps' ) ? mcupr_theme_caps() : array() ) as $cap ) {
+		if ( current_user_can( $cap ) ) {
+			return $cap;
+		}
+	}
+	return 'edit_pages';
 }
 
 // Our post types live under the "MCUPR" menu.
@@ -87,7 +102,7 @@ add_filter(
 add_action(
 	'admin_menu',
 	static function () {
-		$cap = ! current_user_can( 'edit_pages' ) && current_user_can( MCUPR_STU_CAP ) ? MCUPR_STU_CAP : 'edit_pages'; // registrars (who cannot edit pages) get the menu too
+		$cap = mcupr_admin_menu_cap();
 		add_menu_page( __( 'MCUPR theme', 'mcupr' ), 'MCUPR', $cap, 'mcupr', 'mcupr_admin_overview', 'dashicons-superhero-alt', 3 );
 		add_submenu_page( 'mcupr', __( 'MCUPR overview', 'mcupr' ), __( 'Overview', 'mcupr' ), $cap, 'mcupr', 'mcupr_admin_overview' );
 	},

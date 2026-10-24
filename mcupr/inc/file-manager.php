@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const MCUPR_FM_CAP = 'manage_options';
+const MCUPR_FM_CAP = 'mcupr_manage_files'; // handed out on MCUPR -> User roles (inc/roles.php); an administrator always has it
 
 /* ------------------------------------------------------------------ paths */
 

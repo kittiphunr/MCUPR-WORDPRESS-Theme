@@ -48,7 +48,7 @@ function mcupr_forum_form( $board_id = 0, $topic_id = 0 ) {
 	};
 	$fid     = $reply ? 'fm-reply' : 'fm-topic';
 	$u       = wp_get_current_user();
-	$staff   = current_user_can( 'edit_pages' );
+	$staff   = current_user_can( 'mcupr_manage_forum' ); // the same test the handler uses (inc/forum.php)
 	$privacy = mcupr_policy_url( 'privacy' );
 	$back    = $reply ? get_permalink( $topic_id ) : mcupr_forum_page_url();
 	ob_start();

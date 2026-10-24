@@ -192,7 +192,7 @@ function mcupr_groups_import_apply( array $table ) {
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'mcupr', __( 'Import work groups', 'mcupr' ), __( 'Import', 'mcupr' ), 'edit_pages', 'mcupr-groups-import', 'mcupr_groups_import_page' );
+		add_submenu_page( 'mcupr', __( 'Import work groups', 'mcupr' ), __( 'Import', 'mcupr' ), 'mcupr_manage_groups', 'mcupr-groups-import', 'mcupr_groups_import_page' );
 	}
 );
 
@@ -201,14 +201,14 @@ add_action(
 	'admin_notices',
 	static function () {
 		$s = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-		if ( $s && 'edit-' . MCUPR_GROUP === $s->id && current_user_can( 'edit_pages' ) ) {
+		if ( $s && 'edit-' . MCUPR_GROUP === $s->id && current_user_can( 'mcupr_manage_groups' ) ) {
 			echo '<div class="notice notice-info"><p>' . esc_html__( 'Many work groups at once? Import them from a spreadsheet file.', 'mcupr' ) . ' <a href="' . esc_url( admin_url( 'admin.php?page=mcupr-groups-import' ) ) . '">' . esc_html__( 'Import work groups', 'mcupr' ) . '</a></p></div>';
 		}
 	}
 );
 
 function mcupr_groups_import_page() {
-	if ( ! current_user_can( 'edit_pages' ) ) {
+	if ( ! current_user_can( 'mcupr_manage_groups' ) ) {
 		wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 	}
 	$act = esc_url( admin_url( 'admin-post.php' ) );
@@ -239,7 +239,7 @@ function mcupr_groups_import_page() {
 add_action(
 	'admin_post_mcupr_groups_import',
 	static function () {
-		if ( ! mcupr_check_request( 'mcupr_gi_nonce', 'mcupr_groups_import', 'edit_pages' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_gi_nonce', 'mcupr_groups_import', 'mcupr_manage_groups' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		$back = admin_url( 'admin.php?page=mcupr-groups-import' );
@@ -265,7 +265,7 @@ add_action(
 add_action(
 	'admin_post_mcupr_groups_sample',
 	static function () {
-		if ( ! current_user_can( 'edit_pages' ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'mcupr_groups_sample' ) ) {
+		if ( ! current_user_can( 'mcupr_manage_groups' ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'mcupr_groups_sample' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		nocache_headers();

@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'MCUPR_MIN_WP', '5.9' );
 define( 'MCUPR_MIN_PHP', '7.0' );
 
-define( 'MCUPR_VERSION', '1.54.77' );
+define( 'MCUPR_VERSION', '1.55.0' );
 define( 'MCUPR_DIR', get_template_directory() );
 define( 'MCUPR_URI', get_template_directory_uri() );
 
@@ -83,6 +83,8 @@ require_once MCUPR_DIR . '/inc/images.php';
 require_once MCUPR_DIR . '/inc/lordicon.php';
 require_once MCUPR_DIR . '/inc/elementor.php';
 require_once MCUPR_DIR . '/inc/elementor-admin.php';
+require_once MCUPR_DIR . '/inc/roles.php';
+require_once MCUPR_DIR . '/inc/roles-admin.php';
 require_once MCUPR_DIR . '/inc/db-tidy.php';
 require_once MCUPR_DIR . '/inc/privacy.php';
 require_once MCUPR_DIR . '/inc/php-security.php';

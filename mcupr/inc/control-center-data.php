@@ -218,7 +218,7 @@ function mcupr_cc_data_all() {
 				'steps' => array( 'กด "เพิ่มใหม่" ตั้งชื่อฟอร์ม', 'เพิ่มช่องกรอกทีละช่อง เลือกชนิดและกำหนดว่าบังคับกรอกหรือไม่', 'คัดลอกรหัสสั้นไปวางในหน้า', 'ดูคำตอบที่เมนู "คำตอบจากฟอร์ม"' ), 'tips' => array( 'ใส่แค่ช่องที่จำเป็น ฟอร์มสั้นมีคนกรอกจนจบมากกว่า' ),
 			),
 			'answers'  => array(
-				'cat' => 'visitors', 'icon' => 'inbox', 'title' => 'คำตอบจากฟอร์ม', 'open' => 'type:mcupr_fe', 'cap' => 'edit_pages',
+				'cat' => 'visitors', 'icon' => 'inbox', 'title' => 'คำตอบจากฟอร์ม', 'open' => 'type:mcupr_fe', 'cap' => 'mcupr_see_answers',
 				'screens' => array( 'type:mcupr_fe' ),
 				'desc' => 'คำตอบที่ส่งมาจากฟอร์มที่สร้างเอง พร้อมดาวน์โหลด CSV',
 				'what' => 'ทุกครั้งที่มีคนส่งฟอร์มจะมีรายการเข้ามาที่นี่ กรองตามฟอร์ม ดาวน์โหลดเป็นไฟล์เปิดใน Excel ได้', 'steps' => array( 'เลือกฟอร์มที่ต้องการดู', 'กด "ดาวน์โหลด CSV"' ), 'tips' => array( 'ลบคำตอบที่ไม่ใช้แล้วเพื่อความเป็นส่วนตัว' ),
@@ -306,7 +306,7 @@ function mcupr_cc_data_all() {
 			),
 			// ------------------------------------------------------------ system
 			'status'   => array(
-				'cat' => 'system', 'icon' => 'power', 'title' => 'ปิดปรับปรุง / หน้าต้อนรับ / ไว้อาลัย', 'open' => 'page:mcupr-status', 'cap' => 'manage_options',
+				'cat' => 'system', 'icon' => 'power', 'title' => 'ปิดปรับปรุง / หน้าต้อนรับ / ไว้อาลัย', 'open' => 'page:mcupr-status', 'cap' => 'mcupr_manage_theme',
 				'screens' => array( 'page:mcupr-status' ),
 				'desc' => 'ปิดเว็บชั่วคราว หน้าต้อนรับวันสำคัญ และโหมดไว้อาลัย (ขาวดำ)',
 				'what' => 'สามโหมดพิเศษ: ปิดปรับปรุง (ผู้เยี่ยมชมเห็นหน้าแจ้งปิด แต่ผู้ดูแลที่เข้าระบบยังใช้เว็บได้ปกติ), หน้าต้อนรับวันสำคัญ (ปีใหม่ สงกรานต์ ฯลฯ), และไว้อาลัย (เว็บเป็นขาวดำตามช่วงวันที่)',
@@ -314,19 +314,19 @@ function mcupr_cc_data_all() {
 				'guide' => 'maintenance',
 			),
 			'speed'    => array(
-				'cat' => 'system', 'icon' => 'zap', 'title' => 'ตรวจความเร็ว', 'open' => 'page:mcupr-speed', 'cap' => 'manage_options',
+				'cat' => 'system', 'icon' => 'zap', 'title' => 'ตรวจความเร็ว', 'open' => 'page:mcupr-speed', 'cap' => 'mcupr_manage_theme',
 				'screens' => array( 'page:mcupr-speed' ),
 				'desc' => 'เว็บเร็วแค่ไหน และอะไรทำให้ช้า', 'what' => 'วัดขนาดหน้า จำนวนคำขอ และบอกสิ่งที่ควรแก้ เช่น รูปใหญ่เกินไป', 'steps' => array( 'กด "ตรวจตอนนี้"', 'อ่านคำแนะนำท้ายผล' ), 'tips' => array( 'รูปที่ใหญ่เกินเป็นสาเหตุอันดับหนึ่ง ใช้ "รูปภาพ (WebP)" ช่วย' ),
 			),
 			'login'    => array(
-				'cat' => 'system', 'icon' => 'lock', 'title' => 'ที่อยู่หน้าเข้าสู่ระบบ', 'open' => 'page:mcupr-login', 'cap' => 'manage_options',
+				'cat' => 'system', 'icon' => 'lock', 'title' => 'ที่อยู่หน้าเข้าสู่ระบบ', 'open' => 'page:mcupr-login', 'cap' => 'mcupr_manage_site_access',
 				'screens' => array( 'page:mcupr-login' ),
 				'desc' => 'ซ่อนหน้าเข้าสู่ระบบไว้ที่ที่อยู่ลับ กันบอทลองรหัสผ่าน', 'what' => 'ปกติทุกเว็บ WordPress เข้าสู่ระบบได้ที่ wp-login.php และ wp-admin ซึ่งบอทลองเดารหัสผ่านตลอดเวลา เมื่อเปิดที่อยู่ลับ สองที่อยู่นั้นจะตอบว่า "ไม่พบหน้านี้" สำหรับคนที่ยังไม่ล็อกอิน และหน้าเข้าสู่ระบบจะอยู่ที่ที่อยู่ที่ตั้งเองเท่านั้น',
 				'steps' => array( 'เปิดหน้านี้ ติ๊ก "ใช้ที่อยู่เข้าสู่ระบบแบบส่วนตัว"', 'พิมพ์ที่อยู่ที่ต้องการ (อังกฤษ ตัวเลข ขีดกลาง 4-40 ตัว) แล้วกดบันทึก', 'จดที่อยู่ใหม่ไว้ ระบบส่งสำเนาไปที่อีเมลผู้ดูแลเว็บให้ด้วย' ),
 				'tips' => array( 'ลืมที่อยู่: เพิ่มบรรทัด define( \'MCUPR_LOGIN_OFF\', true ); ใน wp-config.php เพื่อปิดชั่วคราว', 'อย่าตั้งเป็น admin หรือ login เพราะเดาง่าย' ),
 			),
 			'social'   => array(
-				'cat' => 'visitors', 'icon' => 'log-in', 'title' => 'ล็อกอินด้วยบัญชีโซเชียล', 'open' => 'page:mcupr-social', 'cap' => 'manage_options',
+				'cat' => 'visitors', 'icon' => 'log-in', 'title' => 'ล็อกอินด้วยบัญชีโซเชียล', 'open' => 'page:mcupr-social', 'cap' => 'mcupr_manage_site_access',
 				'screens' => array( 'page:mcupr-social' ),
 				'desc' => 'ให้ผู้เยี่ยมชมและนิสิตเข้าสู่ระบบด้วย Google, Facebook, LINE หรือ ThaID',
 				'what' => 'แต่ละรายต้องสร้างแอปที่ผู้ให้บริการแล้วนำ Client ID กับ Client secret มาใส่ที่หน้านี้ ผู้เยี่ยมชมที่เข้าครั้งแรกได้บัญชีสมาชิก (อ่าน แสดงความเห็น กระดานสนทนา ฟอร์ม) นิสิตที่อีเมลตรงทะเบียนและเข้าด้วย Google ได้บัญชีนิสิต บุคลากรเข้าด้วยรหัสผ่านเท่านั้น',
@@ -334,18 +334,18 @@ function mcupr_cc_data_all() {
 				'tips' => array( 'ThaID ต้องขอสิทธิ์กับ DGA ก่อน ระบบไม่เก็บเลขบัตรประชาชน', 'เก็บ secret ในไฟล์ wp-config.php ได้ด้วย MCUPR_SOCIAL_GOOGLE_SECRET (และ _FACEBOOK_ _LINE_ _THAID_)' ),
 			),
 			'images'   => array(
-				'cat' => 'system', 'icon' => 'aperture', 'title' => 'รูปภาพ (WebP)', 'open' => 'page:mcupr-images', 'cap' => 'manage_options',
+				'cat' => 'system', 'icon' => 'aperture', 'title' => 'รูปภาพ (WebP)', 'open' => 'page:mcupr-images', 'cap' => 'mcupr_manage_theme',
 				'screens' => array( 'page:mcupr-images' ),
 				'desc' => 'ย่อรูปที่อัปโหลดให้เล็กลงอัตโนมัติ', 'what' => 'แปลงรูปเป็น WebP ตอนอัปโหลดให้ไฟล์เล็กลงมากโดยตาดูแทบไม่ต่าง และแปลงรูปเก่าทั้งชุดได้', 'steps' => array( 'ติ๊กเปิด "แปลงเป็น WebP ตอนอัปโหลด"', 'กด "แปลงรูปเก่า" ถ้าต้องการ' ), 'tips' => array( 'ไฟล์ต้นฉบับยังเก็บไว้ ย้อนกลับได้' ),
 			),
 			'settings_io' => array(
-				'cat' => 'system', 'icon' => 'download-cloud', 'title' => 'ส่งออก/นำเข้าค่าตั้งค่า', 'open' => 'page:mcupr-settings-io', 'cap' => 'manage_options',
+				'cat' => 'system', 'icon' => 'download-cloud', 'title' => 'ส่งออก/นำเข้าค่าตั้งค่า', 'open' => 'page:mcupr-settings-io', 'cap' => 'mcupr_manage_site_access',
 				'screens' => array( 'page:mcupr-settings-io' ),
 				'desc' => 'ย้ายค่าตั้งค่าและตัวอย่างข้ามวิทยาเขต หรือสำรองไว้', 'what' => 'ส่งออกค่าตั้งค่าของธีมเป็นไฟล์ แล้วนำเข้าที่วิทยาเขตอื่นเพื่อเริ่มจากหน้าตาเดียวกัน มีไฟล์เนื้อหาตัวอย่าง (หน้าแรก หน่วยงาน) ให้นำเข้า', 'steps' => array( 'กด "ส่งออกค่าตั้งค่า" เก็บไฟล์ไว้', 'ที่เว็บใหม่ กด "นำเข้า" แล้วเลือกไฟล์' ), 'tips' => array( 'ส่งออกก่อนอัปเดตธีมทุกครั้งไว้เป็นการสำรอง' ),
 				'guide' => 'backup',
 			),
 			'stats'    => array(
-				'cat' => 'visitors', 'icon' => 'bar-chart-2', 'title' => 'สถิติผู้เข้าชมเว็บ', 'open' => 'adm:index.php?page=mcupr-stats', 'cap' => 'edit_pages',
+				'cat' => 'visitors', 'icon' => 'bar-chart-2', 'title' => 'สถิติผู้เข้าชมเว็บ', 'open' => 'adm:index.php?page=mcupr-stats', 'cap' => 'mcupr_view_stats',
 				'screens' => array( 'adm:index.php?page=mcupr-stats' ),
 				'desc' => 'จำนวนผู้เข้าชมรายวัน หน้ายอดนิยม และไฟล์ที่ถูกดาวน์โหลดมากที่สุด',
 				'what' => 'ดูว่าวันนี้และ 30 วันที่ผ่านมามีคนเข้าเว็บเท่าไร หน้าและข่าวไหนถูกอ่านมากสุด และไฟล์แนบไหนถูกดาวน์โหลดบ่อย ตัวเลขสรุปย่อก็อยู่ในแผงควบคุมหลักของ WordPress (Dashboard) ด้วย',
@@ -353,7 +353,7 @@ function mcupr_cc_data_all() {
 				'tips' => array( 'ดูว่าข่าวแบบไหนคนอ่านมาก แล้วทำเรื่องคล้ายกันเพิ่ม', 'ไฟล์ที่ไม่มีคนโหลดเลยอาจต้องย้ายไปไว้ในที่ที่หาเจอง่ายกว่า' ),
 			),
 			'elementor' => array(
-				'cat' => 'system', 'icon' => 'layout', 'title' => 'เนื้อหา Elementor', 'open' => 'page:mcupr-elementor', 'cap' => 'manage_options',
+				'cat' => 'system', 'icon' => 'layout', 'title' => 'เนื้อหา Elementor', 'open' => 'page:mcupr-elementor', 'cap' => 'mcupr_manage_theme',
 				'screens' => array( 'page:mcupr-elementor' ),
 				'desc' => 'หน้าและโพสต์ที่เคยสร้างด้วย Elementor ยังแสดงผลได้โดยไม่ต้องมีปลั๊กอิน',
 				'what' => 'ธีมอ่านข้อมูลที่ Elementor บันทึกไว้แล้วแสดงผลให้เอง หน้านี้บอกว่ามีหน้าไหนบ้าง ใช้วิดเจ็ตอะไร และมีวิดเจ็ตไหนที่แสดงผลไม่ได้',
@@ -361,7 +361,7 @@ function mcupr_cc_data_all() {
 				'tips' => array( 'อย่าลบโฟลเดอร์ wp-content/uploads/elementor เพราะเป็นไฟล์สไตล์ของหน้าเดิม', 'ข้อมูลของ Elementor ไม่ถูกแก้ ติดตั้งปลั๊กอินกลับมาเมื่อไรก็แก้ไขต่อได้' ),
 			),
 			'files'    => array(
-				'cat' => 'system', 'icon' => 'folder', 'title' => 'ตัวจัดการไฟล์', 'open' => 'page:mcupr-files', 'cap' => 'manage_options',
+				'cat' => 'system', 'icon' => 'folder', 'title' => 'ตัวจัดการไฟล์', 'open' => 'page:mcupr-files', 'cap' => 'mcupr_manage_files',
 				'screens' => array( 'page:mcupr-files' ),
 				'desc' => 'จัดการโฟลเดอร์และไฟล์จริงในโฟลเดอร์ uploads หน้าตาเหมือน Finder ติดป้ายสีได้',
 				'what' => 'เห็นไฟล์จริงบนเซิร์ฟเวอร์ (โฟลเดอร์ wp-content/uploads) สร้างโฟลเดอร์ เปลี่ยนชื่อ ลากย้าย อัปโหลด ดาวน์โหลด (หลายไฟล์ได้เป็น zip) และลบ มีมุมมองไอคอน/รายการ และติดป้ายสีได้ทั้งไฟล์และโฟลเดอร์ (หลายสีต่อหนึ่งรายการ ตั้งชื่อป้ายเองได้ กรองตามสีที่แถบซ้าย) ไฟล์ที่เป็นของคลังสื่อ (รูปที่ใช้ในข่าว) จะมีรูปกุญแจ แก้ที่นี่ไม่ได้ เพื่อไม่ให้รูปในข่าวเสีย ใช้ได้เฉพาะผู้ดูแลระบบ',
@@ -369,9 +369,17 @@ function mcupr_cc_data_all() {
 				'tips' => array( 'การลบเป็นการลบถาวร ไม่มีถังขยะ ระบบจะถามก่อนและบอกว่าจะลบกี่ไฟล์', 'อัปโหลดได้เฉพาะชนิดไฟล์ที่ WordPress อนุญาต ไม่รับสคริปต์ เช่น .php', 'ไฟล์ที่ต้องการให้ใช้ในข่าวและมีขนาดรูปอัตโนมัติ ให้อัปโหลดที่คลังรูปภาพและไฟล์ ไม่ใช่ที่นี่' ),
 			),
 			'insights' => array(
-				'cat' => 'system', 'icon' => 'search', 'title' => 'เปลี่ยนเส้นทาง และสถิติการค้นหา', 'open' => 'page:mcupr-insights', 'cap' => 'manage_options',
+				'cat' => 'system', 'icon' => 'search', 'title' => 'เปลี่ยนเส้นทาง และสถิติการค้นหา', 'open' => 'page:mcupr-insights', 'cap' => 'mcupr_view_insights',
 				'screens' => array( 'page:mcupr-insights' ),
 				'desc' => 'ตั้งการเปลี่ยนเส้นทาง ดูหน้าที่หาไม่เจอ และสิ่งที่ผู้เยี่ยมชมค้นหา', 'what' => 'ดูว่าผู้เยี่ยมชมค้นหาอะไรแล้วไม่เจอ และลิงก์ไหนเสีย จากนั้นตั้งให้ลิงก์เก่าพาไปหน้าใหม่ได้', 'steps' => array( 'ดูรายการ "ไม่พบหน้า" บ่อยสุด', 'ใส่ปลายทางที่ถูกต้องแล้วกด "บันทึก"' ), 'tips' => array( 'คำค้นหาที่ไม่มีผลลัพธ์คือไอเดียเนื้อหาที่ควรทำ' ),
+			),
+			'roles'    => array(
+				'cat' => 'system', 'icon' => 'shield', 'title' => 'สิทธิ์ผู้ใช้ (บทบาท)', 'open' => 'page:mcupr-roles',
+				'screens' => array( 'page:mcupr-roles' ),
+				'desc' => 'ตารางเดียวบอกว่าบทบาทไหนทำอะไรได้ ติ๊กแล้วบันทึก',
+				'what' => 'ทุกบทบาทบนเว็บเป็นหนึ่งคอลัมน์ ทุกสิ่งที่ทำได้เป็นหนึ่งแถว ติ๊กเพื่อให้สิทธิ์ เอาติ๊กออกเพื่อถอนสิทธิ์ ธีมเตรียมบทบาทมาตรฐานไว้ให้แล้ว (นิสิต อาจารย์ เจ้าหน้าที่ นายทะเบียน เจ้าหน้าที่หน่วยงาน) สร้างบทบาทใหม่เองได้ และกดคืนค่ามาตรฐานได้ทุกเมื่อ ผู้ดูแลระบบมีสิทธิ์ครบเสมอ แก้ไม่ได้ เพื่อไม่ให้เว็บล็อกตัวเองออกจากหน้าตั้งค่า',
+				'steps' => array( 'เปิดหน้านี้ ดูการ์ดด้านบนว่าแต่ละบทบาทคืออะไรและมีกี่คน', 'หาสิทธิ์ที่ต้องการในช่องค้นหา แล้วติ๊กในคอลัมน์ของบทบาทนั้น', 'กด "บันทึก"' ),
+				'tips' => array( 'สิทธิ์ที่มีป้าย "อ่อนไหว" ใช้ยึดเว็บได้ ให้เฉพาะคนที่จำเป็นจริง', 'ถ้าตั้งผิด กด "คืนค่ามาตรฐาน" ที่การ์ดของบทบาทนั้น', 'บทบาทของ WordPress เอง (บรรณาธิการ ผู้เขียน) มีผลกับปลั๊กอินอื่นด้วย ควรใช้บทบาทของธีมกับคนในมหาวิทยาลัยแทน' ),
 			),
 			'users'    => array(
 				'cat' => 'system', 'icon' => 'user-plus', 'title' => 'ผู้ใช้และสิทธิ์', 'open' => 'adm:users.php', 'add' => 'adm:user-new.php', 'cap' => 'list_users',
