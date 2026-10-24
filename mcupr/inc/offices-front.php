@@ -167,7 +167,7 @@ function mcupr_office_card( $o, $h = 'h3' ) {
 function mcupr_offices_html( $h = 'h3' ) {
 	$list = mcupr_offices();
 	if ( ! $list ) {
-		return '<p class="text-muted">' . esc_html( mcupr_t( 'of_no_offices' ) ) . '</p>';
+		return mcupr_empty_note( mcupr_t( 'of_no_offices' ), 'users' );
 	}
 	$s = '<div class="office-grid">';
 	foreach ( $list as $o ) {
@@ -472,7 +472,7 @@ function mcupr_office_render( $oid, $section ) {
 				echo '</ul></nav>';
 			}
 			echo mcupr_browser_views() . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
-			echo $q->have_posts() ? mcupr_office_news_html( $q, 'h2', true ) : '<p class="text-muted">' . esc_html( mcupr_t( 'of_none' ) ) . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput
+			echo $q->have_posts() ? mcupr_office_news_html( $q, 'h2', true ) : mcupr_empty_note( mcupr_t( 'of_none' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 			echo '</section></div>';
 			echo '<script>(function(){try{var v=localStorage.getItem("mcupr_view");if(v!=="list"&&v!=="gallery"){return;}var r=document.querySelector("[data-fb]"),i=document.querySelector("[data-fb-items]");if(r){r.setAttribute("data-view",v);}if(i){i.setAttribute("data-view",v);}var b=document.querySelectorAll("[data-fb-view]");for(var k=0;k<b.length;k++){b[k].setAttribute("aria-checked",b[k].getAttribute("data-fb-view")===v?"true":"false");}}catch(e){}})();</script>';
 			echo mcupr_office_pager( $oid, 'news', $page, (int) $q->max_num_pages ); // phpcs:ignore WordPress.Security.EscapeOutput
@@ -484,7 +484,7 @@ function mcupr_office_render( $oid, $section ) {
 			echo mcupr_office_block( 'of-ev-up', mcupr_t( 'of_upcoming' ), mcupr_office_events_html( $up ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 			echo mcupr_office_block( 'of-ev-past', mcupr_t( 'of_past' ), mcupr_office_events_html( $pa ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 			if ( ! $up && ! $pa ) {
-				echo '<p class="text-muted">' . esc_html( mcupr_t( 'of_none' ) ) . '</p>';
+				echo mcupr_empty_note( mcupr_t( 'of_none' ) );
 			}
 			break;
 		case 'people':
@@ -497,7 +497,7 @@ function mcupr_office_render( $oid, $section ) {
 				$groups[ $k ][] = $p;
 			}
 			if ( ! $groups ) {
-				echo '<p class="text-muted">' . esc_html( mcupr_t( 'of_none' ) ) . '</p>';
+				echo mcupr_empty_note( mcupr_t( 'of_none' ) );
 			}
 			$i = 0;
 			foreach ( $groups as $name => $list ) {
@@ -516,7 +516,7 @@ function mcupr_office_render( $oid, $section ) {
 			$items = get_posts( mcupr_office_query_args( $oid, 'albums' === $section ? 'mcupr_album' : 'mcupr_video', array( 'posts_per_page' => 48, 'orderby' => 'date', 'order' => 'DESC' ) ) );
 			echo mcupr_office_head( mcupr_t( 'albums' === $section ? 'of_albums' : 'of_videos' ), 'albums' === $section ? 'image' : 'video', count( $items ), sprintf( mcupr_t( 'albums' === $section ? 'of_lead_albums' : 'of_lead_videos' ), get_the_title( $oid ) ), 'albums' === $section ? 'of_n_unit_albums' : 'of_n_unit_videos' ); // phpcs:ignore WordPress.Security.EscapeOutput
 			if ( ! $items ) {
-				echo '<p class="text-muted">' . esc_html( mcupr_t( 'of_none' ) ) . '</p>';
+				echo mcupr_empty_note( mcupr_t( 'of_none' ) );
 				break;
 			}
 			echo '<div class="album-grid">';

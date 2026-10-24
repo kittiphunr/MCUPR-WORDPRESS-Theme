@@ -97,7 +97,7 @@ foreach ( array( 'news' => 'news-card', 'events' => 'ev-row', 'people' => 'perso
 }
 office_page( $A, 'videos' );
 ob_start(); mcupr_office_render( $A, 'videos' ); $h = ob_get_clean();
-t( false !== strpos( $h, 'text-muted' ), 'an empty section says so instead of showing nothing' );
+t( false !== strpos( $h, 'empty-note' ) && false !== strpos( $h, mcupr_t( 'of_none' ) ), 'an empty section says so instead of showing nothing' );
 office_page( $A, 'people' );
 ob_start(); mcupr_office_render( $A, 'people' ); $h = ob_get_clean();
 t( false !== strpos( $h, 'ผู้บริหาร' ) && false !== strpos( $h, 'เจ้าหน้าที่' ) && 4 === substr_count( $h, 'class="person-card"' ), 'people are grouped (executives, staff): 4 cards' );
