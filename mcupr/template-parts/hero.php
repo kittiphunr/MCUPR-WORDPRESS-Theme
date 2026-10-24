@@ -78,9 +78,30 @@ foreach ( $extra as $e ) {
 	// Quick links: the "Quick links" menu; until one is assigned, the first items of the main menu.
 	$quick_args = has_nav_menu( 'quick' ) ? array( 'theme_location' => 'quick' ) : ( has_nav_menu( 'primary_' . mcupr_lang() ) ? array( 'theme_location' => 'primary_' . mcupr_lang() ) : ( has_nav_menu( 'primary_' . mcupr_default_lang() ) ? array( 'theme_location' => 'primary_' . mcupr_default_lang() ) : array() ) );
 	if ( $quick_args && $hero['quick'] ) :
+		$quick_html = wp_nav_menu( $quick_args + array( 'container' => false, 'menu_class' => 'hero-menu', 'depth' => 1, 'echo' => false ) );
+		$personas   = $hero['persona'] ? mcupr_personas_in( (string) $quick_html ) : array();
 		?>
-		<nav class="mt-5 w-full max-w-6xl animate-fade-up [animation-delay:.2s]" aria-label="<?php echo esc_attr( mcupr_t( 'quick_links' ) ); ?>">
-			<?php wp_nav_menu( $quick_args + array( 'container' => false, 'menu_class' => 'hero-menu', 'depth' => 1 ) ); ?>
-		</nav>
+		<div class="hero-quick mt-5 w-full max-w-6xl animate-fade-up [animation-delay:.2s]"<?php echo $personas ? ' data-persona="' . esc_attr( implode( ',', $personas ) ) . '" data-persona-shown="' . esc_attr( mcupr_t( 'persona_shown' ) ) . '"' : ''; ?>>
+			<?php if ( $personas ) : ?>
+				<div class="persona" hidden data-persona-picker>
+					<span class="persona-iam" id="persona-iam"><?php mcupr_e( 'persona_iam' ); ?></span>
+					<span class="persona-wrap">
+					<button type="button" class="persona-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="persona-iam persona-cur" title="<?php echo esc_attr( mcupr_t( 'persona_pick' ) ); ?>">
+						<span id="persona-cur" data-persona-cur><?php echo esc_html( mcupr_t( mcupr_personas()[ $personas[0] ] ) ); ?></span>
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg>
+					</button>
+					<span class="sr-only" role="status" aria-live="polite" data-persona-live></span>
+					<ul class="persona-list" role="listbox" aria-labelledby="persona-iam" hidden>
+						<?php foreach ( $personas as $k ) : ?>
+							<li role="option" tabindex="-1" data-persona-opt="<?php echo esc_attr( $k ); ?>" aria-selected="false"><?php echo esc_html( mcupr_t( mcupr_personas()[ $k ] ) ); ?></li>
+						<?php endforeach; ?>
+					</ul>
+					</span>
+				</div>
+			<?php endif; ?>
+			<nav aria-label="<?php echo esc_attr( mcupr_t( 'quick_links' ) ); ?>">
+				<?php echo $quick_html; // phpcs:ignore WordPress.Security.EscapeOutput -- built by wp_nav_menu ?>
+			</nav>
+		</div>
 	<?php endif; ?>
 </section></div>

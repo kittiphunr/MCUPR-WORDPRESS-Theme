@@ -206,6 +206,8 @@ def emit_items(menu_slug, menu_name, loc, items, li):
             classes = []
             if it.get('icon'):
                 classes.append('mcupr-icon-' + it['icon'])
+            for k in it.get('for', []):
+                classes.append('mcupr-for-' + k)
             if it.get('mega'):
                 classes.append('mcupr-mega-%d' % it['mega'])
             cls = 'a:%d:{%s}' % (max(len(classes), 1), ''.join('i:%d;s:%d:"%s";' % (n, len(c), c) for n, c in enumerate(classes or [''])))
