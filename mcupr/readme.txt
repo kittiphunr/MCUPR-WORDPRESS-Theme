@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.62 =
+* Home hero: an 'I am…' picker over the quick links, and nicer tiles
+
 = 1.54.61 =
 * Media library: tidy folder levels and one bar for filters, Bulk select and search
 

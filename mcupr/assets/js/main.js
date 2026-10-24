@@ -1651,6 +1651,66 @@
 		mark();
 	})();
 
+	/* "I am…" picker above the home quick links: the links marked for other kinds of visitor are hidden; the choice is remembered. */
+	(function () {
+		var box = document.querySelector('[data-persona]');
+		var picker = box && box.querySelector('[data-persona-picker]');
+		var menu = box && box.querySelector('.hero-menu');
+		if (!picker || !menu) { return; }
+		var keys = box.getAttribute('data-persona').split(',');
+		var btn = picker.querySelector('.persona-btn');
+		var list = picker.querySelector('.persona-list');
+		var opts = $$('[data-persona-opt]', list);
+		var cur = picker.querySelector('[data-persona-cur]');
+		var live = picker.querySelector('[data-persona-live]');
+		var items = $$('li', menu).map(function (li) {
+			return { li: li, tags: li.className.split(/\s+/).filter(function (c) { return c.indexOf('for-') === 0; }).map(function (c) { return c.slice(4); }) };
+		});
+		function label(k) { var o = opts.filter(function (x) { return x.getAttribute('data-persona-opt') === k; })[0]; return o ? o.textContent : k; }
+		function show(k, user) {
+			items.forEach(function (it) { it.li.hidden = it.tags.length > 0 && it.tags.indexOf(k) < 0; });
+			opts.forEach(function (o) { o.setAttribute('aria-selected', String(o.getAttribute('data-persona-opt') === k)); });
+			cur.textContent = label(k);
+			menu.setAttribute('data-ready', '1');
+			menu.classList.remove('persona-swap');
+			void menu.offsetWidth;
+			menu.classList.add('persona-swap');
+			if (user) {
+				try { localStorage.setItem('mcupr_persona', k); } catch (err) { /* ignore */ }
+				live.textContent = (box.getAttribute('data-persona-shown') || '') + ' ' + label(k);
+			}
+		}
+		function isOpen() { return !list.hidden; }
+		function close(back) { list.hidden = true; btn.setAttribute('aria-expanded', 'false'); if (back) { btn.focus(); } }
+		function open() {
+			list.hidden = false;
+			btn.setAttribute('aria-expanded', 'true');
+			var sel = opts.filter(function (o) { return o.getAttribute('aria-selected') === 'true'; })[0] || opts[0];
+			sel.focus();
+		}
+		var saved = '';
+		try { saved = localStorage.getItem('mcupr_persona') || ''; } catch (err) { /* ignore */ }
+		picker.hidden = false;
+		show(keys.indexOf(saved) >= 0 ? saved : keys[0], false);
+		btn.addEventListener('click', function () { if (isOpen()) { close(false); } else { open(); } });
+		btn.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); open(); } });
+		list.addEventListener('click', function (e) {
+			var o = e.target.closest('[data-persona-opt]');
+			if (o) { show(o.getAttribute('data-persona-opt'), true); close(true); }
+		});
+		list.addEventListener('keydown', function (e) {
+			var i = opts.indexOf(document.activeElement);
+			if (e.key === 'ArrowDown') { e.preventDefault(); opts[Math.min(opts.length - 1, i + 1)].focus(); }
+			else if (e.key === 'ArrowUp') { e.preventDefault(); opts[Math.max(0, i - 1)].focus(); }
+			else if (e.key === 'Home') { e.preventDefault(); opts[0].focus(); }
+			else if (e.key === 'End') { e.preventDefault(); opts[opts.length - 1].focus(); }
+			else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (i >= 0) { show(opts[i].getAttribute('data-persona-opt'), true); close(true); } }
+			else if (e.key === 'Escape') { e.preventDefault(); close(true); }
+			else if (e.key === 'Tab') { close(false); }
+		});
+		document.addEventListener('click', function (e) { if (isOpen() && !picker.contains(e.target)) { close(false); } });
+	})();
+
 	apply();
 	reveal();
 })();
