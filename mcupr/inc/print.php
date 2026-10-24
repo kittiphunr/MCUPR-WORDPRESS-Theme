@@ -168,7 +168,7 @@ function mcupr_print_customize( $wp_customize ) {
 	}
 	$wp_customize->add_setting( 'mcupr_print_text', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 	$wp_customize->add_control( 'mcupr_print_text', array( 'section' => 'mcupr_print', 'label' => __( 'Without a header graphic: print the logo and the organisation name as the letterhead', 'mcupr' ), 'type' => 'checkbox' ) );
-	foreach ( mcupr_ui_languages() as $code => $l ) {
+	foreach ( mcupr_languages() as $code => $l ) {
 		$wp_customize->add_setting( "mcupr_print_foot_text_{$code}", array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
 		$wp_customize->add_control( "mcupr_print_foot_text_{$code}", array( 'section' => 'mcupr_print', /* translators: %s: language */ 'label' => sprintf( __( 'Footer text without a footer graphic (%s) – empty = the address of the organisation', 'mcupr' ), mcupr_admin_lang_name( $l['name'] ) ), 'type' => 'textarea' ) );
 	}
