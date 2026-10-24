@@ -4465,6 +4465,75 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     }
     await ic.close();
   }
+  // languages: one Customizer tab per language, added / removed languages on the front end
+  {
+    const { execSync: execG } = require('child_process');
+    const phpG = (code) => { const f = require('os').tmpdir() + '/e2e-lang-' + process.pid + '.php'; require('fs').writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execG('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const gc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    const gp = await gc.newPage();
+    await gp.goto(B + '/wp-login.php');
+    await gp.fill('#user_login', 'e2eadmin'); await gp.fill('#user_pass', 'e2e-Admin-pass-1'); await gp.click('#wp-submit');
+    await gp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    phpG('set_theme_mod( "mcupr_langs_extra", "ko" );');
+    await gp.goto(B + '/wp-admin/customize.php?autofocus[panel]=mcupr_langs', { waitUntil: 'domcontentloaded' });
+    await gp.waitForSelector('#sub-accordion-panel-mcupr_langs', { state: 'attached', timeout: 60000 });
+    await gp.waitForTimeout(1200);
+    const tabs = await gp.locator('#sub-accordion-panel-mcupr_langs > li.control-section').evaluateAll((els) => els.map((e) => e.id.replace('accordion-section-', '')));
+    ok(tabs[0] === 'mcupr_langs_set' && ['mcupr_lang_en', 'mcupr_lang_zh', 'mcupr_lang_ja', 'mcupr_lang_ko'].every((x) => tabs.includes(x)), 'languages: the Customizer panel has the settings tab and one tab each for English, Chinese, Japanese and the added Korean (' + tabs.join(', ') + ')');
+    await gp.goto(B + '/wp-admin/customize.php?autofocus[section]=mcupr_lang_en', { waitUntil: 'domcontentloaded' });
+    await gp.waitForSelector('#sub-accordion-section-mcupr_lang_en .customize-control', { state: 'attached', timeout: 60000 });
+    await gp.waitForTimeout(800);
+    const en = await gp.evaluate(() => { const labels = [...document.querySelectorAll('#sub-accordion-section-mcupr_lang_en .customize-control')].map((c) => (c.querySelector('label, .customize-control-title') || c).textContent.replace(/\s+/g, ' ').trim()); return { n: labels.length, bracket: labels.filter((l) => /\((English|อังกฤษ|Chinese|จีน|Japanese|ญี่ปุ่น|Thai|ไทย)\)/.test(l)), root: !!document.querySelector('#accordion-section-mcupr_lang_en') }; });
+    ok(en.n >= 12 && en.bracket.length === 0, 'languages: the English tab holds ' + en.n + ' fields and none has the language in brackets' + (en.bracket.length ? ': ' + en.bracket[0] : ''));
+    await gp.goto(B + '/wp-admin/customize.php', { waitUntil: 'domcontentloaded' });
+    await gp.waitForSelector('.mcupr-cz-group', { timeout: 60000 });
+    ok((await gp.locator('#accordion-panel-mcupr_langs').count()) === 1, 'languages: the first screen of the Customizer lists "languages and translations"');
+    // the front end: an added language, one switched off
+    phpG('set_theme_mod( "mcupr_langs_extra", "ko" ); set_theme_mod( "mcupr_hero_l1_ko", "한국어 첫 줄 문장" ); set_theme_mod( "mcupr_lang_on_ja", false );');
+    const fc = await br.newContext({ viewport: { width: 1366, height: 900 } });
+    await fc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+    const fp = await fc.newPage();
+    await fp.goto(B + '/?lang=ko');
+    ok((await fp.getAttribute('html', 'lang')) === 'ko' && /한국어 첫 줄 문장/.test(await fp.locator('.hero').innerText()), 'languages: ?lang=ko gives <html lang="ko"> and the Korean hero text');
+    ok((await fp.locator('link[rel=alternate][hreflang=ko]').count()) === 1 && (await fp.locator('link[rel=alternate][hreflang=ja]').count()) === 0, 'languages: Korean is in the hreflang list, the switched-off Japanese is not');
+    await fp.click('#lang-toggle');
+    await fp.waitForSelector('[role=dialog] a[hreflang=ko], .swal2-popup a[hreflang=ko], a[hreflang=ko]', { timeout: 10000 });
+    ok((await fp.locator('a[hreflang=ko]').count()) >= 1 && (await fp.locator('a[hreflang=ja]').count()) === 0, 'languages: the language picker offers Korean and no longer Japanese');
+    await fp.goto(B + '/?lang=ja');
+    ok((await fp.getAttribute('html', 'lang')) === 'th', 'languages: ?lang=ja for a language that was removed shows the default language');
+    await fp.goto(B + '/?lang=vi');
+    ok((await fp.getAttribute('html', 'lang')) === 'th', 'languages: a language that was never added is ignored too');
+    await fc.close(); await gc.close();
+    phpG('foreach ( array( "mcupr_langs_extra", "mcupr_hero_l1_ko", "mcupr_lang_on_ja" ) as $m ) { remove_theme_mod( $m ); }');
+  }
+  // PHP security notice (October 2026 flaws): shown to an administrator on an unfixed PHP, hidden by "my host confirmed", never for other roles
+  {
+    const { execSync: execS } = require('child_process');
+    const phpS = (code) => { const f = require('os').tmpdir() + '/e2e-phpsec-' + process.pid + '.php'; require('fs').writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execS('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const state = phpS('delete_option( "mcupr_php_sec_ack" ); echo mcupr_php_security()["state"];');
+    const sc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    const spg = await sc.newPage();
+    await spg.goto(B + '/wp-login.php');
+    await spg.fill('#user_login', 'e2eadmin'); await spg.fill('#user_pass', 'e2e-Admin-pass-1'); await spg.click('#wp-submit');
+    await spg.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    await spg.goto(B + '/wp-admin/index.php');
+    if (state === 'old' || state === 'eol') {
+      ok(await spg.locator('#mcupr-php-security.notice-error').isVisible() && /CVE-2026-109618/.test(await spg.locator('#mcupr-php-security').innerText()), 'php security: on PHP ' + phpS('echo PHP_VERSION;') + ' an administrator sees the red notice with the CVE numbers');
+      ok((await spg.locator('#mcupr-php-security form button').count()) === 1 && (await spg.locator('#mcupr-php-security a[target=_blank][rel*=noopener]').count()) === 1, 'php security: the notice has the "host confirmed" button and a safe link to the announcement');
+      await spg.click('#mcupr-php-security form button');
+      await spg.waitForLoadState('domcontentloaded');
+      ok((await spg.locator('#mcupr-php-security').count()) === 0, 'php security: after "my host confirmed the fix" the notice is gone');
+      await spg.reload();
+      ok((await spg.locator('#mcupr-php-security').count()) === 0, 'php security: and it stays gone on the next page');
+      await spg.goto(B + '/wp-admin/site-health.php');
+      const hc = await spg.waitForSelector('#health-check-accordion-block-mcupr_php_security', { state: 'attached', timeout: 30000 }).catch(() => null);
+      ok(!!hc, 'php security: Site Health lists the check (good, because the administrator confirmed it)');
+    } else {
+      ok((await spg.locator('#mcupr-php-security').count()) === 0, 'php security: this PHP is fixed, so there is no notice');
+    }
+    await sc.close();
+    phpS('update_option( "mcupr_php_sec_ack", array( "v" => PHP_VERSION, "by" => 0, "t" => time() ), false );'); // back to the quiet state the other tests expect
+  }
   await br.close();
   finish();
 })();
