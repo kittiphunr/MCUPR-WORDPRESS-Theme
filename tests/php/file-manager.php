@@ -137,13 +137,58 @@ update_option( 'mcupr_fm_tagnames', array( 1 => 'ต้องตรวจ' ) );
 t( 'ต้องตรวจ' === mcupr_fm_tag_defs()[1]['name'] && '#ff453a' === mcupr_fm_tag_defs()[1]['color'], 'a tag can be renamed, its colour stays' );
 delete_option( 'mcupr_fm_tagnames' );
 
-// ---- delete
+// ---- the trash: a delete is a move, nothing is lost
+mcupr_fm_trash_purge(); // an empty trash to begin with
 $w = mcupr_fm_weigh( $root . '/' . $base . '/ข่าวสาร' );
 t( $w[0] >= 2 && $w[1] >= 2 && $w[2] > 0, 'weighing says files, folders and bytes' );
 $d = mcupr_fm_delete( array( $base . '/ข่าวสาร' ) );
-t( ! is_wp_error( $d ) && $d[0] >= 2 && ! is_dir( $root . '/' . $base . '/ข่าวสาร' ), 'a folder is deleted with what is inside' );
-t( ! isset( mcupr_fm_tags_all()[ $base . '/ข่าวสาร/รูป' ] ) && 0 === mcupr_fm_tag_counts()[4], 'its tags go with it' );
+t( ! is_wp_error( $d ) && 1 === count( $d ) && preg_match( '/^[a-f0-9]{16}$/', $d[0] ) && ! is_dir( $root . '/' . $base . '/ข่าวสาร' ), 'a delete moves the folder to the trash: it is gone from its place and has an unguessable id' );
+$tid = $d[0];
+t( is_dir( $root . '/.mcupr-trash/' . $tid . '/ข่าวสาร' ) && is_file( $root . '/.mcupr-trash/' . $tid . '/ข่าวสาร/a.txt' ), 'what is inside went with it, whole' );
+t( is_file( $root . '/.mcupr-trash/.htaccess' ) && false !== strpos( file_get_contents( $root . '/.mcupr-trash/.htaccess' ), 'denied' ) && is_file( $root . '/.mcupr-trash/index.php' ), 'the trash is closed to the web (.htaccess and an index file)' );
+t( ! in_array( '.mcupr-trash', wp_list_pluck( mcupr_fm_list( '' ), 'name' ), true ) && is_wp_error( mcupr_fm_clean( '.mcupr-trash' ) ) && is_wp_error( mcupr_fm_abs( '.mcupr-trash/' . $tid ) ), 'the trash folder is not listed and cannot be reached as a path' );
+$ti = mcupr_fm_trash_items();
+t( 1 === count( $ti ) && 'ข่าวสาร' === $ti[0]['name'] && $base === $ti[0]['from'] && $ti[0]['dir'] && $ti[0]['files'] >= 2 && $ti[0]['folders'] >= 2 && $ti[0]['size'] > 0 && $ti[0]['path'] === $tid && 1 === mcupr_fm_trash_count(), 'the trash lists it: name, where it was, when, how much' );
+t( ! isset( mcupr_fm_tags_all()[ $base . '/ข่าวสาร/รูป' ] ) && 0 === mcupr_fm_tag_counts()[4], 'its colour tags do not count while it is in the trash' );
 t( is_wp_error( mcupr_fm_delete( array( '' ) ) ) && is_wp_error( mcupr_fm_delete( array( '../x' ) ) ), 'the uploads folder itself and outside places cannot be deleted' );
+// put back, with the tags
+$r = mcupr_fm_trash_restore( array( $tid ) );
+t( array( $base . '/ข่าวสาร' ) === $r && is_file( $root . '/' . $base . '/ข่าวสาร/a.txt' ) && 0 === mcupr_fm_trash_count() && ! is_dir( $root . '/.mcupr-trash/' . $tid ), 'put back: the folder is where it was, the trash is empty again' );
+t( isset( mcupr_fm_tags_all()[ $base . '/ข่าวสาร/รูป/บันทึก.txt' ] ) && 1 === mcupr_fm_tag_counts()[4], 'the colour tags come back with it, also those of what is inside' );
+// a name that is taken meanwhile gets a number; a folder that is gone is made again
+$d = mcupr_fm_delete( array( $base . '/ข่าวสาร' ) );
+mkdir( $root . '/' . $base . '/ข่าวสาร' );
+$r = mcupr_fm_trash_restore( $d );
+t( array( $base . '/ข่าวสาร 2' ) === $r && is_file( $root . '/' . $base . '/ข่าวสาร 2/a.txt' ) && is_dir( $root . '/' . $base . '/ข่าวสาร' ), 'put back onto a name that is taken: it gets a number, nothing is replaced' );
+rmdir( $root . '/' . $base . '/ข่าวสาร' );
+$d = mcupr_fm_delete( array( $base . '/ข่าวสาร 2/รูป' ) );
+mcupr_fm_rm( $root . '/' . $base . '/ข่าวสาร 2' );
+$r = mcupr_fm_trash_restore( $d );
+t( array( $base . '/ข่าวสาร 2/รูป' ) === $r && is_file( $root . '/' . $base . '/ข่าวสาร 2/รูป/บันทึก.txt' ), 'put back when its folder is gone: the folder is made again' );
+// a file, then deleted for good; ids are checked
+file_put_contents( $root . '/' . $base . '/gone.txt', 'bye' );
+$d = mcupr_fm_delete( array( $base . '/gone.txt' ) );
+t( ! file_exists( $root . '/' . $base . '/gone.txt' ) && 1 === mcupr_fm_trash_count() && ! mcupr_fm_trash_items()[0]['dir'], 'a file goes to the trash too' );
+t( is_wp_error( mcupr_fm_trash_restore( array( '../etc' ) ) ) && is_wp_error( mcupr_fm_trash_restore( array( 'zzzzzzzzzzzzzzzz' ) ) ), 'only ids of the trash are accepted when putting back' );
+mcupr_fm_trash_purge( array( '../..', 'nonsense' ) );
+t( 1 === mcupr_fm_trash_count(), 'purging with ids that are not in the trash removes nothing' );
+$p = mcupr_fm_trash_purge( $d );
+t( 1 === $p[0] && 0 === mcupr_fm_trash_count() && ! file_exists( $root . '/.mcupr-trash/' . $d[0] ), 'deleting from the trash is for good, and says how much went' );
+// the trash empties itself after a while
+file_put_contents( $root . '/' . $base . '/old.txt', 'o' );
+file_put_contents( $root . '/' . $base . '/new.txt', 'n' );
+$od = mcupr_fm_delete( array( $base . '/old.txt' ) );
+$nd = mcupr_fm_delete( array( $base . '/new.txt' ) );
+$all = get_option( 'mcupr_fm_trash' );
+$all[ $od[0] ]['time'] = time() - 40 * DAY_IN_SECONDS;
+update_option( 'mcupr_fm_trash', $all );
+mcupr_fm_trash_purge( null, time() - 30 * DAY_IN_SECONDS );
+t( 1 === mcupr_fm_trash_count() && ! file_exists( $root . '/.mcupr-trash/' . $od[0] ) && file_exists( $root . '/.mcupr-trash/' . $nd[0] . '/new.txt' ), 'what has been in the trash more than 30 days is removed, the rest stays' );
+t( false !== has_action( 'mcupr_fm_purge' ), 'the daily job that does it is hooked' );
+// the Media library still owns its files, trash or not
+t( is_wp_error( mcupr_fm_delete( array( $base . '/pic.jpg' ) ) ) && is_file( $pic ), 'a file of the Media library is not trashed either' );
+mcupr_fm_trash_purge();
+t( 0 === mcupr_fm_trash_count() && 0 === count( glob( $root . '/.mcupr-trash/*', GLOB_ONLYDIR ) ), 'emptying the trash leaves nothing behind' );
 
 // ---- clean up
 wp_delete_attachment( $att, true );
