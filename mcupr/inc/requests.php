@@ -17,6 +17,7 @@
 defined( 'ABSPATH' ) || exit;
 
 const MCUPR_RQ_CAP = 'mcupr_handle_requests';
+const MCUPR_FE_CAP = 'mcupr_see_answers'; // opening the list of form answers at all (requests or not)
 
 /* ------------------------------------------------------------------ statuses */
 
@@ -40,15 +41,33 @@ function mcupr_rq_chip( $status, $lang = '' ) {
 
 /* ------------------------------------------------------------------ who can handle requests */
 
-/** Staff who may edit pages, and the registrar role, may handle requests (no role needs rebuilding: the capability is given here). */
+/**
+ * Handling a request means reading what the sender wrote and opening the papers they sent with it (a copy of an
+ * identity card, a house registration). That is not something everybody who may edit a page should see, so the right
+ * is given on purpose: to administrators, to the people who look after the student records, and to anybody ticked on
+ * their own user profile. The list of form answers itself stays open to the people who build the forms, but the
+ * requests are kept out of it for them.
+ */
+
+/** Is this person ticked as somebody who handles requests? */
+function mcupr_rq_user_ticked( $user_id ) {
+	$user_id = (int) $user_id;
+	return $user_id && '' !== (string) get_user_meta( $user_id, 'mcupr_requests', true );
+}
+
 add_filter(
 	'user_has_cap',
 	static function ( $all, $caps, $args, $user ) {
-		if ( ! empty( $all[ MCUPR_RQ_CAP ] ) ) {
-			return $all;
-		}
-		if ( ! empty( $all['edit_pages'] ) || ( defined( 'MCUPR_STU_CAP' ) && ! empty( $all[ MCUPR_STU_CAP ] ) ) ) {
+		$uid = $user instanceof WP_User ? (int) $user->ID : 0;
+		if ( empty( $all[ MCUPR_RQ_CAP ] )
+			&& ( ! empty( $all['manage_options'] )
+				|| ( defined( 'MCUPR_STU_CAP' ) && ! empty( $all[ MCUPR_STU_CAP ] ) )
+				|| mcupr_rq_user_ticked( $uid ) ) ) {
 			$all[ MCUPR_RQ_CAP ] = true;
+		}
+		// the answers screen opens for the people who handle requests and for the people who build the forms
+		if ( ! empty( $all[ MCUPR_RQ_CAP ] ) || ! empty( $all['edit_pages'] ) ) {
+			$all[ MCUPR_FE_CAP ] = true;
 		}
 		return $all;
 	},
@@ -56,15 +75,62 @@ add_filter(
 	4
 );
 
-/** The list of answers opens for the people who handle requests (and shows them only the requests). */
+/** The profile of a user: may this person handle requests? (only administrators set it) */
+function mcupr_rq_profile_fields( $user ) {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	wp_nonce_field( 'mcupr_user_requests', 'mcupr_user_requests_nonce' );
+	echo '<h2>' . esc_html__( 'Requests', 'mcupr' ) . '</h2><table class="form-table" role="presentation"><tr><th scope="row">' . esc_html__( 'May handle requests', 'mcupr' ) . '</th><td>';
+	echo '<label><input type="checkbox" name="mcupr_user_requests" value="1"' . checked( mcupr_rq_user_ticked( $user->ID ), true, false ) . '> ' . esc_html__( 'This person sees the requests and the papers sent with them', 'mcupr' ) . '</label>';
+	echo '<p class="description">' . esc_html__( 'A request carries what the sender wrote and the papers they sent (a copy of an identity card, a house registration), so tick only the people whose work needs it. Administrators and the people who look after the student records always see them.', 'mcupr' ) . '</p></td></tr></table>';
+}
+add_action( 'show_user_profile', 'mcupr_rq_profile_fields' );
+add_action( 'edit_user_profile', 'mcupr_rq_profile_fields' );
+
+function mcupr_rq_profile_save( $user_id ) {
+	if ( ! mcupr_check_request( 'mcupr_user_requests_nonce', 'mcupr_user_requests', 'manage_options' ) ) {
+		return;
+	}
+	if ( empty( $_POST['mcupr_user_requests'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		delete_user_meta( $user_id, 'mcupr_requests' );
+	} else {
+		update_user_meta( $user_id, 'mcupr_requests', 1 );
+	}
+}
+add_action( 'personal_options_update', 'mcupr_rq_profile_save' );
+add_action( 'edit_user_profile_update', 'mcupr_rq_profile_save' );
+
+/**
+ * On a site that was built before the right was split off, the staff who handled requests did so because they may
+ * edit pages. Say so once on the answers screen, and stop saying it as soon as somebody is ticked.
+ */
+add_action(
+	'admin_notices',
+	static function () {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || 'edit-mcupr_fe' !== $screen->id || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		if ( ! get_posts( array( 'post_type' => 'mcupr_fe', 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => true, 'meta_key' => '_mcupr_rq_code' ) ) ) { // phpcs:ignore WordPress.DB.SlowDBQuery
+			return;
+		}
+		if ( get_users( array( 'meta_key' => 'mcupr_requests', 'number' => 1, 'fields' => 'ID' ) ) ) { // phpcs:ignore WordPress.DB.SlowDBQuery
+			return;
+		}
+		echo '<div class="notice notice-info"><p><strong>' . esc_html__( 'Who sees the requests', 'mcupr' ) . '</strong> — ' . esc_html__( 'the papers sent with a request are now shown only to administrators, to the people who look after the student records, and to the people ticked "May handle requests" on their user profile. If somebody else saw to the requests until now, tick them.', 'mcupr' ) . ' <a href="' . esc_url( admin_url( 'users.php' ) ) . '">' . esc_html__( 'Users', 'mcupr' ) . '</a></p></div>';
+	}
+);
+
+/** The list of answers opens for the people who handle requests and for the people who build the forms. */
 add_filter(
 	'register_post_type_args',
 	static function ( $args, $type ) {
 		if ( 'mcupr_fe' === $type ) {
 			$args['capabilities'] = array_merge( isset( $args['capabilities'] ) ? $args['capabilities'] : array(), array(
-				'edit_posts'         => MCUPR_RQ_CAP,
-				'edit_others_posts'  => MCUPR_RQ_CAP,
-				'read_private_posts' => MCUPR_RQ_CAP,
+				'edit_posts'         => MCUPR_FE_CAP,
+				'edit_others_posts'  => MCUPR_FE_CAP,
+				'read_private_posts' => MCUPR_FE_CAP,
 			) );
 		}
 		return $args;
@@ -76,7 +142,7 @@ add_filter(
 add_filter(
 	'map_meta_cap',
 	static function ( $caps, $cap, $user_id, $args ) {
-		if ( in_array( $cap, array( 'edit_post', 'read_post' ), true ) && ! empty( $args[0] ) && 'mcupr_fe' === get_post_type( (int) $args[0] ) ) {
+		if ( in_array( $cap, array( 'edit_post', 'read_post', 'delete_post' ), true ) && ! empty( $args[0] ) && 'mcupr_fe' === get_post_type( (int) $args[0] ) ) {
 			return mcupr_rq_is_entry( (int) $args[0] ) ? array( MCUPR_RQ_CAP ) : array( 'edit_pages' );
 		}
 		return $caps;
@@ -90,9 +156,12 @@ add_action(
 		if ( ! is_admin() || ! $q->is_main_query() || 'mcupr_fe' !== $q->get( 'post_type' ) ) {
 			return;
 		}
-		$only = ! current_user_can( 'edit_pages' ) || ! empty( $_GET['mcupr_rq'] ); // phpcs:ignore WordPress.Security.NonceVerification
-		$meta = (array) $q->get( 'meta_query' );
-		if ( $only ) {
+		$handles = current_user_can( MCUPR_RQ_CAP );
+		$meta    = (array) $q->get( 'meta_query' );
+		if ( ! $handles ) {
+			// somebody who only builds forms: the requests are none of their business
+			$meta[] = array( 'key' => '_mcupr_rq_code', 'compare' => 'NOT EXISTS' );
+		} elseif ( ! current_user_can( 'edit_pages' ) || ! empty( $_GET['mcupr_rq'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$meta[] = array( 'key' => '_mcupr_rq_code', 'compare' => 'EXISTS' );
 		}
 		$st = isset( $_GET['mcupr_rq_status'] ) ? sanitize_key( wp_unslash( $_GET['mcupr_rq_status'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
@@ -251,14 +320,7 @@ function mcupr_rq_max_bytes() {
 
 /** The folder of the files (outside what the web server shows as far as it can be told: unguessable names, nothing listed, PHP gives them out). */
 function mcupr_rq_dir( $token = '' ) {
-	$up   = wp_upload_dir();
-	$base = trailingslashit( $up['basedir'] ) . 'mcupr-requests';
-	if ( ! is_dir( $base ) ) {
-		wp_mkdir_p( $base );
-		file_put_contents( $base . '/index.php', "<?php // silence\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-		file_put_contents( $base . '/.htaccess', "Require all denied\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-	}
-	return '' === $token ? $base : $base . '/' . preg_replace( '/[^a-f0-9]/', '', $token );
+	return '' === $token ? mcupr_private_dir( 'requests' ) : mcupr_private_token_dir( 'requests', $token );
 }
 
 /** What each "file" field of the form was given: array( id => array( tmp, name, size, mime ) ) and the errors ( id => key ). Nothing is stored yet. */
@@ -353,8 +415,7 @@ add_action(
 		$f     = is_array( $files ) && isset( $files[ $i ] ) ? $files[ $i ] : null;
 		$path  = $f ? mcupr_rq_dir( $f['k'] ) . '/' . wp_basename( $f['f'] ) : '';
 		$real  = $path ? realpath( $path ) : false;
-		$base  = realpath( mcupr_rq_dir() );
-		if ( ! $real || ! $base || ! mcupr_path_inside( $real, $base ) || ! is_readable( $real ) ) {
+		if ( ! $real || ! mcupr_private_path_ok( $real, 'requests' ) || ! is_readable( $real ) ) {
 			wp_die( esc_html( mcupr_t( 'file_missing' ) ), '', array( 'response' => 404 ) );
 		}
 		nocache_headers();
@@ -366,6 +427,7 @@ add_action(
 		header( 'X-Content-Type-Options: nosniff' );
 		header( 'X-Robots-Tag: noindex' );
 		header( 'Content-Length: ' . filesize( $real ) );
+		do_action( 'mcupr_rq_file_served', $entry, $i ); // the log (inc/privacy.php)
 		readfile( $real ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		exit;
 	},

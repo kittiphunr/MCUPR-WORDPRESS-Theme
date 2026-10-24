@@ -1,0 +1,409 @@
+<?php
+/**
+ * The data hardening: who sees a request and the papers sent with it, what REST gives out about a person, the sitemap,
+ * the staff export button, the guard on the Elementor form.   php php/data-hardening.php [site]
+ */
+define( 'WP_ADMIN', true ); // the list of answers is filtered only on an admin screen
+$site = isset( $argv[1] ) ? $argv[1] : __DIR__ . '/../.site-starter';
+require rtrim( $site, '/' ) . '/wp-load.php';
+require_once ABSPATH . 'wp-admin/includes/admin.php';
+$fails = 0;
+function t( $ok, $label ) { global $fails; echo ( $ok ? 'PASS ' : 'FAIL ' ) . $label . "\n"; if ( ! $ok ) { $fails++; } }
+
+// ---- the people: an editor who may edit pages, and the same person ticked as a request handler
+$fresh_user = static function ( $login, $role ) {
+	$old = get_user_by( 'login', $login );
+	if ( $old ) {
+		wp_delete_user( $old->ID );
+	}
+	return (int) wp_insert_user( array( 'user_login' => $login, 'user_pass' => wp_generate_password(), 'user_email' => $login . '@example.org', 'role' => $role ) );
+};
+$ed = $fresh_user( 'dh_editor', 'editor' );
+$tk = $fresh_user( 'dh_ticked', 'editor' );
+update_user_meta( $tk, 'mcupr_requests', 1 );
+$adm = get_users( array( 'role' => 'administrator', 'number' => 1 ) );
+
+// ---- a request form and a plain form, one answer each
+$rform = wp_insert_post( array( 'post_type' => 'mcupr_fb', 'post_status' => 'publish', 'post_title' => 'DH request form' ) );
+update_post_meta( $rform, '_mcupr_rq_opts', array( 'on' => 1, 'who' => 'all', 'owner' => 0 ) );
+$pform = wp_insert_post( array( 'post_type' => 'mcupr_fb', 'post_status' => 'publish', 'post_title' => 'DH plain form' ) );
+$rq = wp_insert_post( array( 'post_type' => 'mcupr_fe', 'post_status' => 'private', 'post_title' => 'DH request answer' ) );
+update_post_meta( $rq, '_mcupr_fe_form', $rform );
+update_post_meta( $rq, '_mcupr_rq_code', 'REQ-2026-99001' );
+update_post_meta( $rq, '_mcupr_rq_uid', 0 );
+$pa = wp_insert_post( array( 'post_type' => 'mcupr_fe', 'post_status' => 'private', 'post_title' => 'DH plain answer' ) );
+update_post_meta( $pa, '_mcupr_fe_form', $pform );
+
+// 1. the right to handle requests is given on purpose, not by the right to edit pages
+wp_set_current_user( $ed );
+$ed_rq = current_user_can( MCUPR_RQ_CAP );
+wp_set_current_user( $tk );
+$tk_rq = current_user_can( MCUPR_RQ_CAP );
+wp_set_current_user( $adm[0]->ID );
+$ad_rq = current_user_can( MCUPR_RQ_CAP );
+t( ! $ed_rq && $tk_rq && $ad_rq, 'requests: editing pages is not enough; the tick on the profile and being an administrator are' );
+
+// 2. the answers screen still opens for somebody who only builds forms
+wp_set_current_user( $ed );
+t( current_user_can( MCUPR_FE_CAP ) && current_user_can( 'edit_post', $pa ), 'answers: a form builder still opens the list and a plain answer' );
+
+// 3. a request answer is closed to them — reading, editing and deleting alike
+wp_set_current_user( $ed );
+$ed_can = array( current_user_can( 'read_post', $rq ), current_user_can( 'edit_post', $rq ), current_user_can( 'delete_post', $rq ), mcupr_rq_can_see( $rq ) );
+wp_set_current_user( $tk );
+$tk_can = array( current_user_can( 'read_post', $rq ), current_user_can( 'edit_post', $rq ), current_user_can( 'delete_post', $rq ), mcupr_rq_can_see( $rq ) );
+t( array( false, false, false, false ) === $ed_can, 'request answer: a form builder may not read, edit, delete it, nor open its files' );
+t( array( true, true, true, true ) === $tk_can, 'request answer: the person ticked for requests may do all four' );
+
+// 4. the list of answers keeps the requests away from a form builder, and shows them to a handler
+$list = static function ( $uid, $args = array() ) {
+	wp_set_current_user( $uid );
+	$q = new WP_Query();
+	$old = isset( $GLOBALS['wp_the_query'] ) ? $GLOBALS['wp_the_query'] : null;
+	$GLOBALS['wp_the_query'] = $q; // is_main_query() compares against this one
+	$ids = $q->query( array_merge( array( 'post_type' => 'mcupr_fe', 'post_status' => 'any', 'fields' => 'ids', 'posts_per_page' => 50, 'no_found_rows' => true ), $args ) );
+	$GLOBALS['wp_the_query'] = $old;
+	return array_map( 'intval', (array) $ids );
+};
+$ed_list = $list( $ed );
+$tk_list = $list( $tk );
+wp_set_current_user( $adm[0]->ID );
+t( ! in_array( $rq, $ed_list, true ) && in_array( $pa, $ed_list, true ), 'answers list: a form builder sees the plain answer and not the request' );
+t( in_array( $rq, $tk_list, true ), 'answers list: a request handler sees the request' );
+
+// 5. REST: a person who asked for no profile page is not given out, and a hidden biography is taken out
+$opts = get_option( 'mcupr_staff' );
+$o = mcupr_staff_opts();
+$o['profiles'] = 1;
+$o['sections']['bio'] = 1;
+update_option( 'mcupr_staff', $o );
+mcupr_people_register();
+$p_open = wp_insert_post( array( 'post_type' => 'mcupr_person', 'post_status' => 'publish', 'post_title' => 'DH open person', 'post_content' => 'BIOGRAPHY-OPEN' ) );
+update_post_meta( $p_open, '_mcupr_person_hide', array() );
+$p_nobio = wp_insert_post( array( 'post_type' => 'mcupr_person', 'post_status' => 'publish', 'post_title' => 'DH quiet person', 'post_content' => 'BIOGRAPHY-HIDDEN' ) );
+update_post_meta( $p_nobio, '_mcupr_person_hide', array( 'bio' ) );
+$p_off = wp_insert_post( array( 'post_type' => 'mcupr_person', 'post_status' => 'publish', 'post_title' => 'DH no page', 'post_content' => 'BIOGRAPHY-OFF' ) );
+update_post_meta( $p_off, '_mcupr_person_profile', 'off' );
+$rest = static function ( $id ) {
+	$r = rest_do_request( new WP_REST_Request( 'GET', '/wp/v2/mcupr_person/' . $id ) );
+	return array( $r->get_status(), is_array( $r->get_data() ) && isset( $r->get_data()['content']['rendered'] ) ? (string) $r->get_data()['content']['rendered'] : '' );
+};
+wp_set_current_user( 0 );
+list( $s_open, $c_open )   = $rest( $p_open );
+list( $s_nobio, $c_nobio ) = $rest( $p_nobio );
+list( $s_off )             = $rest( $p_off );
+t( 200 === $s_open && false !== strpos( $c_open, 'BIOGRAPHY-OPEN' ), 'rest person: a profile that is open is given out with its biography' );
+t( 200 === $s_nobio && false === strpos( $c_nobio, 'BIOGRAPHY-HIDDEN' ), 'rest person: a biography the person hid is not in the answer' );
+t( 404 === $s_off, 'rest person: somebody who asked for no profile page is not given out at all' );
+wp_set_current_user( $adm[0]->ID );
+list( $s_off_adm, $c_off_adm ) = $rest( $p_off );
+t( 200 === $s_off_adm && false !== strpos( $c_off_adm, 'BIOGRAPHY-OFF' ), 'rest person: somebody who may edit the person still sees everything' );
+
+// 6. with the profile pages switched off nothing of a person is in REST at all
+$o['profiles'] = 0;
+update_option( 'mcupr_staff', $o );
+mcupr_people_register();
+$type = get_post_type_object( 'mcupr_person' );
+$tax  = get_taxonomy( 'mcupr_person_group' );
+t( empty( $type->show_in_rest ) && empty( $tax->show_in_rest ), 'rest person: the switch for the profile pages also closes the REST route and the groups' );
+$o['profiles'] = 1;
+update_option( 'mcupr_staff', $o );
+mcupr_people_register();
+
+// 7. the sitemap leaves out somebody who asked for no profile page
+$args = apply_filters( 'wp_sitemaps_posts_query_args', array( 'post_type' => 'mcupr_person' ), 'mcupr_person' );
+$args = array_merge( $args, array( 'post_status' => 'publish', 'fields' => 'ids', 'posts_per_page' => 50, 'no_found_rows' => true ) );
+$in_map = array_map( 'intval', get_posts( $args ) );
+t( in_array( $p_open, $in_map, true ) && ! in_array( $p_off, $in_map, true ), 'sitemap: a person without a profile page is not announced' );
+
+// 8. the staff export button is only shown to an administrator
+$card = static function ( $uid ) {
+	wp_set_current_user( $uid );
+	ob_start();
+	mcupr_import_card();
+	return (string) ob_get_clean();
+};
+t( false === strpos( $card( $ed ), 'mcupr_staff_export' ) && false !== strpos( $card( $adm[0]->ID ), 'mcupr_staff_export' ), 'staff export: the button for the whole directory is shown to an administrator only' );
+
+// 9. the Elementor form carries the signed moment, and the moment is checked
+$form_html = mcupr_el_w_form( array( 'form_fields' => array( array( 'custom_id' => 'name', 'field_type' => 'text', 'field_label' => 'Name' ) ) ), array( 'id' => 'abc123' ), 0 );
+t( false !== strpos( $form_html, 'name="mcupr_tk"' ) && false !== strpos( $form_html, 'name="mcupr_hp"' ), 'elementor form: the printed form carries the trap field and the signed moment' );
+preg_match( '/name="mcupr_tk" value="([^"]+)"/', $form_html, $m );
+$tok = isset( $m[1] ) ? $m[1] : '';
+$ts  = (int) strtok( $tok, '.' );
+t( '' !== $tok && hash_equals( mcupr_form_token( $ts ), $tok ) && ! hash_equals( mcupr_form_token( $ts ), $ts . '.0000000000000000000' ), 'elementor form: the moment is signed, a made-up one does not pass' );
+$_SERVER['REMOTE_ADDR'] = '198.51.100.77';
+$allowed = 0;
+for ( $i = 0; $i < 12; $i++ ) {
+	if ( mcupr_throttle( 'elform|' . mcupr_client_net(), 8, HOUR_IN_SECONDS ) ) {
+		$allowed++;
+	}
+}
+t( 8 === $allowed, 'elementor form: one network may send eight forms an hour, the ninth is refused' );
+delete_transient( 'mcupr_thr_' . md5( 'elform|' . mcupr_client_net() ) );
+
+// 10. the CSV of a request form's answers needs the right to handle requests
+t( mcupr_rq_is_form( $rform ) && ! mcupr_rq_is_form( $pform ), 'forms: the request form is marked as one, the plain form is not' );
+
+// ---- Tools -> Export must not carry personal data out in a plain file
+foreach ( array( MCUPR_STU => 'the student records', 'mcupr_fe' => 'the form answers', 'mcupr_msg' => 'the messages from the forms', MCUPR_AUDIT => 'the log of who looked at what', MCUPR_MAILJOB => 'the mail jobs' ) as $pt => $what ) {
+	$o = get_post_type_object( $pt );
+	t( $o && false === $o->can_export, 'export: ' . $what . ' are left out of Tools -> Export' );
+}
+$o = get_post_type_object( 'post' );
+t( $o && $o->can_export, 'export: the ordinary posts can still be exported' );
+foreach ( array( MCUPR_AUDIT, MCUPR_MAILJOB ) as $pt ) {
+	$o = get_post_type_object( $pt );
+	t( $o && ! empty( $o->map_meta_cap ) && 'mcupr_student' === ( is_array( $o->capability_type ) ? $o->capability_type[0] : $o->capability_type ), 'caps: ' . $pt . ' is behind the student capabilities, not the ordinary post ones' );
+}
+$unit_type = get_post_type_object( 'mcupr_unit' );
+t( $unit_type && empty( $unit_type->show_in_rest ), 'rest: the Administration chart says public => false and is not in REST either' );
+
+// ---- the folders that hold what people sent
+$req_base = mcupr_rq_dir();
+$up_dir   = wp_upload_dir();
+t( ! mcupr_path_inside( trailingslashit( wp_normalize_path( realpath( $req_base ) ) ), trailingslashit( wp_normalize_path( $up_dir['basedir'] ) ) ) || ( is_file( $req_base . '/.htaccess' ) && is_file( $req_base . '/index.php' ) ), 'files: the request folder is outside the web root, or denied inside uploads' );
+// a site that kept its files inside uploads before this goes on finding them there
+$legacy_tok = str_repeat( 'ab', 12 );
+$legacy_dir = trailingslashit( $up_dir['basedir'] ) . 'mcupr-requests/' . $legacy_tok;
+wp_mkdir_p( $legacy_dir );
+file_put_contents( $legacy_dir . '/old.pdf', "%PDF-1.4\n" );
+t( mcupr_rq_dir( $legacy_tok ) === $legacy_dir, 'files: a file left in the old folder inside uploads is still found there' );
+t( mcupr_private_path_ok( realpath( $legacy_dir . '/old.pdf' ), 'requests' ), 'files: and it still counts as being in a folder of ours' );
+$fresh_tok = str_repeat( 'cd', 12 );
+t( 0 === strpos( mcupr_rq_dir( $fresh_tok ), mcupr_rq_dir() ), 'files: a new file goes into the folder in use' );
+unlink( $legacy_dir . '/old.pdf' );
+rmdir( $legacy_dir );
+
+// ---- the headers every page carries (they are for the front end, so stop pretending to be on an admin screen)
+set_current_screen( 'front' );
+$seen = null;
+$grab = static function ( $h ) use ( &$seen ) {
+	$seen = $h;
+	return array(); // send nothing while testing
+};
+add_filter( 'mcupr_security_headers', $grab );
+$wp_obj = new stdClass();
+$wp_obj->query_vars = array();
+do_action( 'send_headers', $wp_obj );
+$plain = is_array( $seen ) ? $seen : array();
+$seen  = null;
+$wp_obj->query_vars = array( 'embed' => true );
+do_action( 'send_headers', $wp_obj );
+$embed = is_array( $seen ) ? $seen : array();
+remove_filter( 'mcupr_security_headers', $grab );
+t( isset( $plain['X-Content-Type-Options'], $plain['Referrer-Policy'], $plain['Permissions-Policy'], $plain['X-Frame-Options'] ) && 'nosniff' === $plain['X-Content-Type-Options'] && 'SAMEORIGIN' === $plain['X-Frame-Options'], 'headers: a page says nosniff, keeps the address out of the referrer, asks for no camera or place, and refuses framing' );
+t( ! isset( $embed['X-Frame-Options'] ) && isset( $embed['Referrer-Policy'] ), 'headers: an embed is meant to be framed, so that one header is left off it' );
+
+// ---- who counts as staff for content kept for students
+$au = $fresh_user( 'dh_author', 'author' );
+$co = $fresh_user( 'dh_contrib', 'contributor' );
+$stu_post = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'DH students only' ) );
+update_post_meta( $stu_post, MCUPR_AUD, 'students' );
+update_post_meta( $stu_post, '_mcupr_aud_levels', array( 'master' ) );
+mcupr_aud_reset();
+$sees = static function ( $uid ) use ( $stu_post ) {
+	wp_set_current_user( $uid );
+	$GLOBALS['mcupr_aud_cache'] = array();
+	return mcupr_aud_can_view( $stu_post );
+};
+t( ! $sees( $co ) && ! $sees( $au ), 'students only: a contributor and an author are not staff, so the rules still apply to them' );
+t( $sees( $ed ) && $sees( $adm[0]->ID ), 'students only: an editor and an administrator are staff and see it' );
+wp_set_current_user( 0 );
+$GLOBALS['mcupr_aud_cache'] = array();
+t( ! mcupr_aud_can_view( $stu_post ), 'students only: a visitor does not see it' );
+
+// ---- the two post types that need the per-post mapping
+foreach ( array( 'mcupr_person' => 'a staff profile', 'mcupr_unit' => 'a unit of the chart' ) as $pt => $what ) {
+	$o = get_post_type_object( $pt );
+	t( ! empty( $o->map_meta_cap ), 'caps: ' . $what . ' asks WordPress to work out the per-post rights' );
+}
+$unit = wp_insert_post( array( 'post_type' => 'mcupr_unit', 'post_status' => 'publish', 'post_title' => 'DH unit' ) );
+wp_set_current_user( $adm[0]->ID );
+t( current_user_can( 'edit_post', $unit ) && current_user_can( 'edit_post', $p_open ), 'caps: an administrator can open a unit of the chart and a staff profile' );
+wp_set_current_user( $ed );
+t( current_user_can( 'edit_post', $unit ) && current_user_can( 'edit_post', $p_open ), 'caps: an editor can open them too' );
+
+// ---- the Administration chart is not one office's to change
+$office = wp_insert_post( array( 'post_type' => 'mcupr_office', 'post_status' => 'publish', 'post_title' => 'DH office' ) );
+$off_ed = $fresh_user( 'dh_office', MCUPR_OFFICE_ROLE );
+update_user_meta( $off_ed, 'mcupr_offices', array( $office ) );
+clean_user_cache( $off_ed );
+wp_set_current_user( $off_ed );
+t( ! current_user_can( 'edit_post', $unit ) && ! current_user_can( 'delete_post', $unit ), 'offices: somebody who works in one office does not change the Administration chart' );
+wp_set_current_user( $adm[0]->ID );
+wp_delete_post( $unit, true );
+wp_delete_post( $office, true );
+wp_delete_post( $stu_post, true );
+wp_delete_user( $au );
+wp_delete_user( $co );
+wp_delete_user( $off_ed );
+mcupr_aud_reset();
+
+// ---- Tools -> Export / Erase personal data now reach what people sent, not only the student records
+wp_set_current_user( $adm[0]->ID );
+$addr = 'dh_person@example.org';
+$pd_entry = wp_insert_post( array( 'post_type' => 'mcupr_fe', 'post_status' => 'private', 'post_title' => 'DH pd answer' ) );
+update_post_meta( $pd_entry, '_mcupr_fe_form', $pform );
+update_post_meta( $pd_entry, '_mcupr_fe_rows', array( array( 'E-mail', $addr ), array( 'Why', 'DH-ANSWER-TEXT' ) ) );
+$pd_req = wp_insert_post( array( 'post_type' => 'mcupr_fe', 'post_status' => 'private', 'post_title' => 'DH pd request' ) );
+update_post_meta( $pd_req, '_mcupr_fe_form', $rform );
+update_post_meta( $pd_req, '_mcupr_rq_code', 'REQ-2026-99002' );
+update_post_meta( $pd_req, '_mcupr_rq_email', $addr );
+update_post_meta( $pd_req, '_mcupr_rq_sidcode', '8899' );
+$pd_msg = wp_insert_post( array( 'post_type' => 'mcupr_msg', 'post_status' => 'private', 'post_title' => 'DH pd message', 'post_content' => 'DH-MESSAGE-TEXT' ) );
+foreach ( array( 'name' => 'ผู้ร้อง', 'email' => $addr, 'phone' => '0800000000', 'ref' => 'MC-20261024-1' ) as $k => $v ) {
+	update_post_meta( $pd_msg, '_mcupr_msg_' . $k, $v );
+}
+$pd_topic = wp_insert_post( array( 'post_type' => 'mcupr_topic', 'post_status' => 'publish', 'post_title' => 'DH pd topic', 'post_content' => 'DH-TOPIC-TEXT' ) );
+update_post_meta( $pd_topic, '_mcupr_topic_email', $addr );
+update_post_meta( $pd_topic, '_mcupr_topic_name', 'ผู้มาเยือน' );
+
+t( in_array( $pd_req, mcupr_pd_entries( $addr ), true ) && in_array( $pd_entry, mcupr_pd_entries( $addr ), true ) && ! in_array( $pa, mcupr_pd_entries( $addr ), true ), 'personal data: both the request and the plain answer carrying the address are found, somebody else\'s is not' );
+t( array() === mcupr_pd_entries( 'not-an-address' ) && array() === mcupr_pd_entries( '' ), 'personal data: rubbish instead of an address finds nothing' );
+
+$exporters = apply_filters( 'wp_privacy_personal_data_exporters', array() );
+foreach ( array( 'mcupr-student', 'mcupr-form-entry', 'mcupr-message', 'mcupr-forum' ) as $k ) {
+	t( isset( $exporters[ $k ] ) && is_callable( $exporters[ $k ]['callback'] ), 'personal data: there is an exporter for ' . $k );
+}
+$text = '';
+foreach ( array( 'mcupr-form-entry', 'mcupr-message', 'mcupr-forum' ) as $k ) {
+	$r = call_user_func( $exporters[ $k ]['callback'], $addr );
+	t( ! empty( $r['done'] ) && ! empty( $r['data'] ), 'personal data: the exporter ' . $k . ' answers with what it holds' );
+	$text .= wp_json_encode( $r['data'] );
+}
+t( false !== strpos( $text, 'DH-ANSWER-TEXT' ) && false !== strpos( $text, 'DH-MESSAGE-TEXT' ) && false !== strpos( $text, 'DH-TOPIC-TEXT' ) && false !== strpos( $text, 'REQ-2026-99002' ) && false !== strpos( $text, '0800000000' ), 'personal data: the answer holds the text of the form, the message, the topic, the request number and the telephone' );
+
+$erasers = apply_filters( 'wp_privacy_personal_data_erasers', array() );
+foreach ( array( 'mcupr-form-entry', 'mcupr-message', 'mcupr-forum' ) as $k ) {
+	$r = call_user_func( $erasers[ $k ]['callback'], $addr );
+	t( ! empty( $r['done'] ) && ! empty( $r['items_removed'] ), 'personal data: the eraser ' . $k . ' removes what it holds' );
+}
+t( ! get_post( $pd_entry ) && ! get_post( $pd_req ) && ! get_post( $pd_msg ), 'personal data: the answers, the request and the message are gone' );
+t( get_post( $pd_topic ) && '' === (string) get_post_meta( $pd_topic, '_mcupr_topic_email', true ) && false !== strpos( (string) get_post_field( 'post_content', $pd_topic ), 'DH-TOPIC-TEXT' ), 'personal data: a forum topic keeps its text (other people answered it) but loses the name and the address' );
+t( get_post( $pa ), 'personal data: an answer belonging to somebody else is untouched' );
+
+// ---- the log says who took personal data out and who opened what people sent
+$logged = static function ( $action ) {
+	$ids = get_posts( array( 'post_type' => MCUPR_AUDIT, 'post_status' => 'any', 'posts_per_page' => 5, 'fields' => 'ids', 'no_found_rows' => true, 'orderby' => 'ID', 'order' => 'DESC', 'title' => $action ) );
+	return $ids ? json_decode( (string) get_post_meta( (int) $ids[0], '_mcupr_a', true ), true ) : null;
+};
+foreach ( array( 'rqfile', 'fbexport', 'staffexport', 'pdpaexport', 'pdpaerase' ) as $k ) {
+	t( isset( mcupr_audit_actions()[ $k ] ), 'log: there is a name for the event "' . $k . '"' );
+}
+t( is_array( $logged( 'pdpaexport' ) ) && is_array( $logged( 'pdpaerase' ) ), 'log: answering a request to be told and to be forgotten is written down' );
+$ex_row = $logged( 'pdpaexport' );
+t( is_array( $ex_row ) && false === strpos( wp_json_encode( $ex_row ), $addr ), 'log: and the entry does not repeat the address it was about' );
+do_action( 'mcupr_fb_exported', $pform, 7 );
+$fb_row = $logged( 'fbexport' );
+t( is_array( $fb_row ) && 7 === (int) $fb_row['n'], 'log: taking the answers of a form out is written down, with how many rows' );
+do_action( 'mcupr_staff_exported', 12 );
+$st_row = $logged( 'staffexport' );
+t( is_array( $st_row ) && 12 === (int) $st_row['n'], 'log: taking the staff directory out is written down' );
+$served = wp_insert_post( array( 'post_type' => 'mcupr_fe', 'post_status' => 'private', 'post_title' => 'DH served' ) );
+update_post_meta( $served, '_mcupr_rq_code', 'REQ-2026-99003' );
+do_action( 'mcupr_rq_file_served', $served, 0 );
+$rf_row = $logged( 'rqfile' );
+t( is_array( $rf_row ) && 'REQ-2026-99003' === (string) $rf_row['note'], 'log: opening a file sent with a request is written down against its number' );
+wp_delete_post( $served, true );
+wp_delete_post( $pd_topic, true );
+
+// ---- what the theme keeps in the options table
+wp_set_current_user( $adm[0]->ID );
+global $wpdb;
+$autoloaded = static function ( $name ) use ( $wpdb ) {
+	return (string) $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s", $name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL
+};
+$on = static function ( $v ) {
+	return in_array( (string) $v, array( 'yes', 'on', 'auto', 'auto-on' ), true ); // WordPress has used several words for it
+};
+// put the rows back the way an older version of the theme left them, then let the tidy-up run
+$tidy_rows = array( 'mcupr_forum' => array( 'enabled' => 1 ), 'mcupr_staff' => array( 'profiles' => 1 ), 'mcupr_honors' => array( array( 'key' => 'x' ) ), 'mcupr_office_role_v' => 'v1', 'mcupr_student_roles_v' => 'v1', 'mcupr_forum_boards_seeded' => 1, 'mcupr_aud_index2' => array( 1 => array() ), 'mcupr_pubcounts' => array( 'post' => 3 ), 'mcupr_office_hidden' => array( 7 ) );
+$tidy_was = array();
+foreach ( $tidy_rows as $name => $value ) {
+	$tidy_was[ $name ] = get_option( $name, null ); // every one of these is a real setting on a real site: put it back after
+	delete_option( $name );
+	add_option( $name, $value, '', true );
+}
+$before = $on( $autoloaded( 'mcupr_staff' ) ) && $on( $autoloaded( 'mcupr_aud_index2' ) );
+delete_option( 'mcupr_db_tidy' );
+mcupr_db_tidy_run();
+$still = array();
+foreach ( mcupr_db_tidy_keep() as $name ) {
+	if ( $on( $autoloaded( $name ) ) ) {
+		$still[] = $name;
+	}
+}
+t( $before && array() === $still, 'options: the settings that used to be read on every request are not any more (' . implode( ', ', mcupr_db_tidy_keep() ) . ')' );
+t( array( 1 ) === array( (int) ( get_option( 'mcupr_forum' )['enabled'] ) ) && 'v1' === get_option( 'mcupr_office_role_v' ) && is_array( get_option( 'mcupr_honors' ) ), 'options: and they kept what they held' );
+$left = array();
+foreach ( mcupr_db_tidy_drop() as $name ) {
+	if ( null !== get_option( $name, null ) ) {
+		$left[] = $name;
+	}
+}
+t( array() === $left, 'options: the rows the theme can work out again are gone (' . implode( ', ', mcupr_db_tidy_drop() ) . ')' );
+t( (int) get_option( 'mcupr_db_tidy' ) === MCUPR_DB_TIDY && ! $on( $autoloaded( 'mcupr_db_tidy' ) ), 'options: the tidy-up marks itself done, without being read on every request either' );
+
+// the two derived ones are transients now, and work themselves out again
+delete_transient( 'mcupr_pubcounts' );
+unset( $GLOBALS['mcupr_pubcounts'] );
+$counts = mcupr_published_counts();
+t( is_array( $counts ) && is_array( get_transient( 'mcupr_pubcounts' ) ) && null === get_option( 'mcupr_pubcounts', null ), 'options: the count of published posts is a transient, not an option' );
+$fresh = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'DH counted' ) );
+t( false === get_transient( 'mcupr_pubcounts' ), 'options: publishing something forgets the count' );
+wp_delete_post( $fresh, true );
+mcupr_office_hidden_reset();
+$hidden = mcupr_office_hidden_terms();
+t( is_array( $hidden ) && null === get_option( 'mcupr_office_hidden', null ), 'options: the offices kept off the main site are a transient too' );
+// the index of students-only content is rebuilt on demand and no longer read on every request
+delete_option( 'mcupr_aud_index2' );
+mcupr_aud_reset();
+$idx = mcupr_aud_index();
+t( is_array( $idx ) && ! $on( $autoloaded( 'mcupr_aud_index2' ) ), 'options: the index of content kept for students is written again without being read on every request' );
+
+// the settings this test overwrote go back the way they were (the rest of the suite reads them)
+foreach ( $tidy_was as $name => $value ) {
+	delete_option( $name );
+	if ( null !== $value ) {
+		add_option( $name, $value, '', false );
+	}
+}
+mcupr_people_register();
+mcupr_aud_reset();
+mcupr_office_hidden_reset();
+mcupr_published_counts_reset();
+
+// ---- the mark that a visitor has voted lasts as long as the poll, at most a month
+$poll_open   = wp_insert_post( array( 'post_type' => 'mcupr_poll', 'post_status' => 'publish', 'post_title' => 'DH poll open' ) );
+$poll_closes = wp_insert_post( array( 'post_type' => 'mcupr_poll', 'post_status' => 'publish', 'post_title' => 'DH poll closes' ) );
+update_post_meta( $poll_closes, '_mcupr_poll_close', gmdate( 'Y-m-d', time() + 2 * DAY_IN_SECONDS ) );
+t( 30 * DAY_IN_SECONDS === mcupr_poll_voted_ttl( $poll_open ), 'polls: a poll with no closing date keeps the mark a month' );
+$ttl = mcupr_poll_voted_ttl( $poll_closes );
+t( $ttl > DAY_IN_SECONDS && $ttl < 4 * DAY_IN_SECONDS, 'polls: a poll that closes in two days keeps it only that long' );
+wp_delete_post( $poll_open, true );
+wp_delete_post( $poll_closes, true );
+
+// ---- the file manager forgets the tags of files that are no longer there
+$fm_root = mcupr_fm_root();
+if ( '' !== $fm_root ) {
+	$live = 'dh-tagged-' . wp_generate_password( 6, false ) . '.txt';
+	file_put_contents( $fm_root . '/' . $live, "x\n" );
+	$old_tags = get_option( 'mcupr_fm_tags' );
+	mcupr_fm_tags_save( array( $live => array( 1 ), 'dh-gone-forever.txt' => array( 2 ) ) );
+	$dropped = mcupr_fm_tags_prune();
+	$after   = mcupr_fm_tags_all();
+	t( 1 === $dropped && isset( $after[ $live ] ) && ! isset( $after['dh-gone-forever.txt'] ), 'file manager: the tags of a file that is gone are dropped, the tags of one still there are kept' );
+	unlink( $fm_root . '/' . $live );
+	false === $old_tags ? delete_option( 'mcupr_fm_tags' ) : update_option( 'mcupr_fm_tags', $old_tags, false );
+}
+
+foreach ( array( $rq, $pa, $rform, $pform, $p_open, $p_nobio, $p_off ) as $id ) {
+	wp_delete_post( $id, true );
+}
+wp_set_current_user( $adm[0]->ID );
+wp_delete_user( $ed );
+wp_delete_user( $tk );
+false === $opts ? delete_option( 'mcupr_staff' ) : update_option( 'mcupr_staff', $opts );
+echo $fails ? "$fails FAILED\n" : "all passed\n";
+exit( $fails ? 1 : 0 );

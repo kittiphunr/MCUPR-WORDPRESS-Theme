@@ -26,6 +26,7 @@ function mcupr_msg_register() {
 			'menu_icon'    => 'dashicons-email-alt',
 			'menu_position' => 10,
 			'supports'     => array( 'title' ),
+			'can_export'   => false, // Tools -> Export must not put personal data in a plain file with no record of it: the theme's own audited exports are the way out
 			// the messages (complaints, corruption reports) are for administrators only: not editors or authors
 			'capabilities' => array(
 				'create_posts'           => 'do_not_allow',
