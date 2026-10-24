@@ -4434,6 +4434,34 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await hc.close();
     }
   }
+  // PHP security notice (October 2026 flaws): shown to an administrator on an unfixed PHP, hidden by "my host confirmed", never for other roles
+  {
+    const { execSync: execS } = require('child_process');
+    const phpS = (code) => { const f = require('os').tmpdir() + '/e2e-phpsec-' + process.pid + '.php'; require('fs').writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execS('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const state = phpS('delete_option( "mcupr_php_sec_ack" ); echo mcupr_php_security()["state"];');
+    const sc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    const spg = await sc.newPage();
+    await spg.goto(B + '/wp-login.php');
+    await spg.fill('#user_login', 'e2eadmin'); await spg.fill('#user_pass', 'e2e-Admin-pass-1'); await spg.click('#wp-submit');
+    await spg.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    await spg.goto(B + '/wp-admin/index.php');
+    if (state === 'old' || state === 'eol') {
+      ok(await spg.locator('#mcupr-php-security.notice-error').isVisible() && /CVE-2026-109618/.test(await spg.locator('#mcupr-php-security').innerText()), 'php security: on PHP ' + phpS('echo PHP_VERSION;') + ' an administrator sees the red notice with the CVE numbers');
+      ok((await spg.locator('#mcupr-php-security form button').count()) === 1 && (await spg.locator('#mcupr-php-security a[target=_blank][rel*=noopener]').count()) === 1, 'php security: the notice has the "host confirmed" button and a safe link to the announcement');
+      await spg.click('#mcupr-php-security form button');
+      await spg.waitForLoadState('domcontentloaded');
+      ok((await spg.locator('#mcupr-php-security').count()) === 0, 'php security: after "my host confirmed the fix" the notice is gone');
+      await spg.reload();
+      ok((await spg.locator('#mcupr-php-security').count()) === 0, 'php security: and it stays gone on the next page');
+      await spg.goto(B + '/wp-admin/site-health.php');
+      const hc = await spg.waitForSelector('#health-check-accordion-block-mcupr_php_security', { state: 'attached', timeout: 30000 }).catch(() => null);
+      ok(!!hc, 'php security: Site Health lists the check (good, because the administrator confirmed it)');
+    } else {
+      ok((await spg.locator('#mcupr-php-security').count()) === 0, 'php security: this PHP is fixed, so there is no notice');
+    }
+    await sc.close();
+    phpS('update_option( "mcupr_php_sec_ack", array( "v" => PHP_VERSION, "by" => 0, "t" => time() ), false );'); // back to the quiet state the other tests expect
+  }
   await br.close();
   finish();
 })();
