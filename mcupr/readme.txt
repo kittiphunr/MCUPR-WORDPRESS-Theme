@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.67 =
+* File manager trash: an item whose id is sixteen digits only is no longer lost from the list
+
 = 1.54.63 =
 * Home hero: Thai headline lines no longer touch; roomier quick-link tiles
 
