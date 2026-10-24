@@ -262,23 +262,33 @@ function mcupr_student_caps() {
 	return $o ? array_values( array_unique( array_filter( array_merge( array_values( (array) $o->cap ), array( MCUPR_STU_CAP ) ) ) ) ) : array( MCUPR_STU_CAP );
 }
 
+/**
+ * The administrator always holds everything the student record needs, and the role that looks after it is given what
+ * the post type has newly gained. The roles themselves are made and kept in step in inc/roles.php: this no longer
+ * builds them again from scratch, because that threw away whatever an administrator had set on the user-roles page.
+ */
 add_action(
 	'init',
 	static function () {
 		$caps = mcupr_student_caps();
-		$v    = md5( wp_json_encode( $caps ) . '2' ); // made again whenever the list changes
-		if ( get_option( 'mcupr_student_roles_v' ) === $v && get_role( MCUPR_REGISTRAR_ROLE ) && get_role( MCUPR_STU_USER_ROLE ) ) {
+		$v    = md5( wp_json_encode( $caps ) . '3' ); // run again whenever the list of capabilities changes
+		if ( get_option( 'mcupr_student_roles_v' ) === $v ) {
 			return;
 		}
-		$all = array_fill_keys( $caps, true );
-		remove_role( MCUPR_REGISTRAR_ROLE );
-		add_role( MCUPR_REGISTRAR_ROLE, __( 'Registrar', 'mcupr' ), array_merge( array( 'read' => true ), $all ) );
-		remove_role( MCUPR_STU_USER_ROLE );
-		add_role( MCUPR_STU_USER_ROLE, __( 'Student (login)', 'mcupr' ), array( 'read' => true ) );
 		$admin = get_role( 'administrator' );
 		if ( $admin ) {
 			foreach ( $caps as $c ) {
-				$admin->add_cap( $c );
+				if ( ! $admin->has_cap( $c ) ) {
+					$admin->add_cap( $c );
+				}
+			}
+		}
+		$reg = get_role( MCUPR_REGISTRAR_ROLE );
+		if ( $reg ) {
+			foreach ( $caps as $c ) {
+				if ( ! $reg->has_cap( $c ) ) {
+					$reg->add_cap( $c );
+				}
 			}
 		}
 		update_option( 'mcupr_student_roles_v', $v, false );

@@ -197,12 +197,12 @@ function mcupr_speed_score( $items ) {
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'mcupr', __( 'Speed check', 'mcupr' ), __( 'Speed check', 'mcupr' ), 'manage_options', 'mcupr-speed', 'mcupr_speed_page' );
+		add_submenu_page( 'mcupr', __( 'Speed check', 'mcupr' ), __( 'Speed check', 'mcupr' ), 'mcupr_manage_theme', 'mcupr-speed', 'mcupr_speed_page' );
 	}
 );
 
 function mcupr_speed_page() {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'mcupr_manage_theme' ) ) {
 		return;
 	}
 	$res = get_option( 'mcupr_speed_last', array() );
@@ -245,7 +245,7 @@ function mcupr_speed_page() {
 add_action(
 	'admin_post_mcupr_speed_run',
 	static function () {
-		if ( ! mcupr_check_request( 'mcupr_speed_nonce', 'mcupr_speed_run', 'manage_options' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_speed_nonce', 'mcupr_speed_run', 'mcupr_manage_theme' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		update_option( 'mcupr_speed_last', mcupr_speed_run(), false );

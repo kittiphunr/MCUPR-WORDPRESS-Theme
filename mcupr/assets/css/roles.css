@@ -1,0 +1,146 @@
+/* MCUPR -> User roles: the cards and the one big table of who may do what. */
+
+.mcupr-roles .mr-lede { max-width: 56rem; font-size: 14px; }
+
+/* ---- the cards, one per role */
+.mcupr-roles .mr-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+	gap: 12px;
+	margin: 16px 0 20px;
+}
+.mcupr-roles .mr-card {
+	display: flex;
+	flex-direction: column;
+	padding: 14px 16px;
+	border: 1px solid #dcdcde;
+	border-left: 4px solid #2271b1;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+}
+.mcupr-roles .mr-card-core { border-left-color: #8c8f94; }
+.mcupr-roles .mr-card-custom { border-left-color: #996800; }
+.mcupr-roles .mr-card.is-locked { border-left-color: #d63638; background: #fcf0f1; }
+.mcupr-roles .mr-card h3 { margin: 0 0 2px; font-size: 15px; }
+.mcupr-roles .mr-who { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: #2271b1; }
+.mcupr-roles .mr-note { margin: 0 0 8px; font-size: 12px; line-height: 1.6; color: #50575e; flex: 1; }
+.mcupr-roles .mr-tag { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #787c82; }
+.mcupr-roles .mr-card-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0; }
+.mcupr-roles .mr-inline { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0; }
+.mcupr-roles .mr-move { font-size: 11px; }
+.mcupr-roles .mr-move select { font-size: 11px; height: auto; padding: 1px 18px 1px 6px; }
+
+/* ---- add a role */
+.mcupr-roles .mr-add { margin: 0 0 18px; padding: 10px 14px; border: 1px solid #dcdcde; border-radius: 8px; background: #fff; }
+.mcupr-roles .mr-add > summary { font-weight: 600; cursor: pointer; }
+.mcupr-roles .mr-add-form { margin-top: 10px; max-width: 32rem; }
+
+/* ---- the bar that follows you down the page */
+.mcupr-roles .mr-bar {
+	position: sticky;
+	top: 32px;
+	z-index: 20;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 14px;
+	border: 1px solid #dcdcde;
+	border-radius: 8px 8px 0 0;
+	background: #f6f7f7;
+}
+.mcupr-roles .mr-bar-right { display: flex; gap: 10px; align-items: center; }
+.mcupr-roles #mr-search { min-width: 18rem; }
+.mcupr-roles .mr-dirty { font-size: 12px; font-weight: 600; color: #996800; }
+
+/* ---- the table */
+.mcupr-roles .mr-wrap { overflow: auto; max-height: 70vh; border: 1px solid #dcdcde; border-top: 0; background: #fff; }
+.mcupr-roles .mr-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+.mcupr-roles .mr-table th,
+.mcupr-roles .mr-table td { border-bottom: 1px solid #f0f0f1; }
+
+.mcupr-roles .mr-cap-head,
+.mcupr-roles .mr-role-head {
+	position: sticky;
+	top: 0;
+	z-index: 12;
+	padding: 10px;
+	text-align: center;
+	vertical-align: bottom;
+	background: #fff;
+	border-bottom: 2px solid #c3c4c7;
+}
+.mcupr-roles .mr-cap-head { left: 0; z-index: 14; min-width: 20rem; text-align: left; }
+.mcupr-roles .mr-role-head { min-width: 7.5rem; }
+.mcupr-roles .mr-role-name { display: block; font-size: 12px; line-height: 1.4; }
+.mcupr-roles .mr-role-head.is-locked { background: #fcf0f1; }
+.mcupr-roles .mr-all { display: block; margin-top: 2px; font-size: 10px; font-weight: 400; color: #b32d2e; }
+.mcupr-roles .mr-col,
+.mcupr-roles .mr-rowall {
+	margin-top: 3px;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: #2271b1;
+	font-size: 10px;
+	cursor: pointer;
+	text-decoration: underline;
+}
+.mcupr-roles .mr-rowall { display: block; margin-top: 4px; }
+
+.mcupr-roles .mr-group-row th {
+	position: sticky;
+	left: 0;
+	padding: 8px 10px;
+	text-align: left;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+	color: #1d2327;
+	background: #f0f0f1;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.mcupr-roles .mr-row > th {
+	position: sticky;
+	left: 0;
+	z-index: 10;
+	padding: 9px 10px;
+	text-align: left;
+	font-weight: 400;
+	background: #fff;
+}
+.mcupr-roles .mr-row:hover > th,
+.mcupr-roles .mr-row:hover > td { background: #f6f7f7; }
+.mcupr-roles .mr-label { display: block; font-weight: 600; }
+.mcupr-roles .mr-cap-note { display: block; margin-top: 2px; max-width: 34rem; font-size: 11px; line-height: 1.5; color: #50575e; }
+.mcupr-roles .mr-cap-key { display: inline-block; margin-top: 3px; padding: 0 4px; font-size: 10px; color: #787c82; background: #f0f0f1; border-radius: 3px; }
+.mcupr-roles .mr-flag,
+.mcupr-roles .mr-core {
+	display: inline-block;
+	margin-left: 4px;
+	padding: 1px 6px;
+	font-size: 10px;
+	font-weight: 600;
+	border-radius: 999px;
+	vertical-align: middle;
+}
+.mcupr-roles .mr-flag { color: #8a1f21; background: #fcf0f1; border: 1px solid #f0c7c8; }
+.mcupr-roles .mr-core { color: #50575e; background: #f0f0f1; border: 1px solid #dcdcde; }
+.mcupr-roles .mr-row.is-risky > th { box-shadow: inset 3px 0 0 #d63638; }
+
+.mcupr-roles .mr-cell { padding: 9px 10px; text-align: center; background: #fff; }
+.mcupr-roles .mr-cell.is-locked { background: #fcf0f1; }
+.mcupr-roles .mr-cell input[type="checkbox"] { margin: 0; }
+.mcupr-roles .mr-yes { display: inline-block; width: 14px; height: 14px; border-radius: 3px; background: #d63638; }
+.mcupr-roles .mr-empty { padding: 14px; font-style: italic; color: #50575e; }
+.mcupr-roles .mr-foot { margin: 14px 0 0; }
+
+@media screen and (max-width: 782px) {
+	.mcupr-roles .mr-bar { position: static; }
+	.mcupr-roles .mr-cap-head { min-width: 14rem; }
+	.mcupr-roles .mr-cap-note { display: none; }
+	.mcupr-roles .mr-wrap { max-height: none; }
+}

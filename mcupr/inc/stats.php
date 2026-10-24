@@ -144,7 +144,7 @@ function mcupr_stats_summary_cards() {
 }
 
 function mcupr_stats_page() {
-	if ( ! current_user_can( 'edit_posts' ) ) {
+	if ( ! current_user_can( 'mcupr_view_stats' ) ) {
 		return;
 	}
 	echo '<div class="wrap"><h1>' . esc_html__( 'Website statistics', 'mcupr' ) . '</h1><style>' . mcupr_stats_css() . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput
@@ -168,7 +168,7 @@ function mcupr_stats_page() {
 add_action(
 	'admin_menu',
 	static function () {
-		add_dashboard_page( __( 'Website statistics', 'mcupr' ), __( 'Website statistics', 'mcupr' ), 'edit_posts', 'mcupr-stats', 'mcupr_stats_page' );
+		add_dashboard_page( __( 'Website statistics', 'mcupr' ), __( 'Website statistics', 'mcupr' ), 'mcupr_view_stats', 'mcupr-stats', 'mcupr_stats_page' );
 	}
 );
 
