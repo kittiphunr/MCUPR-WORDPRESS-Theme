@@ -1,4 +1,13 @@
 TH = {
+"Add or remove languages; the texts of each language in its own tab": "เพิ่มหรือลบภาษา และข้อความของแต่ละภาษาแยกแท็บ",
+"MCUPR: Languages & translations": "MCUPR: ภาษาและการแปล",
+"Add or remove languages, and write the texts of each language in its own tab. A field left empty shows the text of the default language.": "เพิ่มหรือลบภาษา และเขียนข้อความของแต่ละภาษาในแท็บของภาษานั้น ช่องที่เว้นว่างจะแสดงข้อความของภาษาหลัก",
+"Languages on the site (add / remove)": "ภาษาของเว็บไซต์ (เพิ่ม / ลบ)",
+"Show %1$s (%2$s) on the site": "แสดงภาษา %1$s (%2$s) บนเว็บไซต์",
+"Untick to remove this language from the language picker, the menus and the fields. What you already wrote stays saved.": "เอาเครื่องหมายออกเพื่อลบภาษานี้ออกจากตัวเลือกภาษา เมนู และช่องกรอก สิ่งที่เขียนไว้แล้วยังถูกเก็บไว้",
+"Add languages (one per line)": "เพิ่มภาษา (บรรทัดละหนึ่งภาษา)",
+"Type just the code of a language from this list and the rest is filled in: %s. Another language: code | name in the picker | English name | html lang | locale, for example: sv | Svenska | Swedish | sv | sv_SE. Delete the line to remove the language. The buttons and menus of the theme itself stay in English for an added language; the pages, the hero, the notice and your texts are yours to write in it.": "พิมพ์แค่รหัสภาษาจากรายการนี้ ระบบเติมส่วนที่เหลือให้: %s ภาษาอื่น: รหัส | ชื่อในตัวเลือก | ชื่อภาษาอังกฤษ | html lang | locale เช่น sv | Svenska | Swedish | sv | sv_SE ลบบรรทัดเพื่อลบภาษานั้น ปุ่มและเมนูของธีมเองจะเป็นภาษาอังกฤษสำหรับภาษาที่เพิ่ม ส่วนหน้า ส่วนหัว ประกาศ และข้อความของคุณเขียนเป็นภาษานั้นได้เอง",
+"Everything written here is for this language. A field left empty shows the %s text.": "ทุกอย่างที่เขียนที่นี่เป็นของภาษานี้ ช่องที่เว้นว่างจะแสดงข้อความภาษา%s",
 "Quick links on the home page: who is this link for?": "ลิงก์ลัดหน้าแรก: ลิงก์นี้สำหรับใคร",
 "Tick none to show it to everyone. When some links are ticked, the home page shows an “I am…” picker above the quick links.": "ไม่ติ๊กเลย = แสดงให้ทุกคน เมื่อมีลิงก์ที่ติ๊กไว้ หน้าแรกจะมีตัวเลือก “ฉันคือ…” เหนือลิงก์ลัด",
 "Hero: show the “I am…” picker above the quick links (when some quick links are marked for a kind of visitor in Appearance → Menus)": "ส่วนหัวหน้าแรก: แสดงตัวเลือก “ฉันคือ…” เหนือลิงก์ลัด (เมื่อมีลิงก์ลัดที่ระบุกลุ่มผู้เข้าชมไว้ใน ลักษณะ → เมนู)",

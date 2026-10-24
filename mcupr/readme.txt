@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.66 =
+* Languages: one Customizer tab per language, add and remove languages
+
 = 1.54.63 =
 * Home hero: Thai headline lines no longer touch; roomier quick-link tiles
 

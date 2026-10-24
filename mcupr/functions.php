@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'MCUPR_MIN_WP', '5.9' );
 define( 'MCUPR_MIN_PHP', '7.0' );
 
-define( 'MCUPR_VERSION', '1.54.63' );
+define( 'MCUPR_VERSION', '1.54.66' );
 define( 'MCUPR_DIR', get_template_directory() );
 define( 'MCUPR_URI', get_template_directory_uri() );
 
@@ -23,6 +23,7 @@ if ( ! mcupr_is_supported() ) {
 
 require_once MCUPR_DIR . '/inc/i18n.php';
 require_once MCUPR_DIR . '/inc/translations.php';
+require_once MCUPR_DIR . '/inc/languages.php';
 require_once MCUPR_DIR . '/inc/colors.php';
 require_once MCUPR_DIR . '/inc/customizer.php';
 require_once MCUPR_DIR . '/inc/customizer-extra.php';
