@@ -190,6 +190,25 @@ t( is_wp_error( mcupr_fm_delete( array( $base . '/pic.jpg' ) ) ) && is_file( $pi
 mcupr_fm_trash_purge();
 t( 0 === mcupr_fm_trash_count() && 0 === count( glob( $root . '/.mcupr-trash/*', GLOB_ONLYDIR ) ), 'emptying the trash leaves nothing behind' );
 
+// an id of sixteen digits only (about one in two thousand): PHP turns it into a number as an array key, which once threw it out of the trash
+$digit = '1234567890123456';
+wp_mkdir_p( $root . '/.mcupr-trash/' . $digit );
+file_put_contents( $root . '/.mcupr-trash/' . $digit . '/digits.txt', 'd' );
+$all = get_option( 'mcupr_fm_trash', array() );
+$all[ $digit ] = array( 'name' => 'digits.txt', 'from' => $base . '/digits.txt', 'time' => time(), 'dir' => false, 'files' => 1, 'folders' => 0, 'bytes' => 1, 'tags' => array() );
+update_option( 'mcupr_fm_trash', $all, false );
+$ti = mcupr_fm_trash_items();
+t( 1 === count( $ti ) && $digit === $ti[0]['path'] && is_string( $ti[0]['path'] ), 'an id of digits only still shows in the trash (as a string)' );
+$r = mcupr_fm_trash_restore( array( $digit ) );
+t( array( $base . '/digits.txt' ) === $r && is_file( $root . '/' . $base . '/digits.txt' ) && 0 === mcupr_fm_trash_count(), 'and it can be put back' );
+wp_mkdir_p( $root . '/.mcupr-trash/' . $digit );
+file_put_contents( $root . '/.mcupr-trash/' . $digit . '/digits.txt', 'd' );
+$all = get_option( 'mcupr_fm_trash', array() );
+$all[ $digit ] = array( 'name' => 'digits.txt', 'from' => $base . '/digits2.txt', 'time' => time(), 'dir' => false, 'files' => 1, 'folders' => 0, 'bytes' => 1, 'tags' => array() );
+update_option( 'mcupr_fm_trash', $all, false );
+$p = mcupr_fm_trash_purge( array( $digit ) );
+t( 1 === $p[0] && 0 === mcupr_fm_trash_count() && ! file_exists( $root . '/.mcupr-trash/' . $digit ), 'and it can be deleted for good (nothing left behind)' );
+
 // ---- clean up
 wp_delete_attachment( $att, true );
 foreach ( glob( $root . '/' . $base . '/*' ) as $f ) { is_dir( $f ) ? mcupr_fm_rm( $f ) : @unlink( $f ); }

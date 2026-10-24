@@ -524,7 +524,8 @@ function mcupr_fm_trash_all() {
 	$dir = mcupr_fm_root() . '/' . MCUPR_FM_TRASH;
 	$out = array();
 	foreach ( $all as $id => $e ) {
-		if ( is_string( $id ) && preg_match( '/^[a-f0-9]{16}$/', $id ) && ! empty( $e['name'] ) && file_exists( $dir . '/' . $id . '/' . $e['name'] ) ) {
+		$id = (string) $id; // (an id of sixteen digits only is a number as an array key: it was thrown out as "not an id", with its files left behind)
+		if ( preg_match( '/^[a-f0-9]{16}$/', $id ) && ! empty( $e['name'] ) && file_exists( $dir . '/' . $id . '/' . $e['name'] ) ) {
 			$out[ $id ] = $e;
 		}
 	}
@@ -541,7 +542,7 @@ function mcupr_fm_trash_items() {
 		$ext    = ! empty( $e['dir'] ) ? '' : strtolower( pathinfo( $e['name'], PATHINFO_EXTENSION ) );
 		$items[] = array(
 			'name'    => $e['name'],
-			'path'    => $id,
+			'path'    => (string) $id,
 			'trash'   => true,
 			'dir'     => ! empty( $e['dir'] ),
 			'size'    => (int) $e['bytes'],
@@ -677,7 +678,7 @@ function mcupr_fm_trash_purge( $ids = null, $older_than = 0 ) {
 	$files = 0;
 	$dirs  = 0;
 	foreach ( $all as $id => $e ) {
-		if ( null !== $ids && ! in_array( $id, $ids, true ) ) {
+		if ( null !== $ids && ! in_array( (string) $id, array_map( 'strval', (array) $ids ), true ) ) {
 			continue;
 		}
 		if ( $older_than && (int) $e['time'] > $older_than ) {
