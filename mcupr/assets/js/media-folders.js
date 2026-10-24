@@ -99,13 +99,18 @@
 	}
 
 	/* ---------------------------------------------------------------- the panel */
+	/* the folder is the one of the file manager (blue, two tones); its colours are defined once, in an svg that is always drawn */
+	var DEFS = '<svg class="mf-defs" width="0" height="0" aria-hidden="true" focusable="false"><defs><linearGradient id="mff1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc4fb"/><stop offset="1" stop-color="#3a9bf0"/></linearGradient><linearGradient id="mff2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#58b3fa"/><stop offset="1" stop-color="#1f86e8"/></linearGradient></defs></svg>';
+	function folderSvg(w, h, cls) {
+		return '<svg class="' + (cls || '') + '" width="' + w + '" height="' + h + '" viewBox="0 0 64 52" aria-hidden="true" focusable="false"><path d="M4 8a4 4 0 0 1 4-4h14l5 5h29a4 4 0 0 1 4 4v3H4z" fill="url(#mff1)"/><rect x="4" y="14" width="56" height="34" rx="4" fill="url(#mff2)"/></svg>';
+	}
 	function node(f, m, depth) {
 		var kids = m[f.id] || [];
 		var open = isOpen(f.id);
 		var h = '<li data-mf="' + f.id + '" role="treeitem" aria-expanded="' + (kids.length ? (open ? 'true' : 'false') : 'false') + '"' + (kids.length ? '' : ' aria-level="' + (depth + 1) + '"') + '>';
 		h += '<div class="mf-row' + (String(cur) === String(f.id) ? ' is-cur' : '') + '" data-drop="' + f.id + '">';
 		h += kids.length ? '<button type="button" class="mf-tog" data-tog="' + f.id + '" aria-label="' + esc(f.name) + '"></button>' : '<span class="mf-tog mf-tog-none" aria-hidden="true"></span>';
-		h += '<a href="#" class="mf-link" data-choose="' + f.id + '"><svg class="mf-ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="mf-name">' + esc(f.name) + '</span><span class="mf-n">' + count(f.id) + '</span></a></div>';
+		h += '<a href="#" class="mf-link" data-choose="' + f.id + '">' + folderSvg(18, 15, 'mf-ic') + '<span class="mf-name">' + esc(f.name) + '</span><span class="mf-n">' + count(f.id) + '</span></a></div>';
 		if (kids.length) {
 			h += '<ul role="group"' + (open ? '' : ' hidden') + '>';
 			kids.forEach(function (k) { h += node(k, m, depth + 1); });
@@ -124,8 +129,8 @@
 		if (!panel) { return; }
 		var m = byParent();
 		var h = '<h2 class="mf-h">' + esc(T.folders) + '</h2><ul role="tree" class="mf-tree">';
-		h += '<li role="treeitem"><div class="mf-row' + (cur === '' ? ' is-cur' : '') + '"><span class="mf-tog mf-tog-none"></span><a href="#" class="mf-link" data-choose=""><svg class="mf-ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" opacity=".55" d="M3 5h18v14H3z"/></svg><span class="mf-name">' + esc(T.all) + '</span><span class="mf-n">' + D.counts.all + '</span></a></div></li>';
-		h += '<li role="treeitem"><div class="mf-row' + (cur === 'none' ? ' is-cur' : '') + '" data-drop="0"><span class="mf-tog mf-tog-none"></span><a href="#" class="mf-link" data-choose="none"><svg class="mf-ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="mf-name">' + esc(T.none) + '</span><span class="mf-n">' + D.counts.none + '</span></a></div></li>';
+		h += '<li role="treeitem"><div class="mf-row' + (cur === '' ? ' is-cur' : '') + '"><span class="mf-tog mf-tog-none"></span><a href="#" class="mf-link" data-choose=""><svg class="mf-ic mf-ic-all" width="18" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M22 12H2M5.5 5.1L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1zM6 16h.01M10 16h.01"/></svg><span class="mf-name">' + esc(T.all) + '</span><span class="mf-n">' + D.counts.all + '</span></a></div></li>';
+		h += '<li role="treeitem"><div class="mf-row' + (cur === 'none' ? ' is-cur' : '') + '" data-drop="0"><span class="mf-tog mf-tog-none"></span><a href="#" class="mf-link" data-choose="none">' + folderSvg(18, 15, 'mf-ic mf-ic-none') + '<span class="mf-name">' + esc(T.none) + '</span><span class="mf-n">' + D.counts.none + '</span></a></div></li>';
 		(m[0] || []).forEach(function (f) { h += node(f, m, 0); });
 		h += '</ul>';
 		{
@@ -153,7 +158,7 @@
 		var kids = (byParent()[cur && cur !== 'none' ? cur : 0] || []);
 		if (kids.length && cur !== 'none') {
 			h += '<ul class="mf-sub" aria-label="' + esc(T.sub) + '">';
-			kids.forEach(function (k) { h += '<li data-drop="' + k.id + '"><a href="#" data-choose="' + k.id + '"><svg width="30" height="26" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><b>' + esc(k.name) + '</b><small>' + esc(fmt(T.files, count(k.id))) + '</small></a></li>'; });
+			kids.forEach(function (k) { h += '<li data-drop="' + k.id + '"><a href="#" data-choose="' + k.id + '">' + folderSvg(56, 46, 'mf-tile') + '<b>' + esc(k.name) + '</b><small>' + esc(fmt(T.files, count(k.id))) + '</small></a></li>'; });
 			h += '</ul>';
 		}
 		strip.html(h);
@@ -264,7 +269,7 @@
 		if (!wrap.length || $('.mf-layout').length) { return; }
 		var head = wrap.children('h1, .wp-heading-inline, .page-title-action, .wp-header-end');
 		var rest = wrap.children().not(head);
-		var layout = $('<div class="mf-layout"><aside class="mf-panel" aria-label="' + esc(T.folders) + '"></aside><div class="mf-main"></div></div>');
+		var layout = $('<div class="mf-layout">' + DEFS + '<aside class="mf-panel" aria-label="' + esc(T.folders) + '"></aside><div class="mf-main"></div></div>');
 		wrap.append(layout);
 		panel = layout.find('.mf-panel');
 		var main = layout.find('.mf-main');
