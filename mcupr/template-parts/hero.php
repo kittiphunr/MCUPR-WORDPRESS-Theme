@@ -46,7 +46,7 @@ foreach ( $extra as $e ) {
 			<div class="hero-slide <?php echo $left ? 'items-start' : 'items-center'; ?><?php echo 0 === $i ? ' is-active' : ''; ?>" data-slide<?php echo $multi ? ' role="group" aria-roledescription="slide" aria-label="' . esc_attr( ( $i + 1 ) . ' / ' . $total ) . '"' : ''; ?>>
 				<?php if ( '' !== $sl['eyebrow'] ) : ?><p class="hero-eyebrow animate-fade-up"><?php echo esc_html( $sl['eyebrow'] ); ?></p><?php endif; ?>
 				<?php $tag = ( 0 === $i && ! $multi ) ? 'h1' : 'p'; ?>
-				<<?php echo $tag; ?><?php echo ( $multi && 0 === $i ) ? ' aria-hidden="true"' : ''; ?> class="animate-fade-up leading-tight [text-shadow:0_2px_12px_rgb(0_0_0/.5)] max-w-4xl <?php echo ( '' !== $sl['sub'] || $sl['btn1'][0] ) ? 'mb-5' : 'mb-10'; ?>">
+				<<?php echo $tag; ?><?php echo ( $multi && 0 === $i ) ? ' aria-hidden="true"' : ''; ?> class="hero-title animate-fade-up [text-shadow:0_2px_12px_rgb(0_0_0/.5)] max-w-4xl <?php echo ( '' !== $sl['sub'] || $sl['btn1'][0] ) ? 'mb-5' : 'mb-10'; ?>">
 					<?php if ( $sl['l1'] ) : ?><span class="block text-2xl font-light min-[400px]:text-3xl min-[900px]:text-5xl"><?php echo esc_html( $sl['l1'] ); ?></span><?php endif; ?>
 					<?php if ( $sl['l2'] ) : ?><span class="block text-3xl font-bold min-[400px]:text-4xl min-[900px]:text-6xl"><?php echo esc_html( $sl['l2'] ); ?></span><?php endif; ?>
 				</<?php echo $tag; ?>>
