@@ -288,9 +288,18 @@ t( false !== strpos( $fh, '<form class="elementor-form"' ) && false !== strpos( 
 t( false !== strpos( $fh, 'required="required"' ) && false !== strpos( $fh, 'name="mcupr_hp"' ) && false !== strpos( $fh, 'name="action" value="mcupr_el_form"' ) && false !== strpos( $fh, '_wpnonce' ), 'the form keeps its required fields, has a trap for robots, a nonce and the address that takes it' );
 t( null !== mcupr_el_find_widget( mcupr_el_data( $fp ), 'frm001' ), 'the form of a page is found again by its id when the answers arrive' );
 
-/** Send the form the way a visitor would, and say where it was sent back to and what the e-mail was. */
-function el_send( $pid, $form_id, $fields, $nonce = null ) {
+/** Forget how many forms this network has sent. */
+function mcupr_el_throttle_reset() {
+	delete_transient( 'mcupr_thr_' . md5( 'elform|' . mcupr_client_net() ) );
+}
+
+/**
+ * Send the form the way a visitor would, and say where it was sent back to and what the e-mail was. $tk is the signed
+ * moment the form was printed: left out it is ten seconds ago (a person filling it in), false leaves it off the form.
+ */
+function el_send( $pid, $form_id, $fields, $nonce = null, $tk = null ) {
 	$GLOBALS['el_mail'] = null;
+	mcupr_el_throttle_reset(); // one test is about the limit; the others must not run into it
 	$_POST = array_merge(
 		array(
 			'action'      => 'mcupr_el_form',
@@ -298,7 +307,8 @@ function el_send( $pid, $form_id, $fields, $nonce = null ) {
 			'form_id'     => $form_id,
 			'_wpnonce'    => null === $nonce ? wp_create_nonce( 'mcupr_el_form_' . $form_id ) : $nonce,
 			'form_fields' => $fields,
-		)
+		),
+		false === $tk ? array() : array( 'mcupr_tk' => null === $tk ? mcupr_form_token( time() - 10 ) : $tk )
 	);
 	$_REQUEST = $_POST;
 	$where    = '';
@@ -334,6 +344,38 @@ t( false !== strpos( $where2, 'frm001-err' ), 'a form with a required field left
 list( $where3 ) = el_send( $fp, 'frm001', array( 'name' => 'a', 'email' => 'not-an-address' ) );
 t( false !== strpos( $where3, 'frm001-err' ), 'an e-mail address that is not one is not sent' );
 list( $where4, $mail4 ) = el_send( $fp, 'frm001', array( 'name' => 'a', 'email' => 'me@example.org' ), 'wrong-nonce' );
+$good4 = array( 'name' => 'a', 'email' => 'me@example.org', 'message' => 'x' );
+list( $w_notk ) = el_send( $fp, 'frm001', $good4, null, false );
+t( false !== strpos( $w_notk, 'mcupr_form=frm001-err' ) && null === $GLOBALS['el_mail'], 'a form posted without the signed moment sends nothing (a script that only scraped the nonce)' );
+list( $w_fast ) = el_send( $fp, 'frm001', $good4, null, mcupr_form_token( time() ) );
+t( false !== strpos( $w_fast, 'mcupr_form=frm001-err' ) && null === $GLOBALS['el_mail'], 'a form filled in within a second sends nothing' );
+list( $w_old ) = el_send( $fp, 'frm001', $good4, null, mcupr_form_token( time() - 3 * HOUR_IN_SECONDS ) );
+t( false !== strpos( $w_old, 'mcupr_form=frm001-err' ) && null === $GLOBALS['el_mail'], 'a form whose moment is three hours old sends nothing' );
+list( $w_made ) = el_send( $fp, 'frm001', $good4, null, ( time() - 10 ) . '.0123456789abcdef0123' );
+t( false !== strpos( $w_made, 'mcupr_form=frm001-err' ) && null === $GLOBALS['el_mail'], 'a made-up signature sends nothing' );
+// the ninth form from one network in an hour is refused
+mcupr_el_throttle_reset();
+$sent = 0;
+for ( $i = 0; $i < 10; $i++ ) {
+	$GLOBALS['el_mail'] = null;
+	$_POST = array( 'action' => 'mcupr_el_form', 'post_id' => $fp, 'form_id' => 'frm001', '_wpnonce' => wp_create_nonce( 'mcupr_el_form_frm001' ), 'form_fields' => $good4, 'mcupr_tk' => mcupr_form_token( time() - 10 ) );
+	$_REQUEST = $_POST;
+	$catch_l = static function () { throw new Exception( 'redirect' ); };
+	add_filter( 'wp_redirect', $catch_l, 99 );
+	try {
+		mcupr_el_form_submit();
+	} catch ( Exception $e ) {
+		// the redirect
+	}
+	remove_filter( 'wp_redirect', $catch_l, 99 );
+	if ( null !== $GLOBALS['el_mail'] ) {
+		$sent++;
+	}
+}
+$_POST = array();
+$_REQUEST = array();
+t( 8 === $sent, 'one network may send eight of these forms an hour; the ninth and tenth send nothing' );
+mcupr_el_throttle_reset();
 t( false !== strpos( $where4, 'frm001-err' ) && null === $mail4, 'a form sent without the right nonce is refused' );
 $GLOBALS['el_mail'] = null;
 $_POST = array( 'action' => 'mcupr_el_form', 'post_id' => $fp, 'form_id' => 'frm001', '_wpnonce' => wp_create_nonce( 'mcupr_el_form_frm001' ), 'form_fields' => array( 'name' => 'a', 'email' => 'me@example.org' ), 'mcupr_hp' => 'robot' );

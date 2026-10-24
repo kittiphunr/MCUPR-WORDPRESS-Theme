@@ -21,12 +21,12 @@ foreach ( array( '/' => 100, '/offices/' => 60, '/student/' => 80 ) as $uri => $
 $before = $wpdb->num_queries;
 for ( $i = 0; $i < 12; $i++ ) { foreach ( array( 'privacy', 'cookie', 'a11y', 'sitemap', 'contact' ) as $k ) { mcupr_policy_url( $k ); } }
 t( $wpdb->num_queries - $before <= 8, 'policy page addresses: 60 questions cost ' . ( $wpdb->num_queries - $before ) . ' queries' );
-// the office switch and the student-only index cost nothing on a page once they are saved
+// the office switch and the student-only index cost at most one query on a page once they are stored
 mcupr_office_hidden_terms(); mcupr_aud_index();
 $before = $wpdb->num_queries;
 $GLOBALS['mcupr_office_hidden'] = null; unset( $GLOBALS['mcupr_office_hidden'], $GLOBALS['mcupr_aud_cache'] );
 mcupr_office_hidden_terms(); mcupr_aud_index();
-t( $wpdb->num_queries - $before <= 1, 'the hidden-offices list and the student-only index come from one saved option each (' . ( $wpdb->num_queries - $before ) . ' extra queries)' );
+t( $wpdb->num_queries - $before <= 1, 'the hidden-offices list and the student-only index come from one stored row each (' . ( $wpdb->num_queries - $before ) . ' extra queries)' );
 // changing an office's switch refreshes the list
 $offices = mcupr_offices( 'any' );
 if ( $offices ) {
@@ -41,8 +41,8 @@ if ( $offices ) {
 } else {
 	t( true, 'no offices on this site: the switch check is skipped' );
 }
-// "how many news / staff / events": one saved option for all types, refreshed when a post is published or removed
-delete_option( 'mcupr_pubcounts' );
+// "how many news / staff / events": one stored row for all types, forgotten when a post is published or removed
+mcupr_published_counts_reset();
 mcupr_published_counts();
 $before = $wpdb->num_queries;
 for ( $i = 0; $i < 20; $i++ ) { foreach ( array( 'post', 'mcupr_person', 'mcupr_unit', 'mcupr_event' ) as $ty ) { mcupr_published_count( $ty ); } }

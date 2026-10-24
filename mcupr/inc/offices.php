@@ -284,12 +284,16 @@ function mcupr_office_pages( $office_id ) {
 
 /* ------------------------------------------------------------------ the university's own lists leave office content out */
 
-/** Term ids of the offices that are kept off the main site (remembered in one option, so a page costs no query for it). */
+/**
+ * Term ids of the offices that are kept off the main site. Kept as a transient and not as an autoloaded option: it
+ * grows with the number of offices and is thrown away whenever an office is saved or any post is deleted, so it would
+ * be read on every request and written away far more often than it is used. One page works it out at most once.
+ */
 function mcupr_office_hidden_terms() {
 	if ( isset( $GLOBALS['mcupr_office_hidden'] ) ) {
 		return $GLOBALS['mcupr_office_hidden'];
 	}
-	$ids = get_option( 'mcupr_office_hidden', null );
+	$ids = get_transient( 'mcupr_office_hidden' );
 	if ( ! is_array( $ids ) ) {
 		$ids = array();
 		foreach ( mcupr_offices( 'any' ) as $o ) {
@@ -300,7 +304,7 @@ function mcupr_office_hidden_terms() {
 				}
 			}
 		}
-		update_option( 'mcupr_office_hidden', $ids, true );
+		set_transient( 'mcupr_office_hidden', $ids, 12 * HOUR_IN_SECONDS );
 	}
 	$GLOBALS['mcupr_office_hidden'] = $ids;
 	return $ids;
@@ -308,7 +312,7 @@ function mcupr_office_hidden_terms() {
 
 /** Forget it: an office was saved or deleted, or its "also show on the main site" switch changed. */
 function mcupr_office_hidden_reset() {
-	delete_option( 'mcupr_office_hidden' );
+	delete_transient( 'mcupr_office_hidden' );
 	unset( $GLOBALS['mcupr_office_hidden'] );
 }
 add_action( 'save_post_mcupr_office', 'mcupr_office_hidden_reset', 99 );
@@ -605,7 +609,7 @@ add_action(
 		if ( get_option( 'mcupr_office_role_v' ) !== $v || ! get_role( MCUPR_OFFICE_ROLE ) ) {
 			remove_role( MCUPR_OFFICE_ROLE );
 			add_role( MCUPR_OFFICE_ROLE, __( 'Office editor', 'mcupr' ), mcupr_office_role_caps() );
-			update_option( 'mcupr_office_role_v', $v );
+			update_option( 'mcupr_office_role_v', $v, false );
 		}
 	},
 	7
@@ -635,15 +639,23 @@ add_filter(
 		if ( 'mcupr_office' === $post->post_type ) {
 			return in_array( $cap, array( 'delete_post', 'delete_page' ), true ) || ! in_array( $post->ID, $mine, true ) ? array( 'do_not_allow' ) : $caps;
 		}
-		if ( ! in_array( $post->post_type, mcupr_office_types(), true ) ) {
-			return $caps;
+		if ( in_array( $post->post_type, mcupr_office_types(), true ) ) {
+			$of = mcupr_office_of( $post->ID );
+			if ( $of ) {
+				return in_array( $of, $mine, true ) ? $caps : array( 'do_not_allow' );
+			}
+			// not in any office yet: only a brand-new draft of theirs (it is given an office when saved)
+			return (int) $post->post_author === (int) $user_id && 'publish' !== $post->post_status ? $caps : array( 'do_not_allow' );
 		}
-		$of = mcupr_office_of( $post->ID );
-		if ( $of ) {
-			return in_array( $of, $mine, true ) ? $caps : array( 'do_not_allow' );
+		/*
+		 * The Administration chart is the whole university's, not one office's, and the role holds the page rights that
+		 * reach it (it is a "page" kind of content outside mcupr_office_types()). Somebody who works in offices does
+		 * not change it.
+		 */
+		if ( 'mcupr_unit' === $post->post_type ) {
+			return array( 'do_not_allow' );
 		}
-		// not in any office yet: only a brand-new draft of theirs (it is given an office when saved)
-		return (int) $post->post_author === (int) $user_id && 'publish' !== $post->post_status ? $caps : array( 'do_not_allow' );
+		return $caps;
 	},
 	10,
 	4
