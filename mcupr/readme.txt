@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.60 =
+* Page links: one bar with Previous / numbers / Next and a 'page X of Y' line on every list
+
 = 1.54.59 =
 * Animated icons (Lordicon): an icon of the theme can be swapped for a moving one, chosen in the Customizer
 

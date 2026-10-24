@@ -81,17 +81,54 @@ function mcupr_breadcrumb( $wrap = true ) {
 	echo '</ol></nav>';
 }
 
-/** Localised pagination. */
+/**
+ * The page links of a list as one tidy bar: a "Previous" and a "Next" button (greyed, not missing, on the first and the last page, so the
+ * bar does not jump), the page numbers (the current one filled), and "Page 2 of 8" under it. On a phone only the current number stays.
+ *
+ * @param array $items   What paginate_links() gave with 'type' => 'array' (it has the prev / next links in it when they apply).
+ * @param int   $current The page being shown.
+ * @param int   $total   The number of pages.
+ * @return string
+ */
+function mcupr_pager_html( $items, $current, $total ) {
+	if ( $total < 2 || ! $items ) {
+		return '';
+	}
+	$prev = '';
+	$next = '';
+	$nums = array();
+	foreach ( (array) $items as $it ) {
+		if ( false !== strpos( $it, 'prev page-numbers' ) ) {
+			$prev = $it;
+		} elseif ( false !== strpos( $it, 'next page-numbers' ) ) {
+			$next = $it;
+		} else {
+			$nums[] = $it;
+		}
+	}
+	$arrow = static function ( $dir ) {
+		return mcupr_feather( 'left' === $dir ? 'chevron-left' : 'chevron-right', 16 );
+	};
+	$mk = static function ( $html, $kind, $label ) use ( $arrow ) {
+		$inner = 'prev' === $kind ? $arrow( 'left' ) . '<span>' . esc_html( $label ) . '</span>' : '<span>' . esc_html( $label ) . '</span>' . $arrow( 'right' );
+		if ( '' !== $html && preg_match( '/href=("|\')(.*?)\1/', $html, $m ) ) {
+			return '<a class="' . $kind . ' page-numbers" href="' . esc_url( html_entity_decode( $m[2] ) ) . '" rel="' . $kind . '">' . $inner . '</a>';
+		}
+		return '<span class="' . $kind . ' page-numbers is-off" aria-disabled="true">' . $inner . '</span>';
+	};
+	$out  = '<nav class="navigation pagination pager" aria-label="' . esc_attr( mcupr_t( 'pagination' ) ) . '"><div class="nav-links">';
+	$out .= $mk( $prev, 'prev', mcupr_t( 'prev' ) ) . '<span class="pager-nums">' . implode( '', $nums ) . '</span>' . $mk( $next, 'next', mcupr_t( 'next' ) );
+	$out .= '</div><p class="pager-info">' . esc_html( sprintf( mcupr_t( 'page_of' ), (int) $current, (int) $total ) ) . '</p></nav>';
+	return $out;
+}
+
+/** Localised pagination of the list being shown. */
 function mcupr_pagination() {
-	the_posts_pagination(
-		array(
-			'mid_size'           => 1,
-			'prev_text'          => '<span aria-hidden="true">‹</span> ' . esc_html( mcupr_t( 'prev' ) ),
-			'next_text'          => esc_html( mcupr_t( 'next' ) ) . ' <span aria-hidden="true">›</span>',
-			'screen_reader_text' => mcupr_t( 'pagination' ),
-			'aria_label'         => mcupr_t( 'pagination' ),
-		)
-	);
+	global $wp_query;
+	$total   = (int) $wp_query->max_num_pages;
+	$current = max( 1, (int) get_query_var( 'paged' ) );
+	$items   = paginate_links( array( 'total' => $total, 'current' => $current, 'mid_size' => 1, 'type' => 'array', 'prev_text' => 'prev', 'next_text' => 'next' ) );
+	echo mcupr_pager_html( $items, $current, $total ); // phpcs:ignore WordPress.Security.EscapeOutput
 }
 
 /** Notice shown when a translation is missing. */

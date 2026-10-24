@@ -322,10 +322,27 @@
 	.entry-content figcaption { @apply text-sm text-muted; }
 
 	/* Pagination (the_posts_pagination) */
-	.navigation.pagination { @apply mt-8 md:mt-10; }
-	.nav-links { @apply flex flex-wrap justify-center gap-2; }
-	.nav-links .page-numbers { @apply inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border-2 border-line px-3.5 text-fg no-underline hover:bg-surface; }
-	.nav-links .page-numbers.current { @apply border-primary bg-primary font-bold text-on-primary contrast:border-line; }
+	/* page links of a list: one tidy bar, Previous / Next as pills, the current page filled, "Page 2 of 8" under it (inc/template-tags.php) */
+	.navigation.pagination { @apply mt-8 grid justify-items-center gap-2 md:mt-10; }
+	.nav-links { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .25rem; max-width: 100%; padding: .35rem; border: 1px solid var(--edge); border-radius: 9999px; background: var(--bg); box-shadow: var(--shadow-soft); }
+	.nav-links .pager-nums { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .15rem; }
+	.nav-links .page-numbers { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; min-width: 2.75rem; min-height: 2.75rem; padding: 0 .8rem; border-radius: 9999px; color: var(--text-2); font-weight: 600; text-decoration: none; transition: background-color .15s, color .15s, box-shadow .15s; }
+	.nav-links a.page-numbers:hover, .nav-links a.page-numbers:focus-visible { background: var(--tint); color: var(--link); }
+	.nav-links .page-numbers.current { background: var(--primary); color: var(--on-primary); box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 38%, transparent); }
+	.nav-links .page-numbers.dots { min-width: 1.5rem; padding: 0; color: var(--muted); }
+	.nav-links .prev.page-numbers, .nav-links .next.page-numbers { padding: 0 1rem; background: var(--tint); color: var(--link); }
+	.nav-links a.prev.page-numbers:hover, .nav-links a.next.page-numbers:hover, .nav-links a.prev.page-numbers:focus-visible, .nav-links a.next.page-numbers:focus-visible { background: var(--primary); color: var(--on-primary); }
+	.nav-links .page-numbers.is-off { background: transparent; color: var(--muted); opacity: .45; }
+	.nav-links .page-numbers svg { display: block; flex: none; }
+	.pager-info { margin: 0; font-size: .875rem; color: var(--muted); }
+	@media (max-width: 560px) {
+		.nav-links { width: min(100%, 22rem); flex-wrap: nowrap; justify-content: space-between; }
+		.nav-links .pager-nums .page-numbers:not(.current) { display: none; } /* the phone shows Previous, the page it is on, Next */
+		.nav-links .prev.page-numbers, .nav-links .next.page-numbers { padding: 0 .8rem; }
+	}
+	html[data-contrast] .nav-links { border: 2px solid var(--border); box-shadow: none; }
+	html[data-contrast] .nav-links .page-numbers.current { box-shadow: none; outline: 2px solid var(--border); }
+	@media (prefers-reduced-motion: reduce) { .nav-links .page-numbers { transition: none; } }
 
 	/* Comments: bubble cards, pill-shaped form */
 	.comment-list { @apply m-0 list-none space-y-5 p-0; }
@@ -1720,10 +1737,15 @@ html[data-contrast] .org .org-node.org-c { border: 2px solid var(--border); }
 .forum-badge { display: inline-block; padding: 0 .55rem; border-radius: 9999px; background: var(--primary); color: var(--on-primary); font-size: .72rem; font-weight: 700; vertical-align: middle; }
 .forum-badge-l { background: var(--text-2); color: var(--bg); }
 @media (max-width: 640px) { .forum-row { grid-template-columns: 2.75rem minmax(0, 1fr); } .forum-c, .forum-l { display: none; } }
-.forum-pages { margin: 1.25rem 0 0; }
-.forum-pages .page-numbers { display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; margin-right: .3rem; padding: 0 .9rem; border-radius: 9999px; color: var(--text-2); text-decoration: none; }
-.forum-pages .page-numbers.current { background: var(--primary); color: var(--on-primary); font-weight: 700; }
-.forum-pages a.page-numbers:hover { background: var(--hover-bg, var(--tint)); }
+.forum-pages { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .25rem; margin: 1.25rem 0 0; padding: .35rem; border: 1px solid var(--edge); border-radius: 9999px; background: var(--bg); box-shadow: var(--shadow-soft); }
+.forum-pages .page-numbers { display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; padding: 0 .9rem; border-radius: 9999px; color: var(--text-2); font-weight: 600; text-decoration: none; }
+.forum-pages .page-numbers.current { background: var(--primary); color: var(--on-primary); box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 38%, transparent); }
+.forum-pages .page-numbers.dots { min-width: 1.5rem; padding: 0; color: var(--muted); }
+.forum-pages .prev.page-numbers, .forum-pages .next.page-numbers { background: var(--tint); color: var(--link); }
+.forum-pages a.page-numbers:hover, .forum-pages a.page-numbers:focus-visible { background: var(--hover-bg, var(--tint)); color: var(--link); }
+.forum-pages a.prev.page-numbers:hover, .forum-pages a.next.page-numbers:hover { background: var(--primary); color: var(--on-primary); }
+html[data-contrast] .forum-pages { border: 2px solid var(--border); box-shadow: none; }
+@media (max-width: 560px) { .forum-pages .page-numbers:not(.current):not(.prev):not(.next):not(.dots) { display: none; } }
 .forum-op, .forum-reply { display: flex; gap: .9rem; padding: 1rem 0; }
 .forum-op { padding-top: 0; border-bottom: 2px solid var(--tint); }
 .forum-reply { border-top: 1px dashed var(--edge, var(--border)); }
