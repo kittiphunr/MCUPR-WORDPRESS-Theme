@@ -51,6 +51,7 @@ function mcupr_fb_register() {
 			'capabilities'    => array( 'create_posts' => 'do_not_allow' ),
 			'map_meta_cap'    => true,
 			'supports'        => array( 'title' ),
+			'can_export'      => false, // Tools -> Export must not put personal data in a plain file with no record of it: the theme's own audited exports are the way out
 		)
 	);
 }
@@ -749,10 +750,16 @@ add_action(
 		if ( 'mcupr_fb' !== get_post_type( $fid ) ) {
 			wp_die( esc_html__( 'Unknown form.', 'mcupr' ), 404 );
 		}
+		// the answers of a request carry what the sender wrote: only the people who handle requests may take them out
+		if ( function_exists( 'mcupr_rq_is_form' ) && mcupr_rq_is_form( $fid ) && ! current_user_can( MCUPR_RQ_CAP ) ) {
+			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
+		}
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( get_post_field( 'post_name', $fid ) . '-answers.csv' ) . '"' );
-		echo mcupr_fb_csv( $fid ); // phpcs:ignore WordPress.Security.EscapeOutput
+		$csv = mcupr_fb_csv( $fid );
+		do_action( 'mcupr_fb_exported', $fid, max( 0, substr_count( $csv, "\r\n" ) - 1 ) ); // the log (inc/privacy.php)
+		echo $csv; // phpcs:ignore WordPress.Security.EscapeOutput
 		exit;
 	}
 );

@@ -4,3 +4,4 @@ node_modules/
 /dist/
 .lighthouse/
 __pycache__/
+/tests/mcupr-private-*/

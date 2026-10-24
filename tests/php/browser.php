@@ -87,7 +87,7 @@ $ids = get_posts( array( 'numberposts' => 2, 'fields' => 'ids', 'category' => $u
 $ot  = wp_insert_term( 'office-count-test', MCUPR_OFFICE_TAX );
 $otid = is_wp_error( $ot ) ? (int) get_term_by( 'slug', 'office-count-test', MCUPR_OFFICE_TAX )->term_id : (int) $ot['term_id'];
 foreach ( $ids as $pid ) { wp_set_object_terms( $pid, array( $otid ), MCUPR_OFFICE_TAX ); }
-update_option( 'mcupr_office_hidden', array( $otid ), true );
+set_transient( 'mcupr_office_hidden', array( $otid ), HOUR_IN_SECONDS ); // where the theme keeps it (inc/offices.php)
 unset( $GLOBALS['mcupr_office_hidden'] );
 $hidden = count( $ids );
 t( mcupr_browser_filtered() && mcupr_browser_all_total() === $published - $hidden, 'counts: "All" leaves out the posts of an office kept off the main site (' . mcupr_browser_all_total() . ' of ' . $published . ')' );
@@ -98,8 +98,7 @@ $tr = mcupr_browser_tree( 0, 0, array() );
 t( preg_match( '/Uncategorized<\/span><span class="fb-n">' . ( (int) $unc->count - $hidden ) . '</', $tr ) === 1 || preg_match( '/fb-n">' . ( (int) $unc->count - $hidden ) . '<\/span>/', $tr ) === 1, 'counts: the tree shows the visible count too' );
 foreach ( $ids as $pid ) { wp_set_object_terms( $pid, array(), MCUPR_OFFICE_TAX ); }
 wp_delete_term( $otid, MCUPR_OFFICE_TAX );
-delete_option( 'mcupr_office_hidden' );
-unset( $GLOBALS['mcupr_office_hidden'] );
+mcupr_office_hidden_reset();
 t( ! mcupr_browser_filtered() && mcupr_browser_all_total() === $published, 'counts: back to the stored counts once nothing is left out' );
 
 // ---- sidebar markup on a tag archive: tags apart from categories

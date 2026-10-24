@@ -156,6 +156,18 @@ function mcupr_poll_voter_key( $id ) {
 	return 'mcupr_pv_' . (int) $id . '_' . substr( hash_hmac( 'sha256', $ip . '|' . (int) $id, wp_salt( 'auth' ) ), 0, 16 );
 }
 
+/**
+ * How long the "this visitor has voted" mark is kept. It only has to last as long as the poll can still be voted in,
+ * so a poll that closes on a date keeps it until then (and an expired transient lingers in the options table until
+ * something cleans it out, which is the other reason not to keep it longer than needed). A month at the most.
+ */
+function mcupr_poll_voted_ttl( $id ) {
+	$c = (string) get_post_meta( $id, '_mcupr_poll_close', true );
+	$t = '' !== $c ? strtotime( $c . ' 23:59:59' ) : 0;
+	$left = $t ? $t - time() : 0;
+	return $left > 0 ? min( 30 * DAY_IN_SECONDS, $left + HOUR_IN_SECONDS ) : 30 * DAY_IN_SECONDS;
+}
+
 function mcupr_poll_has_voted( $id ) {
 	return isset( $_COOKIE[ 'mcupr_pv_' . (int) $id ] ) || (bool) get_transient( mcupr_poll_voter_key( $id ) );
 }
@@ -195,7 +207,7 @@ function mcupr_poll_vote( $id, $choices, $data = array(), $now = 0 ) {
 		$votes[ $c ] = ( isset( $votes[ $c ] ) ? $votes[ $c ] : 0 ) + 1;
 	}
 	update_post_meta( $id, '_mcupr_poll_votes', $votes );
-	set_transient( mcupr_poll_voter_key( $id ), 1, 30 * DAY_IN_SECONDS );
+	set_transient( mcupr_poll_voter_key( $id ), 1, mcupr_poll_voted_ttl( $id ) );
 	return 'ok';
 }
 

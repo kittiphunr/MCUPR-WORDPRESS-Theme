@@ -194,6 +194,113 @@ function mcupr_check_request( $field, $action, $cap = '', $src = 'post' ) {
 	return isset( $in[ $field ] ) && false !== wp_verify_nonce( sanitize_text_field( wp_unslash( $in[ $field ] ) ), $action );
 }
 
+/**
+ * The headers every page of the site carries.
+ *
+ * nosniff: the browser takes the content type we send and does not guess another one.
+ * Referrer-Policy: a visitor who follows a link away takes the host with them, not the whole address, and nothing at
+ *   all when leaving https for http — so an address that carries a request number or a search does not travel.
+ * Permissions-Policy: the theme never asks for the camera, the microphone, the place the visitor is or a payment, so
+ *   the page says it does not want them either (which also stops anything embedded in it from asking).
+ * X-Frame-Options: another site may not put a page of ours inside its own frame — except an embed, which exists to be
+ *   shown inside another site's page.
+ *
+ * There is deliberately no Content-Security-Policy: one that is any use has to name every script and style the site
+ * really loads (its plugins, the fonts, what was built with Elementor), so a policy written blind here would quietly
+ * break pages. Add one through the filter when you know what a site loads.
+ */
+add_action(
+	'send_headers',
+	static function ( $wp = null ) {
+		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+			return;
+		}
+		$h = array(
+			'X-Content-Type-Options' => 'nosniff',
+			'Referrer-Policy'        => 'strict-origin-when-cross-origin',
+			'Permissions-Policy'     => 'camera=(), microphone=(), geolocation=(), payment=()',
+		);
+		if ( ! is_object( $wp ) || empty( $wp->query_vars['embed'] ) ) {
+			$h['X-Frame-Options'] = 'SAMEORIGIN';
+		}
+		$h = (array) apply_filters( 'mcupr_security_headers', $h );
+		if ( headers_sent() ) {
+			return;
+		}
+		foreach ( $h as $name => $value ) {
+			if ( is_string( $name ) && '' !== (string) $value ) {
+				header( $name . ': ' . $value, true );
+			}
+		}
+	}
+);
+
+/**
+ * A folder for files that hold personal data (what a request brought with it, what a mail job will attach).
+ *
+ * Outside the web root when the server lets us write there: then nothing can ask the web server for the file at all,
+ * which is the only protection that does not depend on which web server is running. Only if that is not possible does
+ * it fall back to a folder inside uploads with index.php and an .htaccess, and that .htaccess is read by Apache alone
+ * — on nginx or LiteSpeed it does nothing, so there the unguessable folder name is all that stands between the file and
+ * the internet. Both are written again if somebody removed them.
+ *
+ * mcupr_private_bases() gives the same folder and the one inside uploads, newest first: a site that kept its files in
+ * uploads before this goes on finding them there.
+ */
+function mcupr_private_dir( $name ) {
+	$name = preg_replace( '/[^a-z-]/', '', (string) $name );
+	$out  = trailingslashit( dirname( untrailingslashit( ABSPATH ) ) ) . 'mcupr-private-' . $name;
+	if ( is_dir( $out ) ? wp_is_writable( $out ) : ( wp_is_writable( dirname( $out ) ) && wp_mkdir_p( $out ) && wp_is_writable( $out ) ) ) {
+		return untrailingslashit( $out );
+	}
+	$up  = wp_upload_dir();
+	$dir = untrailingslashit( trailingslashit( $up['basedir'] ) . 'mcupr-' . $name );
+	if ( ! is_dir( $dir ) ) {
+		wp_mkdir_p( $dir );
+	}
+	if ( ! file_exists( $dir . '/index.php' ) ) {
+		file_put_contents( $dir . '/index.php', "<?php // silence\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+	}
+	if ( ! file_exists( $dir . '/.htaccess' ) ) {
+		file_put_contents( $dir . '/.htaccess', "Require all denied\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+	}
+	return $dir;
+}
+
+/** Where files of this kind may be: the folder in use first, then the older one inside uploads. */
+function mcupr_private_bases( $name ) {
+	$up  = wp_upload_dir();
+	$now = mcupr_private_dir( $name );
+	$old = untrailingslashit( trailingslashit( $up['basedir'] ) . 'mcupr-' . preg_replace( '/[^a-z-]/', '', (string) $name ) );
+	return $now === $old ? array( $now ) : array( $now, $old );
+}
+
+/** The folder of one token inside mcupr_private_dir( $name ): the one that is already there, else the one to write in. */
+function mcupr_private_token_dir( $name, $token ) {
+	$token = preg_replace( '/[^a-f0-9]/', '', (string) $token );
+	if ( '' === $token ) {
+		return '';
+	}
+	$bases = mcupr_private_bases( $name );
+	foreach ( $bases as $base ) {
+		if ( is_dir( $base . '/' . $token ) ) {
+			return $base . '/' . $token;
+		}
+	}
+	return $bases[0] . '/' . $token;
+}
+
+/** Is this real path inside any of the folders files of this kind may be in? */
+function mcupr_private_path_ok( $real, $name ) {
+	foreach ( mcupr_private_bases( $name ) as $base ) {
+		$b = realpath( $base );
+		if ( $b && mcupr_path_inside( $real, $b ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /** Is the real path $real inside the folder $base (both already through realpath())? A sibling such as uploads-old/ is not. */
 function mcupr_path_inside( $real, $base ) {
 	if ( ! $real || ! $base ) {

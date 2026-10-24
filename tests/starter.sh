@@ -54,6 +54,7 @@ php php/php-security.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FA
 php php/elementor.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Warning\|Fatal" || true
 php php/no-emoji.php 2>&1 | grep "^FAIL\|FAILED" || true
 php php/security.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
+php php/data-hardening.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/low-risk.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/groups-import.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/real-bugs.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true

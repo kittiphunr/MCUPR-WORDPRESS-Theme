@@ -101,7 +101,7 @@ add_action(
 				$th = 'th' === mcupr_default_lang();
 				wp_insert_term( $th ? 'ทั่วไป' : 'General', 'mcupr_board', array( 'slug' => 'general', 'description' => $th ? 'พูดคุยเรื่องทั่วไปเกี่ยวกับมหาวิทยาลัย' : 'Talk about anything related to the university.' ) );
 			}
-			update_option( 'mcupr_forum_boards_seeded', 1 );
+			update_option( 'mcupr_forum_boards_seeded', 1, false );
 		}
 		mcupr_rewrite_wanted( 'mcupr_rewrite_forum', MCUPR_VERSION ); // one flush for all modules, at the end of init (inc/compat.php)
 	},
@@ -677,7 +677,8 @@ add_action(
 				'notify'     => sanitize_email( $p( 'notify' ) ),
 				'reports'    => isset( $_POST['reports'] ) ? 1 : 0,
 				'close_days' => (int) $p( 'close_days' ),
-			)
+			),
+			false
 		);
 		wp_safe_redirect( add_query_arg( array( 'post_type' => 'mcupr_topic', 'page' => 'mcupr-forum', 'saved' => 1 ), admin_url( 'edit.php' ) ) );
 		exit;
