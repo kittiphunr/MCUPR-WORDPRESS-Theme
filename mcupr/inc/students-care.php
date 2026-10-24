@@ -66,6 +66,11 @@ function mcupr_audit_actions() {
 		'maildone' => __( 'Finished sending an e-mail to students', 'mcupr' ),
 		'unsub'    => __( 'A student stopped receiving announcements', 'mcupr' ),
 		'resub'    => __( 'A student receives announcements again', 'mcupr' ),
+		'rqfile'   => __( 'Opened a file sent with a request', 'mcupr' ),
+		'fbexport' => __( 'Exported the answers of a form', 'mcupr' ),
+		'staffexport' => __( 'Exported the staff directory', 'mcupr' ),
+		'pdpaexport'  => __( 'Answered a request to be told what the site holds about somebody', 'mcupr' ),
+		'pdpaerase'   => __( 'Answered a request to delete what the site holds about somebody', 'mcupr' ),
 	);
 }
 
@@ -193,7 +198,7 @@ function mcupr_audit_page() {
 	remove_filter( 'posts_where', $where );
 	echo '<div class="wrap"><h1>' . esc_html__( 'Student activity log', 'mcupr' ) . '</h1>';
 	/* translators: %d: days */
-	echo '<p style="max-width:56rem">' . esc_html( sprintf( __( 'Who imported, exported, changed or deleted student data, and when. The log holds no student names and no IP addresses, and is cleared after %d days (set in the student portal settings).', 'mcupr' ), mcupr_audit_days() ) ) . '</p>';
+	echo '<p style="max-width:56rem">' . esc_html( sprintf( __( 'Who imported, exported, changed or deleted student data, who opened the papers somebody sent with a request, and who answered a request to be told or to be forgotten — and when. The log holds no names, no e-mail addresses and no IP addresses, and is cleared after %d days (set in the student portal settings).', 'mcupr' ), mcupr_audit_days() ) ) . '</p>';
 	echo '<form method="get" style="margin:.5rem 0 1rem"><input type="hidden" name="page" value="mcupr-student-log"><label for="mcupr-act" class="screen-reader-text">' . esc_html__( 'Show', 'mcupr' ) . '</label><select id="mcupr-act" name="act"><option value="">' . esc_html__( 'All events', 'mcupr' ) . '</option>';
 	foreach ( $actions as $k => $l ) {
 		echo '<option value="' . esc_attr( $k ) . '"' . selected( $sel, $k, false ) . '>' . esc_html( $l ) . '</option>';

@@ -582,6 +582,7 @@ add_action(
 			);
 			$lines .= mcupr_import_csv_line( array_map( static function ( $k ) use ( $row ) { return isset( $row[ $k ] ) ? $row[ $k ] : ''; }, array_keys( $cols ) ) );
 		}
+		do_action( 'mcupr_staff_exported', count( $people ) ); // the log (inc/privacy.php)
 		mcupr_import_send_csv( 'staff-' . gmdate( 'Y-m-d' ) . '.csv', $lines );
 	}
 );

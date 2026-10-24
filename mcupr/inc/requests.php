@@ -427,6 +427,7 @@ add_action(
 		header( 'X-Content-Type-Options: nosniff' );
 		header( 'X-Robots-Tag: noindex' );
 		header( 'Content-Length: ' . filesize( $real ) );
+		do_action( 'mcupr_rq_file_served', $entry, $i ); // the log (inc/privacy.php)
 		readfile( $real ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		exit;
 	},

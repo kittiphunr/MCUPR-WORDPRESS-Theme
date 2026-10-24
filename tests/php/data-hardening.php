@@ -240,6 +240,74 @@ wp_delete_user( $co );
 wp_delete_user( $off_ed );
 mcupr_aud_reset();
 
+// ---- Tools -> Export / Erase personal data now reach what people sent, not only the student records
+wp_set_current_user( $adm[0]->ID );
+$addr = 'dh_person@example.org';
+$pd_entry = wp_insert_post( array( 'post_type' => 'mcupr_fe', 'post_status' => 'private', 'post_title' => 'DH pd answer' ) );
+update_post_meta( $pd_entry, '_mcupr_fe_form', $pform );
+update_post_meta( $pd_entry, '_mcupr_fe_rows', array( array( 'E-mail', $addr ), array( 'Why', 'DH-ANSWER-TEXT' ) ) );
+$pd_req = wp_insert_post( array( 'post_type' => 'mcupr_fe', 'post_status' => 'private', 'post_title' => 'DH pd request' ) );
+update_post_meta( $pd_req, '_mcupr_fe_form', $rform );
+update_post_meta( $pd_req, '_mcupr_rq_code', 'REQ-2026-99002' );
+update_post_meta( $pd_req, '_mcupr_rq_email', $addr );
+update_post_meta( $pd_req, '_mcupr_rq_sidcode', '8899' );
+$pd_msg = wp_insert_post( array( 'post_type' => 'mcupr_msg', 'post_status' => 'private', 'post_title' => 'DH pd message', 'post_content' => 'DH-MESSAGE-TEXT' ) );
+foreach ( array( 'name' => 'ผู้ร้อง', 'email' => $addr, 'phone' => '0800000000', 'ref' => 'MC-20261024-1' ) as $k => $v ) {
+	update_post_meta( $pd_msg, '_mcupr_msg_' . $k, $v );
+}
+$pd_topic = wp_insert_post( array( 'post_type' => 'mcupr_topic', 'post_status' => 'publish', 'post_title' => 'DH pd topic', 'post_content' => 'DH-TOPIC-TEXT' ) );
+update_post_meta( $pd_topic, '_mcupr_topic_email', $addr );
+update_post_meta( $pd_topic, '_mcupr_topic_name', 'ผู้มาเยือน' );
+
+t( in_array( $pd_req, mcupr_pd_entries( $addr ), true ) && in_array( $pd_entry, mcupr_pd_entries( $addr ), true ) && ! in_array( $pa, mcupr_pd_entries( $addr ), true ), 'personal data: both the request and the plain answer carrying the address are found, somebody else\'s is not' );
+t( array() === mcupr_pd_entries( 'not-an-address' ) && array() === mcupr_pd_entries( '' ), 'personal data: rubbish instead of an address finds nothing' );
+
+$exporters = apply_filters( 'wp_privacy_personal_data_exporters', array() );
+foreach ( array( 'mcupr-student', 'mcupr-form-entry', 'mcupr-message', 'mcupr-forum' ) as $k ) {
+	t( isset( $exporters[ $k ] ) && is_callable( $exporters[ $k ]['callback'] ), 'personal data: there is an exporter for ' . $k );
+}
+$text = '';
+foreach ( array( 'mcupr-form-entry', 'mcupr-message', 'mcupr-forum' ) as $k ) {
+	$r = call_user_func( $exporters[ $k ]['callback'], $addr );
+	t( ! empty( $r['done'] ) && ! empty( $r['data'] ), 'personal data: the exporter ' . $k . ' answers with what it holds' );
+	$text .= wp_json_encode( $r['data'] );
+}
+t( false !== strpos( $text, 'DH-ANSWER-TEXT' ) && false !== strpos( $text, 'DH-MESSAGE-TEXT' ) && false !== strpos( $text, 'DH-TOPIC-TEXT' ) && false !== strpos( $text, 'REQ-2026-99002' ) && false !== strpos( $text, '0800000000' ), 'personal data: the answer holds the text of the form, the message, the topic, the request number and the telephone' );
+
+$erasers = apply_filters( 'wp_privacy_personal_data_erasers', array() );
+foreach ( array( 'mcupr-form-entry', 'mcupr-message', 'mcupr-forum' ) as $k ) {
+	$r = call_user_func( $erasers[ $k ]['callback'], $addr );
+	t( ! empty( $r['done'] ) && ! empty( $r['items_removed'] ), 'personal data: the eraser ' . $k . ' removes what it holds' );
+}
+t( ! get_post( $pd_entry ) && ! get_post( $pd_req ) && ! get_post( $pd_msg ), 'personal data: the answers, the request and the message are gone' );
+t( get_post( $pd_topic ) && '' === (string) get_post_meta( $pd_topic, '_mcupr_topic_email', true ) && false !== strpos( (string) get_post_field( 'post_content', $pd_topic ), 'DH-TOPIC-TEXT' ), 'personal data: a forum topic keeps its text (other people answered it) but loses the name and the address' );
+t( get_post( $pa ), 'personal data: an answer belonging to somebody else is untouched' );
+
+// ---- the log says who took personal data out and who opened what people sent
+$logged = static function ( $action ) {
+	$ids = get_posts( array( 'post_type' => MCUPR_AUDIT, 'post_status' => 'any', 'posts_per_page' => 5, 'fields' => 'ids', 'no_found_rows' => true, 'orderby' => 'ID', 'order' => 'DESC', 'title' => $action ) );
+	return $ids ? json_decode( (string) get_post_meta( (int) $ids[0], '_mcupr_a', true ), true ) : null;
+};
+foreach ( array( 'rqfile', 'fbexport', 'staffexport', 'pdpaexport', 'pdpaerase' ) as $k ) {
+	t( isset( mcupr_audit_actions()[ $k ] ), 'log: there is a name for the event "' . $k . '"' );
+}
+t( is_array( $logged( 'pdpaexport' ) ) && is_array( $logged( 'pdpaerase' ) ), 'log: answering a request to be told and to be forgotten is written down' );
+$ex_row = $logged( 'pdpaexport' );
+t( is_array( $ex_row ) && false === strpos( wp_json_encode( $ex_row ), $addr ), 'log: and the entry does not repeat the address it was about' );
+do_action( 'mcupr_fb_exported', $pform, 7 );
+$fb_row = $logged( 'fbexport' );
+t( is_array( $fb_row ) && 7 === (int) $fb_row['n'], 'log: taking the answers of a form out is written down, with how many rows' );
+do_action( 'mcupr_staff_exported', 12 );
+$st_row = $logged( 'staffexport' );
+t( is_array( $st_row ) && 12 === (int) $st_row['n'], 'log: taking the staff directory out is written down' );
+$served = wp_insert_post( array( 'post_type' => 'mcupr_fe', 'post_status' => 'private', 'post_title' => 'DH served' ) );
+update_post_meta( $served, '_mcupr_rq_code', 'REQ-2026-99003' );
+do_action( 'mcupr_rq_file_served', $served, 0 );
+$rf_row = $logged( 'rqfile' );
+t( is_array( $rf_row ) && 'REQ-2026-99003' === (string) $rf_row['note'], 'log: opening a file sent with a request is written down against its number' );
+wp_delete_post( $served, true );
+wp_delete_post( $pd_topic, true );
+
 foreach ( array( $rq, $pa, $rform, $pform, $p_open, $p_nobio, $p_off ) as $id ) {
 	wp_delete_post( $id, true );
 }

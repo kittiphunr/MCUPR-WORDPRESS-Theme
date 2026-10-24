@@ -757,7 +757,9 @@ add_action(
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( get_post_field( 'post_name', $fid ) . '-answers.csv' ) . '"' );
-		echo mcupr_fb_csv( $fid ); // phpcs:ignore WordPress.Security.EscapeOutput
+		$csv = mcupr_fb_csv( $fid );
+		do_action( 'mcupr_fb_exported', $fid, max( 0, substr_count( $csv, "\r\n" ) - 1 ) ); // the log (inc/privacy.php)
+		echo $csv; // phpcs:ignore WordPress.Security.EscapeOutput
 		exit;
 	}
 );
