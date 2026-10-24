@@ -802,10 +802,17 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await vc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
     const vp = await vc.newPage();
     await vp.goto(B + '/?s=fx');
-    const cards = await vp.evaluate(() => [...document.querySelectorAll('.news-card')].map((c) => { const m = c.querySelector('.news-media'); const e = c.querySelector('.news-excerpt'); return { fit: !!m && m.classList.contains('is-fit'), title: c.querySelector('.news-title a').textContent, fitStyle: m ? getComputedStyle(m.querySelector('img')).objectFit : '', exLines: e ? Math.round(e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).lineHeight)) : 0, more: !!c.querySelector('.news-more') }; }));
+    const cards = await vp.evaluate(() => [...document.querySelectorAll('.news-card')].map((c) => { const m = c.querySelector('.news-media'); const e = c.querySelector('.news-excerpt'); const mo = c.querySelector('.news-more'); const ti = c.querySelector('.news-title a'); return { fit: !!m && m.classList.contains('is-fit'), title: ti.textContent, fitStyle: m ? getComputedStyle(m.querySelector('img')).objectFit : '', exLines: e ? Math.round(e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).lineHeight)) : 0, more: !!mo, moreIsLink: !!mo && mo.tagName === 'A' && mo.getAttribute('href') === ti.getAttribute('href') }; }));
     const poster = cards.find((c) => c.title.includes('fx-poster')), wide = cards.find((c) => c.title.includes('fx-wide'));
     ok(poster && poster.fit && poster.fitStyle === 'contain' && wide && !wide.fit && wide.fitStyle === 'cover', 'news cards: a poster-shaped picture is shown whole, a wide one is cropped to fill');
     ok(cards.length >= 2 && cards.every((c) => c.exLines <= 6 && c.more), 'news cards: excerpts are clamped and every card ends with "read more"');
+    // it is drawn as a link, so it has to be one: a visitor who clicks the words must get to the article
+    ok(cards.every((c) => c.moreIsLink), 'news cards: "read more" is a real link to the same article as the title');
+    const beforeMore = vp.url();
+    await vp.locator('.news-card .news-more').first().click();
+    await vp.waitForLoadState('domcontentloaded');
+    ok(vp.url() !== beforeMore && await vp.locator('article.post, article.page, .single-content, main article').first().isVisible(), 'news cards: clicking "read more" opens the article (' + vp.url().replace(B, '') + ')');
+    await vp.goBack({ waitUntil: 'domcontentloaded' });
     const rows = await vp.evaluate(() => { const g = document.querySelector('.news-card').parentElement; const kids = [...g.children]; return kids.map((k) => Math.round(k.getBoundingClientRect().top)).reduce((m, t, i) => { (m[t] = m[t] || []).push(Math.round(kids[i].getBoundingClientRect().height)); return m; }, {}); });
     ok(Object.values(rows).every((hs) => Math.max(...hs) - Math.min(...hs) <= 1), 'news cards: cards in a row are the same height');
     await vp.screenshot({ path: shot('news-cards.png'), fullPage: true });
