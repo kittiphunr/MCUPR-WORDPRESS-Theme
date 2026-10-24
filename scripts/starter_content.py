@@ -399,12 +399,12 @@ FOOTER = [
 ]
 
 QUICK = [
- {'label': L['q-apply'], 'target': ('page', 'admissions'), 'icon': 'edit', 'kids': []},
- {'label': L['q-programs'], 'target': ('page', 'programs'), 'icon': 'book', 'kids': []},
- {'label': L['q-grants'], 'target': ('page', 'scholarships'), 'icon': 'money', 'kids': []},
- {'label': L['q-calendar'], 'target': ('page', 'calendar'), 'icon': 'calendar', 'kids': []},
- {'label': L['q-library'], 'target': ('page', 'library'), 'icon': 'folder', 'kids': []},
- {'label': L['q-alumni'], 'target': ('page', 'alumni'), 'icon': 'users', 'kids': []},
+ {'label': L['q-apply'], 'target': ('page', 'admissions'), 'icon': 'edit', 'for': ['future'], 'kids': []},
+ {'label': L['q-programs'], 'target': ('page', 'programs'), 'icon': 'book', 'for': ['future', 'student'], 'kids': []},
+ {'label': L['q-grants'], 'target': ('page', 'scholarships'), 'icon': 'money', 'for': ['future', 'student', 'parent'], 'kids': []},
+ {'label': L['q-calendar'], 'target': ('page', 'calendar'), 'icon': 'calendar', 'for': ['student', 'parent', 'staff'], 'kids': []},
+ {'label': L['q-library'], 'target': ('page', 'library'), 'icon': 'folder', 'for': ['student', 'staff'], 'kids': []},
+ {'label': L['q-alumni'], 'target': ('page', 'alumni'), 'icon': 'users', 'for': ['alumni'], 'kids': []},
  {'label': L['q-contact'], 'target': ('page', 'contact'), 'icon': 'mail', 'kids': []},
 ]
 

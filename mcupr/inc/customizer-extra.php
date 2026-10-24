@@ -26,6 +26,7 @@ function mcupr_hero_options() {
 		'align'   => 'left' === $g( 'mcupr_hero_align', 'center' ) ? 'left' : 'center',
 		'focus'   => in_array( $g( 'mcupr_hero_focus', 'center' ), array( 'top', 'center', 'bottom' ), true ) ? $g( 'mcupr_hero_focus', 'center' ) : 'center',
 		'quick'   => (bool) get_theme_mod( 'mcupr_hero_quick', true ),
+		'persona' => (bool) get_theme_mod( 'mcupr_hero_persona', true ),
 	);
 }
 
@@ -59,6 +60,8 @@ function mcupr_customize_register_extra( $wp_customize ) {
 	$wp_customize->add_control( 'mcupr_hero_focus', array( 'section' => $sec, 'label' => __( 'Hero: which part of the photo to keep when it is cropped', 'mcupr' ), 'type' => 'radio', 'choices' => array( 'top' => __( 'Top', 'mcupr' ), 'center' => __( 'Middle', 'mcupr' ), 'bottom' => __( 'Bottom', 'mcupr' ) ) ) );
 	$wp_customize->add_setting( 'mcupr_hero_quick', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 	$wp_customize->add_control( 'mcupr_hero_quick', array( 'section' => $sec, 'label' => __( 'Hero: show the quick-link tiles (menu location “Quick links”)', 'mcupr' ), 'type' => 'checkbox' ) );
+	$wp_customize->add_setting( 'mcupr_hero_persona', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+	$wp_customize->add_control( 'mcupr_hero_persona', array( 'section' => $sec, 'label' => __( 'Hero: show the “I am…” picker above the quick links (when some quick links are marked for a kind of visitor in Appearance → Menus)', 'mcupr' ), 'type' => 'checkbox' ) );
 
 	// ---- more slides (the first slide is the hero above)
 	$wp_customize->add_setting( 'mcupr_hero_auto', array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
