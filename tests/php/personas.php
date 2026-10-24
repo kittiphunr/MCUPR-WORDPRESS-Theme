@@ -57,5 +57,52 @@ remove_theme_mod( 'mcupr_hero_persona' );
 if ( null === $old ) { unset( $loc['quick'] ); } else { $loc['quick'] = $old; }
 set_theme_mod( 'nav_menu_locations', $loc );
 wp_delete_nav_menu( $mid );
+
+/* ---------------------------------------------- the one-press offer for a menu built before this existed */
+$mid2 = wp_create_nav_menu( 'persona-fill-' . getmypid() );
+$rows = array(
+	array( 'สมัครเรียน', '/admissions/', 'edit', array( 'future' ) ),
+	array( 'หลักสูตรที่เปิดสอน', '/programs/', 'book', array( 'future', 'student' ) ),
+	array( 'ทุนการศึกษา', '/scholarships/', 'money', array( 'future', 'student', 'parent' ) ),
+	array( 'ปฏิทินการศึกษา', '/calendar/', 'calendar', array( 'student', 'parent', 'staff' ) ),
+	array( 'ห้องสมุด', '/library/', 'folder', array( 'student', 'staff' ) ),
+	array( 'ศิษย์เก่า', '/alumni/', 'users', array( 'alumni' ) ),
+	array( 'ติดต่อ', '/contact/', 'mail', array() ),
+);
+$ids2 = array();
+foreach ( $rows as $i => $r ) {
+	$iid = wp_update_nav_menu_item( $mid2, 0, array( 'menu-item-title' => $r[0], 'menu-item-url' => home_url( $r[1] ), 'menu-item-status' => 'publish', 'menu-item-type' => 'custom', 'menu-item-position' => $i + 1 ) );
+	update_post_meta( $iid, '_mcupr_menu_icon', $r[2] );
+	$ids2[] = $iid;
+}
+$loc2 = get_nav_menu_locations();
+$old2 = isset( $loc2['quick'] ) ? $loc2['quick'] : null;
+$loc2['quick'] = $mid2;
+set_theme_mod( 'nav_menu_locations', $loc2 );
+delete_option( 'mcupr_persona_hide_hint' );
+t( $mid2 === mcupr_persona_quick_menu_id() && 7 === count( mcupr_persona_quick_items() ), 'the links of the home page are found through the "Quick links" location' );
+t( mcupr_persona_needs_filling(), 'a menu whose links say nothing about who they are for is offered the one-press fill' );
+$n2 = mcupr_persona_fill();
+$got = array();
+foreach ( $ids2 as $k => $iid ) {
+	$got[] = mcupr_menu_item_for( $iid );
+}
+$want = array_map( static function ( $r ) { return $r[3]; }, $rows );
+t( 6 === $n2 && $want === $got, 'the guess matches what a person would tick (apply, programmes, scholarships, calendar, library, alumni; contact stays for everyone)' );
+t( ! mcupr_persona_needs_filling(), 'once the links have their groups the offer is gone' );
+t( array( 'future', 'student', 'parent', 'staff', 'alumni' ) === mcupr_personas_in( wp_nav_menu( array( 'menu' => $mid2, 'container' => false, 'menu_class' => 'hero-menu', 'depth' => 1, 'echo' => false ) ) ), 'and the home page now has all five kinds in its picker' );
+foreach ( $ids2 as $iid ) {
+	delete_post_meta( $iid, '_mcupr_menu_for' );
+}
+update_option( 'mcupr_persona_hide_hint', 1, false );
+t( ! mcupr_persona_needs_filling(), '"do not ask again" stops the offer even when nothing is marked' );
+delete_option( 'mcupr_persona_hide_hint' );
+set_theme_mod( 'mcupr_hero_persona', false );
+t( ! mcupr_persona_needs_filling(), 'and so does switching the picker off' );
+remove_theme_mod( 'mcupr_hero_persona' );
+if ( null === $old2 ) { unset( $loc2['quick'] ); } else { $loc2['quick'] = $old2; }
+set_theme_mod( 'nav_menu_locations', $loc2 );
+wp_delete_nav_menu( $mid2 );
+
 echo $fails ? "FAILED: $fails\n" : "ALL PASSED\n";
 exit( $fails ? 1 : 0 );

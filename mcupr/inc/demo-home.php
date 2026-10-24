@@ -200,6 +200,10 @@ function mcupr_demo_apply( $d ) {
 				$iid = wp_update_nav_menu_item( $mid, 0, array( 'menu-item-title' => sanitize_text_field( $it[1] ), 'menu-item-url' => home_url( $url ), 'menu-item-status' => 'publish', 'menu-item-type' => 'custom', 'menu-item-position' => $pos ) );
 				if ( $iid && ! is_wp_error( $iid ) ) {
 					update_post_meta( $iid, '_mcupr_menu_icon', sanitize_key( $it[2] ) );
+					$for = isset( $it[3] ) && is_array( $it[3] ) && function_exists( 'mcupr_personas' ) ? array_values( array_intersect( array_keys( mcupr_personas() ), array_map( 'sanitize_key', $it[3] ) ) ) : array();
+					if ( $for ) {
+						update_post_meta( $iid, '_mcupr_menu_for', $for ); // who the link is for: the "I am…" picker of the home page
+					}
 				}
 			}
 			$loc = get_nav_menu_locations();
