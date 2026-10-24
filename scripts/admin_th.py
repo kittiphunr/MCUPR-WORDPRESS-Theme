@@ -1,4 +1,10 @@
 TH = {
+"The “I am…” picker on the home page is not showing yet": "ตัวเลือก “ฉันคือ…” บนหน้าแรกยังไม่แสดง",
+"It appears as soon as the quick links of the home page say who they are for. None of them does yet, so every visitor sees all of them. You can tick the groups under each link below, or let the theme suggest them from the name of each link — you can change every tick afterwards.": "ตัวเลือกจะขึ้นทันทีที่ลิงก์ลัดของหน้าแรกระบุว่าเป็นของกลุ่มไหน ตอนนี้ยังไม่มีลิงก์ไหนระบุไว้ ผู้เข้าชมทุกคนจึงเห็นครบทุกลิงก์ คุณติ๊กกลุ่มใต้ลิงก์แต่ละอันด้านล่างเองได้ หรือให้ธีมเดาให้จากชื่อลิงก์ แล้วค่อยแก้ทีหลังได้ทุกช่อง",
+"Suggest the groups for me": "ให้ธีมเดากลุ่มให้",
+"No thanks, do not ask again": "ไม่ต้อง ไม่ต้องถามอีก",
+"Done: %d quick links were given a group. Open the home page to see the “I am…” picker, and change any tick under the links below.": "เรียบร้อย ใส่กลุ่มให้ลิงก์ลัดแล้ว %d อัน เปิดหน้าแรกเพื่อดูตัวเลือก “ฉันคือ…” และแก้ช่องติ๊กใต้ลิงก์ด้านล่างได้",
+"None of the quick links could be matched to a group. Tick the groups under each link below by hand.": "เดากลุ่มให้ลิงก์ลัดไม่ได้เลย กรุณาติ๊กกลุ่มใต้ลิงก์แต่ละอันด้านล่างเอง",
 "yes": "มี",
 "no (written by the theme)": "ไม่มี (ธีมเขียนให้)",
 "everything is printed": "แสดงผลครบ",
