@@ -635,15 +635,23 @@ add_filter(
 		if ( 'mcupr_office' === $post->post_type ) {
 			return in_array( $cap, array( 'delete_post', 'delete_page' ), true ) || ! in_array( $post->ID, $mine, true ) ? array( 'do_not_allow' ) : $caps;
 		}
-		if ( ! in_array( $post->post_type, mcupr_office_types(), true ) ) {
-			return $caps;
+		if ( in_array( $post->post_type, mcupr_office_types(), true ) ) {
+			$of = mcupr_office_of( $post->ID );
+			if ( $of ) {
+				return in_array( $of, $mine, true ) ? $caps : array( 'do_not_allow' );
+			}
+			// not in any office yet: only a brand-new draft of theirs (it is given an office when saved)
+			return (int) $post->post_author === (int) $user_id && 'publish' !== $post->post_status ? $caps : array( 'do_not_allow' );
 		}
-		$of = mcupr_office_of( $post->ID );
-		if ( $of ) {
-			return in_array( $of, $mine, true ) ? $caps : array( 'do_not_allow' );
+		/*
+		 * The Administration chart is the whole university's, not one office's, and the role holds the page rights that
+		 * reach it (it is a "page" kind of content outside mcupr_office_types()). Somebody who works in offices does
+		 * not change it.
+		 */
+		if ( 'mcupr_unit' === $post->post_type ) {
+			return array( 'do_not_allow' );
 		}
-		// not in any office yet: only a brand-new draft of theirs (it is given an office when saved)
-		return (int) $post->post_author === (int) $user_id && 'publish' !== $post->post_status ? $caps : array( 'do_not_allow' );
+		return $caps;
 	},
 	10,
 	4

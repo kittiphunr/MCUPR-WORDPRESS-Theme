@@ -35,6 +35,7 @@ function mcupr_people_register() {
 			'menu_position'       => 9,
 			'supports'            => array( 'title', 'editor', 'thumbnail', 'page-attributes' ),
 			'capability_type'     => 'page',
+			'map_meta_cap'        => true, // without it the per-person checks ask for a primitive 'edit_page' that no role holds
 		)
 	);
 	register_taxonomy(

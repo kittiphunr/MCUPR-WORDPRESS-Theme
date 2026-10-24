@@ -34,6 +34,7 @@ function mcupr_orgchart_register() {
 			'menu_position'   => 8,
 			'supports'        => array( 'title', 'thumbnail', 'page-attributes' ),
 			'capability_type' => 'page',
+			'map_meta_cap'    => true, // without it the per-unit checks ask for a primitive 'edit_page' that no role holds
 		)
 	);
 }

@@ -145,6 +145,51 @@ delete_transient( 'mcupr_thr_' . md5( 'elform|' . mcupr_client_net() ) );
 // 10. the CSV of a request form's answers needs the right to handle requests
 t( mcupr_rq_is_form( $rform ) && ! mcupr_rq_is_form( $pform ), 'forms: the request form is marked as one, the plain form is not' );
 
+// ---- who counts as staff for content kept for students
+$au = $fresh_user( 'dh_author', 'author' );
+$co = $fresh_user( 'dh_contrib', 'contributor' );
+$stu_post = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'DH students only' ) );
+update_post_meta( $stu_post, MCUPR_AUD, 'students' );
+update_post_meta( $stu_post, '_mcupr_aud_levels', array( 'master' ) );
+mcupr_aud_reset();
+$sees = static function ( $uid ) use ( $stu_post ) {
+	wp_set_current_user( $uid );
+	$GLOBALS['mcupr_aud_cache'] = array();
+	return mcupr_aud_can_view( $stu_post );
+};
+t( ! $sees( $co ) && ! $sees( $au ), 'students only: a contributor and an author are not staff, so the rules still apply to them' );
+t( $sees( $ed ) && $sees( $adm[0]->ID ), 'students only: an editor and an administrator are staff and see it' );
+wp_set_current_user( 0 );
+$GLOBALS['mcupr_aud_cache'] = array();
+t( ! mcupr_aud_can_view( $stu_post ), 'students only: a visitor does not see it' );
+
+// ---- the two post types that need the per-post mapping
+foreach ( array( 'mcupr_person' => 'a staff profile', 'mcupr_unit' => 'a unit of the chart' ) as $pt => $what ) {
+	$o = get_post_type_object( $pt );
+	t( ! empty( $o->map_meta_cap ), 'caps: ' . $what . ' asks WordPress to work out the per-post rights' );
+}
+$unit = wp_insert_post( array( 'post_type' => 'mcupr_unit', 'post_status' => 'publish', 'post_title' => 'DH unit' ) );
+wp_set_current_user( $adm[0]->ID );
+t( current_user_can( 'edit_post', $unit ) && current_user_can( 'edit_post', $p_open ), 'caps: an administrator can open a unit of the chart and a staff profile' );
+wp_set_current_user( $ed );
+t( current_user_can( 'edit_post', $unit ) && current_user_can( 'edit_post', $p_open ), 'caps: an editor can open them too' );
+
+// ---- the Administration chart is not one office's to change
+$office = wp_insert_post( array( 'post_type' => 'mcupr_office', 'post_status' => 'publish', 'post_title' => 'DH office' ) );
+$off_ed = $fresh_user( 'dh_office', MCUPR_OFFICE_ROLE );
+update_user_meta( $off_ed, 'mcupr_offices', array( $office ) );
+clean_user_cache( $off_ed );
+wp_set_current_user( $off_ed );
+t( ! current_user_can( 'edit_post', $unit ) && ! current_user_can( 'delete_post', $unit ), 'offices: somebody who works in one office does not change the Administration chart' );
+wp_set_current_user( $adm[0]->ID );
+wp_delete_post( $unit, true );
+wp_delete_post( $office, true );
+wp_delete_post( $stu_post, true );
+wp_delete_user( $au );
+wp_delete_user( $co );
+wp_delete_user( $off_ed );
+mcupr_aud_reset();
+
 foreach ( array( $rq, $pa, $rform, $pform, $p_open, $p_nobio, $p_off ) as $id ) {
 	wp_delete_post( $id, true );
 }
