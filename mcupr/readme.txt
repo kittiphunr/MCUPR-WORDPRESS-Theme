@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.72 =
+* Home page: a one-press way to give the quick links their groups, so the 'I am…' picker shows on a site built before it existed
+
 = 1.54.71 =
 * Elementor pages without the plugin: the theme prints what Elementor saved
 

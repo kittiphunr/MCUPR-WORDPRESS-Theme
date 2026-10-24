@@ -4631,6 +4631,33 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     await ac.close(); await ec.close();
     phpE('foreach ( array( get_page_by_path( "e2e-elementor" ), get_page_by_path( "e2e-elementor-canvas" ) ) as $p ) { if ( $p ) { wp_delete_post( $p->ID, true ); } } delete_option( "mcupr_el_report" ); delete_transient( "mcupr_el_count" );');
   }
+  // a menu built before the "I am…" picker existed: the offer in the admin fills the groups in one press
+  {
+    const { execSync: execF } = require('child_process');
+    const phpF = (code) => { const f = require('os').tmpdir() + '/e2e-fill-' + process.pid + '.php'; require('fs').writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execF('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
+    const strip = 'foreach ( mcupr_persona_quick_items() as $it ) { delete_post_meta( $it->ID, "_mcupr_menu_for" ); } delete_option( "mcupr_persona_hide_hint" );';
+    phpF(strip + ' echo count( mcupr_persona_quick_items() );');
+    const fc2 = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    await fc2.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+    const fp2 = await fc2.newPage();
+    await fp2.goto(B + '/');
+    ok((await fp2.locator('[data-persona-picker]').count()) === 0, 'persona fill: with no link marked there is no picker on the home page (as on a site built before this)');
+    await fp2.goto(B + '/wp-login.php');
+    await fp2.fill('#user_login', 'e2eadmin'); await fp2.fill('#user_pass', 'e2e-Admin-pass-1'); await fp2.click('#wp-submit');
+    await fp2.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
+    await fp2.goto(B + '/wp-admin/nav-menus.php');
+    const hint = fp2.locator('.notice', { hasText: 'ฉันคือ' }).first();
+    ok(await hint.isVisible(), 'persona fill: the menus screen offers to set the groups');
+    await Promise.all([fp2.waitForNavigation({ waitUntil: 'domcontentloaded' }), hint.locator('button.button-primary').click()]);
+    ok(/mcupr_personas=[1-9]/.test(fp2.url()) && (await fp2.locator('.notice-success').count()) >= 1, 'persona fill: one press gives the links their groups and says how many (' + fp2.url().split('mcupr_personas=')[1] + ')');
+    const after = JSON.parse(phpF('$o = array(); foreach ( mcupr_persona_quick_items() as $it ) { $o[ $it->title ] = mcupr_menu_item_for( $it->ID ); } echo wp_json_encode( $o );'));
+    ok(JSON.stringify(after['สมัครเรียน']) === '["future"]' && JSON.stringify(after['ศิษย์เก่า']) === '["alumni"]' && JSON.stringify(after['ติดต่อ']) === '[]', 'persona fill: the guesses are sensible (apply = future student, alumni = alumni, contact = everyone)');
+    await fp2.goto(B + '/wp-admin/nav-menus.php');
+    ok((await fp2.locator('.notice', { hasText: 'ฉันคือ' }).count()) === 0, 'persona fill: the offer is gone once the links have their groups');
+    await fp2.goto(B + '/');
+    ok((await fp2.locator('[data-persona-picker]:not([hidden])').count()) === 1, 'persona fill: the picker is on the home page now');
+    await fc2.close();
+  }
   await br.close();
   finish();
 })();
