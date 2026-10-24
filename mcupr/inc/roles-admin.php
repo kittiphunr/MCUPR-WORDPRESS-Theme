@@ -257,7 +257,7 @@ function mcupr_roles_page() {
 		echo '<p class="mr-tag">' . esc_html( 'standard' === $origin ? __( 'Comes with the theme', 'mcupr' ) : ( 'core' === $origin ? __( 'Comes with WordPress', 'mcupr' ) : __( 'Made on this site', 'mcupr' ) ) ) . '</p>';
 		echo '<p class="mr-card-actions">';
 		if ( $n > 0 ) {
-			echo '<a class="button button-small" href="' . esc_url( admin_url( 'users.php?role=' . $key ) ) . '">' . esc_html__( 'Who', 'mcupr' ) . '</a> ';
+			echo '<a class="button button-small" href="' . esc_url( admin_url( 'users.php?role=' . $key ) ) . '">' . esc_html__( 'See who holds it', 'mcupr' ) . '</a> ';
 		}
 		if ( 'standard' === $origin ) {
 			echo '<form method="post" action="' . $act . '" class="mr-inline" onsubmit="return confirm(' . esc_attr( wp_json_encode( __( 'Put this role back exactly the way the theme made it? What you ticked for it is lost.', 'mcupr' ) ) ) . ')">';

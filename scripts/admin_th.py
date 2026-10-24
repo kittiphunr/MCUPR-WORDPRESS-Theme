@@ -2132,4 +2132,5 @@ TH = {
 "always everything": "มีสิทธิ์ครบเสมอ",
 "e.g. Librarian": "เช่น บรรณารักษ์",
 "sensitive": "อ่อนไหว",
+"See who holds it": "ดูว่าใครบ้าง",
 }

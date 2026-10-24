@@ -1396,6 +1396,7 @@ return array(
 	'See the list of users' => 'ดูรายชื่อผู้ใช้',
 	'See the offices on the website' => 'ดูหน่วยงานบนเว็บไซต์',
 	'See the requests, change their status, and open the papers the sender attached (a copy of an identity card, a house registration).' => 'ดูคำร้อง เปลี่ยนสถานะ และเปิดเอกสารที่ผู้ยื่นแนบมา (สำเนาบัตรประจำตัว ทะเบียนบ้าน)',
+	'See who holds it' => 'ดูว่าใครบ้าง',
 	'Semester of entry' => 'ภาคการศึกษาที่เข้า',
 	'Send' => 'ส่ง',
 	'Send a copy of the answers to the person who answered (if the form asks for an e-mail address)' => 'ส่งสำเนาคำตอบให้ผู้ตอบ (หากแบบฟอร์มถามอีเมล)',
