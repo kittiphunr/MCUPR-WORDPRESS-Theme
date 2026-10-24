@@ -250,7 +250,7 @@ add_shortcode(
 		}
 		$q = get_posts( $args );
 		if ( ! $q ) {
-			return '<p class="text-muted">' . esc_html( mcupr_t( 'vd_none' ) ) . '</p>';
+			return mcupr_empty_note( mcupr_t( 'vd_none' ), 'video' );
 		}
 		$o = '<div class="album-grid">';
 		foreach ( $q as $p ) {
