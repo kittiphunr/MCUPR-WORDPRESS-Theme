@@ -33,6 +33,7 @@ $thumb    = $thumb_id ? wp_get_attachment_image_url( $thumb_id, 'medium' ) : '';
 		</p>
 		<<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?> class="news-title mb-2 font-bold leading-snug <?php echo $featured ? 'text-2xl min-[900px]:text-3xl' : 'text-lg'; ?>"><a class="inline-block py-1 text-fg" href="<?php the_permalink(); ?>"><?php the_title(); ?></a></<?php echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<div class="news-excerpt text-muted [&_p]:m-0"><?php the_excerpt(); ?></div>
-		<p class="news-more" aria-hidden="true"><?php mcupr_e( 'read_more' ); ?> <?php echo mcupr_icon( 'arrow', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></p>
+		<?php // it looks like a link, so it is one. The title above is the link a screen reader and the keyboard use, so this one is kept out of both (the same as the picture at the top of the card) rather than announced twice. ?>
+		<a class="news-more" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true"><?php mcupr_e( 'read_more' ); ?> <?php echo mcupr_icon( 'arrow', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
 	</div>
 </article>
