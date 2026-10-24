@@ -1,7 +1,7 @@
 /* The file manager of the uploads folder, laid out like the Finder of macOS: a sidebar (the folders and the colour tags), a bar with
    back / forward, the way of seeing (icons or list), actions and a search, the folder's contents, and a path bar with the count.
    Drag items onto a folder to move them, drag files from the computer to upload, right-click for a menu, Enter renames, Space is
-   Quick Look, Delete deletes (after asking). What the Media library owns is shown with a lock and cannot be changed here.
+   Quick Look, Delete moves to the trash (with Undo), the trash puts back or deletes for good (after asking). What the Media library owns is shown with a lock and cannot be changed here.
    The server (inc/file-manager.php) checks everything again: nothing here is trusted. */
 ( function () {
 	'use strict';
@@ -58,11 +58,18 @@
 	live.setAttribute( 'role', 'status' );
 	live.setAttribute( 'aria-live', 'polite' );
 	var toastTimer;
-	function toast( msg, bad ) {
+	function toast( msg, bad, action ) {
 		live.textContent = msg;
-		live.className = 'fm-live is-on' + ( bad ? ' is-bad' : '' );
+		if ( action ) {
+			var b = el( 'button', 'fm-undo' );
+			b.type = 'button';
+			b.textContent = action.label;
+			b.addEventListener( 'click', function () { live.className = 'fm-live'; action.run(); } );
+			live.appendChild( b );
+		}
+		live.className = 'fm-live is-on' + ( bad ? ' is-bad' : '' ) + ( action ? ' has-act' : '' );
 		clearTimeout( toastTimer );
-		toastTimer = setTimeout( function () { live.className = 'fm-live'; }, bad ? 7000 : 3200 );
+		toastTimer = setTimeout( function () { live.className = 'fm-live'; }, bad ? 7000 : ( action ? 8000 : 3200 ) );
 	}
 
 	/* ------------------------------------------------------------ glyphs */
@@ -74,7 +81,7 @@
 		return '<svg viewBox="0 0 48 60" aria-hidden="true" focusable="false"><path d="M6 4a4 4 0 0 1 4-4h20l12 12v44a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4z" fill="#fff" stroke="#c7c7cc" stroke-width="1.5"/><path d="M30 0l12 12H34a4 4 0 0 1-4-4z" fill="#e5e5ea"/><rect x="6" y="38" width="36" height="14" rx="2" fill="' + c + '"/><text x="24" y="48.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">' + label + '</text></svg>';
 	}
 	function glyph( e ) { return e.dir ? FOLDER : fileGlyph( e ); }
-	function kindName( e ) { var k = e.kind; return ( T[ k ] || T.other ) + ( e.ext && ! e.dir ? ' · ' + e.ext.toUpperCase() : '' ); }
+	function kindName( e ) { if ( e.trash ) { return e.from || T.uploads; } var k = e.kind; return ( T[ k ] || T.other ) + ( e.ext && ! e.dir ? ' · ' + e.ext.toUpperCase() : '' ); }
 	function tagDef( id ) { for ( var i = 0; i < C.tags.length; i++ ) { if ( C.tags[ i ].id === id ) { return C.tags[ i ]; } } return null; }
 	function dots( e ) {
 		return ( e.tags || [] ).map( function ( id ) { var d = tagDef( id ); return d ? '<i class="fm-dot" style="background:' + d.color + '" title="' + esc( d.name ) + '"></i>' : ''; } ).join( '' );
@@ -82,7 +89,7 @@
 
 	/* ------------------------------------------------------------ state */
 	var S = {
-		path: '', tag: 0, items: [], crumbs: [], sel: {}, last: null, q: '', counts: {},
+		path: '', tag: 0, trash: false, trashN: 0, items: [], crumbs: [], sel: {}, last: null, q: '', counts: {},
 		view: store( 'view' ) === 'list' ? 'list' : 'icons', sort: { key: 'name', dir: 1 },
 		hist: [], hi: -1, drag: null, tree: { '': null }, open: { '': true }, renaming: null
 	};
@@ -91,13 +98,14 @@
 	root.innerHTML =
 		'<aside class="fm-side" aria-label="' + esc( T.locations ) + '">' +
 		'<p class="fm-side-h">' + esc( T.locations ) + '</p><ul class="fm-tree" role="tree"></ul>' +
-		'<p class="fm-side-h">' + esc( T.tags ) + '</p><ul class="fm-tags"></ul></aside>' +
+		'<p class="fm-side-h">' + esc( T.tags ) + '</p><ul class="fm-tags"></ul>' +
+		'<p class="fm-side-h fm-side-trash-h">' + esc( T.trash ) + '</p><ul class="fm-trashlist"><li><button type="button" class="fm-trashrow" data-trash><span class="fm-ti">' + I[ 'trash-2' ] + '</span><span class="fm-tl">' + esc( T.trash ) + '</span><span class="fm-n"></span></button></li></ul></aside>' +
 		'<div class="fm-main">' +
 		'<div class="fm-bar" role="toolbar" aria-label="' + esc( T.title ) + '">' +
 		'<div class="fm-nav"><button type="button" class="fm-btn" data-act="back" aria-label="' + esc( T.back ) + '" title="' + esc( T.back ) + '">' + I[ 'chevron-left' ] + '</button><button type="button" class="fm-btn" data-act="fwd" aria-label="' + esc( T.forward ) + '" title="' + esc( T.forward ) + '">' + I[ 'chevron-right' ] + '</button></div>' +
 		'<h2 class="fm-title"></h2>' +
 		'<div class="fm-seg" role="group" aria-label="' + esc( T.icons ) + ' / ' + esc( T.list ) + '"><button type="button" class="fm-btn" data-view="icons" aria-label="' + esc( T.icons ) + '" title="' + esc( T.icons ) + '">' + I.grid + '</button><button type="button" class="fm-btn" data-view="list" aria-label="' + esc( T.list ) + '" title="' + esc( T.list ) + '">' + I.list + '</button></div>' +
-		'<div class="fm-acts"><button type="button" class="fm-btn" data-act="mkdir" aria-label="' + esc( T.newFolder ) + '" title="' + esc( T.newFolder ) + '">' + I[ 'folder-plus' ] + '</button><button type="button" class="fm-btn" data-act="upload" aria-label="' + esc( T.upload ) + '" title="' + esc( T.upload ) + '">' + I.upload + '</button><button type="button" class="fm-btn" data-act="download" aria-label="' + esc( T.download ) + '" title="' + esc( T.download ) + '">' + I.download + '</button><button type="button" class="fm-btn fm-danger" data-act="delete" aria-label="' + esc( T[ 'delete' ] ) + '" title="' + esc( T[ 'delete' ] ) + '">' + I[ 'trash-2' ] + '</button></div>' +
+		'<div class="fm-acts"><button type="button" class="fm-btn" data-act="mkdir" aria-label="' + esc( T.newFolder ) + '" title="' + esc( T.newFolder ) + '">' + I[ 'folder-plus' ] + '</button><button type="button" class="fm-btn" data-act="upload" aria-label="' + esc( T.upload ) + '" title="' + esc( T.upload ) + '">' + I.upload + '</button><button type="button" class="fm-btn" data-act="download" aria-label="' + esc( T.download ) + '" title="' + esc( T.download ) + '">' + I.download + '</button><button type="button" class="fm-btn fm-danger" data-act="delete" aria-label="' + esc( T[ 'delete' ] ) + '" title="' + esc( T[ 'delete' ] ) + '">' + I[ 'trash-2' ] + '</button><button type="button" class="fm-pill fm-bar-pill" data-act="restore" hidden>' + I[ 'rotate-ccw' ] + '<span>' + esc( T.putBack ) + '</span></button><button type="button" class="fm-pill fm-pill-danger fm-bar-pill" data-act="empty" hidden><span>' + esc( T.emptyTrash ) + '</span></button></div>' +
 		'<label class="fm-search">' + I.search + '<input type="search" placeholder="' + esc( T.search ) + '" aria-label="' + esc( T.search ) + '"></label>' +
 		'</div>' +
 		'<div class="fm-body" tabindex="0" role="listbox" aria-multiselectable="true" aria-label="' + esc( T.title ) + '"></div>' +
@@ -127,13 +135,15 @@
 		return a;
 	}
 
-	function load( path, tag, push ) {
+	function load( path, tag, push, trash ) {
 		S.renaming = null;
-		return post( 'list', tag ? { tag: tag } : { path: path } ).then( function ( d ) {
-			S.path = tag ? '' : d.path;
+		return post( trash ? 'trash' : 'list', trash ? {} : ( tag ? { tag: tag } : { path: path } ) ).then( function ( d ) {
+			S.trash = !! trash;
+			S.path = tag || trash ? '' : d.path;
 			S.tag = tag || 0;
+			if ( undefined !== d.trash ) { S.trashN = d.trash; }
 			S.items = d.items;
-			S.crumbs = d.crumbs;
+			S.crumbs = d.crumbs || [];
 			S.counts = d.counts || S.counts;
 			S.sel = {};
 			S.last = null;
@@ -141,15 +151,15 @@
 			elQ.value = '';
 			if ( push !== false ) {
 				S.hist = S.hist.slice( 0, S.hi + 1 );
-				S.hist.push( { path: S.path, tag: S.tag } );
+				S.hist.push( { path: S.path, tag: S.tag, trash: S.trash } );
 				S.hi = S.hist.length - 1;
 			}
-			if ( ! tag ) { S.tree[ S.path ] = d.items.filter( function ( e ) { return e.dir; } ); S.open[ S.path ] = true; }
+			if ( ! tag && ! trash ) { S.tree[ S.path ] = d.items.filter( function ( e ) { return e.dir; } ); S.open[ S.path ] = true; }
 			render();
 			return ensureAncestors( S.path );
 		}, function ( m ) { toast( m, true ); } );
 	}
-	function reload() { return load( S.path, S.tag, false ); }
+	function reload() { return load( S.path, S.tag, false, S.trash ); }
 	function go( p ) { return load( p, 0 ); }
 
 	/* the sidebar tree: folders load when they are opened */
@@ -171,7 +181,7 @@
 	}
 
 	/* ------------------------------------------------------------ drawing */
-	function render() { renderTree(); renderTags(); renderBar(); renderBody(); renderStatus(); }
+	function render() { renderTree(); renderTags(); renderTrashRow(); renderBar(); renderBody(); renderStatus(); }
 
 	function renderTree() {
 		elTree.innerHTML = '';
@@ -179,7 +189,7 @@
 			var kids = S.tree[ p ], open = !! S.open[ p ], li = el( 'li', 'fm-node' );
 			li.setAttribute( 'role', 'treeitem' );
 			li.setAttribute( 'aria-expanded', open ? 'true' : 'false' );
-			var row = el( 'div', 'fm-row' + ( ! S.tag && S.path === p ? ' is-on' : '' ) );
+			var row = el( 'div', 'fm-row' + ( ! S.tag && ! S.trash && S.path === p ? ' is-on' : '' ) );
 			row.style.paddingLeft = ( 8 + depth * 14 ) + 'px';
 			row.setAttribute( 'data-drop', p );
 			var hasKids = null === kids || undefined === kids || kids.length > 0;
@@ -225,6 +235,12 @@
 			elTags.appendChild( li );
 		} );
 	}
+	function renderTrashRow() {
+		var b = root.querySelector( '[data-trash]' );
+		b.classList.toggle( 'is-on', S.trash );
+		b.querySelector( '.fm-n' ).textContent = S.trashN || '';
+		b.setAttribute( 'data-drop-none', '1' );
+	}
 	function renameTag( d, row ) {
 		var lab = row.querySelector( '.fm-tl' ), inp = el( 'input', 'fm-edit' );
 		inp.value = d.name;
@@ -250,15 +266,25 @@
 	function renderBar() {
 		var d = S.tag ? tagDef( S.tag ) : null;
 		elTitle.innerHTML = '';
-		if ( d ) { elTitle.innerHTML = '<i class="fm-dot fm-dot-l" style="background:' + d.color + '"></i> '; elTitle.appendChild( document.createTextNode( d.name ) ); } else { elTitle.textContent = S.path ? baseOf( S.path ) : T.uploads; }
+		if ( S.trash ) { elTitle.textContent = T.trash; } else if ( d ) { elTitle.innerHTML = '<i class="fm-dot fm-dot-l" style="background:' + d.color + '"></i> '; elTitle.appendChild( document.createTextNode( d.name ) ); } else { elTitle.textContent = S.path ? baseOf( S.path ) : T.uploads; }
 		root.querySelector( '[data-act="back"]' ).disabled = S.hi <= 0;
 		root.querySelector( '[data-act="fwd"]' ).disabled = S.hi >= S.hist.length - 1;
 		[].forEach.call( root.querySelectorAll( '[data-view]' ), function ( b ) { b.classList.toggle( 'is-on', b.getAttribute( 'data-view' ) === S.view ); b.setAttribute( 'aria-pressed', b.getAttribute( 'data-view' ) === S.view ? 'true' : 'false' ); } );
 		var any = selected().length > 0, can = selected().filter( function ( e ) { return ! e.locked; } ).length > 0;
-		root.querySelector( '[data-act="download"]' ).disabled = ! any;
-		root.querySelector( '[data-act="delete"]' ).disabled = ! can;
-		root.querySelector( '[data-act="mkdir"]' ).disabled = !! S.tag;
-		root.querySelector( '[data-act="upload"]' ).disabled = !! S.tag;
+		var bt = function ( a ) { return root.querySelector( '[data-act="' + a + '"]' ); };
+		bt( 'download' ).hidden = S.trash;
+		bt( 'mkdir' ).hidden = S.trash;
+		bt( 'upload' ).hidden = S.trash;
+		bt( 'restore' ).hidden = ! S.trash;
+		bt( 'empty' ).hidden = ! S.trash;
+		bt( 'download' ).disabled = ! any;
+		bt( 'delete' ).disabled = S.trash ? ! any : ! can;
+		bt( 'delete' ).setAttribute( 'title', S.trash ? T.deleteNow : T[ 'delete' ] );
+		bt( 'delete' ).setAttribute( 'aria-label', S.trash ? T.deleteNow : T[ 'delete' ] );
+		bt( 'restore' ).disabled = ! any;
+		bt( 'empty' ).disabled = ! S.items.length;
+		bt( 'mkdir' ).disabled = !! S.tag;
+		bt( 'upload' ).disabled = !! S.tag;
 	}
 
 	function renderBody() {
@@ -266,12 +292,12 @@
 		elBody.innerHTML = '';
 		elBody.className = 'fm-body is-' + S.view;
 		if ( ! list.length ) {
-			elBody.appendChild( el( 'p', 'fm-empty', esc( S.q ? T.noMatch : ( S.tag ? T.noTagItems : T.empty ) ) ) );
+			elBody.appendChild( el( 'p', 'fm-empty', esc( S.q ? T.noMatch : ( S.trash ? T.trashEmpty : ( S.tag ? T.noTagItems : T.empty ) ) ) ) );
 			return;
 		}
 		if ( 'list' === S.view ) {
 			var head = el( 'div', 'fm-lh' );
-			[ [ 'name', T.name ], [ 'date', T.modified ], [ 'size', T.size ], [ 'kind', T.kind ] ].forEach( function ( c ) {
+			[ [ 'name', T.name ], [ 'date', S.trash ? T.deletedOn : T.modified ], [ 'size', T.size ], [ 'kind', S.trash ? T.whereFrom : T.kind ] ].forEach( function ( c ) {
 				var b = el( 'button', 'fm-lc fm-c-' + c[ 0 ] );
 				b.type = 'button';
 				b.textContent = c[ 1 ] + ( S.sort.key === c[ 0 ] ? ( S.sort.dir > 0 ? ' ▲' : ' ▼' ) : '' );
@@ -288,11 +314,11 @@
 		n.setAttribute( 'role', 'option' );
 		n.setAttribute( 'aria-selected', S.sel[ e.path ] ? 'true' : 'false' );
 		n.setAttribute( 'data-path', e.path );
-		n.draggable = ! e.locked;
+		n.draggable = ! e.locked && ! e.trash;
 		var thumb = ! e.dir && 'image' === e.kind && 'svg' !== e.ext && e.url && 'icons' === S.view ? '<img src="' + esc( e.url ) + '" alt="" loading="lazy" draggable="false">' : glyph( e );
 		var lock = e.locked ? '<span class="fm-lock" title="' + esc( T.locked ) + '">' + I.lock + '</span>' : '';
 		if ( 'list' === S.view ) {
-			n.innerHTML = '<span class="fm-c-name"><span class="fm-g">' + glyph( e ) + '</span><span class="fm-nm"></span>' + lock + '<span class="fm-dots">' + dots( e ) + '</span></span><span class="fm-c-date">' + esc( when( e.mtime ) ) + '</span><span class="fm-c-size">' + ( e.dir ? '—' : esc( size( e.size ) ) ) + '</span><span class="fm-c-kind">' + esc( kindName( e ) ) + '</span>';
+			n.innerHTML = '<span class="fm-c-name"><span class="fm-g">' + glyph( e ) + '</span><span class="fm-nm"></span>' + lock + '<span class="fm-dots">' + dots( e ) + '</span></span><span class="fm-c-date">' + esc( when( e.mtime ) ) + '</span><span class="fm-c-size">' + ( e.dir && ! e.trash ? '—' : esc( size( e.size ) ) ) + '</span><span class="fm-c-kind">' + esc( kindName( e ) ) + '</span>';
 		} else {
 			n.innerHTML = '<span class="fm-g' + ( thumb !== glyph( e ) ? ' is-photo' : '' ) + '">' + thumb + lock + '</span><span class="fm-nm"></span><span class="fm-dots">' + dots( e ) + '</span>';
 		}
@@ -303,14 +329,14 @@
 	}
 	function renderStatus() {
 		elPath.innerHTML = '';
-		( S.tag ? [ { name: T.uploads, path: '' } ] : S.crumbs ).forEach( function ( c, i, a ) {
+		( S.trash ? [ { name: T.trash, path: '', trash: true } ] : ( S.tag ? [ { name: T.uploads, path: '' } ] : S.crumbs ) ).forEach( function ( c, i, a ) {
 			var b = el( 'button', 'fm-crumb' );
 			b.type = 'button';
-			b.setAttribute( 'data-drop', c.path );
-			b.innerHTML = ( 0 === i ? I[ 'hard-drive' ] : FOLDER ) + '<span></span>';
+			if ( ! c.trash ) { b.setAttribute( 'data-drop', c.path ); }
+			b.innerHTML = ( c.trash ? I[ 'trash-2' ] : ( 0 === i ? I[ 'hard-drive' ] : FOLDER ) ) + '<span></span>';
 			b.querySelector( 'span' ).textContent = c.name;
 			if ( i === a.length - 1 && ! S.tag ) { b.setAttribute( 'aria-current', 'location' ); }
-			b.addEventListener( 'click', function () { go( c.path ); } );
+			b.addEventListener( 'click', function () { if ( c.trash ) { return; } go( c.path ); } );
 			elPath.appendChild( b );
 		} );
 		var sel = selected().length, all = shown().length;
@@ -355,6 +381,7 @@
 		if ( e ) { open( e ); }
 	} );
 	function open( e ) {
+		if ( e.trash ) { return; } // what is in the trash is put back first
 		if ( e.dir ) { go( e.path ); } else { quick( e ); }
 	}
 
@@ -378,15 +405,16 @@
 			if ( node && node.scrollIntoView ) { node.scrollIntoView( { block: 'nearest' } ); }
 			return;
 		}
-		if ( ' ' === k && cur.length ) { ev.preventDefault(); quick( cur[ 0 ] ); return; }
-		if ( 'Enter' === k && 1 === cur.length ) { ev.preventDefault(); beginRename( cur[ 0 ] ); return; }
+		if ( ' ' === k && cur.length && ! S.trash ) { ev.preventDefault(); quick( cur[ 0 ] ); return; }
+		if ( 'Enter' === k && 1 === cur.length && ! S.trash ) { ev.preventDefault(); beginRename( cur[ 0 ] ); return; }
 		if ( ( 'Delete' === k || 'Backspace' === k ) && cur.length ) { ev.preventDefault(); askDelete( cur ); return; }
 		if ( 'Escape' === k ) { S.sel = {}; paintSelection(); }
 	} );
 
 	/* ------------------------------------------------------------ rename */
 	function beginRename( e ) {
-		if ( e.locked ) { toast( e.dir ? T.locked : T.locked, true ); return; }
+		if ( e.trash ) { return; }
+		if ( e.locked ) { toast( T.locked, true ); return; }
 		S.renaming = e.path;
 		renderBody();
 	}
@@ -439,16 +467,37 @@
 		}, function ( m ) { toast( m, true ); reload(); } );
 	}
 	function askDelete( list ) {
+		if ( S.trash ) { askPurge( list ); return; }
 		var del = list.filter( function ( e ) { return ! e.locked; } );
 		if ( ! del.length ) { toast( T.locked, true ); return; }
-		post( 'weigh', { paths: del.map( function ( e ) { return e.path; } ) } ).then( function ( w ) {
-			confirmBox( T.confirm, fmt( T.confirmTxt, w.files, w.folders, size( w.bytes ) ), T[ 'delete' ], function () {
-				post( 'delete', { paths: del.map( function ( e ) { return e.path; } ) } ).then( function () {
-					toast( T.deleted );
-					return reload().then( function () { return refreshTree( del.map( function ( e ) { return parentOf( e.path ); } ) ); } );
-				}, function ( m ) { toast( m, true ); } );
-			} );
+		post( 'delete', { paths: del.map( function ( e ) { return e.path; } ) } ).then( function ( r ) {
+			S.trashN = r.trash;
+			var ids = r.ids;
+			toast( T.trashed, false, { label: T.undo, run: function () { restore( ids ); } } );
+			return reload().then( function () { return refreshTree( del.map( function ( e ) { return parentOf( e.path ); } ) ); } );
 		}, function ( m ) { toast( m, true ); } );
+	}
+	/* from the trash: put back */
+	function restore( ids ) {
+		post( 'restore', { paths: ids } ).then( function ( r ) {
+			S.trashN = r.trash;
+			S.counts = r.counts || S.counts;
+			toast( T.restored );
+			return reload().then( function () { S.tree = { '': S.tree[ '' ] }; return refreshTree( [ '' ] ); } );
+		}, function ( m ) { toast( m, true ); reload(); } );
+	}
+	/* from the trash: gone for good, after asking and saying how much */
+	function askPurge( list, all ) {
+		var f = 0, d = 0, b = 0;
+		list.forEach( function ( e ) { f += e.files || 0; d += e.folders || 0; b += e.size || 0; } );
+		if ( ! list.length ) { return; }
+		confirmBox( T.confirm, fmt( T.confirmTxt, f, d, size( b ) ), all ? T.emptyTrash : T.deleteNow, function () {
+			post( 'purge', all ? { scope: 'all' } : { paths: list.map( function ( e ) { return e.path; } ) } ).then( function ( r ) {
+				S.trashN = r.trash;
+				toast( T.deleted );
+				return reload();
+			}, function ( m ) { toast( m, true ); } );
+		} );
 	}
 	function confirmBox( title, text, okLabel, run ) {
 		var wrap = el( 'div', 'fm-modal' ), box = el( 'div', 'fm-box' );
@@ -514,13 +563,16 @@
 		if ( ! b || b.disabled ) { return; }
 		var act = b.getAttribute( 'data-act' ), v = b.getAttribute( 'data-view' );
 		if ( v ) { S.view = v; store( 'view', v ); renderBar(); renderBody(); return; }
-		if ( 'back' === act && S.hi > 0 ) { S.hi--; var h = S.hist[ S.hi ]; load( h.path, h.tag, false ); }
-		if ( 'fwd' === act && S.hi < S.hist.length - 1 ) { S.hi++; var f = S.hist[ S.hi ]; load( f.path, f.tag, false ); }
+		if ( 'back' === act && S.hi > 0 ) { S.hi--; var h = S.hist[ S.hi ]; load( h.path, h.tag, false, h.trash ); }
+		if ( 'fwd' === act && S.hi < S.hist.length - 1 ) { S.hi++; var f = S.hist[ S.hi ]; load( f.path, f.tag, false, f.trash ); }
 		if ( 'mkdir' === act ) { newFolder(); }
 		if ( 'upload' === act ) { elFile.click(); }
 		if ( 'download' === act ) { download( selected() ); }
 		if ( 'delete' === act ) { askDelete( selected() ); }
+		if ( 'restore' === act ) { restore( selected().map( function ( e ) { return e.path; } ) ); }
+		if ( 'empty' === act ) { askPurge( S.items, true ); }
 	} );
+	root.querySelector( '[data-trash]' ).addEventListener( 'click', function () { if ( ! S.trash ) { load( '', 0, true, true ); } } );
 	elFile.addEventListener( 'change', function () { upload( elFile.files, S.path ); elFile.value = ''; } );
 	elQ.addEventListener( 'input', function () { S.q = elQ.value; renderBody(); renderStatus(); } );
 
@@ -570,6 +622,10 @@
 		var e = itemOf( ev.target );
 		if ( e ) { if ( ! S.sel[ e.path ] ) { pick( e.path, null ); } } else { S.sel = {}; paintSelection(); }
 		var list = selected();
+		if ( S.trash ) {
+			if ( list.length ) { showMenu( ev.clientX, ev.clientY, [ { label: T.putBack, run: function () { restore( list.map( function ( x ) { return x.path; } ) ); } }, { sep: true }, { label: T.deleteNow, danger: true, run: function () { askPurge( list ); } } ] ); }
+			return;
+		}
 		if ( ! list.length ) {
 			showMenu( ev.clientX, ev.clientY, [ { label: T.newFolder, disabled: !! S.tag, run: newFolder }, { label: T.upload, disabled: !! S.tag, run: function () { elFile.click(); } } ] );
 			return;
@@ -616,7 +672,7 @@
 	root.addEventListener( 'dragover', function ( ev ) {
 		var files = hasFiles( ev ), t = dropTarget( ev.target );
 		if ( ! S.drag && ! files ) { return; }
-		if ( files && S.tag ) { return; }
+		if ( files && ( S.tag || S.trash ) ) { return; }
 		ev.preventDefault();
 		ev.dataTransfer.dropEffect = S.drag ? 'move' : 'copy';
 		[].forEach.call( root.querySelectorAll( '.fm-over' ), function ( n ) { n.classList.remove( 'fm-over' ); } );
@@ -633,7 +689,7 @@
 		clearDrop();
 		root.classList.remove( 'is-dragging' );
 		if ( files ) {
-			if ( S.tag ) { return; }
+			if ( S.tag || S.trash ) { return; }
 			var dest = t && undefined !== t.dest ? t.dest : S.path;
 			upload( ev.dataTransfer.files, dest );
 			return;
@@ -648,7 +704,7 @@
 	var ql = null;
 	function previewable() { return shown().filter( function ( e ) { return ! e.dir; } ); }
 	function quick( e ) {
-		if ( e.dir ) { open( e ); return; }
+		if ( e.dir || e.trash ) { open( e ); return; }
 		if ( ql ) { ql.wrap.remove(); }
 		var wrap = el( 'div', 'fm-modal fm-ql' ), box = el( 'div', 'fm-qbox' );
 		box.setAttribute( 'role', 'dialog' );
