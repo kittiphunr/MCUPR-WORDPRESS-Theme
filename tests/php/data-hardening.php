@@ -145,6 +145,56 @@ delete_transient( 'mcupr_thr_' . md5( 'elform|' . mcupr_client_net() ) );
 // 10. the CSV of a request form's answers needs the right to handle requests
 t( mcupr_rq_is_form( $rform ) && ! mcupr_rq_is_form( $pform ), 'forms: the request form is marked as one, the plain form is not' );
 
+// ---- Tools -> Export must not carry personal data out in a plain file
+foreach ( array( MCUPR_STU => 'the student records', 'mcupr_fe' => 'the form answers', 'mcupr_msg' => 'the messages from the forms', MCUPR_AUDIT => 'the log of who looked at what', MCUPR_MAILJOB => 'the mail jobs' ) as $pt => $what ) {
+	$o = get_post_type_object( $pt );
+	t( $o && false === $o->can_export, 'export: ' . $what . ' are left out of Tools -> Export' );
+}
+$o = get_post_type_object( 'post' );
+t( $o && $o->can_export, 'export: the ordinary posts can still be exported' );
+foreach ( array( MCUPR_AUDIT, MCUPR_MAILJOB ) as $pt ) {
+	$o = get_post_type_object( $pt );
+	t( $o && ! empty( $o->map_meta_cap ) && 'mcupr_student' === ( is_array( $o->capability_type ) ? $o->capability_type[0] : $o->capability_type ), 'caps: ' . $pt . ' is behind the student capabilities, not the ordinary post ones' );
+}
+$unit_type = get_post_type_object( 'mcupr_unit' );
+t( $unit_type && empty( $unit_type->show_in_rest ), 'rest: the Administration chart says public => false and is not in REST either' );
+
+// ---- the folders that hold what people sent
+$req_base = mcupr_rq_dir();
+$up_dir   = wp_upload_dir();
+t( ! mcupr_path_inside( trailingslashit( wp_normalize_path( realpath( $req_base ) ) ), trailingslashit( wp_normalize_path( $up_dir['basedir'] ) ) ) || ( is_file( $req_base . '/.htaccess' ) && is_file( $req_base . '/index.php' ) ), 'files: the request folder is outside the web root, or denied inside uploads' );
+// a site that kept its files inside uploads before this goes on finding them there
+$legacy_tok = str_repeat( 'ab', 12 );
+$legacy_dir = trailingslashit( $up_dir['basedir'] ) . 'mcupr-requests/' . $legacy_tok;
+wp_mkdir_p( $legacy_dir );
+file_put_contents( $legacy_dir . '/old.pdf', "%PDF-1.4\n" );
+t( mcupr_rq_dir( $legacy_tok ) === $legacy_dir, 'files: a file left in the old folder inside uploads is still found there' );
+t( mcupr_private_path_ok( realpath( $legacy_dir . '/old.pdf' ), 'requests' ), 'files: and it still counts as being in a folder of ours' );
+$fresh_tok = str_repeat( 'cd', 12 );
+t( 0 === strpos( mcupr_rq_dir( $fresh_tok ), mcupr_rq_dir() ), 'files: a new file goes into the folder in use' );
+unlink( $legacy_dir . '/old.pdf' );
+rmdir( $legacy_dir );
+
+// ---- the headers every page carries (they are for the front end, so stop pretending to be on an admin screen)
+set_current_screen( 'front' );
+$seen = null;
+$grab = static function ( $h ) use ( &$seen ) {
+	$seen = $h;
+	return array(); // send nothing while testing
+};
+add_filter( 'mcupr_security_headers', $grab );
+$wp_obj = new stdClass();
+$wp_obj->query_vars = array();
+do_action( 'send_headers', $wp_obj );
+$plain = is_array( $seen ) ? $seen : array();
+$seen  = null;
+$wp_obj->query_vars = array( 'embed' => true );
+do_action( 'send_headers', $wp_obj );
+$embed = is_array( $seen ) ? $seen : array();
+remove_filter( 'mcupr_security_headers', $grab );
+t( isset( $plain['X-Content-Type-Options'], $plain['Referrer-Policy'], $plain['Permissions-Policy'], $plain['X-Frame-Options'] ) && 'nosniff' === $plain['X-Content-Type-Options'] && 'SAMEORIGIN' === $plain['X-Frame-Options'], 'headers: a page says nosniff, keeps the address out of the referrer, asks for no camera or place, and refuses framing' );
+t( ! isset( $embed['X-Frame-Options'] ) && isset( $embed['Referrer-Policy'] ), 'headers: an embed is meant to be framed, so that one header is left off it' );
+
 // ---- who counts as staff for content kept for students
 $au = $fresh_user( 'dh_author', 'author' );
 $co = $fresh_user( 'dh_contrib', 'contributor' );

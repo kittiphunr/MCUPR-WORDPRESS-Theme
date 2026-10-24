@@ -51,6 +51,7 @@ function mcupr_fb_register() {
 			'capabilities'    => array( 'create_posts' => 'do_not_allow' ),
 			'map_meta_cap'    => true,
 			'supports'        => array( 'title' ),
+			'can_export'      => false, // Tools -> Export must not put personal data in a plain file with no record of it: the theme's own audited exports are the way out
 		)
 	);
 }

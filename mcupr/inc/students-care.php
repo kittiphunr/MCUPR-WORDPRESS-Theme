@@ -29,6 +29,9 @@ add_action(
 				'query_var'           => false,
 				'exclude_from_search' => true,
 				'supports'            => array( 'title' ),
+				'can_export'          => false, // Tools -> Export must not put personal data in a plain file with no record of it: the theme's own audited exports are the way out
+				'capability_type'     => array( 'mcupr_student', 'mcupr_students' ),
+				'map_meta_cap'        => true,
 			)
 		);
 		if ( ! wp_next_scheduled( 'mcupr_audit_purge' ) ) {

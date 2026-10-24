@@ -28,7 +28,7 @@ function mcupr_orgchart_register() {
 			'public'          => false,
 			'show_ui'         => true,
 			'show_in_menu'    => true,
-			'show_in_rest'    => true,
+			'show_in_rest'    => false, // the type says public => false; the chart is shown by the shortcode, not by a REST route
 			'hierarchical'    => true,
 			'menu_icon'       => 'dashicons-networking',
 			'menu_position'   => 8,

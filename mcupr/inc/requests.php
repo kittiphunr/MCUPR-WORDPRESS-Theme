@@ -320,14 +320,7 @@ function mcupr_rq_max_bytes() {
 
 /** The folder of the files (outside what the web server shows as far as it can be told: unguessable names, nothing listed, PHP gives them out). */
 function mcupr_rq_dir( $token = '' ) {
-	$up   = wp_upload_dir();
-	$base = trailingslashit( $up['basedir'] ) . 'mcupr-requests';
-	if ( ! is_dir( $base ) ) {
-		wp_mkdir_p( $base );
-		file_put_contents( $base . '/index.php', "<?php // silence\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-		file_put_contents( $base . '/.htaccess', "Require all denied\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-	}
-	return '' === $token ? $base : $base . '/' . preg_replace( '/[^a-f0-9]/', '', $token );
+	return '' === $token ? mcupr_private_dir( 'requests' ) : mcupr_private_token_dir( 'requests', $token );
 }
 
 /** What each "file" field of the form was given: array( id => array( tmp, name, size, mime ) ) and the errors ( id => key ). Nothing is stored yet. */
@@ -422,8 +415,7 @@ add_action(
 		$f     = is_array( $files ) && isset( $files[ $i ] ) ? $files[ $i ] : null;
 		$path  = $f ? mcupr_rq_dir( $f['k'] ) . '/' . wp_basename( $f['f'] ) : '';
 		$real  = $path ? realpath( $path ) : false;
-		$base  = realpath( mcupr_rq_dir() );
-		if ( ! $real || ! $base || ! mcupr_path_inside( $real, $base ) || ! is_readable( $real ) ) {
+		if ( ! $real || ! mcupr_private_path_ok( $real, 'requests' ) || ! is_readable( $real ) ) {
 			wp_die( esc_html( mcupr_t( 'file_missing' ) ), '', array( 'response' => 404 ) );
 		}
 		nocache_headers();

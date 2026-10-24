@@ -82,13 +82,13 @@ $fo_old = get_option( 'mcupr_forum' );
 $fo = mcupr_forum_opts(); $fo['enabled'] = 1; update_option( 'mcupr_forum', $fo );
 $boss = wp_insert_user( array( 'user_login' => 'lr_rector', 'user_pass' => wp_generate_password(), 'user_email' => 'lr_rector@example.org', 'role' => 'editor', 'display_name' => 'Phra Rector  Example' ) );
 $brd  = get_term_by( 'slug', 'general', 'mcupr_board' );
-$post = static function ( $name ) use ( $brd ) {
+$topic = static function ( $name ) use ( $brd ) { // not $post: a top-level name here IS WordPress's global $post
 	return mcupr_forum_submit( 'topic', array( 'tk' => mcupr_form_token( time() - 10 ), 'website' => '', 'consent' => '1', 'name' => $name, 'email' => 'g@example.org', 'title' => 'คำถามทดสอบชื่อ', 'message' => 'ข้อความทดสอบยาวพอสมควร ' . $name, 'board' => $brd ? $brd->term_id : 0 ) );
 };
 wp_set_current_user( 0 );
-$r1 = $post( 'phra   rector example' );
-$r2 = $post( 'LR_RECTOR' );
-$r3 = $post( 'ผู้มาเยือนทั่วไป' );
+$r1 = $topic( 'phra   rector example' );
+$r2 = $topic( 'LR_RECTOR' );
+$r3 = $topic( 'ผู้มาเยือนทั่วไป' );
 t( ! $r1['ok'] && isset( $r1['errors']['staffname'] ) && ! $r2['ok'] && isset( $r2['errors']['staffname'] ), 'forum: a visitor typing the display name or login of a staff member (any case, extra spaces) is refused' );
 t( $r3['ok'] || ! isset( $r3['errors']['staffname'] ), 'forum: an ordinary name is not refused for that reason' );
 $_GET = array( 'fm' => 'err', 'fme' => 'staffname' ); list( $nt ) = mcupr_forum_notices(); $_GET = array();

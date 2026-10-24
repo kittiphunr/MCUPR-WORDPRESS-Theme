@@ -145,7 +145,13 @@ $files = get_post_meta( $rf2['entry'], '_mcupr_rq_files', true );
 t( $rf2['ok'] && 1 === count( $files ) && false !== strpos( $files[0]['n'], '.pdf' ), 'the answer keeps its file' );
 $path = mcupr_rq_dir( $files[0]['k'] ) . '/' . $files[0]['f'];
 t( is_file( $path ) && 0 === strpos( file_get_contents( $path, false, null, 0, 5 ), '%PDF' ), 'the file is on disk' );
-t( is_file( mcupr_rq_dir() . '/.htaccess' ) && is_file( mcupr_rq_dir() . '/index.php' ) && is_file( mcupr_rq_dir( $files[0]['k'] ) . '/index.php' ), 'the folder holds a .htaccess that denies everything and index files' );
+$closed = static function ( $base ) {
+	$up = wp_upload_dir();
+	// either the folder is outside the web root (nothing can ask for it), or it is inside uploads and denied there
+	return ! mcupr_path_inside( trailingslashit( wp_normalize_path( realpath( $base ) ) ), trailingslashit( wp_normalize_path( $up['basedir'] ) ) )
+		|| ( is_file( $base . '/.htaccess' ) && is_file( $base . '/index.php' ) );
+};
+t( $closed( mcupr_rq_dir() ) && is_file( mcupr_rq_dir( $files[0]['k'] ) . '/index.php' ), 'the folder is out of the web server\'s reach: outside the web root, or inside uploads with a .htaccess that denies everything' );
 t( 24 === strlen( $files[0]['k'] ), 'the folder of the file has an unguessable name' );
 $rows = get_post_meta( $rf2['entry'], '_mcupr_fe_rows', true );
 t( false !== strpos( $rows[2][1], '.pdf' ), 'the answers list the file name and size' );

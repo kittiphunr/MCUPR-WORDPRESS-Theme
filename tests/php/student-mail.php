@@ -125,7 +125,13 @@ list( $x, $err ) = mcupr_mail_check_att( array( 'error' => UPLOAD_ERR_NO_FILE ) 
 t( null === $x && '' === $err, 'attachment: none chosen is fine' );
 $kept = mcupr_mail_keep_att( $file );
 $path = mcupr_mail_att_path( $kept );
-t( $kept && is_file( $path ) && 0 === strpos( $path, mcupr_mail_dir() ) && is_file( mcupr_mail_dir() . '/.htaccess' ), 'attachment: kept in the closed folder' );
+$closed = static function ( $base ) {
+	$up = wp_upload_dir();
+	// either the folder is outside the web root (nothing can ask for it), or it is inside uploads and denied there
+	return ! mcupr_path_inside( trailingslashit( wp_normalize_path( realpath( $base ) ) ), trailingslashit( wp_normalize_path( $up['basedir'] ) ) )
+		|| ( is_file( $base . '/.htaccess' ) && is_file( $base . '/index.php' ) );
+};
+t( $kept && is_file( $path ) && 0 === strpos( $path, mcupr_mail_dir() ) && $closed( mcupr_mail_dir() ), 'attachment: kept in a folder out of the web server\'s reach' );
 $id = mcupr_mail_create( 'With file', 'x', '', array(), array( $a, $b ), $kept );
 $job = mcupr_mail_run( $id );
 t( 2 === count( $mails ) && ! empty( $mails[0]['attachments'] ) && ! empty( $mails[1]['attachments'] ), 'attachment: goes with each e-mail' );
