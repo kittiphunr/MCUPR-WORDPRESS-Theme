@@ -297,21 +297,26 @@ function mcupr_office_pager( $oid, $section, $current, $total ) {
 		return '';
 	}
 	$first = mcupr_office_url( $oid, $section );
-	$links = paginate_links(
+	$items = paginate_links(
 		array(
 			'base'      => mcupr_plain_mode() ? $first . ( false !== strpos( $first, '?' ) ? '&' : '?' ) . 'mcupr_opage=%#%' : trailingslashit( $first ) . 'page/%#%/',
 			'format'    => '',
 			'current'   => $current,
 			'total'     => $total,
 			'mid_size'  => 1,
-			'type'      => 'list',
+			'type'      => 'array',
 			'add_args'  => mcupr_office_pager_args(),
-			'prev_text' => '<span aria-hidden="true">‹</span> ' . esc_html( mcupr_t( 'prev' ) ),
-			'next_text' => esc_html( mcupr_t( 'next' ) ) . ' <span aria-hidden="true">›</span>',
+			'prev_text' => 'prev',
+			'next_text' => 'next',
 		)
 	);
-	$links = preg_replace( array( '#/page/1/(["\'])#', '#(?:&amp;|&\#038;|&|\?)mcupr_opage=1(["\'])#' ), array( '/$1', '$1' ), (string) $links );
-	return '<nav class="navigation pagination" aria-label="' . esc_attr( mcupr_t( 'pagination' ) ) . '"><div class="nav-links">' . $links . '</div></nav>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	$items = array_map(
+		static function ( $l ) {
+			return preg_replace( array( '#/page/1/(["\'])#', '#(?:&amp;|&\#038;|&|\?)mcupr_opage=1(["\'])#' ), array( '/$1', '$1' ), $l );
+		},
+		(array) $items
+	);
+	return mcupr_pager_html( $items, $current, $total );
 }
 
 /** What the office news list was filtered by (category, work group), kept on the links of the pages. */
