@@ -117,19 +117,28 @@ function mcupr_el_admin_page() {
 		echo '<tr><td><strong>' . ( $link ? '<a href="' . esc_url( $link ) . '">' . esc_html( $title ) . '</a>' : esc_html( $title ) ) . '</strong> <a class="row-actions" href="' . esc_url( get_edit_post_link( $id ) ) . '">' . esc_html__( '(edit)', 'mcupr' ) . '</a></td>';
 		echo '<td>' . esc_html( '' !== $row['template'] ? $row['template'] : $row['type'] ) . ( 'publish' === $row['status'] ? '' : ' <em>(' . esc_html( $row['status'] ) . ')</em>' ) . '</td>';
 		echo '<td>' . esc_html( (string) array_sum( $row['widgets'] ) ) . '</td>';
-		echo '<td>' . ( $row['css_file'] ? '✓' : '—' ) . '</td>';
-		echo '<td>' . ( $row['unsupported'] ? '<code>' . esc_html( implode( ', ', $row['unsupported'] ) ) . '</code>' : '—' ) . '</td></tr>';
+		echo '<td>' . esc_html( $row['css_file'] ? __( 'yes', 'mcupr' ) : __( 'no (written by the theme)', 'mcupr' ) ) . '</td>';
+		echo '<td>' . ( $row['unsupported'] ? '<code>' . esc_html( implode( ', ', $row['unsupported'] ) ) . '</code>' : esc_html__( 'everything is printed', 'mcupr' ) ) . '</td></tr>';
 	}
 	echo '</tbody></table>';
 
 	if ( $widgets ) {
 		echo '<h2>' . esc_html__( 'Widgets used on the site', 'mcupr' ) . '</h2><p>';
-		$bits = array();
+		$good = array();
+		$bad  = array();
 		foreach ( $widgets as $w => $n ) {
-			$ok     = 'global' === $w || function_exists( 'mcupr_el_w_' . str_replace( '-', '_', $w ) );
-			$bits[] = ( $ok ? '✓ ' : '✗ ' ) . $w . ' (' . (int) $n . ')';
+			$line = $w . ' (' . (int) $n . ')';
+			if ( 'global' === $w || function_exists( 'mcupr_el_w_' . str_replace( '-', '_', $w ) ) ) {
+				$good[] = $line;
+			} else {
+				$bad[] = $line;
+			}
 		}
-		echo esc_html( implode( ' · ', $bits ) ) . '</p>';
+		echo esc_html__( 'Printed by the theme:', 'mcupr' ) . ' ' . esc_html( implode( ', ', $good ) );
+		if ( $bad ) {
+			echo '<br>' . esc_html__( 'Left out:', 'mcupr' ) . ' <strong>' . esc_html( implode( ', ', $bad ) ) . '</strong>';
+		}
+		echo '</p>';
 	}
 	echo '<h2>' . esc_html__( 'What cannot come back without the plugin', 'mcupr' ) . '</h2><ul class="ul-disc">';
 	foreach ( array(

@@ -368,6 +368,7 @@ t( is_readable( get_theme_file_path( 'elementor-canvas.php' ) ) && is_readable( 
 $inv = mcupr_el_inventory();
 t( isset( $inv[ $un ] ) && in_array( 'lottie', $inv[ $un ]['unsupported'], true ) && isset( $inv[ $un ]['widgets']['heading'] ), 'the report lists every page, its widgets and what cannot be printed' );
 t( isset( $inv[ $pid ] ) && 'page' === $inv[ $pid ]['type'] && ! $inv[ $pid ]['unsupported'], 'a page whose widgets are all supported says so' );
+delete_transient( 'mcupr_el_count' ); // (it is counted once an hour; the pages above were made after the last count)
 t( mcupr_el_site_has_content(), 'the admin page is offered because the site has Elementor content' );
 
 /* ---------------------------------------------------------------- the style files of Elementor */

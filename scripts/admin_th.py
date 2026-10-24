@@ -1,4 +1,9 @@
 TH = {
+"yes": "มี",
+"no (written by the theme)": "ไม่มี (ธีมเขียนให้)",
+"everything is printed": "แสดงผลครบ",
+"Printed by the theme:": "ธีมแสดงผลให้:",
+"Left out:": "ถูกข้าม:",
 "Elementor content": "เนื้อหา Elementor",
 "The Elementor plugin is active, so it prints these pages itself. The theme takes over as soon as the plugin is switched off — nothing of what you built is lost.": "ปลั๊กอิน Elementor กำลังทำงานอยู่ จึงเป็นตัวแสดงผลหน้าเหล่านี้เอง ธีมจะรับช่วงต่อทันทีที่ปิดปลั๊กอิน โดยไม่มีอะไรที่คุณสร้างไว้หายไป",
 "%d items built with Elementor are printed by the theme; the Elementor plugin is not needed for them.": "มี %d รายการที่สร้างด้วย Elementor และธีมเป็นผู้แสดงผลให้ ไม่ต้องใช้ปลั๊กอิน Elementor",
