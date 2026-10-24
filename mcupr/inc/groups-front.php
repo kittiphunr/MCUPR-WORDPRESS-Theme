@@ -288,7 +288,7 @@ function mcupr_group_render( $gid ) {
 		echo '</div>';
 	}
 	if ( ! $secs ) {
-		echo '<p class="gl-empty text-muted">' . esc_html( mcupr_t( 'of_none' ) ) . '</p>';
+		echo mcupr_empty_note( mcupr_t( 'of_none' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 	echo '</div>';
 }

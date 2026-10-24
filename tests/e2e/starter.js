@@ -4434,6 +4434,37 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await hc.close();
     }
   }
+  // inner pages: Thai-safe line heights on titles and buttons, one flowing date line on a post, "nothing yet" notes, calendar links as pills
+  {
+    const ic = await br.newContext({ viewport: { width: 390, height: 844 } });
+    await ic.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+    const ip = await ic.newPage();
+    const paths = ['/', '/?mcupr_all=1', '/events/', '/offices/', '/videos/', '/albums/', '/books/', '/?s=' + encodeURIComponent('ข่าว'), '/nope-404-page/'];
+    await ip.goto(B + '/?mcupr_all=1');
+    const postHref = await ip.locator('.news-card a[href]').first().getAttribute('href');
+    if (postHref) { paths.push(postHref.replace(B, '')); }
+    const bad = [];
+    for (const pth of paths) {
+      await ip.goto(B + pth);
+      const r = await ip.evaluate(() => [...document.querySelectorAll('main h1, main h2, main h3, header h1, .btn')].filter((e) => e.offsetParent && /[฀-๿]/.test(e.textContent)).map((e) => { const cs = getComputedStyle(e); return [e.tagName + '.' + String(e.className).split(/\s+/)[0], parseFloat(cs.lineHeight) / parseFloat(cs.fontSize)]; }).filter((x) => x[1] < 1.34));
+      r.forEach((x) => bad.push(pth + ' ' + x.join(' ')));
+    }
+    ok(bad.length === 0, 'inner pages: every Thai title and button on ' + paths.length + ' pages has a Thai-safe line height (1.34+)' + (bad.length ? ': ' + bad.slice(0, 4).join(' | ') : ''));
+    if (postHref) {
+      await ip.goto(postHref);
+      const pm = await ip.evaluate(() => { const s = document.querySelector('.print-meta > span.inline-flex'); const t = s && s.lastElementChild; return { kids: s ? s.children.length : -1, h: t ? t.getBoundingClientRect().height : 0, lh: t ? parseFloat(getComputedStyle(t).lineHeight) : 20, txt: t ? t.textContent : '' }; });
+      ok(pm.kids === 2 && pm.h / pm.lh <= 2.2 && !/\n/.test(pm.txt) && !/ น\.$/.test(pm.txt), 'post: "published on" is one icon + one flowing text (' + Math.round(pm.h / pm.lh) + ' lines at 390 px), the time "น." is not left alone');
+    }
+    await ip.goto(B + '/offices/');
+    ok((await ip.locator('.empty-note').count()) >= 1 && (await ip.locator('.empty-note .empty-ic svg').count()) >= 1, 'offices: with no office yet the list says so in a note with an icon');
+    const evUrl = await (async () => { await ip.goto(B + '/events/'); return ip.locator('.ev-row a[href], .ev-row').first().getAttribute('href').catch(() => null); })();
+    if (evUrl) {
+      await ip.goto(evUrl.startsWith('http') ? evUrl : B + evUrl);
+      const el = await ip.evaluate(() => { const a = document.querySelector('.ev-link'); if (!a) return null; const r = a.getBoundingClientRect(); const cs = getComputedStyle(a); return { h: r.height, rad: parseFloat(cs.borderTopLeftRadius), bw: parseFloat(cs.borderTopWidth), col: cs.borderTopColor }; });
+      ok(!el || (el.h >= 44 && el.rad >= 20 && el.bw >= 1 && el.col !== 'rgba(0, 0, 0, 0)'), 'event page: the calendar links are visible pills at least 44 px high' + (el ? ' (' + Math.round(el.h) + ' px)' : ' (no event link on this page)'));
+    }
+    await ic.close();
+  }
   await br.close();
   finish();
 })();

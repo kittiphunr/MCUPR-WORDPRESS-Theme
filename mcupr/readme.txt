@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.64 =
+* Inner pages: Thai-safe line heights on every title and button, a flowing date line on posts, notes for empty sections, pill calendar links
+
 = 1.54.63 =
 * Home hero: Thai headline lines no longer touch; roomier quick-link tiles
 

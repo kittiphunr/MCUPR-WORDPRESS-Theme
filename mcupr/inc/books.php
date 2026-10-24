@@ -1167,7 +1167,7 @@ function mcupr_book_shelf( $args = array() ) {
 		<?php endforeach; ?>
 		<p class="bk-none" hidden><?php echo esc_html( mcupr_t( 'bk_nomatch' ) ); ?></p>
 	<?php else : ?>
-		<p class="bk-empty"><?php echo esc_html( mcupr_t( 'bk_empty' ) ); ?></p>
+		<?php echo mcupr_empty_note( mcupr_t( 'bk_empty' ), 'book' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 	<?php endif; ?>
 </div>
 	<?php

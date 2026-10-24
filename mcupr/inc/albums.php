@@ -145,7 +145,7 @@ add_shortcode(
 		$a = shortcode_atts( array( 'count' => 6 ), $atts, 'mcupr_albums' );
 		$q = get_posts( array( 'post_type' => 'mcupr_album', 'post_status' => 'publish', 'posts_per_page' => max( 1, min( 48, (int) $a['count'] ) ), 'no_found_rows' => true ) );
 		if ( ! $q ) {
-			return '<p class="text-muted">' . esc_html( mcupr_t( 'album_none' ) ) . '</p>';
+			return mcupr_empty_note( mcupr_t( 'album_none' ), 'image' );
 		}
 		$o = '<div class="album-grid">';
 		foreach ( $q as $p ) {
