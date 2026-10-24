@@ -108,7 +108,7 @@
 		var kids = m[f.id] || [];
 		var open = isOpen(f.id);
 		var h = '<li data-mf="' + f.id + '" role="treeitem" aria-expanded="' + (kids.length ? (open ? 'true' : 'false') : 'false') + '"' + (kids.length ? '' : ' aria-level="' + (depth + 1) + '"') + '>';
-		h += '<div class="mf-row' + (String(cur) === String(f.id) ? ' is-cur' : '') + '" data-drop="' + f.id + '">';
+		h += '<div class="mf-row' + (String(cur) === String(f.id) ? ' is-cur' : '') + '" data-drop="' + f.id + '" style="--d:' + depth + '">';
 		h += kids.length ? '<button type="button" class="mf-tog" data-tog="' + f.id + '" aria-label="' + esc(f.name) + '"></button>' : '<span class="mf-tog mf-tog-none" aria-hidden="true"></span>';
 		h += '<a href="#" class="mf-link" data-choose="' + f.id + '">' + folderSvg(18, 15, 'mf-ic') + '<span class="mf-name">' + esc(f.name) + '</span><span class="mf-n">' + count(f.id) + '</span></a></div>';
 		if (kids.length) {
