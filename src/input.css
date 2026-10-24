@@ -297,8 +297,8 @@
 	.hero-menu { @apply m-0 flex list-none flex-wrap justify-center gap-3 p-0; }
 	.hero-menu > li { flex: 1 1 7.5rem; max-width: 12.5rem; min-width: 0; }
 	.hero-menu > li[hidden] { display: none; }
-	.hero-menu a { @apply relative flex h-full min-h-32 flex-col items-start justify-between gap-4 overflow-hidden rounded-2xl border border-white/25 p-4 text-left text-sm font-semibold leading-snug text-white no-underline backdrop-blur-md transition duration-200 hover:-translate-y-1 hover:border-white/50 hover:bg-white/25; background: linear-gradient(160deg, rgb(255 255 255 / .2), rgb(0 0 0 / .32)); box-shadow: 0 10px 24px rgb(0 0 0 / .18), inset 0 1px 0 rgb(255 255 255 / .18); }
-	.hero-menu a > span:first-child { display: inline-flex; width: 2.75rem; height: 2.75rem; align-items: center; justify-content: center; border-radius: .9rem; background: rgb(255 255 255 / .18); color: #fff; transition: background-color .2s, transform .2s; }
+	.hero-menu a { @apply relative flex h-full min-h-36 flex-col items-start justify-between gap-4 overflow-hidden rounded-2xl border border-white/25 p-4 text-left text-sm font-semibold leading-snug text-white no-underline backdrop-blur-md transition duration-200 hover:-translate-y-1 hover:border-white/50 hover:bg-white/25 text-[.95rem] leading-snug [text-wrap:balance]; background: linear-gradient(160deg, rgb(255 255 255 / .2), rgb(0 0 0 / .32)); box-shadow: 0 10px 24px rgb(0 0 0 / .18), inset 0 1px 0 rgb(255 255 255 / .18); }
+	.hero-menu a > span:first-child { display: inline-flex; width: 3.25rem; height: 3.25rem; align-items: center; justify-content: center; border-radius: 1rem; box-shadow: inset 0 1px 0 rgb(255 255 255 / .25); background: rgb(255 255 255 / .18); color: #fff; transition: background-color .2s, transform .2s; }
 	.hero-menu a:hover > span:first-child { background: rgb(255 255 255 / .32); transform: scale(1.06); }
 	.hero-menu a::after { content: "→"; position: absolute; right: .9rem; bottom: .8rem; opacity: 0; transform: translateX(-6px); transition: opacity .2s, transform .2s; font-weight: 700; }
 	.hero-menu a:hover::after, .hero-menu a:focus-visible::after { opacity: 1; transform: none; }
@@ -309,7 +309,7 @@
 	@keyframes persona-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
 	/* "I am…" picker above the hero tiles */
-	.persona { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .6rem; margin: 0 0 1rem; color: #fff; font-size: 1.25rem; text-shadow: 0 2px 10px rgb(0 0 0 / .45); }
+	.persona { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .6rem; margin: 1.25rem 0 1.25rem; color: #fff; font-size: 1.25rem; text-shadow: 0 2px 10px rgb(0 0 0 / .45); }
 	.persona[hidden] { display: none; }
 	.persona-iam { font-weight: 300; }
 	.persona-wrap { position: relative; display: inline-flex; }
@@ -1147,6 +1147,10 @@ html .hero.hero-screen { min-height: 70vh; }
 	html .hero.hero-tall { min-height: min(46rem, 82vh); }
 	html .hero.hero-screen { min-height: calc(100vh - 9rem); }
 }
+/* Thai needs air between lines: a tight line height lets the tone marks of one line touch the letters of the next */
+.hero-title { text-wrap: balance; }
+.hero-title > span { line-height: 1.4; }
+.hero-title > span + span { margin-top: .12em; }
 .hero-eyebrow { margin: 0 0 .9rem; padding: .3rem 1rem; border: 1px solid rgb(255 255 255 / .4); border-radius: 9999px; background: rgb(255 255 255 / .16); font-size: .95rem; font-weight: 600; letter-spacing: .02em; text-shadow: none; }
 .hero-sub { max-width: 42rem; margin: 0 0 1.5rem; font-size: clamp(1rem, 1.6vw, 1.3rem); line-height: 1.6; text-shadow: 0 2px 10px rgb(0 0 0 / .45); }
 .hero-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin: 0 0 1rem; }
