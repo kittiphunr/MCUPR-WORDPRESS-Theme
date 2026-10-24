@@ -3223,3 +3223,12 @@ html[data-contrast] .gl-rows-a .gl-figs li { border: 2px solid var(--border); ba
 .fbar > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem 1.5rem; }
 .fbar p { margin: 0; }
 .slide-btn svg, .hero-arrow svg { display: block; flex: none; } /* drawn arrows, not letters: they sit exactly in the middle of the circle whatever the font */
+
+/* Animated icons (Lordicon, inc/lordicon.php): the normal SVG until the moving icon is ready; same box, so nothing jumps. */
+.lord { display: inline-flex; position: relative; width: var(--lord, 24px); height: var(--lord, 24px); flex: none; align-items: center; justify-content: center; vertical-align: middle; color: inherit; }
+.lord lord-icon { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+.lord[data-lord-state="live"] lord-icon { opacity: 1; }
+.lord[data-lord-state="live"] > svg { opacity: 0; }
+html[data-motion="1"] .lord lord-icon { display: none; }
+html[data-motion="1"] .lord > svg { opacity: 1; }
+@media print { .lord lord-icon { display: none; } .lord > svg { opacity: 1 !important; } }
