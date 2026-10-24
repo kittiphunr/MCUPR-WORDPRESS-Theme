@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.68 =
+* PHP security check: a notice and a Site Health test for the October 2026 PHP remote-code-execution flaws (CVE-2026-109618, CVE-2026-109619)
+
 = 1.54.67 =
 * File manager trash: an item whose id is sixteen digits only is no longer lost from the list
 
