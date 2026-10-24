@@ -129,9 +129,9 @@ function mcupr_aud_viewer() {
 	}
 	$v = array( 'staff' => false, 'student' => 0, 'level' => '', 'year' => '', 'fac' => '', 'maj' => '' );
 	if ( $uid ) {
-		// "staff" opens every piece of students-only content, so it is the editor boundary the theme uses elsewhere
-		// (the forum's moderation, the offices) and not edit_posts, which a contributor and an author hold as well.
-		$v['staff'] = current_user_can( 'edit_pages' ) || current_user_can( MCUPR_STU_CAP );
+		// "staff" opens every piece of students-only content whatever its rules say, so it is a capability of its own
+		// that is handed out on MCUPR -> User roles (inc/roles.php) rather than a side effect of being able to edit a page
+		$v['staff'] = current_user_can( 'mcupr_see_student_content' );
 		$sid        = mcupr_current_student();
 		if ( $sid ) {
 			$v['student'] = $sid;

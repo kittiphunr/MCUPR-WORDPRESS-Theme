@@ -45,7 +45,8 @@ t( count( $sub ) > 20 && count( $submenu['mcupr'] ) === count( $sub ), 'MCUPR me
 $rg = wp_insert_user( array( 'user_login' => 'rg' . wp_rand(), 'user_pass' => wp_generate_password(), 'user_email' => 'rg' . wp_rand() . '@example.org', 'role' => MCUPR_REGISTRAR_ROLE ) );
 $prev = get_current_user_id();
 wp_set_current_user( $rg );
-t( array( 'students', 'help' ) === array_keys( mcupr_cc_cats() ), 'a registrar has the students group and help, nothing else' );
+// their standard also allows uploading a file and opening the answers of the forms (where the requests are listed)
+t( array( 'content', 'visitors', 'students', 'help' ) === array_keys( mcupr_cc_cats() ), 'a registrar has the students group, the media library, the form answers and help, nothing else' );
 wp_set_current_user( $ed2 = wp_insert_user( array( 'user_login' => 'ed2' . wp_rand(), 'user_pass' => wp_generate_password(), 'user_email' => 'ed2' . wp_rand() . '@example.org', 'role' => 'editor' ) ) );
 $ec = array_keys( mcupr_cc_cats() );
 t( in_array( 'content', $ec, true ) && ! in_array( 'system', $ec, true ) && ! in_array( 'look', $ec, true ) && ! in_array( 'start', $ec, true ), 'an editor has the content group but not the system or look groups (no theme options)' );

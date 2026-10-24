@@ -530,12 +530,12 @@ add_action(
 /* ================================================================== admin: the control centre */
 
 function mcupr_staff_hub_menu() {
-	add_submenu_page( 'mcupr', __( 'Staff hub', 'mcupr' ), __( 'Staff hub', 'mcupr' ), 'edit_pages', 'mcupr-staff-hub', 'mcupr_staff_hub_page', 0 );
+	add_submenu_page( 'mcupr', __( 'Staff hub', 'mcupr' ), __( 'Staff hub', 'mcupr' ), 'mcupr_manage_staff', 'mcupr-staff-hub', 'mcupr_staff_hub_page', 0 );
 }
 add_action( 'admin_menu', 'mcupr_staff_hub_menu' );
 
 function mcupr_staff_hub_save() {
-	if ( ! mcupr_check_request( 'mcupr_hub_nonce', 'mcupr_hub', 'edit_pages' ) ) {
+	if ( ! mcupr_check_request( 'mcupr_hub_nonce', 'mcupr_hub', 'mcupr_manage_staff' ) ) {
 		wp_die( esc_html__( 'Not allowed.', 'mcupr' ), '', array( 'response' => 403 ) );
 	}
 	$what = isset( $_POST['hub_form'] ) ? sanitize_key( wp_unslash( $_POST['hub_form'] ) ) : '';
@@ -641,7 +641,7 @@ function mcupr_staff_hub_checks() {
 }
 
 function mcupr_staff_hub_page() {
-	if ( ! current_user_can( 'edit_pages' ) ) {
+	if ( ! current_user_can( 'mcupr_manage_staff' ) ) {
 		return;
 	}
 	$o   = mcupr_staff_opts();
@@ -779,7 +779,7 @@ add_filter(
 add_filter(
 	'rest_mcupr_person_query',
 	static function ( $args ) {
-		if ( ! current_user_can( 'edit_pages' ) ) {
+		if ( ! current_user_can( 'mcupr_manage_staff' ) ) {
 			$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery
 				'relation' => 'OR',
 				array( 'key' => '_mcupr_person_profile', 'compare' => 'NOT EXISTS' ),

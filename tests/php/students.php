@@ -254,7 +254,9 @@ wp_set_current_user( $reg );
 $GLOBALS['menu'] = $GLOBALS['submenu'] = array();
 do_action( 'admin_menu' );
 $hr = $page( 'students' );
-t( false !== strpos( $hr, 'post_type=mcupr_student' ) && false === strpos( $hr, 'mcupr-speed' ) && false === strpos( $hr, 'post_type=mcupr_event' ) && array( 'students', 'help' ) === array_keys( mcupr_cc_cats() ), 'a registrar sees the Students group and none of the others' );
+// the registrar's standard (inc/roles.php) also lets them upload a file and open the answers of the forms, since the
+// requests are listed there — so those two groups show as well, and nothing else does
+t( false !== strpos( $hr, 'post_type=mcupr_student' ) && false === strpos( $hr, 'mcupr-speed' ) && false === strpos( $hr, 'post_type=mcupr_event' ) && array( 'content', 'visitors', 'students', 'help' ) === array_keys( mcupr_cc_cats() ), 'a registrar sees the Students group, the media library, the form answers and help — nothing else' );
 wp_set_current_user( $ub );
 t( '' === $page(), 'a student gets nothing from the control page' );
 

@@ -641,12 +641,12 @@ add_action(
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'mcupr', __( 'Social sign-in', 'mcupr' ), __( 'Social sign-in', 'mcupr' ), 'manage_options', 'mcupr-social', 'mcupr_social_page' );
+		add_submenu_page( 'mcupr', __( 'Social sign-in', 'mcupr' ), __( 'Social sign-in', 'mcupr' ), 'mcupr_manage_site_access', 'mcupr-social', 'mcupr_social_page' );
 	}
 );
 
 function mcupr_social_page() {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'mcupr_manage_site_access' ) ) {
 		return;
 	}
 	$o   = mcupr_social_opts();
@@ -711,7 +711,7 @@ function mcupr_social_save( $p_in ) {
 add_action(
 	'admin_post_mcupr_social_save',
 	static function () {
-		if ( ! mcupr_check_request( 'mcupr_social_nonce', 'mcupr_social_save', 'manage_options' ) ) {
+		if ( ! mcupr_check_request( 'mcupr_social_nonce', 'mcupr_social_save', 'mcupr_manage_site_access' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
 		}
 		mcupr_social_save( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput

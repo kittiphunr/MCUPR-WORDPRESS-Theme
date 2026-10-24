@@ -51,13 +51,50 @@ function mcupr_cc_url( $spec ) {
 	return admin_url( 'admin.php?page=mcupr' );
 }
 
-/** The right a person needs to see a menu: what the data says, or the right to edit the post type, or to edit pages. */
+/** Which screen of the theme asks which capability (inc/roles.php), so a card is shown to the people who can open it. */
+function mcupr_cc_page_caps() {
+	return array(
+		'mcupr-files'            => 'mcupr_manage_files',
+		'mcupr-insights'         => 'mcupr_view_insights',
+		'mcupr-staff-hub'        => 'mcupr_manage_staff',
+		'mcupr-groups-import'    => 'mcupr_manage_groups',
+		'mcupr-ics'              => 'mcupr_manage_calendar',
+		'mcupr-forum'            => 'mcupr_manage_forum',
+		'mcupr-books'            => 'mcupr_manage_theme',
+		'mcupr-images'           => 'mcupr_manage_theme',
+		'mcupr-status'           => 'mcupr_manage_theme',
+		'mcupr-speed'            => 'mcupr_manage_theme',
+		'mcupr-elementor'        => 'mcupr_manage_theme',
+		'mcupr-blocks'           => 'edit_theme_options',
+		'mcupr-login'            => 'mcupr_manage_site_access',
+		'mcupr-social'           => 'mcupr_manage_site_access',
+		'mcupr-settings-io'      => 'mcupr_manage_site_access',
+		'mcupr-roles'            => 'mcupr_manage_roles',
+		'mcupr-student-import'   => MCUPR_STU_CAP,
+		'mcupr-student-settings' => MCUPR_STU_CAP,
+		'mcupr-student-log'      => MCUPR_STU_CAP,
+		'mcupr-student-mail'     => MCUPR_STU_CAP,
+		'mcupr-student-grades'   => MCUPR_STU_CAP,
+		'mcupr-student-codes'    => MCUPR_STU_CAP,
+		'mcupr-requests'         => MCUPR_RQ_CAP,
+	);
+}
+
+/** The right a person needs to see a menu: what the data says, the capability of the page it opens, or the post type's. */
 function mcupr_cc_item_cap( $item ) {
 	if ( ! empty( $item['cap'] ) ) {
 		return 'STU' === $item['cap'] ? MCUPR_STU_CAP : $item['cap'];
 	}
-	if ( 0 === strpos( (string) $item['open'], 'type:' ) ) {
-		$o = get_post_type_object( substr( $item['open'], 5 ) );
+	$open = (string) $item['open'];
+	if ( 0 === strpos( $open, 'page:' ) ) {
+		$pages = mcupr_cc_page_caps();
+		$slug  = substr( $open, 5 );
+		if ( isset( $pages[ $slug ] ) ) {
+			return $pages[ $slug ];
+		}
+	}
+	if ( 0 === strpos( $open, 'type:' ) ) {
+		$o = get_post_type_object( substr( $open, 5 ) );
 		return $o ? $o->cap->edit_posts : 'edit_pages';
 	}
 	return 'edit_pages';
@@ -374,7 +411,7 @@ function mcupr_cc_render_home() {
 		$chips[] = array( 'students', __( 'Students studying', 'mcupr' ), true, admin_url( 'edit.php?post_type=mcupr_student&mcs_status=studying' ), 'users', (int) $sc['studying'] );
 	}
 	$waiting = array();
-	if ( post_type_exists( 'mcupr_topic' ) && current_user_can( 'edit_pages' ) ) {
+	if ( post_type_exists( 'mcupr_topic' ) && current_user_can( 'mcupr_manage_forum' ) ) {
 		$n = (int) wp_count_posts( 'mcupr_topic' )->pending;
 		$c = (int) get_comments( array( 'status' => 'hold', 'post_type' => 'mcupr_topic', 'count' => true ) );
 		if ( $n + $c ) {
@@ -529,7 +566,8 @@ function mcupr_cc_render_guide( $id ) {
 
 /** The page behind the "Control center" menu entries (the home, a group, a guide). */
 function mcupr_admin_overview() {
-	if ( ! current_user_can( 'edit_pages' ) && ! current_user_can( MCUPR_STU_CAP ) ) {
+	// the same test the MCUPR menu itself uses: anybody who holds one of the theme's capabilities belongs here
+	if ( ! current_user_can( mcupr_admin_menu_cap() ) ) {
 		return;
 	}
 	$cat = isset( $_GET['cat'] ) ? sanitize_key( wp_unslash( $_GET['cat'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
