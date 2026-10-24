@@ -551,7 +551,9 @@ add_action(
 add_action(
 	'admin_post_mcupr_staff_export',
 	static function () {
-		if ( ! mcupr_check_request( '_wpnonce', 'mcupr_staff_file', 'edit_pages', 'get' ) ) {
+		// the file is the whole staff directory as it is stored, telephone numbers and addresses the person asked to hide
+		// included (it has to be, or putting the file back would wipe them), so it is for administrators only.
+		if ( ! mcupr_check_request( '_wpnonce', 'mcupr_staff_file', 'manage_options', 'get' ) ) {
 			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), '', array( 'response' => 403 ) );
 		}
 		$cols   = mcupr_import_columns();
@@ -685,7 +687,11 @@ function mcupr_import_card() {
 		echo '<button type="submit" name="step" value="confirm" class="button button-primary">' . esc_html__( 'Import now', 'mcupr' ) . '</button> <button type="submit" name="step" value="cancel" class="button">' . esc_html__( 'Cancel', 'mcupr' ) . '</button></form>';
 	} else {
 		echo '<p>' . esc_html__( 'Add many people at once from a spreadsheet. Download the template, fill it in (Thai or English headings, any column order), save as .xlsx or .csv (UTF-8) and upload it. You see a preview first; nothing is saved until you confirm.', 'mcupr' ) . '</p>';
-		echo '<p><a class="button" href="' . esc_url( $file ) . '">' . esc_html__( 'Download the template (CSV)', 'mcupr' ) . '</a> <a class="button" href="' . esc_url( $exp ) . '">' . esc_html__( 'Export everyone (CSV)', 'mcupr' ) . '</a></p>';
+		echo '<p><a class="button" href="' . esc_url( $file ) . '">' . esc_html__( 'Download the template (CSV)', 'mcupr' ) . '</a>';
+		if ( current_user_can( 'manage_options' ) ) {
+			echo ' <a class="button" href="' . esc_url( $exp ) . '">' . esc_html__( 'Export everyone (CSV)', 'mcupr' ) . '</a>';
+		}
+		echo '</p>';
 		echo '<form method="post" enctype="multipart/form-data" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="mcupr_staff_import"><input type="hidden" name="step" value="upload">';
 		wp_nonce_field( 'mcupr_import', 'mcupr_imp_nonce' );
 		echo '<p><input type="file" name="staff_file" accept=".xlsx,.csv,.tsv,.txt" required> <button type="submit" class="button button-primary">' . esc_html__( 'Upload and preview', 'mcupr' ) . '</button></p></form>';

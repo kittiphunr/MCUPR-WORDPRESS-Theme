@@ -190,6 +190,10 @@ function mcupr_el_w_form( $s, $el, $post_id ) {
 	$html = '<form class="elementor-form" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" name="' . esc_attr( $name ) . '">';
 	$html .= '<input type="hidden" name="action" value="mcupr_el_form"><input type="hidden" name="post_id" value="' . (int) $post_id . '"><input type="hidden" name="form_id" value="' . esc_attr( $el['id'] ) . '">' . wp_nonce_field( 'mcupr_el_form_' . $el['id'], '_wpnonce', true, false );
 	$html .= '<div style="position:absolute;left:-9999px" aria-hidden="true"><label>Leave this empty <input type="text" name="mcupr_hp" tabindex="-1" autocomplete="off"></label></div>';
+	if ( function_exists( 'mcupr_form_token' ) ) {
+		// the same signed moment the theme's own contact form uses: it tells a person filling the form from a script posting to it
+		$html .= '<input type="hidden" name="mcupr_tk" value="' . esc_attr( mcupr_form_token( time() ) ) . '">';
+	}
 	$html .= '<div class="elementor-form-fields-wrapper elementor-labels-' . ( 'above' === mcupr_el_s( $s, 'label_position', 'above' ) ? 'above' : preg_replace( '/[^a-z]/', '', (string) mcupr_el_s( $s, 'label_position', 'above' ) ) ) . '">';
 	foreach ( (array) $fields as $f ) {
 		$cid   = isset( $f['custom_id'] ) ? preg_replace( '/[^A-Za-z0-9_\-]/', '', (string) $f['custom_id'] ) : '';
@@ -296,6 +300,25 @@ function mcupr_el_form_submit() {
 	$ok      = isset( $_POST['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'mcupr_el_form_' . $form_id ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 	$form    = $ok && $post_id && 'publish' === get_post_status( $post_id ) ? mcupr_el_find_widget( mcupr_el_data( $post_id ), $form_id ) : null;
 	if ( ! $form || ! empty( $_POST['mcupr_hp'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		wp_safe_redirect( add_query_arg( 'mcupr_form', $form_id . '-err', $back ) );
+		exit;
+	}
+	/*
+	 * The nonce of a visitor who is not logged in is the same for everybody and good for hours, so by itself it does not
+	 * stop a script that scraped it from the page once. The same two guards the theme's own forms use: the moment the
+	 * form was printed has to be signed and between three seconds and two hours old, and one network may send eight
+	 * forms an hour. Without this the handler is an open door to wp_mail().
+	 */
+	if ( function_exists( 'mcupr_form_token' ) ) {
+		$tk = isset( $_POST['mcupr_tk'] ) ? sanitize_text_field( wp_unslash( $_POST['mcupr_tk'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$ts = (int) strtok( $tk, '.' );
+		$dt = time() - $ts;
+		if ( ! hash_equals( mcupr_form_token( $ts ), $tk ) || $dt < 3 || $dt > 2 * HOUR_IN_SECONDS ) {
+			wp_safe_redirect( add_query_arg( 'mcupr_form', $form_id . '-err', $back ) );
+			exit;
+		}
+	}
+	if ( function_exists( 'mcupr_throttle' ) && ! mcupr_throttle( 'elform|' . mcupr_client_net(), 8, HOUR_IN_SECONDS ) ) {
 		wp_safe_redirect( add_query_arg( 'mcupr_form', $form_id . '-err', $back ) );
 		exit;
 	}

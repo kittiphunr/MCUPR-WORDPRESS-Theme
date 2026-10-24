@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.54.73 =
+* แยกสิทธิ์ดูคำร้องออกจากสิทธิ์แก้ไขหน้า ปิด REST ของโปรไฟล์บุคลากรที่ซ่อนไว้ จำกัดการส่งออกรายชื่อบุคลากร และใส่การจำกัดอัตราให้แบบฟอร์ม Elementor
+
 = 1.54.72 =
 * Home page: a one-press way to give the quick links their groups, so the 'I am…' picker shows on a site built before it existed
 

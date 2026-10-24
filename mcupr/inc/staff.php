@@ -747,6 +747,86 @@ add_action(
 	1
 );
 
+/**
+ * The same privacy over REST as on the page itself: WordPress serves /wp-json/wp/v2/mcupr_person to anybody, and the
+ * 404 above only covers the page. So a person who asked for no profile page is not given out at all, and a biography
+ * the person asked to hide is taken out of the answer. Somebody who may edit the person still sees everything.
+ */
+add_filter(
+	'rest_prepare_mcupr_person',
+	static function ( $response, $post ) {
+		if ( current_user_can( 'edit_post', $post->ID ) ) {
+			return $response;
+		}
+		if ( ! mcupr_person_shows( $post->ID, 'bio' ) || empty( mcupr_staff_opts()['sections']['bio'] ) ) {
+			$data = $response->get_data();
+			foreach ( array( 'content', 'excerpt' ) as $k ) {
+				if ( isset( $data[ $k ] ) && is_array( $data[ $k ] ) ) {
+					$data[ $k ]['rendered'] = '';
+					unset( $data[ $k ]['raw'] );
+				}
+			}
+			$response->set_data( $data );
+		}
+		return $response;
+	},
+	10,
+	2
+);
+
+/** The lists over REST leave out anybody who asked for no profile page. */
+add_filter(
+	'rest_mcupr_person_query',
+	static function ( $args ) {
+		if ( ! current_user_can( 'edit_pages' ) ) {
+			$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery
+				'relation' => 'OR',
+				array( 'key' => '_mcupr_person_profile', 'compare' => 'NOT EXISTS' ),
+				array( 'key' => '_mcupr_person_profile', 'value' => 'off', 'compare' => '!=' ),
+			);
+		}
+		return $args;
+	}
+);
+
+/**
+ * Asking REST for one such person is answered the way WordPress answers for a post that is not there. It is done here,
+ * after the answer was built, because the route that builds it cannot be given an error without tripping over itself.
+ */
+add_filter(
+	'rest_request_after_callbacks',
+	static function ( $response, $handler, $request ) {
+		if ( ! preg_match( '#^/wp/v2/mcupr_person/(\\d+)$#', (string) $request->get_route(), $m ) ) {
+			return $response;
+		}
+		$id = (int) $m[1];
+		if ( 'mcupr_person' !== get_post_type( $id ) || mcupr_person_has_profile( $id ) || current_user_can( 'edit_post', $id ) ) {
+			return $response;
+		}
+		// the very words and the code WordPress itself uses for a post that is not there, so a reader cannot tell the two apart
+		return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+	},
+	10,
+	3
+);
+
+/** A person who asked for no profile page is kept out of the sitemap too (the page itself is a 404). */
+add_filter(
+	'wp_sitemaps_posts_query_args',
+	static function ( $args, $type ) {
+		if ( 'mcupr_person' === $type ) {
+			$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery
+				'relation' => 'OR',
+				array( 'key' => '_mcupr_person_profile', 'compare' => 'NOT EXISTS' ),
+				array( 'key' => '_mcupr_person_profile', 'value' => 'off', 'compare' => '!=' ),
+			);
+		}
+		return $args;
+	},
+	10,
+	2
+);
+
 /** Profile URLs exist from the first load after an update. */
 function mcupr_staff_flush_once() {
 	mcupr_rewrite_wanted( 'mcupr_rewrite_staff', MCUPR_VERSION ); // one flush for all modules, at the end of init (inc/compat.php)

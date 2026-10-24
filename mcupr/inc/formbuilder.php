@@ -749,6 +749,10 @@ add_action(
 		if ( 'mcupr_fb' !== get_post_type( $fid ) ) {
 			wp_die( esc_html__( 'Unknown form.', 'mcupr' ), 404 );
 		}
+		// the answers of a request carry what the sender wrote: only the people who handle requests may take them out
+		if ( function_exists( 'mcupr_rq_is_form' ) && mcupr_rq_is_form( $fid ) && ! current_user_can( MCUPR_RQ_CAP ) ) {
+			wp_die( esc_html__( 'Not allowed.', 'mcupr' ), 403 );
+		}
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( get_post_field( 'post_name', $fid ) . '-answers.csv' ) . '"' );

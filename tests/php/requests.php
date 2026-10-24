@@ -113,7 +113,12 @@ $tl = mcupr_rq_timeline_html( $e1 );
 t( substr_count( $tl, '<li' ) === 4 && false !== strpos( $tl, 'Please send the copy' ) && false === strpos( $tl, 'edi' ), 'the history the sender sees: statuses and messages, never the names of the staff' );
 
 // ---- who sees what: the capability and the files
-t( user_can( $reg, MCUPR_RQ_CAP ) && user_can( $edi, MCUPR_RQ_CAP ) && user_can( 1, MCUPR_RQ_CAP ) && ! user_can( $other, MCUPR_RQ_CAP ) && ! user_can( $su, MCUPR_RQ_CAP ), 'registrar, editor and administrator handle requests; a student and any other user do not' );
+t( user_can( $reg, MCUPR_RQ_CAP ) && user_can( 1, MCUPR_RQ_CAP ) && ! user_can( $edi, MCUPR_RQ_CAP ) && ! user_can( $other, MCUPR_RQ_CAP ) && ! user_can( $su, MCUPR_RQ_CAP ), 'registrar and administrator handle requests; being able to edit pages is not enough, nor is a student or any other account' );
+update_user_meta( $edi, 'mcupr_requests', 1 );
+clean_user_cache( $edi );
+t( user_can( $edi, MCUPR_RQ_CAP ), 'a person ticked "may handle requests" on their profile handles them' );
+delete_user_meta( $edi, 'mcupr_requests' );
+clean_user_cache( $edi );
 t( user_can( $reg, 'edit_post', $e1 ) && ! user_can( $reg, 'edit_post', $rn['entry'] ) && user_can( $edi, 'edit_post', $rn['entry'] ) && ! user_can( $su, 'edit_post', $e1 ), 'the registrar can open requests but not other form answers; a student cannot open any' );
 t( user_can( $reg, get_post_type_object( 'mcupr_fe' )->cap->edit_posts ), 'the registrar can open the list of answers (it shows only requests)' );
 

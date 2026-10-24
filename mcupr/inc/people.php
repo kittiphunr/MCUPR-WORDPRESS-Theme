@@ -30,7 +30,7 @@ function mcupr_people_register() {
 			'has_archive'         => false,
 			'rewrite'             => array( 'slug' => 'profile', 'with_front' => false ),
 			'show_ui'             => true,
-			'show_in_rest'        => true,
+			'show_in_rest'        => $profiles, // with the profile pages switched off nothing of a person is public, REST included
 			'menu_icon'           => 'dashicons-groups',
 			'menu_position'       => 9,
 			'supports'            => array( 'title', 'editor', 'thumbnail', 'page-attributes' ),
@@ -51,7 +51,7 @@ function mcupr_people_register() {
 			'public'            => false,
 			'show_ui'           => true,
 			'show_admin_column' => true,
-			'show_in_rest'      => true,
+			'show_in_rest'      => $profiles, // the taxonomy is not public: it follows the profile pages
 		)
 	);
 }

@@ -2000,4 +2000,10 @@ TH = {
 "Something could not be moved to the trash (check the rights of the uploads folder).": "ย้ายบางอย่างไปถังขยะไม่ได้ (ตรวจสิทธิ์ของโฟลเดอร์ uploads)",
 "That item is not in the trash any more.": "รายการนี้ไม่อยู่ในถังขยะแล้ว",
 "The item could not be put back.": "คืนค่ารายการไม่ได้",
+"Who sees the requests": "ใครเห็นคำร้อง",
+"the papers sent with a request are now shown only to administrators, to the people who look after the student records, and to the people ticked \"May handle requests\" on their user profile. If somebody else saw to the requests until now, tick them.": "เอกสารที่แนบมากับคำร้องจะแสดงเฉพาะผู้ดูแลระบบ ผู้ที่ดูแลข้อมูลนักศึกษา และผู้ที่ติ๊ก \"จัดการคำร้องได้\" ไว้ในหน้าโปรไฟล์ผู้ใช้ หากก่อนหน้านี้มีคนอื่นดูแลคำร้องอยู่ กรุณาติ๊กให้คนนั้น",
+"Users": "ผู้ใช้",
+"May handle requests": "จัดการคำร้องได้",
+"This person sees the requests and the papers sent with them": "ผู้ใช้คนนี้เห็นคำร้องและเอกสารที่แนบมา",
+"A request carries what the sender wrote and the papers they sent (a copy of an identity card, a house registration), so tick only the people whose work needs it. Administrators and the people who look after the student records always see them.": "คำร้องมีข้อความที่ผู้ส่งกรอกและเอกสารที่แนบมา (สำเนาบัตรประจำตัว ทะเบียนบ้าน) จึงควรติ๊กให้เฉพาะคนที่งานจำเป็นต้องใช้ ผู้ดูแลระบบและผู้ที่ดูแลข้อมูลนักศึกษาเห็นได้อยู่แล้วเสมอ",
 }
