@@ -16,7 +16,7 @@ while ( have_posts() ) :
 		<div class="wrap">
 			<?php mcupr_breadcrumb( false ); ?>
 			<h1 class="mt-4 mb-3 text-3xl font-bold leading-tight min-[900px]:text-4xl"><?php the_title(); ?></h1>
-			<p class="m-0 text-muted"><?php echo esc_html( get_the_date( 'j M Y' ) ); ?> · <?php echo mcupr_icon( 'camera', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo (int) count( mcupr_album_images( $id ) ); ?></p>
+			<p class="m-0 text-muted"><?php echo esc_html( get_the_date( 'j M Y' ) ); ?> · <span class="inline-flex items-center gap-1 align-middle"><?php echo mcupr_icon( 'camera', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo (int) count( mcupr_album_images( $id ) ); ?></span></p>
 		</div>
 	</header>
 	<div class="wrap mt-8">

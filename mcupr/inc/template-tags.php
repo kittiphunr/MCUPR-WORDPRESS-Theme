@@ -355,6 +355,11 @@ function mcupr_section_pages( $post_id ) {
 	return array( $root, $pages );
 }
 
+/** A small "nothing here yet" note inside a page section: an icon chip and the sentence, in a soft dashed box. (The big version for a whole page is mcupr_state_card().) */
+function mcupr_empty_note( $text, $icon = 'folder' ) {
+	return '<p class="empty-note"><span class="empty-ic" aria-hidden="true">' . mcupr_icon( $icon, 20 ) . '</span><span>' . esc_html( $text ) . '</span></p>';
+}
+
 /** Centered status card (404, no results): round icon, title, text, optional extra HTML. */
 function mcupr_state_card( $icon, $title, $text = '', $extra = '', $tag = 'h1' ) {
 	$tag = in_array( $tag, array( 'h1', 'h2', 'h3' ), true ) ? $tag : 'h2';

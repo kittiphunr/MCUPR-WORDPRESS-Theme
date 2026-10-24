@@ -1876,7 +1876,7 @@ html[data-contrast] .band-lead { background: var(--bg); box-shadow: none; border
 /* ---- the top of every page and listing: a soft hero (breadcrumb pill, big title, lead, chips, rounded foot) ---- */
 header.mcu-wheel.bg-tint { background-image: radial-gradient(120% 140% at 100% 0, color-mix(in srgb, var(--primary) 12%, var(--bg)) 0, transparent 55%), linear-gradient(135deg, var(--bg) 0, var(--tint) 100%); border-radius: 0; padding-bottom: 2.6rem; }
 header.mcu-wheel.bg-tint > .wrap > nav:first-child { display: inline-block; max-width: 100%; padding: .2rem .95rem; border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border)); border-radius: 9999px; background: color-mix(in srgb, var(--bg) 82%, transparent); box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 10%, transparent); }
-header.mcu-wheel.bg-tint .mcu-title { padding-block: .18em .32em; margin-bottom: -.32em; font-size: clamp(2rem, 1.4rem + 2.4vw, 2.9rem); font-weight: 800; letter-spacing: -.01em; line-height: 1.15; background: linear-gradient(90deg, var(--link), color-mix(in srgb, var(--link) 70%, var(--text))); -webkit-background-clip: text; background-clip: text; color: transparent; }
+header.mcu-wheel.bg-tint .mcu-title { padding-block: .18em .32em; margin-bottom: -.32em; font-size: clamp(2rem, 1.4rem + 2.4vw, 2.9rem); font-weight: 800; letter-spacing: -.01em; line-height: 1.35; background: linear-gradient(90deg, var(--link), color-mix(in srgb, var(--link) 70%, var(--text))); -webkit-background-clip: text; background-clip: text; color: transparent; }
 header.mcu-wheel.bg-tint .mcu-title::after { display: none; }
 .band-meta { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.1rem 0 0; padding: 0; }
 .band-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .85rem; border: 1px solid var(--edge); border-radius: 9999px; background: var(--bg); color: var(--text-2); font-size: .92rem; line-height: 1.5; }
@@ -2154,7 +2154,7 @@ html[data-theme="dark"] .fbform .fb-err { color: #fca5a5; }
 /* ---------------------------------------------------------------- home blocks (widgets / shortcodes) */
 .blk { min-width: 0; }
 .blk-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: .5rem 1.5rem; margin: 0 0 1.4rem; }
-.blk-title { position: relative; margin: 0; padding-left: 1rem; font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2rem); font-weight: 800; line-height: 1.3; }
+.blk-title { position: relative; margin: 0; padding-left: 1rem; font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2rem); font-weight: 800; line-height: 1.4; }
 .blk-title::before { content: ""; position: absolute; left: 0; top: .15em; bottom: .15em; width: 5px; border-radius: 3px; background: var(--accent, var(--primary)); }
 .blk-sub { margin: .35rem 0 0; color: var(--muted); }
 .blk-more { flex: none; color: var(--text); font-weight: 600; text-decoration: none; min-height: 2.75rem; display: inline-flex; align-items: center; gap: .35rem; }
@@ -2509,7 +2509,7 @@ html[data-contrast] .office-card .oc-top.has-cover { background-image: none; }
 .gl-band::before { width: 18rem; height: 18rem; inset-inline-end: -5rem; top: -6rem; }
 .gl-band::after { width: 10rem; height: 10rem; inset-inline-end: 6rem; bottom: -5rem; }
 .gl-eye { align-self: flex-start; margin: 0 0 1rem; padding: .3rem 1rem; border-radius: 9999px; background: color-mix(in srgb, var(--of-on) 16%, transparent); font-size: .95rem; font-weight: 700; }
-.gl-name { margin: 0; font-size: clamp(1.9rem, 1.1rem + 2.8vw, 3.1rem); font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+.gl-name { margin: 0; font-size: clamp(1.9rem, 1.1rem + 2.8vw, 3.1rem); font-weight: 800; line-height: 1.4; overflow-wrap: anywhere; }
 .gl-sub { margin: .35rem 0 0; font-size: 1.05rem; overflow-wrap: anywhere; }
 .gl-lead { max-width: 40rem; margin: 1rem 0 0; font-size: clamp(1.05rem, 1rem + .35vw, 1.25rem); line-height: 1.6; }
 .gl-start { display: inline-flex; align-items: center; align-self: flex-start; gap: .5rem; margin: 1.1rem 0 0; font-weight: 700; }
@@ -2532,7 +2532,7 @@ a.gl-chip:hover, a.gl-chip:focus-visible { background: var(--of-on); color: var(
 	html:has(.gl-tabs) { scroll-padding-top: calc(var(--hdr-h, 5.5rem) + var(--gl-tabs-h, 3.75rem) + 1.5rem); } /* a part or a focused element is never hidden under the menu */
 }
 .gl-sec { margin-top: 2.5rem; scroll-margin-top: 1rem; }
-.gl-h { display: flex; align-items: center; gap: .65rem; margin: 0 0 1rem; font-size: clamp(1.25rem, 2.6vw, 1.55rem); font-weight: 800; line-height: 1.3; }
+.gl-h { display: flex; align-items: center; gap: .65rem; margin: 0 0 1rem; font-size: clamp(1.25rem, 2.6vw, 1.55rem); font-weight: 800; line-height: 1.4; }
 .gl-ic { flex: none; display: inline-grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--gl-soft); color: var(--of); }
 .gl-card { border: 1px solid var(--edge); border-radius: 1.5rem; background: var(--bg); box-shadow: var(--shadow-soft); }
 .gl-about { padding: 1.25rem 1.5rem; }
@@ -2652,7 +2652,7 @@ html[data-contrast] .gl-gcard, html[data-contrast] .of-filter { border: 2px soli
 /* 404 page */
 .nf { max-width: 46rem; margin: 2.5rem auto; padding: 2.5rem 1.75rem 2.25rem; border: 1px solid var(--edge); border-radius: 1.75rem; background: var(--bg); box-shadow: var(--shadow-soft); text-align: center; }
 .nf-code { margin: 0; font-size: clamp(5rem, 22vw, 9rem); font-weight: 800; line-height: 1; letter-spacing: -.04em; background: linear-gradient(120deg, var(--primary), var(--accent, #f59e0b)); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
-.nf-title { margin: .5rem 0 .6rem; font-size: clamp(1.5rem, 4.5vw, 2rem); font-weight: 800; line-height: 1.25; }
+.nf-title { margin: .5rem 0 .6rem; font-size: clamp(1.5rem, 4.5vw, 2rem); font-weight: 800; line-height: 1.4; }
 .nf-text { margin: 0 auto; max-width: 32rem; color: var(--text-2); font-size: 1.1rem; }
 .nf-search { max-width: 32rem; margin: 1.75rem auto 0; }
 .nf-search .search-form { width: 100%; }
@@ -3262,3 +3262,15 @@ html[data-contrast] .gl-rows-a .gl-figs li { border: 2px solid var(--border); ba
 html[data-motion="1"] .lord lord-icon { display: none; }
 html[data-motion="1"] .lord > svg { opacity: 1; }
 @media print { .lord lord-icon { display: none; } .lord > svg { opacity: 1 !important; } }
+
+/* Thai needs air between lines: with the tight leading of the utility sizes (1.0–1.25) the tone marks and vowels of one line touch the letters of the next when a title or a button label wraps */
+h1, h2, h3, h4 { line-height: 1.4; }
+.btn, .btn-outline, .btn-tool, .wk-pill { line-height: 1.4; }
+
+/* "Nothing here yet" inside a section: an icon chip and the sentence in a soft dashed box (not a bare grey line) */
+.empty-note { display: flex; align-items: center; gap: .85rem; margin: 1rem 0; padding: 1rem 1.25rem; border: 1.5px dashed var(--border); border-radius: 1.25rem; background: color-mix(in srgb, var(--tint) 55%, var(--bg)); color: var(--muted); font-weight: 600; line-height: 1.5; }
+.empty-ic { display: inline-flex; flex: none; width: 2.5rem; height: 2.5rem; align-items: center; justify-content: center; border-radius: .9rem; background: var(--tint); color: var(--link); }
+
+/* Event page: add-to-calendar links as soft pills, easy to hit on a phone */
+.ev-link { padding: 0 1.1rem; border: 1.5px solid var(--border); border-radius: 9999px; background: var(--bg); text-decoration: none; transition: background-color .2s, border-color .2s; }
+.ev-link:hover, .ev-link:focus-visible { border-color: var(--primary); background: var(--tint); }
