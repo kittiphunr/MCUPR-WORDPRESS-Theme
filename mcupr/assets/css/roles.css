@@ -2,6 +2,30 @@
 
 .mcupr-roles .mr-lede { max-width: 56rem; font-size: 14px; }
 
+/* ---- the role a new account gets */
+.mcupr-roles .mr-default {
+	margin: 16px 0 0;
+	padding: 12px 16px;
+	border: 1px solid #dcdcde;
+	border-left: 4px solid #996800;
+	border-radius: 8px;
+	background: #fff;
+}
+.mcupr-roles .mr-default form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mcupr-roles .mr-default .description { flex: 1 0 100%; margin: 4px 0 0; max-width: 56rem; }
+.mcupr-roles .mr-was { font-style: italic; }
+.mcupr-roles .mr-is-default {
+	display: inline-block;
+	margin-left: 4px;
+	padding: 1px 6px;
+	font-size: 10px;
+	font-weight: 600;
+	color: #8a6400;
+	background: #fcf9e8;
+	border: 1px solid #f0e2b6;
+	border-radius: 999px;
+}
+
 /* ---- the cards, one per role */
 .mcupr-roles .mr-cards {
 	display: grid;
