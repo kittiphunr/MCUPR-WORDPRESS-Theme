@@ -57,13 +57,23 @@ function mcupr_role_origin( $role ) {
 
 /* ================================================================== the menu */
 
+/**
+ * It belongs with the people it is about, so it hangs under WordPress' own "Users" menu rather than under MCUPR.
+ * WordPress shows that menu to somebody who may list users, so a person given the right to change the roles without
+ * that one would have nowhere to click; the page says so where it happens.
+ */
 add_action(
 	'admin_menu',
 	static function () {
-		add_submenu_page( 'mcupr', __( 'User roles', 'mcupr' ), __( 'User roles', 'mcupr' ), 'mcupr_manage_roles', 'mcupr-roles', 'mcupr_roles_page' );
+		add_submenu_page( 'users.php', __( 'User roles', 'mcupr' ), __( 'User roles', 'mcupr' ), 'mcupr_manage_roles', 'mcupr-roles', 'mcupr_roles_page' );
 	},
 	28
 );
+
+/** Where the page lives now. */
+function mcupr_roles_url( $args = array() ) {
+	return add_query_arg( $args, admin_url( 'users.php?page=mcupr-roles' ) );
+}
 
 add_action(
 	'admin_enqueue_scripts',
@@ -220,9 +230,27 @@ add_action(
 
 /** Back to the page with a word about what happened. */
 function mcupr_roles_back( $args = array() ) {
-	wp_safe_redirect( add_query_arg( $args, admin_url( 'admin.php?page=mcupr-roles' ) ) );
+	wp_safe_redirect( mcupr_roles_url( $args ) );
 	exit;
 }
+
+/** The role a new account gets. */
+add_action(
+	'admin_post_mcupr_roles_default',
+	static function () {
+		if ( ! current_user_can( 'mcupr_manage_roles' ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'mcupr' ), '', array( 'response' => 403 ) );
+		}
+		check_admin_referer( 'mcupr_roles_default' );
+		$want = isset( $_POST['default_role'] ) ? sanitize_key( wp_unslash( $_POST['default_role'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! $want || ! get_role( $want ) || 'administrator' === $want ) {
+			mcupr_roles_back( array( 'err' => 'default' ) );
+		}
+		update_option( 'default_role', $want );
+		delete_option( 'mcupr_default_role_was' );
+		mcupr_roles_back( array( 'defaulted' => 1 ) );
+	}
+);
 
 /* ================================================================== the page */
 
@@ -241,6 +269,28 @@ function mcupr_roles_page() {
 	mcupr_roles_notices();
 	echo '<p class="mr-lede">' . esc_html__( 'Every role on the site is a column, every thing somebody can do is a row. Tick what each role may do and press save. An administrator is not in your hands: they always have everything, so the site can never be locked out of its own settings.', 'mcupr' ) . '</p>';
 
+	// ---- the role a new account gets
+	$default = mcupr_default_role();
+	$was     = mcupr_default_role_was();
+	echo '<div class="mr-default"><form method="post" action="' . $act . '">';
+	wp_nonce_field( 'mcupr_roles_default' );
+	echo '<input type="hidden" name="action" value="mcupr_roles_default">';
+	echo '<label for="mr-default"><strong>' . esc_html__( 'A new account starts as', 'mcupr' ) . '</strong></label> ';
+	echo '<select id="mr-default" name="default_role">';
+	foreach ( $roles as $k2 => $i2 ) {
+		if ( 'administrator' !== $k2 ) {
+			echo '<option value="' . esc_attr( $k2 ) . '"' . selected( $default, $k2, false ) . '>' . esc_html( translate_user_role( $i2['name'] ) ) . '</option>';
+		}
+	}
+	echo '</select> ';
+	submit_button( __( 'Save', 'mcupr' ), 'secondary', 'submit', false );
+	echo '<p class="description">' . esc_html__( 'What somebody is given when they are added to the site, or when they sign themselves up. Keep it at the role that can only read: a role is easy to raise afterwards and hard to take back once somebody has used it.', 'mcupr' ) . '</p>';
+	if ( '' !== $was ) {
+		/* translators: %s: the name of a role */
+		echo '<p class="description mr-was">' . esc_html( sprintf( __( 'The theme set this; it was "%s" before.', 'mcupr' ), translate_user_role( $roles[ $was ]['name'] ) ) ) . '</p>';
+	}
+	echo '</form></div>';
+
 	// ---- the cards
 	echo '<div class="mr-cards">';
 	foreach ( $roles as $key => $info ) {
@@ -254,7 +304,11 @@ function mcupr_roles_page() {
 		if ( '' !== $note ) {
 			echo '<p class="mr-note">' . esc_html( $note ) . '</p>';
 		}
-		echo '<p class="mr-tag">' . esc_html( 'standard' === $origin ? __( 'Comes with the theme', 'mcupr' ) : ( 'core' === $origin ? __( 'Comes with WordPress', 'mcupr' ) : __( 'Made on this site', 'mcupr' ) ) ) . '</p>';
+		echo '<p class="mr-tag">' . esc_html( 'standard' === $origin ? __( 'Comes with the theme', 'mcupr' ) : ( 'core' === $origin ? __( 'Comes with WordPress', 'mcupr' ) : __( 'Made on this site', 'mcupr' ) ) );
+		if ( mcupr_default_role() === $key ) {
+			echo ' <span class="mr-is-default">' . esc_html__( 'what a new account starts as', 'mcupr' ) . '</span>';
+		}
+		echo '</p>';
 		echo '<p class="mr-card-actions">';
 		if ( $n > 0 ) {
 			echo '<a class="button button-small" href="' . esc_url( admin_url( 'users.php?role=' . $key ) ) . '">' . esc_html__( 'See who holds it', 'mcupr' ) . '</a> ';
@@ -399,6 +453,9 @@ function mcupr_roles_notices() {
 	if ( isset( $_GET['deleted'] ) ) {
 		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'The role was deleted.', 'mcupr' ) . '</p></div>';
 	}
+	if ( isset( $_GET['defaulted'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Saved. New accounts start as that role from now on.', 'mcupr' ) . '</p></div>';
+	}
 	if ( isset( $_GET['err'] ) ) {
 		$errs = array(
 			'name'   => __( 'Give the role a name.', 'mcupr' ),
@@ -407,10 +464,21 @@ function mcupr_roles_notices() {
 			'reset'  => __( 'That role cannot be put back to a standard, because the theme did not make it.', 'mcupr' ),
 			'delete' => __( 'Only a role made on this site can be deleted.', 'mcupr' ),
 			'move'   => __( 'People still hold that role: choose where to move them first.', 'mcupr' ),
+			'default' => __( 'Choose a role a new account can start as (not an administrator).', 'mcupr' ),
 		);
 		$k = sanitize_key( wp_unslash( $_GET['err'] ) );
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html( isset( $errs[ $k ] ) ? $errs[ $k ] : __( 'That did not work.', 'mcupr' ) ) . '</p></div>';
 	}
 	// phpcs:enable
+	$blind = array();
+	foreach ( wp_roles()->role_objects as $rk => $ro ) {
+		if ( 'administrator' !== $rk && $ro->has_cap( 'mcupr_manage_roles' ) && ! $ro->has_cap( 'list_users' ) ) {
+			$blind[] = translate_user_role( wp_roles()->roles[ $rk ]['name'] );
+		}
+	}
+	if ( $blind ) {
+		/* translators: %s: names of roles */
+		echo '<div class="notice notice-warning"><p>' . esc_html( sprintf( __( 'This page hangs under "Users", which WordPress shows only to somebody who may see the list of users. These roles may change the roles but would never find the page: %s. Tick "See the list of users" for them as well.', 'mcupr' ), implode( ', ', $blind ) ) ) . '</p></div>';
+	}
 	echo '<div class="notice notice-warning"><p><strong>' . esc_html__( 'WordPress\' own roles are in this table too', 'mcupr' ) . '</strong> — ' . esc_html__( 'Editor, Author, Contributor and Subscriber. Changing them changes what plugins let those people do as well, so prefer the roles of the theme for the people of the university and leave WordPress\' own as they are.', 'mcupr' ) . '</p></div>';
 }
