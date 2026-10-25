@@ -817,6 +817,78 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(Object.values(rows).every((hs) => Math.max(...hs) - Math.min(...hs) <= 1), 'news cards: cards in a row are the same height');
     await vp.screenshot({ path: shot('news-cards.png'), fullPage: true });
 
+    // the title on the browser tab types itself and scrolls when it is too long, and never leaves half a title behind
+    {
+      const longTitle = '/?s=' + encodeURIComponent('มหาวิทยาลัยมหาจุฬาลงกรณราชวิทยาลัย วิทยาเขตแพร่');
+      // only the delays are shortened (so the test is quick); the script and the page are the real ones
+      const quick = { mode: 'scroll', speed: 'fast', type: 25, step: 35, rest: 120, width: 24 };
+      const watchTitle = async (ctxOpts, cfg, ms, between) => {
+        const c = await br.newContext(ctxOpts || {});
+        const pg = await c.newPage();
+        if (cfg) { await pg.addInitScript((v) => { Object.defineProperty(window, 'mcuprTab', { configurable: true, get: () => v, set: () => {} }); }, cfg); }
+        await pg.goto(B + longTitle, { waitUntil: 'domcontentloaded' });
+        const seen = [];
+        const t0 = Date.now();
+        let did = false;
+        while (Date.now() - t0 < ms) {
+          const t = await pg.evaluate(() => ({ t: document.title, s: document.documentElement.getAttribute('data-tab-title'), f: window.mcuprFullTitle || null }));
+          if (!seen.length || seen[seen.length - 1].t !== t.t) { seen.push(t); }
+          if (between && !did && t.s === 'scroll') { did = true; await between(pg); }
+          await pg.waitForTimeout(10);
+        }
+        const out = { seen, last: seen[seen.length - 1], pg, c };
+        return out;
+      };
+      const typed = await watchTitle({}, quick, 8000);
+      const fullT = typed.last.f;
+      ok(typed.seen.length > 30 && typed.seen[0].t !== fullT, 'tab title: it does not appear all at once, it changes many times (' + typed.seen.length + ' steps)');
+      ok(typed.seen.some((x) => x.s === 'typing' && x.t.endsWith('|') && fullT.startsWith(x.t.slice(0, -1)) && x.t.length < fullT.length), 'tab title: first it is typed, a letter at a time, with a bar after it');
+      ok(typed.seen.some((x) => x.s === 'scroll' && x.t.includes(' • ')) && typed.seen.some((x) => x.s === 'scroll' && !fullT.startsWith(x.t)), 'tab title: a title longer than the tab then scrolls along, with a dot between the end and the start');
+      ok(typed.last.s === 'done' && typed.last.t === fullT && fullT.length > 40, 'tab title: and it comes to rest on the whole title');
+      ok(typed.seen.every((x) => x.t.length > 0), 'tab title: there is never a moment with no title (the browser would show the address instead)');
+      ok(typed.seen.every((x) => !/^[ัิ-ฺ็-๎]/.test(x.t)), 'tab title: a Thai vowel or tone mark is never cut off from its letter at the start of the window');
+      await typed.c.close();
+
+      const calm = await watchTitle({ reducedMotion: 'reduce' }, quick, 1500);
+      ok(calm.seen.length === 1 && calm.last.t === calm.last.f && calm.last.s === null, 'tab title: for a visitor who asked for less motion it is the plain title and never moves');
+      await calm.c.close();
+
+      const off = await watchTitle({}, Object.assign({}, quick, { mode: 'off' }), 1200);
+      ok(off.seen.length === 1 && off.last.s === null && off.last.f === null, 'tab title: with the effect switched off nothing touches the title');
+      await off.c.close();
+
+      const onlyType = await watchTitle({}, Object.assign({}, quick, { mode: 'type' }), 5000);
+      ok(onlyType.last.s === 'done' && !onlyType.seen.some((x) => x.s === 'scroll') && onlyType.last.t === onlyType.last.f, 'tab title: "only type" types and then stops, even when the title is long');
+      await onlyType.c.close();
+
+      // printing and leaving: the whole title, never the half of it that was on the tab
+      const printed = await watchTitle({}, quick, 4000, async (pg) => { await pg.evaluate(() => window.dispatchEvent(new Event('beforeprint'))); });
+      const afterPrint = printed.seen.findIndex((x) => x.s === 'done');
+      ok(afterPrint > 0 && printed.seen[afterPrint].t === printed.last.f && !printed.seen.slice(afterPrint).some((x) => x.s === 'scroll'), 'tab title: before printing the whole title is put back and the scrolling stops');
+      await printed.c.close();
+
+      const hidden = await watchTitle({}, quick, 4000, async (pg) => { await pg.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, get: () => true }); document.dispatchEvent(new Event('visibilitychange')); }); });
+      const afterHide = hidden.seen.findIndex((x) => x.s === 'done');
+      ok(afterHide > 0 && hidden.seen[afterHide].t === hidden.last.f, 'tab title: when the tab goes to the background the whole title is put back');
+      await hidden.c.close();
+
+      // the shorter title of the home page fits on the tab: it is typed and then stays, with nothing to scroll
+      const shortC = await br.newContext();
+      const shortP = await shortC.newPage();
+      await shortP.addInitScript((v) => { Object.defineProperty(window, 'mcuprTab', { configurable: true, get: () => v, set: () => {} }); }, Object.assign({}, quick, { width: 60 }));
+      await shortP.goto(B + '/', { waitUntil: 'domcontentloaded' });
+      const shortSeen = [];
+      const s0 = Date.now();
+      while (Date.now() - s0 < 4000) {
+        const t = await shortP.evaluate(() => ({ t: document.title, s: document.documentElement.getAttribute('data-tab-title'), f: window.mcuprFullTitle || null }));
+        if (!shortSeen.length || shortSeen[shortSeen.length - 1].t !== t.t || shortSeen[shortSeen.length - 1].s !== t.s) { shortSeen.push(t); }
+        await shortP.waitForTimeout(10);
+      }
+      const shortLast = shortSeen[shortSeen.length - 1];
+      ok(shortLast.f && shortLast.f.length < 60 && shortLast.s === 'done' && shortLast.t === shortLast.f && !shortSeen.some((x) => x.s === 'scroll'), 'tab title: a title that fits on the tab is typed and stays, with no scroll ("' + shortLast.f + '")');
+      await shortC.close();
+    }
+
     const asked = [];
     vp.on('request', (r) => { if (/youtube|ytimg|vimeo/.test(r.url())) { asked.push(r.url()); } });
     await vp.goto(B + '/videos/');
