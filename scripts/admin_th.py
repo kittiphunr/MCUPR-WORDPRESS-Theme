@@ -2133,4 +2133,12 @@ TH = {
 "e.g. Librarian": "เช่น บรรณารักษ์",
 "sensitive": "อ่อนไหว",
 "See who holds it": "ดูว่าใครบ้าง",
+"A new account starts as": "บัญชีใหม่เริ่มต้นเป็น",
+"Choose a role a new account can start as (not an administrator).": "กรุณาเลือกบทบาทที่บัญชีใหม่เริ่มต้นได้ (ไม่ใช่ผู้ดูแลระบบ)",
+"News subscriber": "ผู้รับข่าวสาร",
+"Saved. New accounts start as that role from now on.": "บันทึกแล้ว ต่อจากนี้บัญชีใหม่จะเริ่มต้นเป็นบทบาทนั้น",
+"The theme set this; it was \"%s\" before.": "ธีมตั้งค่านี้ให้ ก่อนหน้านี้เป็น \"%s\"",
+"This page hangs under \"Users\", which WordPress shows only to somebody who may see the list of users. These roles may change the roles but would never find the page: %s. Tick \"See the list of users\" for them as well.": "หน้านี้อยู่ใต้เมนู \"ผู้ใช้\" ซึ่ง WordPress แสดงเฉพาะกับคนที่ดูรายชื่อผู้ใช้ได้ บทบาทเหล่านี้แก้สิทธิ์ได้แต่จะหาหน้านี้ไม่เจอ: %s กรุณาติ๊ก \"ดูรายชื่อผู้ใช้\" ให้ด้วย",
+"What somebody is given when they are added to the site, or when they sign themselves up. Keep it at the role that can only read: a role is easy to raise afterwards and hard to take back once somebody has used it.": "สิ่งที่ผู้ใช้ได้รับเมื่อถูกเพิ่มเข้าเว็บไซต์ หรือเมื่อสมัครเอง ควรคงไว้ที่บทบาทที่อ่านได้อย่างเดียว เพราะเพิ่มสิทธิ์ทีหลังทำได้ง่าย แต่ถอนคืนหลังจากมีคนใช้ไปแล้วทำได้ยาก",
+"what a new account starts as": "บทบาทเริ่มต้นของบัญชีใหม่",
 }
