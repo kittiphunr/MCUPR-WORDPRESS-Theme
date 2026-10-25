@@ -39,7 +39,7 @@
 		}
 		var h = document.createElement('h1');
 		h.className = 'pd-title';
-		h.textContent = D.title || document.title;
+		h.textContent = D.title || window.mcuprFullTitle || document.title; // the whole title, never one half-typed on the tab
 		doc.appendChild(h);
 		var body = target.cloneNode(true);
 		body.removeAttribute('id');
