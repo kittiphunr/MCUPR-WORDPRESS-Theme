@@ -2903,8 +2903,10 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     // the ordinary WordPress login page
     const wl = await kc.newPage();
     await wl.goto(B + '/wp-login.php');
-    await wl.fill('#user_login', 'carde2e1'); await wl.fill('#user_pass', 'Card-pass-12345'); await wl.click('#wp-submit');
-    await wl.waitForSelector('#login_error', { timeout: 10000 }).catch(() => {});
+    await wl.fill('#user_login', 'carde2e1'); await wl.fill('#user_pass', 'Card-pass-12345');
+    // wait for the answer to the POST itself, the way every other sign-in in this file does: the built-in PHP server
+    // takes one request at a time, so a fixed wait for the error to appear is a race on a busy machine
+    await Promise.all([wl.waitForNavigation({ waitUntil: 'domcontentloaded' }), wl.click('#wp-submit')]);
     ok(await wl.locator('#login_error').count() === 1 && !/wp-admin|student/.test(wl.url().replace('wp-login.php', '')), 'card login: a student cannot go in by the ordinary WordPress login page with the password alone');
     // typing allowed by staff
     phpK('update_option("mcupr_card", array("on"=>1,"typing"=>1));');
