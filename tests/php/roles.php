@@ -250,7 +250,84 @@ add_filter( 'mcupr_admin_thai', '__return_false' );
 t( 'Subscriber' === translate_user_role( 'Subscriber' ), 'naming: with the theme\'s Thai switched off, WordPress\' own word stands' );
 remove_filter( 'mcupr_admin_thai', '__return_false' );
 
-// 14. a role made on this site, and deleting it again
+// 14. a role made by hand on the page can really be given the run of its own content
+wp_set_current_user( $adm[0]->ID );
+$hand = 'mcupr_r_byhand';
+remove_role( $hand );
+// exactly what somebody ticking "write / publish / delete" plus the two the page now also offers would get
+add_role( $hand, 'RL by hand', array_fill_keys( array( 'read', 'edit_posts', 'publish_posts', 'delete_posts', 'edit_published_posts', 'delete_published_posts' ), true ) );
+$hu = $fresh_user( 'rl_byhand', $hand );
+$hp = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'RL by-hand post', 'post_author' => $hu ) );
+t( user_can( $hu, 'edit_post', $hp ) && user_can( $hu, 'delete_post', $hp ), 'by hand: a role built on the page can edit and delete its own post after it is published' );
+$defs = mcupr_cap_defs();
+$pairs = array( 'edit_published_posts', 'delete_published_posts', 'edit_published_pages', 'delete_published_pages' );
+$off_grid = array();
+foreach ( $pairs as $cap ) {
+	if ( ! isset( $defs[ $cap ] ) ) {
+		$off_grid[] = $cap;
+	}
+}
+t( array() === $off_grid, 'by hand: the capabilities WordPress asks for alongside "write" and "delete" are on the page, so they can be ticked' );
+// and every capability a standard role holds is one the page can hand out
+$hidden = array();
+foreach ( mcupr_standard_roles() as $rk => $rd ) {
+	foreach ( $rd['caps'] as $cap ) {
+		if ( ! isset( $defs[ $cap ] ) && 'read' !== $cap && 0 !== strpos( $cap, 'mcupr_student' ) && false === strpos( $cap, '_mcupr_student' ) ) {
+			$hidden[] = $rk . ':' . $cap;
+		}
+	}
+}
+t( array() === $hidden, 'by hand: no standard role holds a content capability the page keeps out of sight' . ( $hidden ? ' (' . implode( ' ', $hidden ) . ')' : '' ) );
+wp_delete_post( $hp, true );
+wp_delete_user( $hu );
+remove_role( $hand );
+
+// 15. an officer looks after the pages of the site, not only the ones they made themselves
+mcupr_role_from_standard( 'mcupr_officer' );
+$off2 = $fresh_user( 'rl_officer2', 'mcupr_officer' );
+$admin_page = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'RL page by admin', 'post_author' => $adm[0]->ID ) );
+$admin_post = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'RL post by admin', 'post_author' => $adm[0]->ID ) );
+t( user_can( $off2, 'edit_post', $admin_page ) && user_can( $off2, 'edit_post', $admin_post ), 'officer: edits a page and a post somebody else made, which is what looking after the site means' );
+t( ! user_can( $off2, 'delete_post', $admin_page ) && ! user_can( $off2, 'delete_post', $admin_post ), 'officer: but deletes neither — editing other people\'s work is not the same as throwing it away' );
+wp_delete_post( $admin_page, true );
+wp_delete_post( $admin_post, true );
+wp_delete_user( $off2 );
+
+// 16. the capabilities a role had before are not copied onto a role the theme has just made
+$legacy2 = 'rl_old_role';
+remove_role( $legacy2 );
+add_role( $legacy2, 'RL old', array( 'read' => true, 'edit_pages' => true ) );
+foreach ( mcupr_theme_caps() as $cap ) {
+	get_role( $legacy2 )->remove_cap( $cap );
+}
+remove_role( 'mcupr_officer' ); // make the sync build it again from the standard, as a new site would
+$v_before = get_option( 'mcupr_roles_v' );
+update_option( 'mcupr_roles_v', 0, false );
+mcupr_roles_sync();
+$of = get_role( 'mcupr_officer' );
+$std_officer = mcupr_standard_roles()['mcupr_officer']['caps'];
+$extra = array();
+foreach ( array_keys( array_filter( (array) $of->capabilities ) ) as $cap ) {
+	if ( ! in_array( $cap, $std_officer, true ) ) {
+		$extra[] = $cap;
+	}
+}
+t( array() === $extra, 'seeding: a role the theme just made holds its standard and nothing more' . ( $extra ? ' (' . implode( ' ', $extra ) . ')' : '' ) );
+t( get_role( $legacy2 )->has_cap( 'mcupr_manage_staff' ), 'seeding: a role that was there before still keeps what it could reach' );
+remove_role( $legacy2 );
+false === $v_before ? delete_option( 'mcupr_roles_v' ) : update_option( 'mcupr_roles_v', $v_before, false );
+
+// 17. a site that already ran version 1 or 2 has the officer put right once
+$of = get_role( 'mcupr_officer' );
+$of->add_cap( 'mcupr_manage_staff' );
+$of->add_cap( 'mcupr_manage_groups' );
+mcupr_roles_undo_overreach();
+$of = get_role( 'mcupr_officer' );
+t( ! $of->has_cap( 'mcupr_manage_staff' ) && ! $of->has_cap( 'mcupr_manage_groups' ), 'putting right: the two the old copying handed the officer are taken back' );
+t( $of->has_cap( 'mcupr_manage_forum' ) && $of->has_cap( 'mcupr_manage_calendar' ) && $of->has_cap( 'edit_others_pages' ), 'putting right: and nothing its standard does give it is touched' );
+mcupr_role_from_standard( 'mcupr_officer' );
+
+// 18. a role made on this site, and deleting it again
 $made = 'mcupr_r_librarian';
 remove_role( $made );
 add_role( $made, 'RL librarian', array( 'read' => true, 'mcupr_manage_files' => true ) );
