@@ -20,7 +20,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /** Bumped whenever mcupr_cap_defs() gains a capability; the roles are brought up to the standard for the new ones only. */
-const MCUPR_ROLES_V = 2;
+const MCUPR_ROLES_V = 3;
 
 /* ================================================================== the capabilities */
 
@@ -68,13 +68,17 @@ function mcupr_cap_defs() {
 		'edit_posts'                 => $t( 'content', __( 'Write posts', 'mcupr' ), '', '', false, true ),
 		'edit_others_posts'          => $t( 'content', __( 'Edit other people\'s posts', 'mcupr' ), '', '', false, true ),
 		'publish_posts'              => $t( 'content', __( 'Publish posts', 'mcupr' ), '', '', false, true ),
+		'edit_published_posts'       => $t( 'content', __( 'Edit own posts after they are published', 'mcupr' ), __( 'WordPress asks for this one as well as "Write posts", so without it somebody can write a post and then never touch it again.', 'mcupr' ), '', false, true ),
 		'delete_posts'               => $t( 'content', __( 'Delete own posts', 'mcupr' ), '', '', false, true ),
+		'delete_published_posts'     => $t( 'content', __( 'Delete own posts after they are published', 'mcupr' ), __( 'Asked for as well as "Delete own posts", in the same way.', 'mcupr' ), '', false, true ),
 		'delete_others_posts'        => $t( 'content', __( 'Delete other people\'s posts', 'mcupr' ), '', '', false, true ),
 		// ---- WordPress' own: pages
 		'edit_pages'                 => $t( 'pages', __( 'Write pages', 'mcupr' ), '', '', false, true ),
 		'edit_others_pages'          => $t( 'pages', __( 'Edit other people\'s pages', 'mcupr' ), '', '', false, true ),
 		'publish_pages'              => $t( 'pages', __( 'Publish pages', 'mcupr' ), '', '', false, true ),
+		'edit_published_pages'       => $t( 'pages', __( 'Edit own pages after they are published', 'mcupr' ), __( 'WordPress asks for this one as well as "Write pages", so without it somebody can make a page and then never touch it again.', 'mcupr' ), '', false, true ),
 		'delete_pages'               => $t( 'pages', __( 'Delete own pages', 'mcupr' ), '', '', false, true ),
+		'delete_published_pages'     => $t( 'pages', __( 'Delete own pages after they are published', 'mcupr' ), __( 'Asked for as well as "Delete own pages", in the same way.', 'mcupr' ), '', false, true ),
 		'delete_others_pages'        => $t( 'pages', __( 'Delete other people\'s pages', 'mcupr' ), '', '', false, true ),
 		// ---- WordPress' own: the rest
 		'upload_files'               => $t( 'media', __( 'Upload files to the media library', 'mcupr' ), '', '', false, true ),
@@ -145,7 +149,7 @@ function mcupr_standard_roles() {
 			'caps' => array(
 				'read', 'upload_files', 'moderate_comments', 'manage_categories',
 				'edit_posts', 'edit_published_posts', 'publish_posts', 'delete_posts', 'delete_published_posts', 'edit_others_posts',
-				'edit_pages', 'edit_published_pages', 'publish_pages', 'delete_pages', 'delete_published_pages',
+				'edit_pages', 'edit_published_pages', 'publish_pages', 'delete_pages', 'delete_published_pages', 'edit_others_pages',
 				'mcupr_see_student_content', 'mcupr_view_stats', 'mcupr_see_answers', 'mcupr_manage_calendar', 'mcupr_manage_forum',
 			),
 		),
@@ -203,9 +207,11 @@ function mcupr_roles_arm_admin() {
  * The one-off that keeps a site working the day the capabilities arrive: every role that holds the capability a screen
  * used to ask for is given the new one. An editor who reached the staff hub through edit_pages goes on reaching it.
  */
-function mcupr_roles_seed_from_legacy() {
+function mcupr_roles_seed_from_legacy( $skip = array() ) {
 	foreach ( wp_roles()->role_objects as $key => $role ) {
-		if ( 'administrator' === $key ) {
+		// a role the theme has just made from its standard has no "before" to keep: copying the old capabilities onto
+		// it would widen it past what the standard says, and past what the page shows an administrator
+		if ( 'administrator' === $key || in_array( $key, $skip, true ) ) {
 			continue;
 		}
 		foreach ( mcupr_cap_defs() as $cap => $def ) {
@@ -217,6 +223,25 @@ function mcupr_roles_seed_from_legacy() {
 			if ( $had && empty( $role->capabilities[ $cap ] ) ) {
 				$role->add_cap( $cap );
 			}
+		}
+	}
+}
+
+/**
+ * Versions 1 and 2 copied the old capabilities onto every role, the ones the theme had just made from its own
+ * standard included. The officer came out of that holding the staff hub and the divisions, which its standard says
+ * nothing about and which the page therefore showed as ticked without anybody having ticked them. Put back once.
+ * An administrator who wants the officer to have them can tick them again on the page, and this never runs twice.
+ */
+function mcupr_roles_undo_overreach() {
+	$role = get_role( 'mcupr_officer' );
+	if ( ! $role ) {
+		return;
+	}
+	$std = mcupr_standard_roles();
+	foreach ( array( 'mcupr_manage_staff', 'mcupr_manage_groups' ) as $cap ) {
+		if ( $role->has_cap( $cap ) && ! in_array( $cap, $std['mcupr_officer']['caps'], true ) ) {
+			$role->remove_cap( $cap );
 		}
 	}
 }
@@ -249,10 +274,13 @@ function mcupr_roles_sync() {
 	}
 	if ( 0 === $was ) {
 		// the capabilities are new to this site: keep every screen reachable by whoever reaches it today
-		mcupr_roles_seed_from_legacy();
+		mcupr_roles_seed_from_legacy( $made );
 	}
 	if ( $was < 2 ) {
 		mcupr_default_role_settle();
+	}
+	if ( $was > 0 && $was < 3 ) {
+		mcupr_roles_undo_overreach();
 	}
 	if ( $was < MCUPR_ROLES_V ) {
 		foreach ( $std as $key => $def ) {
@@ -273,12 +301,15 @@ function mcupr_roles_sync() {
 	}
 }
 
-/**
- * Was this capability introduced after the version the site last saw? With one version so far everything is new to a
- * site that has never run the roles file, and nothing is new to one that has.
- */
+/** The version of this file that first put a capability into one of the standards. */
+function mcupr_cap_first_seen( $cap ) {
+	// version 2 added no capability, only the role a new account gets
+	return in_array( $cap, array( 'edit_others_pages' ), true ) ? 3 : 1;
+}
+
+/** Was this capability put into a standard after the version the site last saw? */
 function mcupr_cap_is_new( $cap, $site_version ) {
-	return $site_version < 1; // version 2 added no capability, only the role a new account gets
+	return $site_version < mcupr_cap_first_seen( $cap );
 }
 
 add_action( 'init', 'mcupr_roles_sync', 9 ); // after the post types (6) and before anything that asks a capability

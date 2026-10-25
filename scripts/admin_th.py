@@ -2141,4 +2141,12 @@ TH = {
 "This page hangs under \"Users\", which WordPress shows only to somebody who may see the list of users. These roles may change the roles but would never find the page: %s. Tick \"See the list of users\" for them as well.": "หน้านี้อยู่ใต้เมนู \"ผู้ใช้\" ซึ่ง WordPress แสดงเฉพาะกับคนที่ดูรายชื่อผู้ใช้ได้ บทบาทเหล่านี้แก้สิทธิ์ได้แต่จะหาหน้านี้ไม่เจอ: %s กรุณาติ๊ก \"ดูรายชื่อผู้ใช้\" ให้ด้วย",
 "What somebody is given when they are added to the site, or when they sign themselves up. Keep it at the role that can only read: a role is easy to raise afterwards and hard to take back once somebody has used it.": "สิ่งที่ผู้ใช้ได้รับเมื่อถูกเพิ่มเข้าเว็บไซต์ หรือเมื่อสมัครเอง ควรคงไว้ที่บทบาทที่อ่านได้อย่างเดียว เพราะเพิ่มสิทธิ์ทีหลังทำได้ง่าย แต่ถอนคืนหลังจากมีคนใช้ไปแล้วทำได้ยาก",
 "what a new account starts as": "บทบาทเริ่มต้นของบัญชีใหม่",
+"Asked for as well as \"Delete own pages\", in the same way.": "WordPress ต้องการสิทธิ์นี้ควบคู่กับ \"ลบหน้าเว็บของตนเอง\" เช่นเดียวกัน",
+"Asked for as well as \"Delete own posts\", in the same way.": "WordPress ต้องการสิทธิ์นี้ควบคู่กับ \"ลบบทความของตนเอง\" เช่นเดียวกัน",
+"Delete own pages after they are published": "ลบหน้าเว็บของตนเองหลังเผยแพร่แล้ว",
+"Delete own posts after they are published": "ลบบทความของตนเองหลังเผยแพร่แล้ว",
+"Edit own pages after they are published": "แก้ไขหน้าเว็บของตนเองหลังเผยแพร่แล้ว",
+"Edit own posts after they are published": "แก้ไขบทความของตนเองหลังเผยแพร่แล้ว",
+"WordPress asks for this one as well as \"Write pages\", so without it somebody can make a page and then never touch it again.": "WordPress ต้องการสิทธิ์นี้ควบคู่กับ \"เขียนหน้าเว็บ\" ถ้าไม่ติ๊ก ผู้ใช้จะสร้างหน้าได้แต่แก้ไขอีกไม่ได้เลยหลังเผยแพร่",
+"WordPress asks for this one as well as \"Write posts\", so without it somebody can write a post and then never touch it again.": "WordPress ต้องการสิทธิ์นี้ควบคู่กับ \"เขียนบทความ\" ถ้าไม่ติ๊ก ผู้ใช้จะเขียนบทความได้แต่แก้ไขอีกไม่ได้เลยหลังเผยแพร่",
 }
