@@ -20,7 +20,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /** Bumped whenever mcupr_cap_defs() gains a capability; the roles are brought up to the standard for the new ones only. */
-const MCUPR_ROLES_V = 1;
+const MCUPR_ROLES_V = 2;
 
 /* ================================================================== the capabilities */
 
@@ -251,6 +251,9 @@ function mcupr_roles_sync() {
 		// the capabilities are new to this site: keep every screen reachable by whoever reaches it today
 		mcupr_roles_seed_from_legacy();
 	}
+	if ( $was < 2 ) {
+		mcupr_default_role_settle();
+	}
 	if ( $was < MCUPR_ROLES_V ) {
 		foreach ( $std as $key => $def ) {
 			$role = get_role( $key );
@@ -275,10 +278,63 @@ function mcupr_roles_sync() {
  * site that has never run the roles file, and nothing is new to one that has.
  */
 function mcupr_cap_is_new( $cap, $site_version ) {
-	return $site_version < MCUPR_ROLES_V;
+	return $site_version < 1; // version 2 added no capability, only the role a new account gets
 }
 
 add_action( 'init', 'mcupr_roles_sync', 9 ); // after the post types (6) and before anything that asks a capability
+
+/* ================================================================== the role a new account gets */
+
+/**
+ * WordPress calls its lowest role "Subscriber", which on a university site is a person who signed in to be told
+ * things and nothing more. The theme calls it that in so many words. Only the word changes: the role itself, and
+ * everything any plugin does with it, is WordPress' own.
+ */
+function mcupr_role_renames() {
+	return array(
+		'Subscriber' => __( 'News subscriber', 'mcupr' ),
+	);
+}
+
+add_filter(
+	'gettext_with_context',
+	static function ( $translated, $text, $context, $domain ) {
+		if ( 'User role' !== $context || ! function_exists( 'mcupr_admin_th_active' ) || ! mcupr_admin_th_active() ) {
+			return $translated; // with the theme's Thai switched off, WordPress' own word stands
+		}
+		$map = mcupr_role_renames();
+		return isset( $map[ $text ] ) ? $map[ $text ] : $translated;
+	},
+	20,
+	4
+);
+
+/** The role a new account gets, as WordPress would give it (falling back when the stored one no longer exists). */
+function mcupr_default_role() {
+	$role = (string) get_option( 'default_role', 'subscriber' );
+	return get_role( $role ) ? $role : 'subscriber';
+}
+
+/** What the default was before the theme set it, so the page can offer it back. */
+function mcupr_default_role_was() {
+	$was = (string) get_option( 'mcupr_default_role_was', '' );
+	return '' !== $was && get_role( $was ) ? $was : '';
+}
+
+/**
+ * A new account should be able to read and nothing else until somebody says otherwise, so the default is the news
+ * subscriber. Done once; what it was before is remembered, and the page says so and offers to put it back.
+ */
+function mcupr_default_role_settle() {
+	$now = (string) get_option( 'default_role', 'subscriber' );
+	if ( 'subscriber' === $now ) {
+		return;
+	}
+	if ( get_role( $now ) ) {
+		update_option( 'mcupr_default_role_was', $now, false );
+	}
+	update_option( 'default_role', 'subscriber' );
+}
 
 /* ================================================================== asking */
 
