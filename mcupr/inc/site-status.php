@@ -106,6 +106,8 @@ add_action(
 	static function ( $hook ) {
 		if ( false !== strpos( (string) $hook, 'mcupr-status' ) ) {
 			wp_enqueue_media();
+			wp_add_inline_style( 'common', '.mcupr-lang-tabs{position:sticky;top:32px;z-index:5;display:flex;flex-wrap:wrap;gap:.25rem;margin:1rem 0;padding:.5rem;background:#fff;border:1px solid #c3c4c7;border-radius:.5rem}.mcupr-lang-tabs[hidden]{display:none}.mcupr-lang-tabs .button[aria-selected=true]{background:#2271b1;border-color:#2271b1;color:#fff}.mcupr-lang-tabs-on .mcupr-lang-name{display:none}@media(max-width:782px){.mcupr-lang-tabs{top:46px}}' );
+			wp_add_inline_script( 'common', "document.addEventListener('DOMContentLoaded',function(){var bar=document.querySelector('.mcupr-lang-tabs');if(!bar){return;}var tabs=[].slice.call(bar.querySelectorAll('[data-lang-tab]')),form=bar.closest('form'),key='mcuprStatusLang';function show(c){tabs.forEach(function(t){var on=t.getAttribute('data-lang-tab')===c;t.setAttribute('aria-selected',on?'true':'false');t.tabIndex=on?0:-1;});[].forEach.call(form.querySelectorAll('.mcupr-lang-row'),function(r){r.hidden=r.getAttribute('data-lang')!==c;});try{localStorage.setItem(key,c);}catch(e){}}var first=tabs[0].getAttribute('data-lang-tab'),want=first;try{want=localStorage.getItem(key)||first;}catch(e){}if(!tabs.some(function(t){return t.getAttribute('data-lang-tab')===want;})){want=first;}bar.hidden=false;form.classList.add('mcupr-lang-tabs-on');bar.addEventListener('click',function(e){var t=e.target.closest('[data-lang-tab]');if(t){show(t.getAttribute('data-lang-tab'));}});bar.addEventListener('keydown',function(e){var i=tabs.indexOf(document.activeElement),d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(d&&i>-1){e.preventDefault();var n=tabs[(i+d+tabs.length)%tabs.length];n.focus();show(n.getAttribute('data-lang-tab'));}});form.addEventListener('invalid',function(e){var r=e.target.closest&&e.target.closest('.mcupr-lang-row');if(r&&r.hidden){show(r.getAttribute('data-lang'));}},true);show(want);});" );
 			wp_add_inline_script( 'media-editor', "document.addEventListener('click',function(e){var b=e.target.closest('[data-pick]');if(!b){return;}e.preventDefault();var f=wp.media({multiple:false,library:{type:'image'}});f.on('select',function(){var a=f.state().get('selection').first().toJSON();document.getElementById(b.getAttribute('data-pick')).value=a.id;var p=document.getElementById(b.getAttribute('data-pick')+'-pv');if(p){p.src=(a.sizes&&a.sizes.thumbnail?a.sizes.thumbnail.url:a.url);p.hidden=false;}});f.open();});" );
 		}
 	}
@@ -132,9 +134,16 @@ function mcupr_status_page() {
 	}
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="mcupr_status_save">';
 	wp_nonce_field( 'mcupr_status_save', 'mcupr_status_nonce' );
+	if ( count( $L ) > 1 ) {
+		echo '<div class="mcupr-lang-tabs" role="tablist" aria-label="' . esc_attr__( 'Language of the texts', 'mcupr' ) . '" hidden>';
+		foreach ( $L as $code => $l ) {
+			echo '<button type="button" role="tab" class="button" data-lang-tab="' . esc_attr( $code ) . '" aria-selected="false">' . esc_html( mcupr_admin_lang_name( $l['name'] ) ) . '</button>';
+		}
+		echo '</div>';
+	}
 	$langs = static function ( $name, $vals, $rows, $ph ) use ( $L ) {
 		foreach ( $L as $code => $l ) {
-			echo '<p><label><span style="display:inline-block;min-width:5rem">' . esc_html( mcupr_admin_lang_name( $l['name'] ) ) . '</span>';
+			echo '<p class="mcupr-lang-row" data-lang="' . esc_attr( $code ) . '"><label><span class="mcupr-lang-name" style="display:inline-block;min-width:5rem">' . esc_html( mcupr_admin_lang_name( $l['name'] ) ) . '</span>';
 			if ( $rows > 1 ) {
 				echo '<textarea name="' . esc_attr( $name ) . '[' . esc_attr( $code ) . ']" rows="' . (int) $rows . '" class="large-text" style="width:min(40rem,100%)" placeholder="' . esc_attr( 'th' === $code ? $ph : '' ) . '">' . esc_textarea( isset( $vals[ $code ] ) ? $vals[ $code ] : '' ) . '</textarea>';
 			} else {

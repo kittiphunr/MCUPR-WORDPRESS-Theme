@@ -777,6 +777,7 @@ return array(
 	'Key numbers' => 'ตัวเลขสำคัญ',
 	'Kind' => 'ชนิด',
 	'Labels' => 'ป้ายกำกับ',
+	'Language of the texts' => 'ภาษาของข้อความ',
 	'Languages on the site (add / remove)' => 'ภาษาของเว็บไซต์ (เพิ่ม / ลบ)',
 	'Large pictures in the media library' => 'รูปขนาดใหญ่ในคลังสื่อ',
 	'Larger pictures are scaled down to this. 2000 is plenty for a full-width cover picture.' => 'รูปที่ใหญ่กว่านี้จะถูกย่อลง 2000 พอเพียงสำหรับรูปปกเต็มความกว้าง',
