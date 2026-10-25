@@ -164,7 +164,7 @@
 				var url = URL.createObjectURL(pdf.output('blob'));
 				var a = document.createElement('a');
 				a.href = url;
-				a.download = fileName(btn.getAttribute('data-pdf-title') || D.title || document.title) + '.pdf';
+				a.download = fileName(btn.getAttribute('data-pdf-title') || D.title || window.mcuprFullTitle || document.title) + '.pdf';
 				document.body.appendChild(a);
 				a.click();
 				a.remove();
