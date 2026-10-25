@@ -2160,4 +2160,5 @@ TH = {
 "Title on the browser tab": "ชื่อบนแท็บเบราว์เซอร์",
 "Type it, and scroll it when it is too long": "พิมพ์ทีละตัว และเลื่อนเมื่อยาวเกินแท็บ",
 "Type the title in letter by letter. When it is longer than the tab, it also scrolls along for two rounds and then rests on the whole title. A visitor who asked for less motion always sees the plain title.": "พิมพ์ชื่อขึ้นทีละตัวอักษร เมื่อชื่อยาวกว่าแท็บจะเลื่อนต่ออีกสองรอบ แล้วหยุดที่ชื่อเต็ม ผู้เข้าชมที่ตั้งค่าให้ลดการเคลื่อนไหวจะเห็นชื่อธรรมดาเสมอ",
+"Language of the texts": "ภาษาของข้อความ",
 }

@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.56.1 =
+* Welcome & maintenance page: one tab per language
+
 = 1.56.0 =
 * ชื่อบนแท็บเบราว์เซอร์พิมพ์ขึ้นทีละตัว และเลื่อนเมื่อยาวเกินแท็บ ตั้งค่าได้ใน Customizer
 
