@@ -2179,4 +2179,13 @@ TH = {
 "Replace": "แทนที่",
 "Replace with the latest starter": "แทนที่ด้วยข้อมูลตั้งต้นล่าสุด",
 "Use this when the site already has the starter pages and you want the newer text in them. Only the pages you tick are replaced (text and translated titles); menus, news and other items are not touched. Before a page is replaced its old text is kept as a revision and as a copy in the page itself.": "ใช้เมื่อเว็บมีหน้าของชุดตั้งต้นอยู่แล้วและต้องการข้อความใหม่ในหน้าเหล่านั้น จะแทนที่เฉพาะหน้าที่คุณติ๊ก (ข้อความและชื่อหน้าหลายภาษา) เมนู ข่าว และรายการอื่นไม่ถูกแตะต้อง ก่อนแทนที่ ข้อความเดิมของหน้าจะถูกเก็บไว้เป็นประวัติการแก้ไขและสำเนาในหน้านั้นเอง",
+"%s photos chosen": "เลือกแล้ว %s ภาพ",
+"Activity photos": "ภาพกิจกรรม",
+"Add these photos": "เพิ่มภาพเหล่านี้",
+"Choose photos": "เลือกภาพ",
+"Choose the photos of the activity": "เลือกภาพของกิจกรรม",
+"Choose the photos of the activity (you can pick many at once). Drag a photo to change the order. Visitors see them as a grid under the text and can open each one large, with the caption you wrote in the media library. To put the grid inside the text, type [mcupr_post_gallery] where you want it.": "เลือกภาพของกิจกรรม (เลือกได้หลายภาพพร้อมกัน) ลากภาพเพื่อเปลี่ยนลำดับ ผู้เข้าชมจะเห็นเป็นตารางภาพใต้เนื้อหา และกดเปิดดูภาพใหญ่พร้อมคำบรรยายที่คุณเขียนไว้ในคลังสื่อ ถ้าต้องการวางตารางภาพกลางเนื้อหา ให้พิมพ์ [mcupr_post_gallery] ตรงที่ต้องการ",
+"Remove this photo": "เอาภาพนี้ออก",
+"Show this PDF on the page": "แสดง PDF นี้ในหน้า",
+"visitors read it right under the text (scroll, zoom, full screen) and still get the download button. Only for PDF files.": "ผู้อ่านเปิดอ่านได้ทันทีใต้เนื้อหา (เลื่อน ขยาย เต็มจอ) และยังมีปุ่มดาวน์โหลด ใช้ได้เฉพาะไฟล์ PDF",
 }
