@@ -142,6 +142,9 @@ function mcupr_post_media( $post_id = 0 ) {
 	if ( $pdfs ) {
 		mcupr_pdf_viewer_assets();
 	}
+	if ( function_exists( 'mcupr_google_media' ) ) {
+		mcupr_google_media( $post_id ); // Google Drive files and Google Photos albums (inc/google-embed.php)
+	}
 }
 
 /* ================================================================== admin: the "Activity photos" box */
