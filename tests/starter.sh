@@ -58,6 +58,7 @@ php php/data-hardening.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|
 php php/roles.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/tab-title.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/status-lang-tabs.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
+php php/starter-data.php 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/low-risk.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/groups-import.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/real-bugs.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
