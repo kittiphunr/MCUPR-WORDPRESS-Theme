@@ -1328,7 +1328,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       ok(m.tops.filter((t) => /MCUPR/.test(t)).length === 1 && m.subs.length >= 18 && m.open, 'admin ' + w + 'px: one MCUPR menu, open on its overview, with ' + m.subs.length + ' entries');
       const vis = await ap.evaluate(() => [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li')].filter((l) => l.offsetParent !== null).map((l) => l.textContent.trim()));
       ok(vis.length === 9 && !vis.some((t) => /หมวดหมู่ผลงาน|ตั้งค่ากระดาน|นำเข้านิสิต|ผังการบริหาร|Theme options/.test(t)), 'admin ' + w + 'px: the MCUPR menu shows only the control center and the eight groups (' + vis.length + ': ' + vis.join(' | ') + ')');
-      ok(!m.tops.some((t) => /กระดาน|วิดีโอ|อัลบั้ม|กิจกรรม|ผลงาน|บุคลากร|Forum|Video|Album|Event|Work|Staff|Polls|FAQ|Form messages/i.test(t)), 'admin ' + w + 'px: none of the theme sections is scattered in the main menu (' + m.tops.join(' | ') + ')');
+      ok(!m.tops.some((t) => /กระดาน|วิดีโอ|อัลบั้ม|กิจกรรม|บุคลากร|Forum|Video|Album|Event|Staff|Polls|FAQ|Form messages/i.test(t)), 'admin ' + w + 'px: none of the theme sections is scattered in the main menu, except the two that have a menu of their own: works and notices (' + m.tops.join(' | ') + ')');
       ok(m.cards === 8 && !m.hscroll, 'admin ' + w + 'px: the control center shows ' + m.cards + ' group cards without sideways scroll');
       ok(m.info.hero && m.info.chips >= 3 && m.info.acts >= 4 && m.info.tools >= 4, 'admin ' + w + 'px: the control center has the title, the search, the status chips (' + m.info.chips + '), the shortcuts (' + m.info.acts + ') and its groups');
       if (w === 1366) {
