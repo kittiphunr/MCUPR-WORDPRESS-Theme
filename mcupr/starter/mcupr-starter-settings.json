@@ -73,15 +73,13 @@
   "mcupr_lnk_more": "ดูทั้งหมด",
   "mcupr_lnk_more_url": "page:academics",
   "mcupr_abt_title": "เกี่ยวกับหน่วยงาน",
-  "mcupr_abt_text": "ใส่ข้อความแนะนำหน่วยงานสั้นๆ ที่นี่",
+  "mcupr_abt_text": "วิทยาเขตแพร่ ก่อตั้งเมื่อ พ.ศ. ๒๕๓๐ จัดการศึกษาพระพุทธศาสนาบูรณาการกับศาสตร์สมัยใหม่ ตั้งแต่ปริญญาตรีถึงปริญญาเอก ๓ คณะ ๘ สาขาวิชา เพื่อสร้างบัณฑิตที่มีสติปัญญาและคุณธรรม",
   "mcupr_abt_button": "ดูประวัติและวิสัยทัศน์",
   "mcupr_abt_url": "page:vision",
-  "mcupr_num_teachers": "1,250",
-  "mcupr_num_faculties": "12",
-  "mcupr_num_bachelor": "18,000",
-  "mcupr_num_master": "3,200",
-  "mcupr_num_doctoral": "650",
-  "mcupr_num_asof": "ตัวอย่าง — แก้ไขตัวเลขก่อนเผยแพร่"
+  "mcupr_num_teachers": "36",
+  "mcupr_num_faculties": "3",
+  "mcupr_num_asof": "บุคลากรสายวิชาการ ปีงบประมาณ ๒๕๖๙ — เพิ่มจำนวนนิสิตเมื่อมีข้อมูลล่าสุด",
+  "mcupr_org_tel": "0-5464-6273"
  },
  "redirects": []
 }
