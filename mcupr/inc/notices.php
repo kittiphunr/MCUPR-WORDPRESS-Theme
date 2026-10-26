@@ -127,7 +127,7 @@ function mcupr_notice_row( $post, $no ) {
 	$cat = get_the_terms( $id, 'mcupr_notice_cat' );
 	$tag = $cat && ! is_wp_error( $cat ) ? ' <a class="nt-cat" href="' . esc_url( get_term_link( $cat[0] ) ) . '">' . esc_html( $cat[0]->name ) . '</a>' : '';
 	return '<tr><td class="nt-c-no" data-label="' . esc_attr( mcupr_t( 'nt_col_no' ) ) . '">' . (int) $no . '</td>'
-		. '<td class="nt-c-main"><a class="nt-t" href="' . esc_url( get_permalink( $post ) ) . '">' . esc_html( get_the_title( $post ) ) . '</a>' . $new . $tag . mcupr_notice_file_links( $id ) . '</td>'
+		. '<td class="nt-c-main"><a class="nt-t" href="' . esc_url( get_permalink( $post ) ) . '">' . esc_html( get_the_title( $post ) ) . '</a>' . $new . $tag . mcupr_notice_facts_html( $id ) . mcupr_notice_state_html( $id ) . mcupr_notice_file_links( $id ) . '</td>'
 		. '<td class="nt-c-date" data-label="' . esc_attr( mcupr_t( 'nt_col_date' ) ) . '"><time datetime="' . esc_attr( get_the_date( 'c', $post ) ) . '">' . esc_html( mcupr_date_text( (int) get_post_timestamp( $post ), 'short' ) ) . '</time></td>'
 		. '<td class="nt-c-dl" data-label="' . esc_attr( mcupr_t( 'nt_col_dl' ) ) . '">' . esc_html( number_format_i18n( mcupr_notice_downloads( $id ) ) ) . '</td></tr>'; // phpcs:ignore WordPress.Security.EscapeOutput
 }

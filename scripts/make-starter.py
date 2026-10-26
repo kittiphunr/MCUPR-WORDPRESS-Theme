@@ -160,11 +160,16 @@ for n, (title, event, award, yoff, org, cat, team) in enumerate(S.WORKS):
 
 
 # ---- notices (samples; dated a few days back from the day the file is made)
-for n, (title, cat, ago) in enumerate(S.NOTICES):
+for n, (title, cat, ago, nf) in enumerate(S.NOTICES):
     pid = next_id()
     when = (datetime.datetime.now() - datetime.timedelta(days=ago)).strftime('%Y-%m-%d 09:00:00')
     out.append(item_head(pid, title, 'notice-%d' % (n + 1), 'mcupr_notice', 0, 0, '<p>[รายละเอียดของประกาศ — แนบไฟล์เอกสารที่กล่องไฟล์แนบด้านล่าง]</p>', 'publish', date=when))
     out.append('\t<category domain="mcupr_notice_cat" nicename="%s">%s</category>\n' % (cat, cd(dict(S.NOTICE_CATS)[cat])))
+    for k in ('no', 'method', 'budget', 'status', 'winner', 'price'):
+        if k in nf:
+            out.append(meta('_mcupr_nt_' + k, nf[k]))
+    if 'dl' in nf:
+        out.append(meta('_mcupr_nt_deadline', (datetime.date.today() + datetime.timedelta(days=nf['dl'])).isoformat()))
     out.append('</item>\n')
 
 # ---- FAQ (own post type + categories)

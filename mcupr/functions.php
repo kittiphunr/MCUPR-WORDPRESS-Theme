@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'MCUPR_MIN_WP', '5.9' );
 define( 'MCUPR_MIN_PHP', '7.0' );
 
-define( 'MCUPR_VERSION', '1.61.0' );
+define( 'MCUPR_VERSION', '1.62.0' );
 define( 'MCUPR_DIR', get_template_directory() );
 define( 'MCUPR_URI', get_template_directory_uri() );
 
@@ -40,6 +40,7 @@ require_once MCUPR_DIR . '/inc/post-tools.php';
 require_once MCUPR_DIR . '/inc/post-media.php';
 require_once MCUPR_DIR . '/inc/google-embed.php';
 require_once MCUPR_DIR . '/inc/notices.php';
+require_once MCUPR_DIR . '/inc/notice-fields.php';
 require_once MCUPR_DIR . '/inc/preloader.php';
 require_once MCUPR_DIR . '/inc/works.php';
 require_once MCUPR_DIR . '/inc/browser.php';
