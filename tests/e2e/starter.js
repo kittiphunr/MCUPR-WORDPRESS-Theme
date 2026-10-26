@@ -1178,6 +1178,25 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         await ap.check('input[name="sure"]');
         await Promise.all([ap.waitForNavigation(), ap.click('button:has-text("แทนที่ด้วยข้อมูลตั้งต้นล่าสุด")')]);
         ok(await ap.evaluate(() => /แทนที่แล้ว: [01] หน้า/.test(document.body.innerText) || /ไม่ได้แตะต้อง/.test(document.body.innerText)), 'overwrite card: after the confirmation the result is shown in Thai');
+        // the tab title choices in the Customizer on a phone: the number beside the slider, a tall slider, the controls that do not apply are hidden
+        await ap.setViewportSize({ width: 390, height: 844 });
+        await ap.goto(B + '/wp-admin/customize.php?autofocus[section]=mcupr_display');
+        await ap.waitForSelector('#customize-control-mcupr_tab_width .mcupr-tab-val', { timeout: 30000 });
+        const cz = () => ap.evaluate(() => ({ val: document.querySelector('#customize-control-mcupr_tab_width .mcupr-tab-val').textContent, h: Math.round(document.querySelector('#customize-control-mcupr_tab_width input[type=range]').getBoundingClientRect().height), sel: Math.round(document.querySelector('#customize-control-mcupr_tab_mode select').getBoundingClientRect().height), speed: getComputedStyle(document.querySelector('#customize-control-mcupr_tab_speed')).display, width: getComputedStyle(document.querySelector('#customize-control-mcupr_tab_width')).display, hscroll: document.documentElement.scrollWidth > innerWidth }));
+        let c0 = await cz();
+        ok(c0.val === '24' && c0.h >= 44 && c0.sel >= 40 && !c0.hscroll, 'customizer 390px: the slider shows its number (' + c0.val + '), is ' + c0.h + 'px tall, the choice box ' + c0.sel + 'px, no sideways scroll');
+        await ap.evaluate(() => { const r = document.querySelector('#customize-control-mcupr_tab_width input[type=range]'); r.value = 31; r.dispatchEvent(new Event('input', { bubbles: true })); });
+        ok((await cz()).val === '31', 'customizer 390px: moving the slider changes the number beside it');
+        await ap.selectOption('#customize-control-mcupr_tab_mode select', 'type'); await ap.waitForTimeout(2500);
+        c0 = await cz();
+        ok(c0.speed !== 'none' && c0.width === 'none', 'customizer 390px: "only type" keeps the speed and hides the width');
+        await ap.selectOption('#customize-control-mcupr_tab_mode select', 'off'); await ap.waitForTimeout(2500);
+        c0 = await cz();
+        ok(c0.speed === 'none' && c0.width === 'none', 'customizer 390px: "plain title" hides the speed and the width');
+        await ap.selectOption('#customize-control-mcupr_tab_mode select', 'scroll'); // back to what is saved, so leaving the page asks nothing
+        await ap.evaluate(() => { const r = document.querySelector('#customize-control-mcupr_tab_width input[type=range]'); r.value = 24; r.dispatchEvent(new Event('input', { bubbles: true })); });
+        await ap.waitForTimeout(1500);
+        await ap.setViewportSize({ width: 1366, height: 900 });
         await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
         await ap.addScriptTag({ content: axeSource() });
         const axo = await ap.evaluate(() => axe.run(document.querySelector('.mcc'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
