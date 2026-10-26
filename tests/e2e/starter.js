@@ -759,10 +759,6 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     const aa = await ap.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
     ok(aa.violations.length === 0, 'axe (album page): ' + (aa.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
     await ap.screenshot({ path: shot('album.png'), fullPage: true });
-    await ac.close();
-    const am = await br.newContext({ viewport: { width: 360, height: 800 }, hasTouch: true });
-    await am.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
-    const aq = await am.newPage();
     // a news post: activity photos in a grid with the lightbox, and a PDF read on the page
     await ap.goto(B + '/?name=fx-media');
     ok((await ap.locator('.post-gal .album-pics a').count()) === 6 && /ภาพกิจกรรม/.test(await ap.locator('.post-gal-t').innerText()) && /6/.test(await ap.locator('.post-gal-n').innerText()), 'post photos: six pictures under the text, with the heading and the count');
@@ -814,6 +810,10 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.waitForSelector('.pdfv[data-state="failed"]', { timeout: 30000 });
     ok(await ap.evaluate(() => { const r = document.querySelector('.pdfv'); return !r.querySelector('[data-status]').hidden && r.querySelector('[data-status]').innerText.length > 10 && r.querySelector('.pdfv-bar').hidden && !!r.querySelector('.pdfv-alt a'); }), 'post PDF: a file that cannot be opened shows a message and the link, no broken bar');
     await ap.unroute('**/*media-report*.pdf');
+    await ac.close();
+    const am = await br.newContext({ viewport: { width: 360, height: 800 }, hasTouch: true });
+    await am.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
+    const aq = await am.newPage();
     for (const u of ['/albums/', '/albums/fx-album/']) { await aq.goto(B + u); ok(await aq.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'albums on a phone: no horizontal scroll ' + u); }
     await aq.locator('.album-pics a').first().tap();
     await aq.waitForSelector('.lb:not([hidden])');
