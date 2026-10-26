@@ -86,6 +86,7 @@ function mcupr_customize_register( $wp_customize ) {
 		'offices' => array( true, __( 'Offices and units (cards of the offices) – shown when an office is published', 'mcupr' ) ),
 		'slider' => array( true, __( 'Featured news slider', 'mcupr' ) ),
 		'events' => array( true, __( 'Upcoming events', 'mcupr' ) ),
+		'notices' => array( true, __( 'Newest notices and documents (procurement, announcements) – shown when a notice is published', 'mcupr' ) ),
 		'media'  => array( true, __( 'Newest video and photo albums', 'mcupr' ) ),
 		'cats'   => array( false, __( 'News by category (three blocks)', 'mcupr' ) ),
 		'visit'  => array( true, __( 'Visit us (address, telephone, e-mail)', 'mcupr' ) ),

@@ -79,6 +79,8 @@ for slug, name in ([] if ADDONS else S.CATEGORIES):
 for n, (slug, (nm, _en)) in enumerate(S.WORK_CATS):
     out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>mcupr_work_cat</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name></wp:term>\n' % (30 + n, slug, cd(nm)))
 
+for n, (slug, nm) in enumerate(S.NOTICE_CATS):
+    out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name></wp:term>\n' % (80 + n, slug, cd(nm)))
 for n, (slug, nm) in enumerate(S.FAQ_CATS):
     out.append('<wp:term><wp:term_id>%d</wp:term_id><wp:term_taxonomy>mcupr_faq_cat</wp:term_taxonomy><wp:term_slug>%s</wp:term_slug><wp:term_name>%s</wp:term_name></wp:term>\n' % (60 + n, slug, cd(nm)))
 for n, (slug, nm, desc) in enumerate(S.FORUM_BOARDS):
@@ -92,14 +94,15 @@ for loc, slug, name, _items, _li in ([] if ADDONS else MENUS):
                % (50 + [m[0] for m in MENUS].index(loc), slug, cd(name), cd(loc)))
 
 
-def item_head(pid, title, slug, ptype, parent=0, order_=0, content='', status='publish', excerpt=''):
+def item_head(pid, title, slug, ptype, parent=0, order_=0, content='', status='publish', excerpt='', date=None):
+    date = date or NOW
     return ('<item>\n\t<title>%s</title>\n\t<link>%s/?p=%d</link>\n\t<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>\n\t<dc:creator>%s</dc:creator>\n'
             '\t<guid isPermaLink="false">%s/?p=%d</guid>\n\t<description></description>\n\t<content:encoded>%s</content:encoded>\n\t<excerpt:encoded>%s</excerpt:encoded>\n'
             '\t<wp:post_id>%d</wp:post_id>\n\t<wp:post_date>%s</wp:post_date>\n\t<wp:post_date_gmt>%s</wp:post_date_gmt>\n\t<wp:post_modified>%s</wp:post_modified>\n'
             '\t<wp:post_modified_gmt>%s</wp:post_modified_gmt>\n\t<wp:comment_status>closed</wp:comment_status>\n\t<wp:ping_status>closed</wp:ping_status>\n'
             '\t<wp:post_name>%s</wp:post_name>\n\t<wp:status>%s</wp:status>\n\t<wp:post_parent>%d</wp:post_parent>\n\t<wp:menu_order>%d</wp:menu_order>\n'
             '\t<wp:post_type>%s</wp:post_type>\n\t<wp:post_password></wp:post_password>\n\t<wp:is_sticky>0</wp:is_sticky>\n'
-            % (cd(title), SITE, pid, cd('admin'), SITE, pid, cd(content), cd(excerpt), pid, NOW, NOW, NOW, NOW, cd(slug), status, parent, order_, ptype))
+            % (cd(title), SITE, pid, cd('admin'), SITE, pid, cd(content), cd(excerpt), pid, date, date, date, date, cd(slug), status, parent, order_, ptype))
 
 
 # ---- pages
@@ -155,6 +158,14 @@ for n, (title, event, award, yoff, org, cat, team) in enumerate(S.WORKS):
     out.append(meta('_mcupr_work_event', event) + meta('_mcupr_work_award', award) + meta('_mcupr_work_year', datetime.date.today().year + yoff) + meta('_mcupr_work_org', org) + meta('_mcupr_work_team', team.replace('\\n', '\n')))
     out.append('</item>\n')
 
+
+# ---- notices (samples; dated a few days back from the day the file is made)
+for n, (title, cat, ago) in enumerate(S.NOTICES):
+    pid = next_id()
+    when = (datetime.datetime.now() - datetime.timedelta(days=ago)).strftime('%Y-%m-%d 09:00:00')
+    out.append(item_head(pid, title, 'notice-%d' % (n + 1), 'mcupr_notice', 0, 0, '<p>[รายละเอียดของประกาศ — แนบไฟล์เอกสารที่กล่องไฟล์แนบด้านล่าง]</p>', 'publish', date=when))
+    out.append('\t<category domain="mcupr_notice_cat" nicename="%s">%s</category>\n' % (cat, cd(dict(S.NOTICE_CATS)[cat])))
+    out.append('</item>\n')
 
 # ---- FAQ (own post type + categories)
 for n, (cat, q, a) in enumerate(S.FAQS):

@@ -37,7 +37,7 @@ function mcupr_ss_key( $key ) {
 	if ( preg_match( '/^mcupr_((hero_(eyebrow|l1|l2|sub|btn1|btn2)|about|address|cta_title)_(th|en|zh|ja)|hero_btn[12]_url|cta_url|org_tel|org_email)$/', $key ) ) {
 		return array( 'home', 'home', 0, $key );
 	}
-	if ( preg_match( '/^mcupr_home_(numbers|weather|audience|figures|services|links|aboutblock|about|slider|events|media|cats|visit)_on$/', $key ) ) {
+	if ( preg_match( '/^mcupr_home_(numbers|weather|audience|figures|services|links|aboutblock|about|slider|events|notices|media|cats|visit)_on$/', $key ) ) {
 		return array( 'toggle', 'toggle', 0, $key );
 	}
 	return null;

@@ -182,6 +182,15 @@ update_post_meta( $mid, '_mcupr_files', array(
 	array( 'id' => $mp['media-report.pdf'], 'title' => 'รายงานผลการดำเนินงาน', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 1 ),
 	array( 'id' => $mp['media-extra.pdf'], 'title' => 'เอกสารประกอบ (ดาวน์โหลดอย่างเดียว)', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 0 ),
 ) );
+// notices: a file with downloads on the first sample, a file whose limit is reached on the second
+$nt1 = get_posts( array( 'post_type' => 'mcupr_notice', 'name' => 'notice-1', 'post_status' => 'publish' ) );
+$nt2 = get_posts( array( 'post_type' => 'mcupr_notice', 'name' => 'notice-2', 'post_status' => 'publish' ) );
+if ( $nt1 && $nt2 ) {
+	$u1 = wp_upload_bits( 'notice-1.pdf', null, $fx_pdf( 2 ) ); $f1 = wp_insert_attachment( array( 'post_mime_type' => 'application/pdf', 'post_title' => 'notice 1', 'post_status' => 'inherit' ), $u1['file'] );
+	$u2 = wp_upload_bits( 'notice-2.pdf', null, $fx_pdf( 1 ) ); $f2 = wp_insert_attachment( array( 'post_mime_type' => 'application/pdf', 'post_title' => 'notice 2', 'post_status' => 'inherit' ), $u2['file'] );
+	update_post_meta( $nt1[0]->ID, '_mcupr_files', array( array( 'id' => $f1, 'title' => 'ประกาศประกวดราคา (ฉบับเต็ม)', 'size' => '', 'max' => 0, 'count' => 84, 'show' => 1 ) ) );
+	update_post_meta( $nt2[0]->ID, '_mcupr_files', array( array( 'id' => $f2, 'title' => 'ร่างเอกสารประกวดราคา', 'size' => '', 'max' => 5, 'count' => 5, 'show' => 0 ) ) );
+}
 $urls = array( home_url( '/' ) );
 $urls[] = get_permalink( $mid );
 foreach ( get_post_types( array( 'public' => true ) ) as $pt ) {

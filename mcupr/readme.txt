@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.60.0 =
+* Notices and documents: a procurement-style register with the newest on the home page
+
 = 1.59.0 =
 * News: activity photo gallery and PDF reader inside a post
 
