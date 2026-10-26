@@ -28,7 +28,7 @@ t( false === strpos( mcupr_ss_clean( 'mcupr_aud_1_title', 'title', '<script>x</s
 // ---- importing the starter into an empty site
 $rep = mcupr_ss_apply( $st );
 t( count( array_diff( array( 'aud', 'fig', 'svc', 'lnk', 'abt', 'num' ), $rep['added'] ) ) === 0 && 0 === $rep['rejected'], 'import: every group of the starter file arrived into an empty site (' . implode( ',', $rep['added'] ) . ')' );
-t( '1250' === get_theme_mod( 'mcupr_num_teachers' ) && 'บริการและระบบสารสนเทศ' === get_theme_mod( 'mcupr_svc_title' ), 'import: Thai text and numbers intact' );
+t( '36' === get_theme_mod( 'mcupr_num_teachers' ) && '3' === get_theme_mod( 'mcupr_num_faculties' ) && 'บริการและระบบสารสนเทศ' === get_theme_mod( 'mcupr_svc_title' ), 'import: Thai text and numbers intact' );
 t( 0 === strpos( (string) get_theme_mod( 'mcupr_aud_1_url' ), '/' ) || '' === (string) get_theme_mod( 'mcupr_aud_1_url' ), 'import: page:slug became the path of the page' );
 
 // ---- importing again, and over a site that has its own content: nothing is overwritten

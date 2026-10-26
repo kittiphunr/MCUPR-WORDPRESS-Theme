@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.56.2 =
+* Starter data: the campus's real history, vision, programmes, strategy and address
+
 = 1.56.1 =
 * Welcome & maintenance page: one tab per language
 
