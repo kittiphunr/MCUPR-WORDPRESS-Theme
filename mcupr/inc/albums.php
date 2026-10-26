@@ -161,6 +161,11 @@ function mcupr_album_gallery( $id ) {
 	if ( ! $ids ) {
 		return '<p class="text-muted">' . esc_html( mcupr_t( 'album_empty' ) ) . '</p>';
 	}
+	return mcupr_gallery_list( $ids );
+}
+
+/** A grid of lightbox links for these pictures (an album, and the activity photos of a post). */
+function mcupr_gallery_list( $ids ) {
 	$o = '<ul class="album-pics" data-lightbox>';
 	foreach ( $ids as $i => $aid ) {
 		$full = wp_get_attachment_image_src( $aid, 'full' );

@@ -17,6 +17,8 @@
 			row.querySelector('[data-f=name]').textContent = (a.title || '') + ' – ' + (a.filename || '');
 			var t = row.querySelector('input[name$="[title]"]');
 			if (t && !t.value) { t.value = a.title || ''; }
+			var show = row.querySelector('[data-f=show]');
+			if (show) { show.checked = a.mime === 'application/pdf'; show.disabled = a.mime !== 'application/pdf'; } // a PDF is read on the page unless the owner unticks it
 		});
 		frame.open();
 	}
