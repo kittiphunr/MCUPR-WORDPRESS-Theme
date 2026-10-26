@@ -78,6 +78,7 @@ add_action(
 				'section'  => 'mcupr_display',
 				'priority' => 37,
 				'label'    => __( 'Speed of the tab title', 'mcupr' ),
+				'active_callback' => static function () { return 'off' !== mcupr_tab_title_opts()['mode']; }, // nothing to speed up when the effect is off
 				'type'     => 'select',
 				'choices'  => array(
 					'slow'   => __( 'Slow', 'mcupr' ),
@@ -94,12 +95,22 @@ add_action(
 				'priority'    => 38,
 				'label'       => __( 'Letters that fit on a tab', 'mcupr' ),
 				'description' => __( 'The title scrolls only when it has more letters than this. A browser tab shows about 24 to 30; lower it if visitors open many tabs.', 'mcupr' ),
+				'active_callback' => static function () { return 'scroll' === mcupr_tab_title_opts()['mode']; }, // only the scroll needs the width
 				'type'        => 'range',
 				'input_attrs' => array( 'min' => 8, 'max' => 60, 'step' => 1 ),
 			)
 		);
 	},
 	20
+);
+
+/** The slider shows no number of its own: put the one it is on beside the label, and give a finger more to hold. */
+add_action(
+	'customize_controls_enqueue_scripts',
+	static function () {
+		wp_add_inline_style( 'customize-controls', '#customize-control-mcupr_tab_width input[type=range]{height:44px;margin:0}#customize-control-mcupr_tab_width .mcupr-tab-val{float:right;font-weight:600;font-variant-numeric:tabular-nums}' );
+		wp_add_inline_script( 'customize-controls', "wp.customize.bind('ready',function(){wp.customize.control('mcupr_tab_width',function(c){c.deferred.embedded.done(function(){var t=c.container.find('.customize-control-title').first(),o=document.createElement('output');o.className='mcupr-tab-val';t.append(o);function show(v){o.textContent=v;}show(c.setting.get());c.setting.bind(show);});});});" );
+	}
 );
 
 add_action(

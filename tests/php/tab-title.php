@@ -51,6 +51,15 @@ t( $in, 'customizer: all three controls are there, in the Animation section' );
 $choices = $cz->get_control( 'mcupr_tab_mode' ) ? $cz->get_control( 'mcupr_tab_mode' )->choices : array();
 t( array( 'scroll', 'type', 'off' ) === array_keys( $choices ), 'customizer: the mode offers type-and-scroll, only type, and none' );
 
+// the speed and the width only matter while the effect is on (the width only for the scroll)
+$act = static function ( $mode ) use ( $cz ) {
+	set_theme_mod( 'mcupr_tab_mode', $mode );
+	return array( (bool) $cz->get_control( 'mcupr_tab_speed' )->active(), (bool) $cz->get_control( 'mcupr_tab_width' )->active() );
+};
+t( array( true, true ) === $act( 'scroll' ) && array( true, false ) === $act( 'type' ) && array( false, false ) === $act( 'off' ), 'customizer: speed is hidden when the effect is off, and the width unless it scrolls' );
+$cz_src = (string) file_get_contents( get_theme_file_path( 'inc/tab-title.php' ) );
+t( false !== strpos( $cz_src, 'mcupr-tab-val' ) && false !== strpos( $cz_src, 'height:44px' ), 'customizer: the slider shows its number and is tall enough for a finger' );
+
 // 4. the script is loaded when the effect is on, with its settings, and not when it is off
 $loaded = static function () {
 	wp_dequeue_script( 'mcupr-tab-title' );
