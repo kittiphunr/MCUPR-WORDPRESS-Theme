@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.61.0 =
+* Loading screen with the logo, featured news cards not clipped on hover, Google Drive and Google Photos in a post
+
 = 1.60.0 =
 * Notices and documents: a procurement-style register with the newest on the home page
 

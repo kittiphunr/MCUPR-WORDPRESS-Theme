@@ -176,8 +176,10 @@ foreach ( array( array( 120, 60, 200 ), array( 20, 160, 160 ) ) as $i => $rgb ) 
 	update_post_meta( $aid, '_wp_attachment_image_alt', 'ภาพกิจกรรม ' . ( $i + 5 ) );
 	$gal[] = $aid;
 }
-$mid = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'ข่าวทดสอบภาพกิจกรรมและเอกสาร PDF', 'post_name' => 'fx-media', 'post_content' => '<p>เนื้อข่าวทดสอบ แนบภาพกิจกรรมและเอกสาร</p>' ) );
+$mid = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'ข่าวทดสอบภาพกิจกรรมและเอกสาร PDF', 'post_name' => 'fx-media', 'post_content' => "<p>เนื้อข่าวทดสอบ แนบภาพกิจกรรมและเอกสาร</p>\n\nhttps://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/edit?usp=sharing\n\n" ) );
 update_post_meta( $mid, '_mcupr_gallery', $gal );
+update_post_meta( $mid, '_mcupr_gdrive', "รายงานประจำปี | https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/view?usp=sharing\nhttps://drive.google.com/drive/folders/1ZyXwVuTsRqPoNmLkJiHgFeDcBa9876543210?usp=sharing" );
+update_post_meta( $mid, '_mcupr_gphotos', 'ภาพกิจกรรมวันเปิดบ้าน | https://photos.app.goo.gl/AbCdEfGh12345678' );
 update_post_meta( $mid, '_mcupr_files', array(
 	array( 'id' => $mp['media-report.pdf'], 'title' => 'รายงานผลการดำเนินงาน', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 1 ),
 	array( 'id' => $mp['media-extra.pdf'], 'title' => 'เอกสารประกอบ (ดาวน์โหลดอย่างเดียว)', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 0 ),

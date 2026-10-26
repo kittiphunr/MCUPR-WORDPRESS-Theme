@@ -1509,6 +1509,31 @@
 		f.focus();
 	});
 
+	/* ---- Google Drive / Docs in a post: nothing is loaded from Google until "show here" is pressed ---- */
+	document.addEventListener('click', function (e) {
+		var b = e.target.closest && e.target.closest('.gemb[data-gemb] .gemb-load');
+		if (!b) { return; }
+		var box = b.closest('.gemb');
+		var src = box.getAttribute('data-embed');
+		if (!src || !/^https:\/\/(drive|docs)\.google\.com\//.test(src)) { return; }
+		var f = document.createElement('iframe');
+		f.src = src;
+		f.title = box.getAttribute('data-title') || 'Google';
+		f.className = 'gemb-frame';
+		f.loading = 'lazy';
+		f.allowFullscreen = true;
+		f.setAttribute('allow', 'fullscreen');
+		f.setAttribute('referrerpolicy', 'no-referrer');
+		f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms');
+		var card = $('.gemb-card', box);
+		box.insertBefore(f, card.nextSibling);
+		var note = $('.gemb-note', card);
+		if (note) { note.hidden = true; }
+		b.hidden = true;
+		box.classList.add('is-on');
+		f.focus();
+	});
+
 	/* ---- FAQ: live search (opens the matching questions) ---- */
 	$$('[data-faq]').forEach(function (box) {
 		var inp = $('[data-faq-find]', box);

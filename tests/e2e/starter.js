@@ -857,6 +857,85 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       ok(!(await ap.evaluate(() => document.documentElement.scrollWidth > innerWidth)) && (await ap.locator('.nt-home-row').count()) === 6, 'home ' + w + 'px: the notices section fits (no sideways scroll)');
     }
     await ap.setViewportSize({ width: 1366, height: 800 });
+    // home news slider: the card under the pointer lifts and tilts whole and above its neighbours (nothing of it is cut by the row)
+    await ap.goto(B + '/');
+    const sl = ap.locator('#news-slider > article');
+    ok((await sl.count()) >= 2, 'slider: the home page has the featured news row (' + (await sl.count()) + ' cards)');
+    await sl.nth(1).scrollIntoViewIfNeeded();
+    await sl.nth(1).hover({ position: { x: 6, y: 6 } });
+    await ap.waitForTimeout(700);
+    const hv = await ap.evaluate(() => { const t = document.querySelector('#news-slider'); const cs = [...t.children]; const h = cs.find((c) => c.matches(':hover')); const tr = t.getBoundingClientRect(), r = h.getBoundingClientRect(); const cst = getComputedStyle(t); return { z: getComputedStyle(h).zIndex, others: cs.filter((c) => c !== h).map((c) => getComputedStyle(c).zIndex), padTop: parseFloat(cst.paddingTop), padBottom: parseFloat(cst.paddingBottom), inTop: r.top >= tr.top, inBottom: r.bottom <= tr.bottom, tilted: getComputedStyle(h).transform !== 'none' && h.classList.contains('tilting') }; });
+    ok(hv.z === '5' && hv.others.every((z) => z === 'auto'), 'slider: the card under the pointer is above the others (z-index ' + hv.z + ')');
+    ok(hv.padTop >= 20 && hv.padBottom >= 20 && hv.inTop && hv.inBottom && hv.tilted, 'slider: the row leaves room round the cards, so the lifted, tilted card is whole inside it (padding ' + hv.padTop + '/' + hv.padBottom + 'px)');
+    await ap.mouse.move(2, 2);
+    // the loading screen: logo, ring and name; it covers the page, stays a little, fades away, and shows again when a link is followed
+    const plOpts = { viewport: { width: 1366, height: 800 }, reducedMotion: 'no-preference' };
+    const plc = await br.newContext(plOpts);
+    await plc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_preload_test', '1'); } catch (e) { /* frame */ } });
+    const pp = await plc.newPage();
+    const plT0 = Date.now();
+    await pp.goto(B + '/notices/', { waitUntil: 'commit' });
+    await pp.waitForSelector('html.pl-on', { state: 'attached', timeout: 8000 });
+    await pp.waitForSelector('#preloader .pl-logo', { state: 'attached' });
+    const pl0 = await pp.evaluate(() => { const e = document.getElementById('preloader'), cs = getComputedStyle(e), b = e.getBoundingClientRect(), lg = e.querySelector('.pl-logo').getBoundingClientRect(); return { disp: cs.display, pos: cs.position, z: parseInt(cs.zIndex, 10), covers: b.width >= innerWidth - 1 && b.height >= innerHeight - 1, cx: Math.round(lg.left + lg.width / 2), cy: Math.round(lg.top + lg.height / 2), vw: innerWidth, vh: innerHeight, name: e.querySelector('.pl-name').textContent.trim(), hidden: e.getAttribute('aria-hidden') }; });
+    ok(pl0.disp === 'grid' && pl0.pos === 'fixed' && pl0.z >= 10000 && pl0.covers && pl0.hidden === 'true', 'loading screen: it covers the whole page, above everything, and is hidden from screen readers');
+    ok(Math.abs(pl0.cx - pl0.vw / 2) < 4 && /MCU|มหาวิทยาลัย|\S/.test(pl0.name), 'loading screen: the logo sits in the middle of the screen with the name of the site under it (' + pl0.name + ')');
+    await pp.waitForSelector('html.pl-out', { state: 'attached', timeout: 8000 });
+    await pp.waitForSelector('html.pl-done', { state: 'attached', timeout: 8000 });
+    const plDt = Date.now() - plT0;
+    const pl1 = await pp.evaluate(() => ({ disp: getComputedStyle(document.getElementById('preloader')).display, on: document.documentElement.classList.contains('pl-on') || document.documentElement.classList.contains('pl-out'), anim: getComputedStyle(document.getElementById('page')).animationName }));
+    ok(plDt >= 650 && plDt < 6000 && pl1.disp === 'none' && !pl1.on, 'loading screen: it stays at least a moment (' + plDt + ' ms), then fades away and is taken out');
+    ok(await pp.evaluate(() => { const a = document.querySelector('.nt-cats a'); const r = a.getBoundingClientRect(); const e = document.elementFromPoint(r.left + 5, r.top + 5); return a === e || a.contains(e); }), 'loading screen: the page below can be used once it is gone');
+    await pp.evaluate(() => { document.addEventListener('click', (e) => e.preventDefault()); const mk = (id, attrs) => { const a = document.createElement('a'); a.id = id; a.textContent = id; Object.keys(attrs).forEach((k) => a.setAttribute(k, attrs[k])); document.body.appendChild(a); }; mk('t-blank', { href: '/notices/', target: '_blank' }); mk('t-file', { href: '/wp-content/uploads/x.pdf' }); mk('t-hash', { href: location.pathname + '#top' }); mk('t-mail', { href: 'mailto:a@b.co' }); mk('t-out', { href: 'https://example.org/' }); mk('t-dl', { href: '/?mcupr_dl=1-0' }); mk('t-down', { href: '/x/', download: '' }); mk('t-admin', { href: '/wp-admin/' }); mk('t-ok', { href: '/albums/' }); });
+    const stay = [];
+    for (const id of ['t-blank', 't-file', 't-hash', 't-mail', 't-out', 't-dl', 't-down', 't-admin']) {
+      await pp.evaluate((i) => document.getElementById(i).dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })), id);
+      stay.push(await pp.evaluate(() => document.documentElement.classList.contains('pl-leave')));
+    }
+    ok(stay.every((x) => x === false), 'loading screen: a new tab, a file, an anchor, mail, another site, a download and the admin do not start the screen (' + stay.join(',') + ')');
+    await pp.evaluate(() => document.getElementById('t-ok').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })));
+    ok(await pp.evaluate(() => document.documentElement.classList.contains('pl-leave') && getComputedStyle(document.getElementById('preloader')).display === 'grid'), 'loading screen: a click on an ordinary link of the site brings it back over the old page at once');
+    await pp.goto(B + '/', { waitUntil: 'commit' });
+    await pp.waitForSelector('html.pl-on', { state: 'attached', timeout: 8000 });
+    ok(true, 'loading screen: the next page starts with it already on');
+    await pp.waitForSelector('html.pl-done', { state: 'attached', timeout: 8000 });
+    await plc.close();
+    for (const [label, opts, init] of [['reduce motion asked', { ...plOpts, reducedMotion: 'reduce' }, true], ['robot / automated browser', plOpts, false]]) {
+      const c2 = await br.newContext(opts);
+      await c2.addInitScript((flag) => { try { localStorage.setItem('mcupr_consent', '1'); if (flag) { localStorage.setItem('mcupr_preload_test', '1'); } } catch (e) { /* frame */ } }, init);
+      const p2 = await c2.newPage();
+      await p2.goto(B + '/', { waitUntil: 'commit' });
+      await p2.waitForTimeout(1200);
+      const o = await p2.evaluate(() => ({ cls: document.documentElement.className, disp: getComputedStyle(document.getElementById('preloader')).display }));
+      ok(!/pl-on|pl-out|pl-done/.test(o.cls) && o.disp === 'none', 'loading screen: never shown when ' + label);
+      await c2.close();
+    }
+    // Google Drive and Google Photos in a post: cards first, Google only when asked, albums as a link
+    await ap.route(/(drive|docs)\.google\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>stub</title><p>stub</p>' }));
+    await ap.goto(B + '/?name=fx-media');
+    const gm = await ap.evaluate(() => ({ cards: document.querySelectorAll('.gemb').length, loaders: document.querySelectorAll('.gemb[data-gemb] .gemb-load').length, photos: document.querySelectorAll('.gemb-photos').length, frames: document.querySelectorAll('.gemb iframe').length, slides: document.querySelectorAll('.gemb-slides').length, names: [...document.querySelectorAll('.gemb-name')].map((e) => e.textContent.trim()) }));
+    ok(gm.cards === 4 && gm.loaders === 3 && gm.photos === 1 && gm.slides === 1 && gm.frames === 0, 'Google: two Drive cards, the link in the text, and the album card; no frame, nothing loaded from Google yet (' + gm.names.join(' / ') + ')');
+    ok(gm.names.includes('รายงานประจำปี') && gm.names.includes('ภาพกิจกรรมวันเปิดบ้าน'), 'Google: "name | link" gives the cards their names');
+    const gCard = ap.locator('.gemb-file').first();
+    await gCard.scrollIntoViewIfNeeded();
+    await gCard.locator('.gemb-load').click();
+    await ap.waitForSelector('.gemb-file iframe');
+    const gf = await ap.evaluate(() => { const f = document.querySelector('.gemb-file iframe'); return { src: f.getAttribute('src'), title: f.title, sb: f.getAttribute('sandbox'), ref: f.getAttribute('referrerpolicy'), h: Math.round(f.getBoundingClientRect().height), btn: document.querySelector('.gemb-file .gemb-load').hidden, open: !!document.querySelector('.gemb-file a.gemb-open[target="_blank"]') }; });
+    ok(/^https:\/\/drive\.google\.com\/file\/d\/[A-Za-z0-9_-]+\/preview$/.test(gf.src) && gf.title === 'รายงานประจำปี' && /allow-scripts/.test(gf.sb) && gf.ref === 'no-referrer' && gf.h >= 300 && gf.btn && gf.open, 'Google: pressing the button loads Google\'s preview in a titled, sandboxed frame; the link to open it stays');
+    const gp = await ap.evaluate(() => { const a = document.querySelector('.gemb-photos a.gemb-open'); return { href: a.getAttribute('href'), rel: a.rel, target: a.target, load: !!document.querySelector('.gemb-photos .gemb-load') }; });
+    ok(gp.href === 'https://photos.app.goo.gl/AbCdEfGh12345678' && /noopener/.test(gp.rel) && gp.target === '_blank' && !gp.load, 'Google: the album card opens the album in a new tab and has no loader');
+    await ap.addScriptTag({ content: axeSource() });
+    const axg2 = await ap.evaluate(() => axe.run({ include: [['.gemb']] }, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] }));
+    ok(axg2.violations.length === 0, 'axe (Google cards): ' + (axg2.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    await ap.setViewportSize({ width: 390, height: 844 });
+    await ap.goto(B + '/?name=fx-media');
+    const gmo = await ap.evaluate(() => ({ h: document.documentElement.scrollWidth > innerWidth, small: [...document.querySelectorAll('.gemb-load, .gemb-open')].filter((e) => e.offsetParent && e.getBoundingClientRect().height < 43.5).length, wide: [...document.querySelectorAll('.gemb-load, .gemb-open')].filter((e) => e.offsetParent).every((e) => e.getBoundingClientRect().width > 250) }));
+    ok(!gmo.h && gmo.small === 0 && gmo.wide, 'Google 390px: no sideways scroll, the buttons are 44px tall and as wide as the card');
+    await ap.emulateMedia({ media: 'print' });
+    ok(await ap.evaluate(() => [...document.querySelectorAll('.gemb')].every((e) => getComputedStyle(e).display === 'none')), 'Google: the cards are not printed');
+    await ap.emulateMedia({ media: 'screen' });
+    await ap.unroute(/(drive|docs)\.google\.com/);
+    await ap.setViewportSize({ width: 1366, height: 800 });
     await ac.close();
     const am = await br.newContext({ viewport: { width: 360, height: 800 }, hasTouch: true });
     await am.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
