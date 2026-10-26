@@ -145,7 +145,45 @@ if ( ! username_exists( 'e2eadmin' ) ) {
 	wp_insert_user( array( 'user_login' => 'e2eadmin', 'user_pass' => 'e2e-Admin-pass-1', 'user_email' => 'e2eadmin@example.org', 'role' => 'administrator' ) );
 }
 // every public address of the site, for the page-by-page audit (e2e/audit.js)
+// a news post with activity photos and a PDF read on the page (and a second PDF only to download)
+$fx_pdf = static function ( $n ) {
+	$o = "%PDF-1.4\n"; $off = array();
+	$add = static function ( $i, $body ) use ( &$o, &$off ) { $off[ $i ] = strlen( $o ); $o .= "$i 0 obj\n$body\nendobj\n"; };
+	$kids = array(); for ( $i = 0; $i < $n; $i++ ) { $kids[] = ( 4 + 2 * $i ) . ' 0 R'; }
+	$add( 1, '<< /Type /Catalog /Pages 2 0 R >>' );
+	$add( 2, '<< /Type /Pages /Kids [' . implode( ' ', $kids ) . '] /Count ' . $n . ' >>' );
+	$add( 3, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>' );
+	for ( $i = 0; $i < $n; $i++ ) {
+		$st = 'BT /F1 48 Tf 100 700 Td (Page ' . ( $i + 1 ) . ') Tj ET';
+		$add( 4 + 2 * $i, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ' . ( 5 + 2 * $i ) . ' 0 R >>' );
+		$add( 5 + 2 * $i, '<< /Length ' . strlen( $st ) . " >>\nstream\n$st\nendstream" );
+	}
+	$x = strlen( $o ); $cnt = 4 + 2 * $n;
+	$o .= "xref\n0 $cnt\n0000000000 65535 f \n"; ksort( $off ); foreach ( $off as $v ) { $o .= sprintf( "%010d 00000 n \n", $v ); }
+	return $o . "trailer\n<< /Size $cnt /Root 1 0 R >>\nstartxref\n$x\n%%EOF\n";
+};
+$mp = array();
+foreach ( array( 'media-report.pdf' => 3, 'media-extra.pdf' => 1 ) as $fn => $np ) {
+	$u = wp_upload_bits( $fn, null, $fx_pdf( $np ) );
+	$mp[ $fn ] = wp_insert_attachment( array( 'post_mime_type' => 'application/pdf', 'post_title' => 'media ' . $fn, 'post_status' => 'inherit' ), $u['file'] );
+}
+$gal = $pics;
+foreach ( array( array( 120, 60, 200 ), array( 20, 160, 160 ) ) as $i => $rgb ) {
+	$im = imagecreatetruecolor( 1200, 800 ); imagefill( $im, 0, 0, imagecolorallocate( $im, $rgb[0], $rgb[1], $rgb[2] ) );
+	$u  = wp_upload_bits( "e2e-gal-$i.jpg", null, '' ); imagejpeg( $im, $u['file'], 70 );
+	$aid = wp_insert_attachment( array( 'post_mime_type' => 'image/jpeg', 'post_title' => "gal $i", 'post_status' => 'inherit' ), $u['file'] );
+	wp_update_attachment_metadata( $aid, wp_generate_attachment_metadata( $aid, $u['file'] ) );
+	update_post_meta( $aid, '_wp_attachment_image_alt', 'ภาพกิจกรรม ' . ( $i + 5 ) );
+	$gal[] = $aid;
+}
+$mid = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'ข่าวทดสอบภาพกิจกรรมและเอกสาร PDF', 'post_name' => 'fx-media', 'post_content' => '<p>เนื้อข่าวทดสอบ แนบภาพกิจกรรมและเอกสาร</p>' ) );
+update_post_meta( $mid, '_mcupr_gallery', $gal );
+update_post_meta( $mid, '_mcupr_files', array(
+	array( 'id' => $mp['media-report.pdf'], 'title' => 'รายงานผลการดำเนินงาน', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 1 ),
+	array( 'id' => $mp['media-extra.pdf'], 'title' => 'เอกสารประกอบ (ดาวน์โหลดอย่างเดียว)', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 0 ),
+) );
 $urls = array( home_url( '/' ) );
+$urls[] = get_permalink( $mid );
 foreach ( get_post_types( array( 'public' => true ) ) as $pt ) {
 	if ( in_array( $pt, array( 'attachment', 'mcupr_msg' ), true ) ) { continue; }
 	$ar = get_post_type_archive_link( $pt );

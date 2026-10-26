@@ -128,6 +128,7 @@ function mcupr_files( $post_id = 0 ) {
 				'size'  => isset( $f['size'] ) ? (string) $f['size'] : '',
 				'max'   => isset( $f['max'] ) ? (int) $f['max'] : 0,
 				'count' => isset( $f['count'] ) ? (int) $f['count'] : 0,
+				'show'  => ! empty( $f['show'] ) ? 1 : 0, // a PDF read on the page (inc/post-media.php)
 			);
 		}
 	}
@@ -162,6 +163,7 @@ function mcupr_attachments( $post_id = 0 ) {
 	if ( post_password_required( $post_id ) ) {
 		return;
 	}
+	mcupr_post_media( $post_id ); // the activity photos and the PDF readers come before the download list
 	$files = mcupr_files( $post_id );
 	if ( ! $files ) {
 		return;
@@ -280,6 +282,7 @@ function mcupr_files_row( $i, $f ) {
 	echo '<label>' . esc_html__( 'File size text (empty = automatic)', 'mcupr' ) . '<br><input type="text" class="widefat" placeholder="1.2 MB" name="mcupr_files[' . esc_attr( $i ) . '][size]" value="' . esc_attr( $f['size'] ) . '"></label>';
 	echo '<label>' . esc_html__( 'Downloads so far (you can edit it)', 'mcupr' ) . '<br><input type="number" min="0" class="widefat" name="mcupr_files[' . esc_attr( $i ) . '][count]" value="' . esc_attr( $f['count'] ) . '"></label>';
 	echo '<label>' . esc_html__( 'Maximum downloads (0 = unlimited)', 'mcupr' ) . '<br><input type="number" min="0" class="widefat" name="mcupr_files[' . esc_attr( $i ) . '][max]" value="' . esc_attr( $f['max'] ) . '"></label></p>';
+	echo '<p class="mcupr-file-show"><label><input type="checkbox" data-f="show" name="mcupr_files[' . esc_attr( $i ) . '][show]" value="1"' . checked( ! empty( $f['show'] ), true, false ) . ( $f['id'] && 'application/pdf' !== get_post_mime_type( $f['id'] ) ? ' disabled' : '' ) . '> <strong>' . esc_html__( 'Show this PDF on the page', 'mcupr' ) . '</strong> – ' . esc_html__( 'visitors read it right under the text (scroll, zoom, full screen) and still get the download button. Only for PDF files.', 'mcupr' ) . '</label></p>';
 	echo '</div>';
 }
 
@@ -293,7 +296,7 @@ function mcupr_files_box( $post ) {
 	echo '</div>';
 	echo '<p><button type="button" class="button button-primary" id="mcupr-files-add">' . esc_html__( 'Add a file', 'mcupr' ) . '</button></p>';
 	echo '<template id="mcupr-files-tpl">';
-	mcupr_files_row( '__i__', array( 'id' => 0, 'title' => '', 'size' => '', 'max' => 0, 'count' => 0 ) );
+	mcupr_files_row( '__i__', array( 'id' => 0, 'title' => '', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 0 ) );
 	echo '</template>';
 }
 
@@ -314,6 +317,7 @@ function mcupr_files_save( $post_id ) {
 			'size'  => isset( $row['size'] ) ? sanitize_text_field( $row['size'] ) : '',
 			'max'   => isset( $row['max'] ) ? absint( $row['max'] ) : 0,
 			'count' => isset( $row['count'] ) ? absint( $row['count'] ) : 0,
+			'show'  => ! empty( $row['show'] ) && 'application/pdf' === get_post_mime_type( $id ) ? 1 : 0,
 		);
 	}
 	if ( $out ) {

@@ -1180,6 +1180,33 @@ html[data-contrast] .hero-btn-1 { background: var(--bg); color: var(--text); bor
 @media (max-width: 520px) { .file-row { flex-wrap: wrap; } .file-dl, .file-full { margin-left: auto; } }
 @media print { .files { display: none; } }
 
+/* activity photos of a post (inc/post-media.php) – the grid itself is the albums' .album-pics */
+.post-gal { margin: 2rem 0 0; }
+.post-gal-t { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin: 0 0 1rem; font-size: 1.25rem; font-weight: 800; color: var(--text); }
+.post-gal-n { font-size: .9rem; font-weight: 600; color: var(--muted); }
+/* PDF reader of a post (assets/js/pdf-view.js) */
+.pdfv { margin: 2rem 0 0; padding: 1rem; border: 1px solid var(--edge, var(--border)); border-radius: 1.5rem; background: var(--surface); }
+.pdfv-t { display: flex; align-items: center; gap: .6rem; margin: 0 0 .9rem; font-size: 1.25rem; font-weight: 800; color: var(--text); overflow-wrap: anywhere; }
+.pdfv-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: 0 0 .75rem; }
+.pdfv-bar[hidden] { display: none; }
+.pdfv-b { display: inline-grid; place-items: center; min-width: 2.75rem; min-height: 2.75rem; border: 1px solid var(--edge, var(--border)); border-radius: .9rem; background: var(--bg); color: var(--text); cursor: pointer; }
+.pdfv-b:hover:not(:disabled) { background: var(--tint); }
+.pdfv-b:disabled { opacity: .45; cursor: default; }
+.pdfv-pg { display: inline-flex; align-items: center; gap: .35rem; color: var(--text); }
+.pdfv-pg input { width: 4.25rem; min-height: 2.75rem; padding: 0 .4rem; text-align: center; border: 1px solid var(--edge, var(--border)); border-radius: .9rem; background: var(--bg); color: var(--text); }
+.pdfv-sp { flex: 1; }
+.pdfv-open { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.1rem; border-radius: 9999px; background: var(--primary); color: var(--on-primary); font-weight: 700; text-decoration: none; }
+.pdfv-open:hover { filter: brightness(1.08); }
+.pdfv-stage { position: relative; height: min(75vh, 46rem); overflow: auto; padding: .75rem; border-radius: 1rem; background: var(--tint); }
+.pdfv-page { margin: 0 auto .75rem; background: #fff; box-shadow: 0 1px 6px rgb(0 0 0 / .25); }
+.pdfv-page canvas { display: block; max-width: none; }
+.pdfv-status { margin: 0; padding: 2rem 1rem; text-align: center; color: var(--muted); }
+.pdfv-alt { margin: .75rem 0 0; font-size: .9rem; }
+.pdfv:fullscreen { display: flex; flex-direction: column; padding: .75rem; border-radius: 0; background: var(--bg); }
+.pdfv:fullscreen .pdfv-stage { flex: 1; height: auto; }
+@media (max-width: 520px) { .pdfv { padding: .6rem; border-radius: 1.1rem; } .pdfv-sp { display: none; } .pdfv-open { flex: 1 1 100%; justify-content: center; } }
+@media print { .pdfv, .post-gal { display: none; } }
+
 /* ===== Works & awards (inc/works.php) ===== */
 .works-filters { display: grid; gap: .75rem; margin-bottom: 1.75rem; }
 .works-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr)); }

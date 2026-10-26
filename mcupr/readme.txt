@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.59.0 =
+* News: activity photo gallery and PDF reader inside a post
+
 = 1.58.0 =
 * SEO: schema.org data (university, website, breadcrumb) and a search description for each starter page
 
