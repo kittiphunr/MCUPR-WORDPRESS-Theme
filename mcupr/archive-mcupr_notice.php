@@ -47,12 +47,13 @@ $mcupr_walk  = static function ( $parent ) use ( &$mcupr_walk, $mcupr_terms, $mc
 				<input id="nt-q" type="search" name="nq" value="<?php echo esc_attr( $mcupr_nq ); ?>" maxlength="80" placeholder="<?php echo esc_attr( mcupr_t( 'nt_search_ph' ) ); ?>" autocomplete="off">
 				<button type="submit"><?php echo mcupr_icon( 'search', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span class="sr-only"><?php mcupr_e( 'nt_search' ); ?></span></button>
 			</form>
+			<?php echo mcupr_notice_filter_html( $mcupr_here ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			<p class="nt-found" role="status"><?php echo esc_html( sprintf( mcupr_t( 'nt_found' ), number_format_i18n( $mcupr_found ) ) ); ?><?php if ( '' !== $mcupr_nq ) : ?> · <a href="<?php echo esc_url( $mcupr_here ); ?>"><?php mcupr_e( 'nt_clear' ); ?></a><?php endif; ?></p>
 			<?php if ( have_posts() ) : ?>
 				<?php echo mcupr_notice_table( $wp_query->posts, $mcupr_first, $mcupr_title ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				<?php mcupr_pagination(); ?>
 			<?php else : ?>
-				<?php mcupr_state_card( 'bell', '' !== $mcupr_nq ? mcupr_t( 'nt_none_search' ) : mcupr_t( 'nt_none' ), '', '', 'h2' ); ?>
+				<?php mcupr_state_card( 'bell', '' !== $mcupr_nq || '' !== mcupr_notice_filter_state() ? mcupr_t( 'nt_none_search' ) : mcupr_t( 'nt_none' ), '', '', 'h2' ); ?>
 			<?php endif; ?>
 		</div>
 	</div>
