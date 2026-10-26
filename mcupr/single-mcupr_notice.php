@@ -20,11 +20,20 @@ while ( have_posts() ) :
 				<span class="wk-pill"><?php echo mcupr_icon( 'calendar', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( mcupr_date_text( (int) get_post_timestamp(), 'short' ) ); ?></time></span>
 				<?php if ( $cats && ! is_wp_error( $cats ) ) : ?><a class="wk-pill wk-pill-cat" href="<?php echo esc_url( get_term_link( $cats[0] ) ); ?>"><?php echo mcupr_icon( 'folder', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo esc_html( $cats[0]->name ); ?></a><?php endif; ?>
 				<?php if ( mcupr_notice_is_new( get_post() ) ) : ?><span class="nt-new"><?php mcupr_e( 'nt_new' ); ?></span><?php endif; ?>
+				<?php echo mcupr_notice_status_chip( mcupr_notice_state( get_the_ID() ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			</div>
 		</div>
 	</header>
 	<div class="panel-card mx-auto -mt-6 w-[min(100%-1.5rem,48rem)] min-[400px]:w-[min(100%-2rem,48rem)] relative">
 		<?php mcupr_missing_translation_notice(); ?>
+		<?php $mcupr_rows = mcupr_notice_fact_rows( get_the_ID() ); ?>
+		<?php if ( $mcupr_rows ) : ?>
+			<dl class="nt-fact-list">
+				<?php foreach ( $mcupr_rows as $mcupr_k => $mcupr_v ) : ?>
+					<div><dt><?php echo esc_html( $mcupr_k ); ?></dt><dd><?php echo $mcupr_v; // phpcs:ignore WordPress.Security.EscapeOutput ?></dd></div>
+				<?php endforeach; ?>
+			</dl>
+		<?php endif; ?>
 		<?php if ( '' !== trim( get_the_content() ) ) : ?>
 			<div id="article-body" class="reader"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 				<?php the_content(); ?>

@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.62.0 =
+* Notices: number, method, budget, closing date, status, winner and price, with a status filter
+
 = 1.61.0 =
 * Loading screen with the logo, featured news cards not clipped on hover, Google Drive and Google Photos in a post
 

@@ -54,6 +54,7 @@ usort( $mcupr_nt_tabs, static function ( $a, $b ) { return $b->count <=> $a->cou
 					<time class="nt-home-date" datetime="<?php echo esc_attr( gmdate( 'c', $mcupr_ts ) ); ?>"><b><?php echo esc_html( wp_date( 'j', $mcupr_ts ) ); ?></b><span><?php echo esc_html( wp_date( 'M', $mcupr_ts ) ); ?></span><span class="sr-only"> <?php echo esc_html( mcupr_date_text( $mcupr_ts, 'short' ) ); ?></span></time>
 					<div class="nt-home-main">
 						<a class="nt-t" href="<?php echo esc_url( get_permalink( $mcupr_p ) ); ?>"><?php echo esc_html( get_the_title( $mcupr_p ) ); ?></a>
+						<?php echo mcupr_notice_state_html( $mcupr_p->ID ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 						<span class="nt-home-meta">
 							<?php if ( mcupr_notice_is_new( $mcupr_p ) ) : ?><span class="nt-new"><?php mcupr_e( 'nt_new' ); ?></span><?php endif; ?>
 							<?php if ( $mcupr_cat && ! is_wp_error( $mcupr_cat ) ) : ?><span><?php echo esc_html( $mcupr_cat[0]->name ); ?></span><?php endif; ?>
