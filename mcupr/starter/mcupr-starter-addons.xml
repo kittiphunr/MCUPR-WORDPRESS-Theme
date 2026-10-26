@@ -13,6 +13,18 @@
 <wp:term><wp:term_id>30</wp:term_id><wp:term_taxonomy>mcupr_work_cat</wp:term_taxonomy><wp:term_slug>competitions</wp:term_slug><wp:term_name><![CDATA[การแข่งขัน]]></wp:term_name></wp:term>
 <wp:term><wp:term_id>31</wp:term_id><wp:term_taxonomy>mcupr_work_cat</wp:term_taxonomy><wp:term_slug>innovation</wp:term_slug><wp:term_name><![CDATA[นวัตกรรมและงานวิจัย]]></wp:term_name></wp:term>
 <wp:term><wp:term_id>32</wp:term_id><wp:term_taxonomy>mcupr_work_cat</wp:term_taxonomy><wp:term_slug>arts</wp:term_slug><wp:term_name><![CDATA[ศิลปะและวัฒนธรรม]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>80</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>bid-enquiry</wp:term_slug><wp:term_name><![CDATA[ประกาศสอบราคา]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>81</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>bidding</wp:term_slug><wp:term_name><![CDATA[ประกาศประกวดราคา]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>82</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>bidding-results</wp:term_slug><wp:term_name><![CDATA[ประกาศผลการประกวดราคา]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>83</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>reference-price</wp:term_slug><wp:term_name><![CDATA[ราคากลาง (อ้างอิง)]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>84</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>procurement-manual</wp:term_slug><wp:term_name><![CDATA[คู่มือปฏิบัติงานการจัดซื้อจัดจ้างและการบริหารพัสดุ]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>85</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>procurement-summary</wp:term_slug><wp:term_name><![CDATA[สรุปผลการจัดซื้อจัดจ้าง (สขร.1)]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>86</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>contracts</wp:term_slug><wp:term_name><![CDATA[สัญญาจัดซื้อจัดจ้าง]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>87</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>purchase-reports</wp:term_slug><wp:term_name><![CDATA[รายงานการขอซื้อขอจ้าง]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>88</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>procurement-plan</wp:term_slug><wp:term_name><![CDATA[รายงานแผนการจัดซื้อจัดจ้างของหน่วยงาน]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>89</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>plan-analysis</wp:term_slug><wp:term_name><![CDATA[รายงานผลการวิเคราะห์และประเมินผลการวางแผนการจัดหาพัสดุประจำปี]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>90</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>announcements-general</wp:term_slug><wp:term_name><![CDATA[ประกาศทั่วไป]]></wp:term_name></wp:term>
+<wp:term><wp:term_id>91</wp:term_id><wp:term_taxonomy>mcupr_notice_cat</wp:term_taxonomy><wp:term_slug>recruitment</wp:term_slug><wp:term_name><![CDATA[ประกาศรับสมัครงาน]]></wp:term_name></wp:term>
 <wp:term><wp:term_id>60</wp:term_id><wp:term_taxonomy>mcupr_faq_cat</wp:term_taxonomy><wp:term_slug>study</wp:term_slug><wp:term_name><![CDATA[การเรียนและบริการนักศึกษา]]></wp:term_name></wp:term>
 <wp:term><wp:term_id>61</wp:term_id><wp:term_taxonomy>mcupr_faq_cat</wp:term_taxonomy><wp:term_slug>info</wp:term_slug><wp:term_name><![CDATA[ข้อมูลข่าวสารและการร้องเรียน]]></wp:term_name></wp:term>
 <wp:term><wp:term_id>62</wp:term_id><wp:term_taxonomy>mcupr_faq_cat</wp:term_taxonomy><wp:term_slug>site</wp:term_slug><wp:term_name><![CDATA[การใช้เว็บไซต์]]></wp:term_name></wp:term>
@@ -401,8 +413,8 @@
 		<wp:postmeta><wp:meta_key>_mcupr_en_title</wp:meta_key><wp:meta_value><![CDATA[Opening ceremony (sample)]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_zh_title</wp:meta_key><wp:meta_value><![CDATA[开学典礼（示例）]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ja_title</wp:meta_key><wp:meta_value><![CDATA[新学期開会式（サンプル）]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-10-30 09:00:00]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-10-30 12:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-11-02 09:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-11-02 12:00:00]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_place</wp:meta_key><wp:meta_value><![CDATA[[สถานที่จัดงาน]]]></wp:meta_value></wp:postmeta>
 </item>
 <item>
@@ -431,8 +443,8 @@
 		<wp:postmeta><wp:meta_key>_mcupr_en_title</wp:meta_key><wp:meta_value><![CDATA[Academic seminar (sample)]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_zh_title</wp:meta_key><wp:meta_value><![CDATA[学术研讨会（示例）]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ja_title</wp:meta_key><wp:meta_value><![CDATA[学術セミナー（サンプル）]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-11-06 13:30:00]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-11-06 16:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-11-09 13:30:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-11-09 16:00:00]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_place</wp:meta_key><wp:meta_value><![CDATA[[ห้องประชุม]]]></wp:meta_value></wp:postmeta>
 </item>
 <item>
@@ -461,8 +473,8 @@
 		<wp:postmeta><wp:meta_key>_mcupr_en_title</wp:meta_key><wp:meta_value><![CDATA[Open House (sample)]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_zh_title</wp:meta_key><wp:meta_value><![CDATA[开放日（示例）]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ja_title</wp:meta_key><wp:meta_value><![CDATA[オープンハウス（サンプル）]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-11-22 00:00:00]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-11-22 23:59:59]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_start</wp:meta_key><wp:meta_value><![CDATA[2026-11-25 00:00:00]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_ev_end</wp:meta_key><wp:meta_value><![CDATA[2026-11-25 23:59:59]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_allday</wp:meta_key><wp:meta_value><![CDATA[1]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ev_place</wp:meta_key><wp:meta_value><![CDATA[[มหาวิทยาลัย]]]></wp:meta_value></wp:postmeta>
 </item>
@@ -1472,15 +1484,215 @@
 		<wp:postmeta><wp:meta_key>_mcupr_work_team</wp:meta_key><wp:meta_value><![CDATA[[ชื่อทีม]]]></wp:meta_value></wp:postmeta>
 </item>
 <item>
-	<title><![CDATA[สมัครเรียนได้อย่างไร]]></title>
+	<title><![CDATA[[ตัวอย่าง] ประกาศประกวดราคาจ้างก่อสร้างรั้วกำแพงกันดิน ด้วยวิธีประกวดราคาอิเล็กทรอนิกส์ (e-bidding)]]></title>
 	<link>https://example.org/?p=149</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
 	<guid isPermaLink="false">https://example.org/?p=149</guid>
 	<description></description>
-	<content:encoded><![CDATA[<p>ดูขั้นตอนและกำหนดการที่หน้า “การรับสมัครนักศึกษา” หรือโทร [mcupr_org field="tel"]</p>]]></content:encoded>
+	<content:encoded><![CDATA[<p>[รายละเอียดของประกาศ — แนบไฟล์เอกสารที่กล่องไฟล์แนบด้านล่าง]</p>]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
 	<wp:post_id>149</wp:post_id>
+	<wp:post_date>2026-10-24 09:00:00</wp:post_date>
+	<wp:post_date_gmt>2026-10-24 09:00:00</wp:post_date_gmt>
+	<wp:post_modified>2026-10-24 09:00:00</wp:post_modified>
+	<wp:post_modified_gmt>2026-10-24 09:00:00</wp:post_modified_gmt>
+	<wp:comment_status>closed</wp:comment_status>
+	<wp:ping_status>closed</wp:ping_status>
+	<wp:post_name><![CDATA[notice-1]]></wp:post_name>
+	<wp:status>publish</wp:status>
+	<wp:post_parent>0</wp:post_parent>
+	<wp:menu_order>0</wp:menu_order>
+	<wp:post_type>mcupr_notice</wp:post_type>
+	<wp:post_password></wp:post_password>
+	<wp:is_sticky>0</wp:is_sticky>
+	<category domain="mcupr_notice_cat" nicename="bidding"><![CDATA[ประกาศประกวดราคา]]></category>
+</item>
+<item>
+	<title><![CDATA[[ตัวอย่าง] ร่างประกาศและร่างเอกสารประกวดราคาจ้างเหมาบริการดูแลบำรุงรักษาระบบปรับอากาศ ประจำปีงบประมาณ]]></title>
+	<link>https://example.org/?p=150</link>
+	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
+	<dc:creator><![CDATA[admin]]></dc:creator>
+	<guid isPermaLink="false">https://example.org/?p=150</guid>
+	<description></description>
+	<content:encoded><![CDATA[<p>[รายละเอียดของประกาศ — แนบไฟล์เอกสารที่กล่องไฟล์แนบด้านล่าง]</p>]]></content:encoded>
+	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+	<wp:post_id>150</wp:post_id>
+	<wp:post_date>2026-10-21 09:00:00</wp:post_date>
+	<wp:post_date_gmt>2026-10-21 09:00:00</wp:post_date_gmt>
+	<wp:post_modified>2026-10-21 09:00:00</wp:post_modified>
+	<wp:post_modified_gmt>2026-10-21 09:00:00</wp:post_modified_gmt>
+	<wp:comment_status>closed</wp:comment_status>
+	<wp:ping_status>closed</wp:ping_status>
+	<wp:post_name><![CDATA[notice-2]]></wp:post_name>
+	<wp:status>publish</wp:status>
+	<wp:post_parent>0</wp:post_parent>
+	<wp:menu_order>0</wp:menu_order>
+	<wp:post_type>mcupr_notice</wp:post_type>
+	<wp:post_password></wp:post_password>
+	<wp:is_sticky>0</wp:is_sticky>
+	<category domain="mcupr_notice_cat" nicename="bidding"><![CDATA[ประกาศประกวดราคา]]></category>
+</item>
+<item>
+	<title><![CDATA[[ตัวอย่าง] ประกาศผลการประกวดราคาซื้อครุภัณฑ์คอมพิวเตอร์ ด้วยวิธีประกวดราคาอิเล็กทรอนิกส์ (e-bidding)]]></title>
+	<link>https://example.org/?p=151</link>
+	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
+	<dc:creator><![CDATA[admin]]></dc:creator>
+	<guid isPermaLink="false">https://example.org/?p=151</guid>
+	<description></description>
+	<content:encoded><![CDATA[<p>[รายละเอียดของประกาศ — แนบไฟล์เอกสารที่กล่องไฟล์แนบด้านล่าง]</p>]]></content:encoded>
+	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+	<wp:post_id>151</wp:post_id>
+	<wp:post_date>2026-10-17 09:00:00</wp:post_date>
+	<wp:post_date_gmt>2026-10-17 09:00:00</wp:post_date_gmt>
+	<wp:post_modified>2026-10-17 09:00:00</wp:post_modified>
+	<wp:post_modified_gmt>2026-10-17 09:00:00</wp:post_modified_gmt>
+	<wp:comment_status>closed</wp:comment_status>
+	<wp:ping_status>closed</wp:ping_status>
+	<wp:post_name><![CDATA[notice-3]]></wp:post_name>
+	<wp:status>publish</wp:status>
+	<wp:post_parent>0</wp:post_parent>
+	<wp:menu_order>0</wp:menu_order>
+	<wp:post_type>mcupr_notice</wp:post_type>
+	<wp:post_password></wp:post_password>
+	<wp:is_sticky>0</wp:is_sticky>
+	<category domain="mcupr_notice_cat" nicename="bidding-results"><![CDATA[ประกาศผลการประกวดราคา]]></category>
+</item>
+<item>
+	<title><![CDATA[[ตัวอย่าง] ประกาศราคากลางการจ้างปรับปรุงห้องเรียน อาคารเรียนรวม]]></title>
+	<link>https://example.org/?p=152</link>
+	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
+	<dc:creator><![CDATA[admin]]></dc:creator>
+	<guid isPermaLink="false">https://example.org/?p=152</guid>
+	<description></description>
+	<content:encoded><![CDATA[<p>[รายละเอียดของประกาศ — แนบไฟล์เอกสารที่กล่องไฟล์แนบด้านล่าง]</p>]]></content:encoded>
+	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+	<wp:post_id>152</wp:post_id>
+	<wp:post_date>2026-10-14 09:00:00</wp:post_date>
+	<wp:post_date_gmt>2026-10-14 09:00:00</wp:post_date_gmt>
+	<wp:post_modified>2026-10-14 09:00:00</wp:post_modified>
+	<wp:post_modified_gmt>2026-10-14 09:00:00</wp:post_modified_gmt>
+	<wp:comment_status>closed</wp:comment_status>
+	<wp:ping_status>closed</wp:ping_status>
+	<wp:post_name><![CDATA[notice-4]]></wp:post_name>
+	<wp:status>publish</wp:status>
+	<wp:post_parent>0</wp:post_parent>
+	<wp:menu_order>0</wp:menu_order>
+	<wp:post_type>mcupr_notice</wp:post_type>
+	<wp:post_password></wp:post_password>
+	<wp:is_sticky>0</wp:is_sticky>
+	<category domain="mcupr_notice_cat" nicename="reference-price"><![CDATA[ราคากลาง (อ้างอิง)]]></category>
+</item>
+<item>
+	<title><![CDATA[[ตัวอย่าง] สรุปผลการจัดซื้อจัดจ้างประจำเดือน (สขร.1)]]></title>
+	<link>https://example.org/?p=153</link>
+	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
+	<dc:creator><![CDATA[admin]]></dc:creator>
+	<guid isPermaLink="false">https://example.org/?p=153</guid>
+	<description></description>
+	<content:encoded><![CDATA[<p>[รายละเอียดของประกาศ — แนบไฟล์เอกสารที่กล่องไฟล์แนบด้านล่าง]</p>]]></content:encoded>
+	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+	<wp:post_id>153</wp:post_id>
+	<wp:post_date>2026-10-06 09:00:00</wp:post_date>
+	<wp:post_date_gmt>2026-10-06 09:00:00</wp:post_date_gmt>
+	<wp:post_modified>2026-10-06 09:00:00</wp:post_modified>
+	<wp:post_modified_gmt>2026-10-06 09:00:00</wp:post_modified_gmt>
+	<wp:comment_status>closed</wp:comment_status>
+	<wp:ping_status>closed</wp:ping_status>
+	<wp:post_name><![CDATA[notice-5]]></wp:post_name>
+	<wp:status>publish</wp:status>
+	<wp:post_parent>0</wp:post_parent>
+	<wp:menu_order>0</wp:menu_order>
+	<wp:post_type>mcupr_notice</wp:post_type>
+	<wp:post_password></wp:post_password>
+	<wp:is_sticky>0</wp:is_sticky>
+	<category domain="mcupr_notice_cat" nicename="procurement-summary"><![CDATA[สรุปผลการจัดซื้อจัดจ้าง (สขร.1)]]></category>
+</item>
+<item>
+	<title><![CDATA[[ตัวอย่าง] รายงานแผนการจัดซื้อจัดจ้างประจำปีงบประมาณ]]></title>
+	<link>https://example.org/?p=154</link>
+	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
+	<dc:creator><![CDATA[admin]]></dc:creator>
+	<guid isPermaLink="false">https://example.org/?p=154</guid>
+	<description></description>
+	<content:encoded><![CDATA[<p>[รายละเอียดของประกาศ — แนบไฟล์เอกสารที่กล่องไฟล์แนบด้านล่าง]</p>]]></content:encoded>
+	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+	<wp:post_id>154</wp:post_id>
+	<wp:post_date>2026-09-11 09:00:00</wp:post_date>
+	<wp:post_date_gmt>2026-09-11 09:00:00</wp:post_date_gmt>
+	<wp:post_modified>2026-09-11 09:00:00</wp:post_modified>
+	<wp:post_modified_gmt>2026-09-11 09:00:00</wp:post_modified_gmt>
+	<wp:comment_status>closed</wp:comment_status>
+	<wp:ping_status>closed</wp:ping_status>
+	<wp:post_name><![CDATA[notice-6]]></wp:post_name>
+	<wp:status>publish</wp:status>
+	<wp:post_parent>0</wp:post_parent>
+	<wp:menu_order>0</wp:menu_order>
+	<wp:post_type>mcupr_notice</wp:post_type>
+	<wp:post_password></wp:post_password>
+	<wp:is_sticky>0</wp:is_sticky>
+	<category domain="mcupr_notice_cat" nicename="procurement-plan"><![CDATA[รายงานแผนการจัดซื้อจัดจ้างของหน่วยงาน]]></category>
+</item>
+<item>
+	<title><![CDATA[[ตัวอย่าง] ประกาศรับสมัครบุคคลเพื่อสรรหาเป็นพนักงานมหาวิทยาลัย]]></title>
+	<link>https://example.org/?p=155</link>
+	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
+	<dc:creator><![CDATA[admin]]></dc:creator>
+	<guid isPermaLink="false">https://example.org/?p=155</guid>
+	<description></description>
+	<content:encoded><![CDATA[<p>[รายละเอียดของประกาศ — แนบไฟล์เอกสารที่กล่องไฟล์แนบด้านล่าง]</p>]]></content:encoded>
+	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+	<wp:post_id>155</wp:post_id>
+	<wp:post_date>2026-10-20 09:00:00</wp:post_date>
+	<wp:post_date_gmt>2026-10-20 09:00:00</wp:post_date_gmt>
+	<wp:post_modified>2026-10-20 09:00:00</wp:post_modified>
+	<wp:post_modified_gmt>2026-10-20 09:00:00</wp:post_modified_gmt>
+	<wp:comment_status>closed</wp:comment_status>
+	<wp:ping_status>closed</wp:ping_status>
+	<wp:post_name><![CDATA[notice-7]]></wp:post_name>
+	<wp:status>publish</wp:status>
+	<wp:post_parent>0</wp:post_parent>
+	<wp:menu_order>0</wp:menu_order>
+	<wp:post_type>mcupr_notice</wp:post_type>
+	<wp:post_password></wp:post_password>
+	<wp:is_sticky>0</wp:is_sticky>
+	<category domain="mcupr_notice_cat" nicename="recruitment"><![CDATA[ประกาศรับสมัครงาน]]></category>
+</item>
+<item>
+	<title><![CDATA[[ตัวอย่าง] ประกาศวันหยุดทำการประจำปี]]></title>
+	<link>https://example.org/?p=156</link>
+	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
+	<dc:creator><![CDATA[admin]]></dc:creator>
+	<guid isPermaLink="false">https://example.org/?p=156</guid>
+	<description></description>
+	<content:encoded><![CDATA[<p>[รายละเอียดของประกาศ — แนบไฟล์เอกสารที่กล่องไฟล์แนบด้านล่าง]</p>]]></content:encoded>
+	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+	<wp:post_id>156</wp:post_id>
+	<wp:post_date>2026-09-26 09:00:00</wp:post_date>
+	<wp:post_date_gmt>2026-09-26 09:00:00</wp:post_date_gmt>
+	<wp:post_modified>2026-09-26 09:00:00</wp:post_modified>
+	<wp:post_modified_gmt>2026-09-26 09:00:00</wp:post_modified_gmt>
+	<wp:comment_status>closed</wp:comment_status>
+	<wp:ping_status>closed</wp:ping_status>
+	<wp:post_name><![CDATA[notice-8]]></wp:post_name>
+	<wp:status>publish</wp:status>
+	<wp:post_parent>0</wp:post_parent>
+	<wp:menu_order>0</wp:menu_order>
+	<wp:post_type>mcupr_notice</wp:post_type>
+	<wp:post_password></wp:post_password>
+	<wp:is_sticky>0</wp:is_sticky>
+	<category domain="mcupr_notice_cat" nicename="announcements-general"><![CDATA[ประกาศทั่วไป]]></category>
+</item>
+<item>
+	<title><![CDATA[สมัครเรียนได้อย่างไร]]></title>
+	<link>https://example.org/?p=157</link>
+	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
+	<dc:creator><![CDATA[admin]]></dc:creator>
+	<guid isPermaLink="false">https://example.org/?p=157</guid>
+	<description></description>
+	<content:encoded><![CDATA[<p>ดูขั้นตอนและกำหนดการที่หน้า “การรับสมัครนักศึกษา” หรือโทร [mcupr_org field="tel"]</p>]]></content:encoded>
+	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+	<wp:post_id>157</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1498,14 +1710,14 @@
 </item>
 <item>
 	<title><![CDATA[ขอเอกสารทางการศึกษา (ใบรับรอง/ใบแสดงผล) ได้ที่ไหน]]></title>
-	<link>https://example.org/?p=150</link>
+	<link>https://example.org/?p=158</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=150</guid>
+	<guid isPermaLink="false">https://example.org/?p=158</guid>
 	<description></description>
 	<content:encoded><![CDATA[<p>ติดต่องานทะเบียนและวัดผล ดูแบบฟอร์มที่หน้า “ทะเบียนและวัดผล”</p>]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>150</wp:post_id>
+	<wp:post_id>158</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1523,14 +1735,14 @@
 </item>
 <item>
 	<title><![CDATA[มีทุนการศึกษาอะไรบ้าง]]></title>
-	<link>https://example.org/?p=151</link>
+	<link>https://example.org/?p=159</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=151</guid>
+	<guid isPermaLink="false">https://example.org/?p=159</guid>
 	<description></description>
 	<content:encoded><![CDATA[<p>ดูประกาศล่าสุดที่หน้า “ทุนการศึกษา”</p>]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>151</wp:post_id>
+	<wp:post_id>159</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1548,14 +1760,14 @@
 </item>
 <item>
 	<title><![CDATA[ติดต่อหน่วยงานได้ทางไหน]]></title>
-	<link>https://example.org/?p=152</link>
+	<link>https://example.org/?p=160</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=152</guid>
+	<guid isPermaLink="false">https://example.org/?p=160</guid>
 	<description></description>
 	<content:encoded><![CDATA[<p>ดูที่หน้า “ติดต่อเรา”</p>]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>152</wp:post_id>
+	<wp:post_id>160</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1573,14 +1785,14 @@
 </item>
 <item>
 	<title><![CDATA[ร้องเรียนหรือแจ้งเบาะแสได้อย่างไร]]></title>
-	<link>https://example.org/?p=153</link>
+	<link>https://example.org/?p=161</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=153</guid>
+	<guid isPermaLink="false">https://example.org/?p=161</guid>
 	<description></description>
 	<content:encoded><![CDATA[<p>ดูช่องทางที่หน้า “ช่องทางร้องเรียนและแจ้งเบาะแส”</p>]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>153</wp:post_id>
+	<wp:post_id>161</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1598,14 +1810,14 @@
 </item>
 <item>
 	<title><![CDATA[ขอข้อมูลข่าวสารของราชการได้อย่างไร]]></title>
-	<link>https://example.org/?p=154</link>
+	<link>https://example.org/?p=162</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=154</guid>
+	<guid isPermaLink="false">https://example.org/?p=162</guid>
 	<description></description>
 	<content:encoded><![CDATA[<p>ดูขั้นตอนที่ “ศูนย์ข้อมูลข่าวสารของราชการ”</p>]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>154</wp:post_id>
+	<wp:post_id>162</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1623,14 +1835,14 @@
 </item>
 <item>
 	<title><![CDATA[เว็บไซต์รองรับผู้ใช้ที่มีปัญหาทางสายตาหรือไม่]]></title>
-	<link>https://example.org/?p=155</link>
+	<link>https://example.org/?p=163</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=155</guid>
+	<guid isPermaLink="false">https://example.org/?p=163</guid>
 	<description></description>
 	<content:encoded><![CDATA[<p>รองรับ — ดูรายละเอียดที่ “คำประกาศการเข้าถึงเว็บไซต์” และปุ่มตั้งค่าการแสดงผลที่มุมขวาบน</p>]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>155</wp:post_id>
+	<wp:post_id>163</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1648,14 +1860,14 @@
 </item>
 <item>
 	<title><![CDATA[เว็บไซต์เก็บข้อมูลส่วนบุคคลอะไรบ้าง]]></title>
-	<link>https://example.org/?p=156</link>
+	<link>https://example.org/?p=164</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=156</guid>
+	<guid isPermaLink="false">https://example.org/?p=164</guid>
 	<description></description>
 	<content:encoded><![CDATA[<p>ดู “นโยบายคุ้มครองข้อมูลส่วนบุคคล” และ “นโยบายคุกกี้”</p>]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>156</wp:post_id>
+	<wp:post_id>164</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1673,14 +1885,14 @@
 </item>
 <item>
 	<title><![CDATA[[ชื่ออธิการบดี]]]></title>
-	<link>https://example.org/?p=157</link>
+	<link>https://example.org/?p=165</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=157</guid>
+	<guid isPermaLink="false">https://example.org/?p=165</guid>
 	<description></description>
 	<content:encoded><![CDATA[]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>157</wp:post_id>
+	<wp:post_id>165</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1700,14 +1912,14 @@
 </item>
 <item>
 	<title><![CDATA[[ชื่อรองอธิการบดี ฝ่ายวิชาการ]]]></title>
-	<link>https://example.org/?p=158</link>
+	<link>https://example.org/?p=166</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=158</guid>
+	<guid isPermaLink="false">https://example.org/?p=166</guid>
 	<description></description>
 	<content:encoded><![CDATA[]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>158</wp:post_id>
+	<wp:post_id>166</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1727,14 +1939,14 @@
 </item>
 <item>
 	<title><![CDATA[[ชื่อรองอธิการบดี ฝ่ายบริหาร]]]></title>
-	<link>https://example.org/?p=159</link>
+	<link>https://example.org/?p=167</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=159</guid>
+	<guid isPermaLink="false">https://example.org/?p=167</guid>
 	<description></description>
 	<content:encoded><![CDATA[]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>159</wp:post_id>
+	<wp:post_id>167</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1754,14 +1966,14 @@
 </item>
 <item>
 	<title><![CDATA[[ชื่อ-สกุล บุคลากร 1]]]></title>
-	<link>https://example.org/?p=160</link>
+	<link>https://example.org/?p=168</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=160</guid>
+	<guid isPermaLink="false">https://example.org/?p=168</guid>
 	<description></description>
 	<content:encoded><![CDATA[]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>160</wp:post_id>
+	<wp:post_id>168</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1781,14 +1993,14 @@
 </item>
 <item>
 	<title><![CDATA[[ชื่อ-สกุล บุคลากร 2]]]></title>
-	<link>https://example.org/?p=161</link>
+	<link>https://example.org/?p=169</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=161</guid>
+	<guid isPermaLink="false">https://example.org/?p=169</guid>
 	<description></description>
 	<content:encoded><![CDATA[]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>161</wp:post_id>
+	<wp:post_id>169</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1808,14 +2020,14 @@
 </item>
 <item>
 	<title><![CDATA[[ชื่อ-สกุล บุคลากร 3]]]></title>
-	<link>https://example.org/?p=162</link>
+	<link>https://example.org/?p=170</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=162</guid>
+	<guid isPermaLink="false">https://example.org/?p=170</guid>
 	<description></description>
 	<content:encoded><![CDATA[]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>162</wp:post_id>
+	<wp:post_id>170</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1835,14 +2047,14 @@
 </item>
 <item>
 	<title><![CDATA[[ชื่อ-สกุล บุคลากร 4]]]></title>
-	<link>https://example.org/?p=163</link>
+	<link>https://example.org/?p=171</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=163</guid>
+	<guid isPermaLink="false">https://example.org/?p=171</guid>
 	<description></description>
 	<content:encoded><![CDATA[]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>163</wp:post_id>
+	<wp:post_id>171</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1862,14 +2074,14 @@
 </item>
 <item>
 	<title><![CDATA[แบบสอบถามความต้องการพัฒนาบุคลากร (ตัวอย่าง)]]></title>
-	<link>https://example.org/?p=164</link>
+	<link>https://example.org/?p=172</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=164</guid>
+	<guid isPermaLink="false">https://example.org/?p=172</guid>
 	<description></description>
 	<content:encoded><![CDATA[]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>164</wp:post_id>
+	<wp:post_id>172</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>
@@ -1887,14 +2099,14 @@
 </item>
 <item>
 	<title><![CDATA[คุณพึงพอใจกับเว็บไซต์นี้เพียงใด]]></title>
-	<link>https://example.org/?p=165</link>
+	<link>https://example.org/?p=173</link>
 	<pubDate>Wed, 01 Jan 2025 09:00:00 +0000</pubDate>
 	<dc:creator><![CDATA[admin]]></dc:creator>
-	<guid isPermaLink="false">https://example.org/?p=165</guid>
+	<guid isPermaLink="false">https://example.org/?p=173</guid>
 	<description></description>
 	<content:encoded><![CDATA[]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
-	<wp:post_id>165</wp:post_id>
+	<wp:post_id>173</wp:post_id>
 	<wp:post_date>2025-01-01 09:00:00</wp:post_date>
 	<wp:post_date_gmt>2025-01-01 09:00:00</wp:post_date_gmt>
 	<wp:post_modified>2025-01-01 09:00:00</wp:post_modified>

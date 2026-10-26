@@ -139,6 +139,7 @@ echo mcupr_blk_section( 'about', 'aboutblock', 'mt-14' ); // phpcs:ignore WordPr
 
 <?php
 // News by category: the three categories chosen in the Customizer, else the most used ones.
+get_template_part( 'template-parts/home-notices' );
 get_template_part( 'template-parts/home-media' );
 if ( mcupr_home_on( 'cats', false ) ) :
 	$cat_terms = array();
