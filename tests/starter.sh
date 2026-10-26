@@ -62,6 +62,7 @@ php php/starter-data.php 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal"
 php php/starter-overwrite.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/seo-data.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/post-media.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
+php php/notices.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/low-risk.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/groups-import.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/real-bugs.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
