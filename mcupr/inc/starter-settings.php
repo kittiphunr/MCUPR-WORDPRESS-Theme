@@ -107,12 +107,31 @@ function mcupr_ss_resolve( $v ) {
 	return 0 === strpos( $v, 'page:' ) ? mcupr_blk_page_url( substr( $v, 5 ) ) : $v;
 }
 
+/** Remove every setting of one group (used only when the starter is put in over what is there). */
+function mcupr_ss_clear( $g, $defs ) {
+	if ( isset( $defs[ $g ] ) ) {
+		for ( $n = 1; $n <= (int) $defs[ $g ][0]; $n++ ) {
+			foreach ( array_keys( $defs[ $g ][1] ) as $f ) {
+				remove_theme_mod( 'mcupr_' . $g . '_' . $n . '_' . $f );
+			}
+		}
+		foreach ( array( 'title', 'sub', 'more', 'more_url', 'text', 'button', 'url' ) as $f ) {
+			remove_theme_mod( 'mcupr_' . $g . '_' . $f );
+		}
+	} elseif ( 'num' === $g ) {
+		foreach ( array( 'students', 'teachers', 'faculties', 'bachelor', 'master', 'doctoral', 'asof' ) as $f ) {
+			remove_theme_mod( 'mcupr_num_' . $f );
+		}
+	}
+}
+
 /**
  * Put a settings file's content into the site without overwriting anything.
  * $only: limit to some groups (aud fig svc lnk abt wx num toggle redirects) or null for all.
+ * $overwrite: replace what is there instead of leaving it (only the starter-overwrite page passes true; it saves a backup first).
  * Returns array( added => groups, skipped => groups (already in use), rejected => count, redirects => array( added, skipped ) ).
  */
-function mcupr_ss_apply( $data, $only = null ) {
+function mcupr_ss_apply( $data, $only = null, $overwrite = false ) {
 	$rep  = array( 'added' => array(), 'skipped' => array(), 'rejected' => 0, 'redirects' => array( 0, 0 ) );
 	$mods = is_array( $data ) && isset( $data['theme_mods'] ) && is_array( $data['theme_mods'] ) ? $data['theme_mods'] : array();
 	$want = static function ( $g ) use ( $only ) { return null === $only || in_array( $g, $only, true ); };
@@ -148,7 +167,7 @@ function mcupr_ss_apply( $data, $only = null ) {
 			$set = get_theme_mods();
 			$n   = 0;
 			foreach ( $plain['toggle'] as $k => $val ) {
-				if ( ! array_key_exists( $k, (array) $set ) ) { // a switch that is already set stays as it is
+				if ( $overwrite || ! array_key_exists( $k, (array) $set ) ) { // a switch that is already set stays as it is, unless asked to replace
 					set_theme_mod( $k, $val );
 					$n++;
 				}
@@ -161,7 +180,7 @@ function mcupr_ss_apply( $data, $only = null ) {
 		if ( 'home' === $g ) { // one key at a time: what the site already has stays, the empty ones are filled
 			$n = 0;
 			foreach ( $plain['home'] as $k => $val ) {
-				if ( '' !== trim( (string) get_theme_mod( $k, '' ) ) ) {
+				if ( ! $overwrite && '' !== trim( (string) get_theme_mod( $k, '' ) ) ) {
 					continue;
 				}
 				if ( preg_match( '/_url$/', $k ) ) {
@@ -178,7 +197,7 @@ function mcupr_ss_apply( $data, $only = null ) {
 			}
 			continue;
 		}
-		if ( mcupr_ss_in_use( $g ) ) {
+		if ( ! $overwrite && mcupr_ss_in_use( $g ) ) {
 			$rep['skipped'][] = $g;
 			continue;
 		}
@@ -216,6 +235,9 @@ function mcupr_ss_apply( $data, $only = null ) {
 		}
 		if ( in_array( $g, array( 'aud', 'fig', 'svc', 'lnk', 'abt' ), true ) && ! mcupr_ss_has_item( $writes, $g ) ) {
 			continue; // headings without any card would show nothing: do not write them
+		}
+		if ( $overwrite && $writes ) {
+			mcupr_ss_clear( $g, $defs ); // old cards beyond the file's, and fields the file leaves out, must not survive
 		}
 		foreach ( $writes as $k => $val ) {
 			set_theme_mod( $k, $val );
@@ -362,7 +384,9 @@ function mcupr_ss_page() {
 		$form( $do, $label );
 		echo '</span>';
 	}
-	echo '</p><p class="description">' . esc_html__( '“Remove the offices demo” deletes the offices and everything the demo made for them (also if you edited it).', 'mcupr' ) . '</p></div></div>';
+	echo '</p><p class="description">' . esc_html__( '“Remove the offices demo” deletes the offices and everything the demo made for them (also if you edited it).', 'mcupr' ) . '</p></div>';
+	mcupr_so_card();
+	echo '</div>';
 }
 
 add_action(
