@@ -106,7 +106,7 @@ def item_head(pid, title, slug, ptype, parent=0, order_=0, content='', status='p
 for n, k in enumerate(order):
     th, en, zh, ja = S.T[k]
     parent = PAGE_ID[S.PARENT[k]] if (k in S.PARENT and not ADDONS) else 0
-    out.append(item_head(PAGE_ID[k], th, k, 'page', parent, n, S.C.get(k, '')))
+    out.append(item_head(PAGE_ID[k], th, k, 'page', parent, n, S.C.get(k, ''), excerpt=getattr(S, 'EXCERPT', {}).get(k, '')))
     out.append(meta('_mcupr_en_title', en) + meta('_mcupr_zh_title', zh) + meta('_mcupr_ja_title', ja))
     if k in S.EN_BODY:
         out.append(meta('_mcupr_en_content', S.EN_BODY[k]))

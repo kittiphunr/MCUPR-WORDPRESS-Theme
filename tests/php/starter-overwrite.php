@@ -15,8 +15,8 @@ $h = mcupr_so_find( 'history' );
 t( (bool) $h, 'setup: the history page is on the test site' );
 if ( ! $h ) { echo "cannot go on\n"; exit( 1 ); }
 $id = $h->ID;
-$set = static function ( $content ) use ( $id, $wpdb ) { // plain = as imported (modified == date)
-	$wpdb->update( $wpdb->posts, array( 'post_content' => $content, 'post_modified' => '2025-01-01 09:00:00', 'post_date' => '2025-01-01 09:00:00' ), array( 'ID' => $id ) );
+$set = static function ( $content, $excerpt = '' ) use ( $id, $wpdb ) { // plain = as imported (modified == date)
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $content, 'post_excerpt' => $excerpt, 'post_modified' => '2025-01-01 09:00:00', 'post_date' => '2025-01-01 09:00:00' ), array( 'ID' => $id ) );
 	delete_post_meta( $id, '_mcupr_so_hash' ); delete_post_meta( $id, '_mcupr_so_backup' ); clean_post_cache( $id );
 	return get_post( $id );
 };
@@ -26,8 +26,11 @@ $p = $set( '<p>old starter text</p>' );
 t( 'plain' === mcupr_so_state( $p, $pages['history'] ), 'state: old text that was never edited is "plain"' );
 $wpdb->update( $wpdb->posts, array( 'post_modified' => '2026-03-03 10:00:00' ), array( 'ID' => $id ) ); clean_post_cache( $id );
 t( 'edited' === mcupr_so_state( get_post( $id ), $pages['history'] ), 'state: a page changed after it was imported is "edited"' );
-$set( $pages['history']['content'] );
-t( 'same' === mcupr_so_state( get_post( $id ), $pages['history'] ), 'state: the same text is "same"' );
+$set( $pages['history']['content'], $pages['history']['excerpt'] );
+t( 'same' === mcupr_so_state( get_post( $id ), $pages['history'] ), 'state: the same text and description is "same"' );
+t( '' !== $pages['history']['excerpt'] && mb_strlen( $pages['history']['excerpt'] ) >= 70 && mb_strlen( $pages['history']['excerpt'] ) <= 160, 'read: the starter page carries a description of a fitting length' );
+$set( $pages['history']['content'], '' );
+t( 'same' !== mcupr_so_state( get_post( $id ), $pages['history'] ), 'state: the same text without the description is not "the latest"' );
 t( 'missing' === mcupr_so_state( null, $pages['history'] ), 'state: no page is "missing"' );
 
 // 2. replace: only what is chosen
@@ -37,7 +40,7 @@ $r = mcupr_so_replace_pages( array( 'about' ) );
 t( '<p>my own words</p>' === get_post( $id )->post_content, 'replace: a page that was not chosen is left alone' );
 $r = mcupr_so_replace_pages( array( 'history', 'history', 'no-such-page-xyz', 'about' ) );
 $now = get_post( $id );
-t( $pages['history']['content'] === $now->post_content && $pages['history']['title'] === $now->post_title, 'replace: the chosen page now has the starter text and title' );
+t( $pages['history']['content'] === $now->post_content && $pages['history']['title'] === $now->post_title && $pages['history']['excerpt'] === $now->post_excerpt, 'replace: the chosen page now has the starter text, title and description' );
 t( 1 <= $r['replaced'] && 1 === $r['skipped'], 'replace: listed twice counts once, an unknown address is skipped (' . json_encode( $r ) . ')' );
 $bk = get_post_meta( $id, '_mcupr_so_backup', true );
 t( is_array( $bk ) && '<p>my own words</p>' === $bk['content'], 'backup: the old text is kept in the page\'s own field' );
