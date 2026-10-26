@@ -1345,7 +1345,7 @@ html[data-theme="dark"] .nt-st-cancelled { color: #fecaca; background: #7f1d1d; 
 	html:not([data-theme="light"]):not([data-theme="dark"]) .nt-st-awarded { color: #bfdbfe; background: #1e3a8a; }
 	html:not([data-theme="light"]):not([data-theme="dark"]) .nt-st-cancelled { color: #fecaca; background: #7f1d1d; }
 }
-.nt-soon { font-weight: 800; color: #b45309; }
+.nt-soon { font-weight: 800; color: #92400e; }
 html[data-theme="dark"] .nt-soon { color: #fcd34d; }
 @media (prefers-color-scheme: dark) { html:not([data-theme="light"]):not([data-theme="dark"]) .nt-soon { color: #fcd34d; } }
 .nt-filter { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .9rem; margin: 0 0 .75rem; }
