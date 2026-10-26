@@ -4,7 +4,7 @@
  *
  * The normal imports never overwrite: WordPress Importer skips a page whose title and date it already has, and the
  * settings import only fills what is empty. This card is the one place that does replace, and only when asked:
- *   • pages: the text and the translated titles of the starter pages the site already has (matched by address),
+ *   • pages: the text, the description for search engines (excerpt) and the translated titles of the starter pages the site already has (matched by address),
  *     ticked one by one; a page its owner edited is marked and not ticked at first. The old text is kept twice before
  *     anything is written: as a revision and as a copy in the page's own "before overwrite" field.
  *   • settings: the home page blocks, figures, switches and telephone of the starter settings file; what was there
@@ -42,7 +42,8 @@ function mcupr_so_pages() {
 					$meta[ $k ] = (string) $pm->meta_value;
 				}
 			}
-			$out[ (string) $wp->post_name ] = array( 'title' => (string) $it->title, 'content' => (string) $ct->encoded, 'meta' => $meta );
+			$ex = $it->children( 'http://wordpress.org/export/1.2/excerpt/' );
+			$out[ (string) $wp->post_name ] = array( 'title' => (string) $it->title, 'content' => (string) $ct->encoded, 'excerpt' => trim( (string) $ex->encoded ), 'meta' => $meta );
 		}
 	}
 	return $out;
@@ -63,7 +64,8 @@ function mcupr_so_state( $post, $page ) {
 	if ( ! $post ) {
 		return 'missing';
 	}
-	if ( trim( (string) $post->post_content ) === trim( $page['content'] ) ) {
+	// the description search engines show is the page's excerpt: a page is only "the latest" when that came too (a starter page without one leaves the site's own alone)
+	if ( trim( (string) $post->post_content ) === trim( $page['content'] ) && ( '' === $page['excerpt'] || trim( (string) $post->post_excerpt ) === $page['excerpt'] ) ) {
 		return 'same';
 	}
 	$mine = (string) get_post_meta( $post->ID, '_mcupr_so_hash', true );
@@ -101,7 +103,11 @@ function mcupr_so_replace_pages( $slugs ) {
 		if ( function_exists( 'wp_save_post_revision' ) ) {
 			wp_save_post_revision( $post->ID ); // the old text as a revision, if the site keeps revisions
 		}
-		$r = wp_update_post( wp_slash( array( 'ID' => $post->ID, 'post_title' => $pg['title'], 'post_content' => $pg['content'] ) ), true );
+		$new = array( 'ID' => $post->ID, 'post_title' => $pg['title'], 'post_content' => $pg['content'] );
+		if ( '' !== $pg['excerpt'] ) {
+			$new['post_excerpt'] = $pg['excerpt'];
+		}
+		$r = wp_update_post( wp_slash( $new ), true );
 		if ( is_wp_error( $r ) || ! $r ) {
 			$rep['skipped']++;
 			continue;

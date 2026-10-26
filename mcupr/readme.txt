@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.58.0 =
+* SEO: schema.org data (university, website, breadcrumb) and a search description for each starter page
+
 = 1.57.1 =
 * Tab title choices in the Customizer: number beside the slider, taller slider, controls that do not apply are hidden
 
