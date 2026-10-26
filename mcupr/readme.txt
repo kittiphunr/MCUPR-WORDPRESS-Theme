@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.57.0 =
+* Import over what is there: replace starter pages and settings on request
+
 = 1.56.2 =
 * Starter data: the campus's real history, vision, programmes, strategy and address
 

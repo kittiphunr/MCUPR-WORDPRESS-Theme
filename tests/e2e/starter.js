@@ -1168,6 +1168,16 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         await ap.addScriptTag({ content: axeSource() });
         const ax2 = await ap.evaluate(() => axe.run(document.querySelector('.wrap'), { runOnly: ['wcag2a', 'wcag2aa'] }));
         ok(ax2.violations.length === 0, 'axe (welcome & maintenance with tabs): ' + (ax2.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        // import settings page, card 5: replace the starter pages in the browser
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+        const so0 = await ap.evaluate(() => ({ card: !!document.querySelector('form input[name="sure"]'), boxes: document.querySelectorAll('input[name="pages[]"]').length, h: document.querySelector('#so-history') ? document.querySelector('#so-history').checked : null }));
+        ok(so0.card && so0.boxes >= 40, 'overwrite card: the page lists the starter pages that are on the site (' + so0.boxes + ')');
+        await ap.evaluate(() => { document.querySelectorAll('input[name="pages[]"]').forEach((c) => { c.checked = c.id === 'so-about'; }); });
+        await ap.click('button:has-text("แทนที่ด้วยข้อมูลตั้งต้นล่าสุด")');
+        ok(/page=mcupr-settings-io/.test(ap.url()) && !/admin-post/.test(ap.url()) && (await ap.evaluate(() => document.querySelector('input[name="sure"]').matches(':invalid'))), 'overwrite card: without the confirmation box ticked, the browser does not send the form');
+        await ap.check('input[name="sure"]');
+        await Promise.all([ap.waitForNavigation(), ap.click('button:has-text("แทนที่ด้วยข้อมูลตั้งต้นล่าสุด")')]);
+        ok(await ap.evaluate(() => /แทนที่แล้ว: [01] หน้า/.test(document.body.innerText) || /ไม่ได้แตะต้อง/.test(document.body.innerText)), 'overwrite card: after the confirmation the result is shown in Thai');
         await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
         await ap.addScriptTag({ content: axeSource() });
         const axo = await ap.evaluate(() => axe.run(document.querySelector('.mcc'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
