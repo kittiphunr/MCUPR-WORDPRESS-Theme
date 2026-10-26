@@ -1337,6 +1337,23 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
           const open = await ap.evaluate(() => !!document.querySelector('#adminmenu > li.toplevel_page_mcupr.wp-has-current-submenu'));
           ok(r.status() === 200 && open && !(await ap.locator('.wp-die-message').count()), 'admin: ' + u + ' opens and keeps the MCUPR menu open');
         }
+        // works and awards, and notices: a menu of their own in the sidebar, and a card each in the control center
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
+        const sidebar = await ap.evaluate(() => [...document.querySelectorAll('#adminmenu > li > a .wp-menu-name')].map((e) => e.textContent.replace(/\s+/g, ' ').trim()));
+        ok(sidebar.includes('ผลงานและรางวัล') && sidebar.includes('ประกาศและเอกสารเผยแพร่') && sidebar.filter((n) => n === 'MCUPR').length === 1, 'admin menu: works and awards and notices each have a menu of their own beside MCUPR (' + sidebar.slice(0, 6).join(' / ') + ')');
+        const subs = await ap.evaluate(() => [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li')].filter((l) => l.offsetParent !== null || true).map((l) => l.textContent.trim()));
+        ok(!subs.some((t) => /^ผลงานและรางวัล$|หมวดหมู่ผลงาน/.test(t)), 'admin menu: works and awards is no longer a line under MCUPR');
+        await ap.click('#adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("เนื้อหา")');
+        await ap.waitForLoadState('load');
+        const cards = await ap.evaluate(() => [...document.querySelectorAll('.mcc a, .mcc-card')].map((e) => ({ t: e.textContent.replace(/\s+/g, ' ').trim().slice(0, 80), h: e.getAttribute('href') || '' })));
+        ok(cards.some((c) => /^ผลงานและรางวัล/.test(c.t) && /post_type=mcupr_work/.test(c.h)) && cards.some((c) => /^ประกาศและเอกสารเผยแพร่/.test(c.t) && /post_type=mcupr_notice/.test(c.h)), 'control center: the "content" group has a card for works and awards and one for notices and documents, each opening its list');
+        for (const [pt, label] of [['mcupr_work', 'ผลงานและรางวัล'], ['mcupr_notice', 'ประกาศและเอกสารเผยแพร่']]) {
+          const rr = await ap.goto(B + '/wp-admin/edit.php?post_type=' + pt);
+          const lit = await ap.evaluate(() => ({ cur: [...document.querySelectorAll('#adminmenu > li.current > a .wp-menu-name, #adminmenu > li.wp-has-current-submenu > a .wp-menu-name')].map((e) => e.textContent.replace(/\s+/g, ' ').trim()), bar: !!document.querySelector('.mcc-topbar'), crumb: (document.querySelector('.mcc-topbar') || {}).textContent || '' }));
+          ok(rr.status() === 200 && lit.cur.includes(label) && lit.bar && /ศูนย์ควบคุม/.test(lit.crumb) && !(await ap.locator('.wp-die-message').count()), 'admin: the list of ' + label + ' lights its own menu and carries the control-center bar "Control center › …"');
+        }
+        const rw = await ap.goto(B + '/wp-admin/post-new.php?post_type=mcupr_work');
+        ok(rw.status() === 200 && !(await ap.locator('.wp-die-message').count()) && (await ap.evaluate(() => document.body.classList.contains('post-type-mcupr_work'))), 'admin: adding a work opens its editor');
         // the menu's groups open their own page; the group lights up; the pages below show a way back and a help button
         await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
         await ap.click('#adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("นิสิต"), #adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("Students")');
