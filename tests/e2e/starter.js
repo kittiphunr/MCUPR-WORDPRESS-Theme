@@ -796,6 +796,9 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.emulateMedia({ media: 'print' });
     ok(await ap.evaluate(() => getComputedStyle(document.querySelector('.pdfv')).display === 'none' && getComputedStyle(document.querySelector('.post-gal')).display === 'none'), 'post media: neither the reader nor the photo grid is printed');
     await ap.emulateMedia({ media: 'screen' });
+    await ap.setViewportSize({ width: 1366, height: 900 });
+    const fw = await ap.evaluate(() => { const r = (e) => e && Math.round(e.getBoundingClientRect().width); const c = document.querySelector('.panel-card'), f = document.querySelector('#colophon .wrap'); return { card: r(c), foot: r(f), body: r(document.querySelector('#article-body')) }; });
+    ok(fw.card && Math.abs(fw.card - fw.foot) <= 1 && fw.body <= 770, 'post: the content frame is as wide as the footer frame (' + fw.card + '/' + fw.foot + ' px) and the text column stays readable (' + fw.body + ' px)');
     await ap.setViewportSize({ width: 390, height: 844 });
     await ap.reload();
     await ap.locator('.pdfv').scrollIntoViewIfNeeded(); // the reader starts when it is near the screen
@@ -1328,7 +1331,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       ok(m.tops.filter((t) => /MCUPR/.test(t)).length === 1 && m.subs.length >= 18 && m.open, 'admin ' + w + 'px: one MCUPR menu, open on its overview, with ' + m.subs.length + ' entries');
       const vis = await ap.evaluate(() => [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li')].filter((l) => l.offsetParent !== null).map((l) => l.textContent.trim()));
       ok(vis.length === 9 && !vis.some((t) => /หมวดหมู่ผลงาน|ตั้งค่ากระดาน|นำเข้านิสิต|ผังการบริหาร|Theme options/.test(t)), 'admin ' + w + 'px: the MCUPR menu shows only the control center and the eight groups (' + vis.length + ': ' + vis.join(' | ') + ')');
-      ok(!m.tops.some((t) => /กระดาน|วิดีโอ|อัลบั้ม|กิจกรรม|ผลงาน|บุคลากร|Forum|Video|Album|Event|Work|Staff|Polls|FAQ|Form messages/i.test(t)), 'admin ' + w + 'px: none of the theme sections is scattered in the main menu (' + m.tops.join(' | ') + ')');
+      ok(!m.tops.some((t) => /กระดาน|วิดีโอ|อัลบั้ม|กิจกรรม|บุคลากร|Forum|Video|Album|Event|Staff|Polls|FAQ|Form messages/i.test(t)), 'admin ' + w + 'px: none of the theme sections is scattered in the main menu, except the two that have a menu of their own: works and notices (' + m.tops.join(' | ') + ')');
       ok(m.cards === 8 && !m.hscroll, 'admin ' + w + 'px: the control center shows ' + m.cards + ' group cards without sideways scroll');
       ok(m.info.hero && m.info.chips >= 3 && m.info.acts >= 4 && m.info.tools >= 4, 'admin ' + w + 'px: the control center has the title, the search, the status chips (' + m.info.chips + '), the shortcuts (' + m.info.acts + ') and its groups');
       if (w === 1366) {
@@ -1337,6 +1340,23 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
           const open = await ap.evaluate(() => !!document.querySelector('#adminmenu > li.toplevel_page_mcupr.wp-has-current-submenu'));
           ok(r.status() === 200 && open && !(await ap.locator('.wp-die-message').count()), 'admin: ' + u + ' opens and keeps the MCUPR menu open');
         }
+        // works and awards, and notices: a menu of their own in the sidebar, and a card each in the control center
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
+        const sidebar = await ap.evaluate(() => [...document.querySelectorAll('#adminmenu > li > a .wp-menu-name')].map((e) => e.textContent.replace(/\s+/g, ' ').trim()));
+        ok(sidebar.includes('ผลงานและรางวัล') && sidebar.includes('ประกาศและเอกสารเผยแพร่') && sidebar.filter((n) => n === 'MCUPR').length === 1, 'admin menu: works and awards and notices each have a menu of their own beside MCUPR (' + sidebar.slice(0, 6).join(' / ') + ')');
+        const subs = await ap.evaluate(() => [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li')].filter((l) => l.offsetParent !== null || true).map((l) => l.textContent.trim()));
+        ok(!subs.some((t) => /^ผลงานและรางวัล$|หมวดหมู่ผลงาน/.test(t)), 'admin menu: works and awards is no longer a line under MCUPR');
+        await ap.click('#adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("เนื้อหา")');
+        await ap.waitForLoadState('load');
+        const cards = await ap.evaluate(() => [...document.querySelectorAll('.mcc a, .mcc-card')].map((e) => ({ t: e.textContent.replace(/\s+/g, ' ').trim().slice(0, 80), h: e.getAttribute('href') || '' })));
+        ok(cards.some((c) => /^ผลงานและรางวัล/.test(c.t) && /post_type=mcupr_work/.test(c.h)) && cards.some((c) => /^ประกาศและเอกสารเผยแพร่/.test(c.t) && /post_type=mcupr_notice/.test(c.h)), 'control center: the "content" group has a card for works and awards and one for notices and documents, each opening its list');
+        for (const [pt, label] of [['mcupr_work', 'ผลงานและรางวัล'], ['mcupr_notice', 'ประกาศและเอกสารเผยแพร่']]) {
+          const rr = await ap.goto(B + '/wp-admin/edit.php?post_type=' + pt);
+          const lit = await ap.evaluate(() => ({ cur: [...document.querySelectorAll('#adminmenu > li.current > a .wp-menu-name, #adminmenu > li.wp-has-current-submenu > a .wp-menu-name')].map((e) => e.textContent.replace(/\s+/g, ' ').trim()), bar: !!document.querySelector('.mcc-topbar'), crumb: (document.querySelector('.mcc-topbar') || {}).textContent || '' }));
+          ok(rr.status() === 200 && lit.cur.includes(label) && lit.bar && /ศูนย์ควบคุม/.test(lit.crumb) && !(await ap.locator('.wp-die-message').count()), 'admin: the list of ' + label + ' lights its own menu and carries the control-center bar "Control center › …"');
+        }
+        const rw = await ap.goto(B + '/wp-admin/post-new.php?post_type=mcupr_work');
+        ok(rw.status() === 200 && !(await ap.locator('.wp-die-message').count()) && (await ap.evaluate(() => document.body.classList.contains('post-type-mcupr_work'))), 'admin: adding a work opens its editor');
         // the menu's groups open their own page; the group lights up; the pages below show a way back and a help button
         await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
         await ap.click('#adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("นิสิต"), #adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("Students")');

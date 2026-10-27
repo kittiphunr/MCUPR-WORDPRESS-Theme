@@ -2,7 +2,8 @@
 /**
  * One home in the admin for everything the theme adds: a top-level "MCUPR" menu (หมวดธีม MCUPR) with an overview page, and
  * every theme section under it – events, works, albums, videos, FAQ, forum, polls, form messages, staff, org chart,
- * welcome & maintenance – so it is clear at a glance which menus belong to the theme. WordPress' own menus (Posts, Pages,
+ * welcome & maintenance – so it is clear at a glance which menus belong to the theme (works and notices have a menu of their own,
+ * see mcupr_admin_standalone_types()). WordPress' own menus (Posts, Pages,
  * Media…) stay where they are.
  *
  * @package MCUPR
@@ -52,6 +53,15 @@ function mcupr_admin_sections() {
 	);
 }
 
+/**
+ * Sections that keep a menu of their own in the WordPress sidebar (like "Notices and documents") instead of sitting under
+ * the MCUPR menu. They still have their card in the control center and their place in the overview. Change with the
+ * `mcupr_admin_standalone_types` filter (an empty array puts everything back under MCUPR).
+ */
+function mcupr_admin_standalone_types() {
+	return (array) apply_filters( 'mcupr_admin_standalone_types', array( 'mcupr_work' ) );
+}
+
 function mcupr_admin_types() {
 	$t = array();
 	foreach ( mcupr_admin_sections() as $s ) {
@@ -89,7 +99,7 @@ function mcupr_admin_menu_cap() {
 add_filter(
 	'register_post_type_args',
 	static function ( $args, $type ) {
-		if ( in_array( $type, mcupr_admin_types(), true ) ) {
+		if ( in_array( $type, mcupr_admin_types(), true ) && ! in_array( $type, mcupr_admin_standalone_types(), true ) ) {
 			$args['show_in_menu'] = 'mcupr';
 			unset( $args['menu_position'] );
 		}
@@ -139,7 +149,7 @@ add_action(
 				}
 				$take( 'edit.php?post_type=' . $i['type'] );
 				unset( $by[ 'post-new.php?post_type=' . $i['type'] ] );
-				foreach ( isset( $i['tax'] ) ? $i['tax'] : array() as $tx ) {
+				foreach ( isset( $i['tax'] ) && ! in_array( $i['type'], mcupr_admin_standalone_types(), true ) ? $i['tax'] : array() as $tx ) { // a section with a menu of its own has its categories there
 					$tax = get_taxonomy( $tx );
 					if ( $tax ) {
 						$out[] = array( '— ' . $tax->labels->name, 'edit_pages', 'edit-tags.php?taxonomy=' . $tx . '&post_type=' . $i['type'] );
@@ -191,7 +201,7 @@ add_filter(
 	'parent_file',
 	static function ( $parent ) {
 		$s = get_current_screen();
-		if ( $s && in_array( $s->post_type, mcupr_admin_types(), true ) ) {
+		if ( $s && in_array( $s->post_type, mcupr_admin_types(), true ) && ! in_array( $s->post_type, mcupr_admin_standalone_types(), true ) ) {
 			return 'mcupr';
 		}
 		return $parent;
