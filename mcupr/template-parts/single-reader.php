@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 		<?php get_template_part( 'template-parts/office-article-head' ); ?>
 	<?php else : ?>
 	<header class="mcu-wheel bg-tint py-10"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
-		<div class="mx-auto w-[min(100%-1.5rem,46rem)] min-[400px]:w-[min(100%-2rem,46rem)]">
+		<div class="wrap">
 			<?php mcupr_breadcrumb( false ); ?>
 			<h1 class="mt-4 mb-4 text-3xl font-bold leading-tight min-[900px]:text-4xl"><?php the_title(); ?></h1>
 			<?php get_template_part( 'template-parts/article-meta' ); ?>
@@ -20,16 +20,16 @@ defined( 'ABSPATH' ) || exit;
 	</header>
 	<?php endif; ?>
 
-	<div class="panel-card mx-auto <?php echo mcupr_office_shown() ? 'mt-6' : '-mt-6'; ?> w-[min(100%-1.5rem,48rem)] min-[400px]:w-[min(100%-2rem,48rem)] relative">
+	<div class="panel-card wrap <?php echo mcupr_office_shown() ? 'mt-6' : '-mt-6'; ?> relative">
 		<?php mcupr_missing_translation_notice(); ?>
 		<?php if ( has_post_thumbnail() ) : ?>
-			<figure class="noimg:hidden m-0 mb-8"><?php the_post_thumbnail( 'mcupr-hero', array( 'class' => 'w-full rounded-2xl', 'sizes' => '(min-width: 800px) 704px, calc(100vw - 4rem)', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></figure>
+			<figure class="noimg:hidden m-0 mb-8"><?php the_post_thumbnail( 'mcupr-hero', array( 'class' => 'w-full rounded-2xl', 'sizes' => '(min-width: 1300px) 1200px, calc(100vw - 4rem)', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></figure>
 		<?php endif; ?>
 		<div class="mb-8 space-y-3">
 			<?php get_template_part( 'template-parts/listen', null, array( 'target' => '#article-body', 'title' => wp_strip_all_tags( get_the_title() ) ) ); ?>
 			<?php get_template_part( 'template-parts/article-tools' ); ?>
 		</div>
-		<div id="article-body" class="reader"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+		<div id="article-body" class="reader mx-auto max-w-[48rem]"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 			<?php
 			the_content();
 			wp_link_pages();
