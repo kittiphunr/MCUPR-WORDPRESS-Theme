@@ -101,4 +101,6 @@ for _ in $(seq 1 30); do curl -fs "$BASE_URL/" >/dev/null && break; sleep 0.5; d
 php php/student-mail.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 node e2e/starter.js || status=1
 node e2e/audit.js || status=1
+# Safari's engine (WebKitGTK through WebDriver) when it is installed: apt-get install webkit2gtk-driver xvfb && pip install selenium
+if command -v WebKitWebDriver >/dev/null && command -v xvfb-run >/dev/null && python3 -c 'import selenium' 2>/dev/null; then xvfb-run -a python3 webkit/smoke.py "$BASE_URL" || status=1; else echo 'SKIP webkit smoke test (WebKitWebDriver, xvfb or selenium missing)'; fi
 exit $status
