@@ -1359,7 +1359,11 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         ok(rw.status() === 200 && !(await ap.locator('.wp-die-message').count()) && (await ap.evaluate(() => document.body.classList.contains('post-type-mcupr_work'))), 'admin: adding a work opens its editor');
         // the translation box of a post: one language per tab instead of one long page
         await ap.goto(B + '/wp-admin/post-new.php');
-        await ap.waitForSelector('.mcupr-trtabs:not([hidden])', { state: 'attached', timeout: 30000 }); // the block editor keeps its meta boxes in a small pane below the page
+        await ap.waitForSelector('.mcupr-trtabs:not([hidden])', { state: 'attached', timeout: 30000 });
+        await ap.keyboard.press('Escape'); // the welcome guide of a fresh editor
+        await ap.waitForSelector('.components-modal__screen-overlay', { state: 'detached' }).catch(() => {});
+        const mbx = ap.locator('button:has-text("Meta Boxes")').first(); // the pane of the extra boxes starts closed
+        if ((await mbx.count()) && (await mbx.getAttribute('aria-expanded')) === 'false') { await mbx.evaluate((e) => e.click()); } // the block editor keeps its meta boxes in a small pane below the page
         await ap.locator('.mcupr-trtabs').scrollIntoViewIfNeeded();
         const tt = () => ap.evaluate(() => ({ tabs: [...document.querySelectorAll('.mcupr-trtabs [data-tr-tab]')].map((b) => b.getAttribute('data-tr-tab')), sel: [...document.querySelectorAll('.mcupr-trtabs [aria-selected=true]')].map((b) => b.getAttribute('data-tr-tab')), vis: [...document.querySelectorAll('[data-tr-panel]')].filter((x) => !x.hidden).map((x) => x.getAttribute('data-tr-panel')) }));
         let t1 = await tt();
