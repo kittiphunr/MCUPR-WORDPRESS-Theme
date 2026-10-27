@@ -14,17 +14,27 @@ require ABSPATH . 'wp-admin/menu.php';
 $top  = array();
 foreach ( $menu as $m ) { $top[] = $m[2]; }
 t( in_array( 'mcupr', $top, true ), 'there is one top-level "MCUPR" menu' );
-$ours = array( 'mcupr_event', 'mcupr_work', 'mcupr_album', 'mcupr_video', 'mcupr_faq', 'mcupr_topic', 'mcupr_poll', 'mcupr_msg', 'mcupr_person', 'mcupr_unit' );
+$ours = array( 'mcupr_event', 'mcupr_album', 'mcupr_video', 'mcupr_faq', 'mcupr_topic', 'mcupr_poll', 'mcupr_msg', 'mcupr_person', 'mcupr_unit' );
 $stray = array_filter( $top, function ( $s ) use ( $ours ) { foreach ( $ours as $o ) { if ( false !== strpos( $s, 'post_type=' . $o ) ) { return true; } } return 'mcupr-status' === $s; } );
 t( ! $stray, 'none of the theme\'s sections is a top-level menu of its own' . ( $stray ? ' (' . implode( ', ', $stray ) . ')' : '' ) );
 $sub = array_map( function ( $s ) { return $s[2]; }, $submenu['mcupr'] );
 foreach ( $ours as $o ) { t( in_array( 'edit.php?post_type=' . $o, $sub, true ), 'MCUPR menu: ' . $o . ' list' ); }
+// works and awards have a menu of their own, like the notices (a card in the control center, not a line under MCUPR)
+t( in_array( 'edit.php?post_type=mcupr_work', $top, true ) && ! in_array( 'edit.php?post_type=mcupr_work', $sub, true ), 'works and awards: a top-level menu of its own, no longer under MCUPR' );
+t( 0 === count( array_filter( $sub, function ( $x ) { return false !== strpos( $x, 'mcupr_work' ); } ) ), 'works and awards: nothing of it is left in the MCUPR submenu (not even its categories)' );
+t( in_array( 'edit.php?post_type=mcupr_notice', $top, true ), 'notices and documents: a top-level menu of its own' );
+$wsub = array_map( function ( $x ) { return $x[2]; }, isset( $submenu['edit.php?post_type=mcupr_work'] ) ? $submenu['edit.php?post_type=mcupr_work'] : array() );
+t( in_array( 'edit.php?post_type=mcupr_work', $wsub, true ) && in_array( 'post-new.php?post_type=mcupr_work', $wsub, true ) && 1 === count( array_filter( $wsub, function ( $x ) { return 0 === strpos( $x, 'edit-tags.php?taxonomy=mcupr_work_cat' ); } ) ), 'works and awards: its own menu has the list, "add new" and the work categories' );
+add_filter( 'mcupr_admin_standalone_types', '__return_empty_array' );
+t( array() === mcupr_admin_standalone_types(), 'standalone: the filter can put every section back under MCUPR' );
+remove_all_filters( 'mcupr_admin_standalone_types' );
+t( array( 'mcupr_work' ) === mcupr_admin_standalone_types(), 'standalone: by default only works and awards keep a menu of their own' );
 foreach ( array( 'mcupr-forum', 'mcupr-staff-hub', 'mcupr-status' ) as $p ) { t( in_array( $p, $sub, true ), 'MCUPR menu: page ' . $p ); }
 t( in_array( 'mcupr-groups-import', $sub, true ), 'MCUPR menu: page mcupr-groups-import (the import of work groups is under MCUPR, not under the list of groups that no longer has a menu of its own)' );
 $GLOBALS['pagenow'] = 'admin.php'; $GLOBALS['plugin_page'] = 'mcupr-groups-import'; $_GET['page'] = 'mcupr-groups-import';
 t( user_can_access_admin_page(), 'work groups import: an administrator can open admin.php?page=mcupr-groups-import (no "not allowed" page)' );
 $GLOBALS['pagenow'] = 'index.php'; $GLOBALS['plugin_page'] = ''; unset( $_GET['page'] );
-foreach ( array( 'mcupr_work_cat', 'mcupr_video_cat', 'mcupr_faq_cat', 'mcupr_board', 'mcupr_person_group' ) as $tx ) {
+foreach ( array( 'mcupr_video_cat', 'mcupr_faq_cat', 'mcupr_board', 'mcupr_person_group' ) as $tx ) {
 	t( count( array_filter( $sub, function ( $s ) use ( $tx ) { return 0 === strpos( $s, 'edit-tags.php?taxonomy=' . $tx ); } ) ) === 1, 'MCUPR menu: the categories of ' . $tx );
 }
 t( 0 === count( array_filter( $sub, function ( $s ) { return 0 === strpos( $s, 'post-new.php?post_type=mcupr' ); } ) ), 'MCUPR menu: no "Add new" duplicates (the lists have the button)' );

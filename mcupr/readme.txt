@@ -32,6 +32,12 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.63.1 =
+* The frame of a news post is as wide as the footer frame (the text column inside stays readable)
+
+= 1.63.0 =
+* Works and awards get a menu of their own in the sidebar, and notices a card in the control center
+
 = 1.62.0 =
 * Notices: number, method, budget, closing date, status, winner and price, with a status filter
 
