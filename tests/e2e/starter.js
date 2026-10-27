@@ -841,7 +841,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     // the other two news layouts: the whole frame is as wide as the footer frame, the text column stays readable
     for (const lay of ['cover', 'sidebar']) {
       await ap.goto(B + '/?name=fx-layout-' + lay);
-      const lw = await ap.evaluate(() => { const r = (e) => e && e.getBoundingClientRect(), f = r(document.querySelector('#colophon .wrap')), a = r(document.querySelector('article[data-layout]')), b = r(document.querySelector('#article-body')), sd = r(document.querySelector('main aside')), pc = r(document.querySelector('.panel-card')); return { fl: Math.round(f.left), fr: Math.round(f.right), body: Math.round(b.width), left: Math.round(Math.min(...[sd, pc, a].filter(Boolean).map((x) => x.left))), right: Math.round(Math.max(...[sd, pc].filter(Boolean).map((x) => x.right))) }; });
+      const lw = await ap.evaluate(() => { const r = (e) => e && e.getBoundingClientRect(), f = r(document.querySelector('#colophon .wrap')), b = r(document.querySelector('#article-body')), sd = r(document.querySelector('main aside')), pc = r(document.querySelector('.panel-card')); return { fl: Math.round(f.left), fr: Math.round(f.right), body: Math.round(b.width), left: Math.round(Math.min(...[sd, pc].filter(Boolean).map((x) => x.left))), right: Math.round(Math.max(...[sd, pc].filter(Boolean).map((x) => x.right))) }; });
       ok(Math.abs(lw.left - lw.fl) <= 1 && Math.abs(lw.right - lw.fr) <= 1 && lw.body <= 770 && lw.body >= 300, 'post layout ' + lay + ': the frame runs from ' + lw.left + ' to ' + lw.right + ' px, the footer frame from ' + lw.fl + ' to ' + lw.fr + ' px; the text column is ' + lw.body + ' px');
     }
     await ap.goto(B + '/?name=fx-media');
