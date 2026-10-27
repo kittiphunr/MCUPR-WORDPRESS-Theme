@@ -178,6 +178,10 @@ foreach ( array( array( 120, 60, 200 ), array( 20, 160, 160 ) ) as $i => $rgb ) 
 	$gal[] = $aid;
 }
 $mid = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'ข่าวทดสอบภาพกิจกรรมและเอกสาร PDF', 'post_name' => 'fx-media', 'post_content' => "<p>เนื้อข่าวทดสอบ แนบภาพกิจกรรมและเอกสาร</p>\n\nhttps://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/edit?usp=sharing\n\n" ) );
+foreach ( array( 'cover', 'sidebar' ) as $lay ) { // the same news in the other two layouts
+	$lid = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'ข่าวทดสอบแบบ ' . $lay, 'post_name' => 'fx-layout-' . $lay, 'post_content' => "<p>เนื้อข่าวทดสอบแบบ $lay</p>\n\n<p>ย่อหน้าที่สอง</p>" ) );
+	update_post_meta( $lid, '_mcupr_layout', $lay );
+}
 update_post_meta( $mid, '_mcupr_gallery', $gal );
 update_post_meta( $mid, '_mcupr_gdrive', "รายงานประจำปี | https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/view?usp=sharing\nhttps://drive.google.com/drive/folders/1ZyXwVuTsRqPoNmLkJiHgFeDcBa9876543210?usp=sharing" );
 update_post_meta( $mid, '_mcupr_gphotos', 'ภาพกิจกรรมวันเปิดบ้าน | https://photos.app.goo.gl/AbCdEfGh12345678' );

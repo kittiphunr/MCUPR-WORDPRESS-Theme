@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.65.1 =
+* News layouts Cover and Sidebar: the frame is as wide as the footer frame (the text column inside stays readable)
+
 = 1.65.0 =
 * PDF reader in posts: a search box that finds and marks the words (with previous / next result), and a text layer over every page so the words can be selected, copied and read by screen readers; scanned files say they have no text
 

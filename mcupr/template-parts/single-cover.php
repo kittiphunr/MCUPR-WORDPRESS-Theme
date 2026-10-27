@@ -26,7 +26,7 @@ defined( 'ABSPATH' ) || exit;
 	</header>
 	<?php endif; ?>
 
-	<div class="wrap mt-10 grid gap-8 min-[1000px]:grid-cols-[14rem_minmax(0,46rem)] min-[1000px]:justify-center">
+	<div class="wrap mt-10 grid gap-8 min-[1000px]:grid-cols-[14rem_minmax(0,1fr)]">
 		<aside class="no-print min-[1000px]:sticky min-[1000px]:top-6 min-[1000px]:self-start" aria-label="<?php echo esc_attr( mcupr_t( 'article_tools' ) ); ?>">
 			<div class="space-y-4">
 				<?php get_template_part( 'template-parts/listen', null, array( 'target' => '#article-body', 'title' => wp_strip_all_tags( get_the_title() ) ) ); ?>
@@ -36,9 +36,9 @@ defined( 'ABSPATH' ) || exit;
 		<div class="panel-card min-w-0">
 			<?php mcupr_missing_translation_notice(); ?>
 			<?php if ( mcupr_office_shown() && has_post_thumbnail() ) : ?>
-				<figure class="noimg:hidden m-0 mb-6"><?php the_post_thumbnail( 'mcupr-hero', array( 'class' => 'w-full rounded-2xl', 'sizes' => '(min-width: 1000px) 736px, calc(100vw - 4rem)', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></figure>
+				<figure class="noimg:hidden m-0 mb-6"><?php the_post_thumbnail( 'mcupr-hero', array( 'class' => 'w-full rounded-2xl', 'sizes' => '(min-width: 1300px) 940px, (min-width: 1000px) 70vw, calc(100vw - 4rem)', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></figure>
 			<?php endif; ?>
-			<div id="article-body" class="reader"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+			<div id="article-body" class="reader mx-auto max-w-[48rem]"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 				<?php
 				the_content();
 				wp_link_pages();
