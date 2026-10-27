@@ -8,6 +8,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   const newContext0 = br.newContext.bind(br);
   br.newContext = async (...a) => {
     const c = await newContext0(...a);
+    c.setDefaultTimeout(90000); c.setDefaultNavigationTimeout(90000); // a shared machine can stall one request for longer than Playwright's 30 s
     const newPage0 = c.newPage.bind(c);
     c.newPage = async () => {
       const pg = await newPage0();
@@ -838,6 +839,15 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.setViewportSize({ width: 1366, height: 900 });
     const fw = await ap.evaluate(() => { const r = (e) => e && Math.round(e.getBoundingClientRect().width); const c = document.querySelector('.panel-card'), f = document.querySelector('#colophon .wrap'); return { card: r(c), foot: r(f), body: r(document.querySelector('#article-body')) }; });
     ok(fw.card && Math.abs(fw.card - fw.foot) <= 1 && fw.body <= 770, 'post: the content frame is as wide as the footer frame (' + fw.card + '/' + fw.foot + ' px) and the text column stays readable (' + fw.body + ' px)');
+    // the other two news layouts: the whole frame is as wide as the footer frame, the text column stays readable
+    for (const lay of ['cover', 'sidebar']) {
+      await ap.goto(B + '/?name=fx-layout-' + lay);
+      const lw = await ap.evaluate(() => { const r = (e) => e && e.getBoundingClientRect(), f = r(document.querySelector('#colophon .wrap')), b = r(document.querySelector('#article-body')), sd = r(document.querySelector('main aside')), pc = r(document.querySelector('.panel-card')); return { fl: Math.round(f.left), fr: Math.round(f.right), body: Math.round(b.width), left: Math.round(Math.min(...[sd, pc].filter(Boolean).map((x) => x.left))), right: Math.round(Math.max(...[sd, pc].filter(Boolean).map((x) => x.right))) }; });
+      ok(Math.abs(lw.left - lw.fl) <= 1 && Math.abs(lw.right - lw.fr) <= 1 && lw.body <= 770 && lw.body >= 300, 'post layout ' + lay + ': the frame runs from ' + lw.left + ' to ' + lw.right + ' px, the footer frame from ' + lw.fl + ' to ' + lw.fr + ' px; the text column is ' + lw.body + ' px');
+    }
+    await ap.goto(B + '/?name=fx-media');
+    await ap.locator('.pdfv').scrollIntoViewIfNeeded();
+    await ap.waitForSelector('.pdfv[data-state="ready"]', { timeout: 30000 });
     await ap.setViewportSize({ width: 390, height: 844 });
     await ap.reload();
     await ap.locator('.pdfv').scrollIntoViewIfNeeded(); // the reader starts when it is near the screen

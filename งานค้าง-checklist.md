@@ -25,4 +25,4 @@
 - [ ] C3 ลบสาขา `claude/compassionate-ritchie-g2rwth` บน GitHub (Settings → Branches หรือกดลบที่หน้า PR)
 
 ## เสนอเพิ่ม (ยังไม่เคยตกลง)
-- [ ] D1 แบบ Cover และ Sidebar ของ post: ตรวจว่ากรอบกว้างเท่า footer เหมือนแบบ Reader (1.63.1 แก้เฉพาะ Reader)
+- [x] D1 โพสต์แบบ Cover และ Sidebar: กรอบกว้างเท่า footer (1.65.1)
