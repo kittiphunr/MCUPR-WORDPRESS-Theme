@@ -94,6 +94,7 @@ function mcupr_pdf_viewer_html( $post_id, $n, $pdf ) {
 	$o .= $btn( 'data-next', 'pdf_next', 'chevron-right' );
 	$o .= '<span class="pdfv-sp" aria-hidden="true"></span>';
 	$o .= $btn( 'data-out', 'pdf_zoom_out', 'minus' ) . $btn( 'data-in', 'pdf_zoom_in', 'plus' ) . $btn( 'data-fit', 'pdf_fit', 'maximize' ) . $btn( 'data-full', 'pdf_full', 'maximize-2' );
+	$o .= '<div class="pdfv-find" role="search"><label class="pdfv-q"><span class="sr-only">' . esc_html( mcupr_t( 'pdf_search' ) ) . '</span>' . mcupr_feather( 'search', 16 ) . '<input type="search" data-q placeholder="' . esc_attr( mcupr_t( 'pdf_search_ph' ) ) . '" autocomplete="off" enterkeyhint="search"></label>' . $btn( 'data-hit-prev disabled', 'pdf_hit_prev', 'chevron-up' ) . $btn( 'data-hit-next disabled', 'pdf_hit_next', 'chevron-down' ) . '<span class="pdfv-hits" data-hits role="status" aria-live="polite"></span></div>';
 	$o .= '<a class="pdfv-open" href="' . esc_url( $pdf['url'] ) . '" target="_blank" rel="noopener">' . mcupr_icon( 'download', 18 ) . '<span>' . esc_html( mcupr_t( 'pdf_open' ) ) . '</span><span class="sr-only"> ' . esc_html( mcupr_t( 'new_tab' ) ) . '</span></a>';
 	$o .= '</div>';
 	$o .= '<div class="pdfv-stage" data-stage tabindex="0" role="region" aria-label="' . esc_attr( mcupr_t( 'pdf_label' ) ) . ' – ' . esc_attr( $pdf['title'] ) . '"><p class="pdfv-status" data-status role="status">' . esc_html( mcupr_t( 'pdf_loading' ) ) . '</p></div>';
@@ -121,6 +122,10 @@ function mcupr_pdf_viewer_assets() {
 				'loading' => mcupr_t( 'pdf_loading' ),
 				'fail'    => mcupr_t( 'pdf_fail' ),
 				'page'    => mcupr_t( 'pdf_page' ),
+				'hits'    => mcupr_t( 'pdf_hits' ),
+				'nohit'   => mcupr_t( 'pdf_nohit' ),
+				'reading' => mcupr_t( 'pdf_reading' ),
+				'noscan'  => mcupr_t( 'pdf_noscan' ),
 			),
 		)
 	);
