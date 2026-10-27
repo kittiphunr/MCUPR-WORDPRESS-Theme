@@ -104,12 +104,22 @@ add_action( 'add_meta_boxes', 'mcupr_add_meta_box' );
 function mcupr_meta_box( $post ) {
 	wp_nonce_field( 'mcupr_tr_save', 'mcupr_tr_nonce' );
 	$default = mcupr_default_lang();
-	echo '<p class="description">' . esc_html__( 'The main editor holds the default-language version. Fill in the other languages below; empty fields fall back to the default language.', 'mcupr' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'The main editor holds the default-language version. Fill in the other languages in the tabs below; empty fields fall back to the default language.', 'mcupr' ) . '</p>';
+	$names = array();
+	foreach ( mcupr_languages() as $code => $l ) {
+		$names[ $code ] = function_exists( 'mcupr_admin_lang_name' ) ? mcupr_admin_lang_name( $l['name'] ) : $l['name'];
+	}
+	echo '<div class="mcupr-trtabs" role="tablist" aria-label="' . esc_attr__( 'Language of the text', 'mcupr' ) . '" hidden>';
+	foreach ( $names as $code => $n ) {
+		echo '<button type="button" role="tab" class="button" data-tr-tab="' . esc_attr( $code ) . '" aria-selected="false">' . esc_html( $n ) . ( $code === $default ? ' · ' . esc_html__( 'main editor', 'mcupr' ) : '' ) . '</button>';
+	}
+	echo '</div>';
 	foreach ( mcupr_languages() as $code => $l ) {
 		if ( $code === $default ) {
+			echo '<div class="mcupr-trpanel" data-tr-panel="' . esc_attr( $code ) . '"><p>' . esc_html( sprintf( /* translators: %s: language name */ __( '%s is written in the main editor above (title, content, excerpt).', 'mcupr' ), $names[ $code ] ) ) . '</p><p><button type="button" class="button" data-tr-top>' . esc_html__( 'Go to the main editor', 'mcupr' ) . '</button></p></div>';
 			continue;
 		}
-		echo '<fieldset style="border:1px solid #c3c4c7;padding:12px;margin:12px 0"><legend><strong>' . esc_html( $l['label'] . ' (' . $l['name'] . ')' ) . '</strong></legend>';
+		echo '<fieldset class="mcupr-trpanel" data-tr-panel="' . esc_attr( $code ) . '" style="border:1px solid #c3c4c7;padding:12px;margin:12px 0"><legend><strong>' . esc_html( $l['label'] . ' (' . $names[ $code ] . ')' ) . '</strong></legend>';
 		printf(
 			'<p><label>%1$s<br><input type="text" class="widefat" name="mcupr_tr[%2$s][title]" value="%3$s"></label></p>',
 			esc_html__( 'Title', 'mcupr' ),
@@ -136,6 +146,22 @@ function mcupr_meta_box( $post ) {
 		echo '</fieldset>';
 	}
 }
+
+/** Tabs for the language boxes on the edit screens that carry them. */
+add_action(
+	'admin_enqueue_scripts',
+	static function ( $hook ) {
+		if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+			return;
+		}
+		$screen = get_current_screen();
+		if ( ! $screen || ! in_array( $screen->post_type, mcupr_translatable_post_types(), true ) ) {
+			return;
+		}
+		wp_enqueue_script( 'mcupr-translation-tabs', get_theme_file_uri( 'assets/js/translation-tabs.js' ), array(), MCUPR_VERSION, true );
+		wp_add_inline_style( 'common', '.mcupr-trtabs{display:flex;flex-wrap:wrap;gap:.25rem;margin:1rem 0 .5rem}.mcupr-trtabs[hidden]{display:none}.mcupr-trtabs .button[aria-selected=true]{background:#2271b1;border-color:#2271b1;color:#fff}.mcupr-trpanel[hidden]{display:none}' );
+	}
+);
 
 function mcupr_save_translations( $post_id ) {
 	if ( ! mcupr_can_save_box( $post_id, 'mcupr_tr_nonce', 'mcupr_tr_save' ) ) {

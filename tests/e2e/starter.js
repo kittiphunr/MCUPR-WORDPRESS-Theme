@@ -1357,6 +1357,21 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         }
         const rw = await ap.goto(B + '/wp-admin/post-new.php?post_type=mcupr_work');
         ok(rw.status() === 200 && !(await ap.locator('.wp-die-message').count()) && (await ap.evaluate(() => document.body.classList.contains('post-type-mcupr_work'))), 'admin: adding a work opens its editor');
+        // the translation box of a post: one language per tab instead of one long page
+        await ap.goto(B + '/wp-admin/post-new.php');
+        await ap.waitForSelector('.mcupr-trtabs:not([hidden])', { state: 'attached', timeout: 30000 });
+        await ap.keyboard.press('Escape'); // the welcome guide of a fresh editor
+        await ap.waitForSelector('.components-modal__screen-overlay', { state: 'detached' }).catch(() => {});
+        const mbx = ap.locator('button:has-text("Meta Boxes")').first(); // the pane of the extra boxes starts closed
+        if ((await mbx.count()) && (await mbx.getAttribute('aria-expanded')) === 'false') { await mbx.evaluate((e) => e.click()); } // the block editor keeps its meta boxes in a small pane below the page
+        await ap.locator('.mcupr-trtabs').scrollIntoViewIfNeeded();
+        const tt = () => ap.evaluate(() => ({ tabs: [...document.querySelectorAll('.mcupr-trtabs [data-tr-tab]')].map((b) => b.getAttribute('data-tr-tab')), sel: [...document.querySelectorAll('.mcupr-trtabs [aria-selected=true]')].map((b) => b.getAttribute('data-tr-tab')), vis: [...document.querySelectorAll('[data-tr-panel]')].filter((x) => !x.hidden).map((x) => x.getAttribute('data-tr-panel')) }));
+        let t1 = await tt();
+        ok(t1.tabs.length === 4 && t1.sel.length === 1 && t1.vis.length === 1 && t1.vis[0] === t1.sel[0], 'post editor: the translation box has a tab for each of the 4 languages and shows one language at a time (' + t1.tabs.join('/') + ')');
+        const other = t1.tabs.filter((c) => c !== t1.sel[0])[0];
+        await ap.click('.mcupr-trtabs [data-tr-tab="' + other + '"]');
+        t1 = await tt();
+        ok(t1.sel[0] === other && t1.vis.length === 1 && t1.vis[0] === other, 'post editor: another tab shows that language only');
         // the menu's groups open their own page; the group lights up; the pages below show a way back and a help button
         await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
         await ap.click('#adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("นิสิต"), #adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("Students")');
@@ -3935,7 +3950,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await ap.keyboard.press('Escape'); // the welcome window
       await ap.waitForTimeout(800);
       // the block editor keeps the meta boxes folded at first: open them
-      await ap.locator('button[aria-expanded="false"]:has-text("Meta Boxes")').first().evaluate((b) => b.click());
+      const folded = ap.locator('button[aria-expanded="false"]:has-text("Meta Boxes")').first(); // (an earlier check may have left the pane open for this user)
+      if (await folded.count()) { await folded.evaluate((b) => b.click()); }
       await ap.waitForSelector('#mcupr-bk-media', { state: 'visible', timeout: 15000 });
       ok(await ap.locator('#mcupr-bk-media tbody tr').count() === 4, 'e-books admin: the four extras of the book are in the table');
       await ap.click('#mcupr-bk-add-media');
