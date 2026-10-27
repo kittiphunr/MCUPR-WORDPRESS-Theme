@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.64.0 =
+* The translation box of posts and pages has a tab for each language (the default language points to the main editor)
+
 = 1.63.1 =
 * The frame of a news post is as wide as the footer frame (the text column inside stays readable)
 

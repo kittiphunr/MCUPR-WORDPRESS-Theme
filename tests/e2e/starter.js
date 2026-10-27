@@ -1357,6 +1357,16 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         }
         const rw = await ap.goto(B + '/wp-admin/post-new.php?post_type=mcupr_work');
         ok(rw.status() === 200 && !(await ap.locator('.wp-die-message').count()) && (await ap.evaluate(() => document.body.classList.contains('post-type-mcupr_work'))), 'admin: adding a work opens its editor');
+        // the translation box of a post: one language per tab instead of one long page
+        await ap.goto(B + '/wp-admin/post-new.php');
+        await ap.waitForSelector('.mcupr-trtabs:not([hidden])', { timeout: 30000 });
+        const tt = () => ap.evaluate(() => ({ tabs: [...document.querySelectorAll('.mcupr-trtabs [data-tr-tab]')].map((b) => b.getAttribute('data-tr-tab')), sel: [...document.querySelectorAll('.mcupr-trtabs [aria-selected=true]')].map((b) => b.getAttribute('data-tr-tab')), vis: [...document.querySelectorAll('[data-tr-panel]')].filter((x) => !x.hidden).map((x) => x.getAttribute('data-tr-panel')) }));
+        let t1 = await tt();
+        ok(t1.tabs.length === 4 && t1.sel.length === 1 && t1.vis.length === 1 && t1.vis[0] === t1.sel[0], 'post editor: the translation box has a tab for each of the 4 languages and shows one language at a time (' + t1.tabs.join('/') + ')');
+        const other = t1.tabs.filter((c) => c !== t1.sel[0])[0];
+        await ap.click('.mcupr-trtabs [data-tr-tab="' + other + '"]');
+        t1 = await tt();
+        ok(t1.sel[0] === other && t1.vis.length === 1 && t1.vis[0] === other, 'post editor: another tab shows that language only');
         // the menu's groups open their own page; the group lights up; the pages below show a way back and a help button
         await ap.goto(B + '/wp-admin/admin.php?page=mcupr');
         await ap.click('#adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("นิสิต"), #adminmenu > li.toplevel_page_mcupr .wp-submenu a:has-text("Students")');
