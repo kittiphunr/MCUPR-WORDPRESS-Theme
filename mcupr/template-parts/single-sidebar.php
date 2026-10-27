@@ -24,7 +24,7 @@ $box = 'soft-card p-5';
 				<?php get_template_part( 'template-parts/listen', null, array( 'target' => '#article-body', 'title' => wp_strip_all_tags( get_the_title() ) ) ); ?>
 				<?php get_template_part( 'template-parts/article-tools' ); ?>
 			</div>
-			<div id="article-body" class="reader"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+			<div id="article-body" class="reader max-w-[48rem]"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 				<?php
 				the_content();
 				wp_link_pages();
