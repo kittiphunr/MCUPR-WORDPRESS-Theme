@@ -146,7 +146,7 @@ if ( ! username_exists( 'e2eadmin' ) ) {
 }
 // every public address of the site, for the page-by-page audit (e2e/audit.js)
 // a news post with activity photos and a PDF read on the page (and a second PDF only to download)
-$fx_pdf = static function ( $n ) {
+$fx_pdf = static function ( $n, $text = true ) {
 	$o = "%PDF-1.4\n"; $off = array();
 	$add = static function ( $i, $body ) use ( &$o, &$off ) { $off[ $i ] = strlen( $o ); $o .= "$i 0 obj\n$body\nendobj\n"; };
 	$kids = array(); for ( $i = 0; $i < $n; $i++ ) { $kids[] = ( 4 + 2 * $i ) . ' 0 R'; }
@@ -154,7 +154,8 @@ $fx_pdf = static function ( $n ) {
 	$add( 2, '<< /Type /Pages /Kids [' . implode( ' ', $kids ) . '] /Count ' . $n . ' >>' );
 	$add( 3, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>' );
 	for ( $i = 0; $i < $n; $i++ ) {
-		$st = 'BT /F1 48 Tf 100 700 Td (Page ' . ( $i + 1 ) . ') Tj ET';
+		$st = 'BT /F1 48 Tf 100 700 Td (Page ' . ( $i + 1 ) . ') Tj ET BT /F1 24 Tf 100 640 Td (Annual report ' . ( $i + 1 ) . ') Tj ET' . ( 1 === $i ? ' BT /F1 24 Tf 100 600 Td (budget Budget) Tj ET' : '' );
+		if ( ! $text ) { $st = '0.9 g 100 600 300 100 re f'; } // a scanned page: only a picture, no words
 		$add( 4 + 2 * $i, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ' . ( 5 + 2 * $i ) . ' 0 R >>' );
 		$add( 5 + 2 * $i, '<< /Length ' . strlen( $st ) . " >>\nstream\n$st\nendstream" );
 	}
@@ -180,6 +181,10 @@ $mid = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish',
 update_post_meta( $mid, '_mcupr_gallery', $gal );
 update_post_meta( $mid, '_mcupr_gdrive', "รายงานประจำปี | https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/view?usp=sharing\nhttps://drive.google.com/drive/folders/1ZyXwVuTsRqPoNmLkJiHgFeDcBa9876543210?usp=sharing" );
 update_post_meta( $mid, '_mcupr_gphotos', 'ภาพกิจกรรมวันเปิดบ้าน | https://photos.app.goo.gl/AbCdEfGh12345678' );
+$sp = wp_upload_bits( 'media-scan.pdf', null, $fx_pdf( 1, false ) );
+$sa = wp_insert_attachment( array( 'post_mime_type' => 'application/pdf', 'post_title' => 'media scan', 'post_status' => 'inherit' ), $sp['file'] );
+$sid = wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'ข่าวทดสอบเอกสารสแกน', 'post_name' => 'fx-scan', 'post_content' => '<p>เอกสารที่เป็นภาพสแกน</p>' ) );
+update_post_meta( $sid, '_mcupr_files', array( array( 'id' => $sa, 'title' => 'เอกสารสแกน', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 1 ) ) );
 update_post_meta( $mid, '_mcupr_files', array(
 	array( 'id' => $mp['media-report.pdf'], 'title' => 'รายงานผลการดำเนินงาน', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 1 ),
 	array( 'id' => $mp['media-extra.pdf'], 'title' => 'เอกสารประกอบ (ดาวน์โหลดอย่างเดียว)', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 0 ),
