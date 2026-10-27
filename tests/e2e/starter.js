@@ -3950,7 +3950,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await ap.keyboard.press('Escape'); // the welcome window
       await ap.waitForTimeout(800);
       // the block editor keeps the meta boxes folded at first: open them
-      await ap.locator('button[aria-expanded="false"]:has-text("Meta Boxes")').first().evaluate((b) => b.click());
+      const folded = ap.locator('button[aria-expanded="false"]:has-text("Meta Boxes")').first(); // (an earlier check may have left the pane open for this user)
+      if (await folded.count()) { await folded.evaluate((b) => b.click()); }
       await ap.waitForSelector('#mcupr-bk-media', { state: 'visible', timeout: 15000 });
       ok(await ap.locator('#mcupr-bk-media tbody tr').count() === 4, 'e-books admin: the four extras of the book are in the table');
       await ap.click('#mcupr-bk-add-media');
