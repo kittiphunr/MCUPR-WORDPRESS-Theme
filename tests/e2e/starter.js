@@ -8,6 +8,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   const newContext0 = br.newContext.bind(br);
   br.newContext = async (...a) => {
     const c = await newContext0(...a);
+    c.setDefaultTimeout(90000); c.setDefaultNavigationTimeout(90000); // a shared machine can stall one request for longer than Playwright's 30 s
     const newPage0 = c.newPage.bind(c);
     c.newPage = async () => {
       const pg = await newPage0();
