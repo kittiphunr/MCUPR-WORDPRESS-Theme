@@ -795,10 +795,10 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(axp.violations.length === 0 && axg.violations.length === 0, 'axe (post PDF reader, post photos): ' + ([...axp.violations, ...axg.violations].map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
     await ap.emulateMedia({ media: 'print' });
     ok(await ap.evaluate(() => getComputedStyle(document.querySelector('.pdfv')).display === 'none' && getComputedStyle(document.querySelector('.post-gal')).display === 'none'), 'post media: neither the reader nor the photo grid is printed');
+    await ap.emulateMedia({ media: 'screen' });
     await ap.setViewportSize({ width: 1366, height: 900 });
     const fw = await ap.evaluate(() => { const r = (e) => e && Math.round(e.getBoundingClientRect().width); const c = document.querySelector('.panel-card'), f = document.querySelector('#colophon .wrap'); return { card: r(c), foot: r(f), body: r(document.querySelector('#article-body')) }; });
     ok(fw.card && Math.abs(fw.card - fw.foot) <= 1 && fw.body <= 770, 'post: the content frame is as wide as the footer frame (' + fw.card + '/' + fw.foot + ' px) and the text column stays readable (' + fw.body + ' px)');
-    await ap.emulateMedia({ media: 'screen' });
     await ap.setViewportSize({ width: 390, height: 844 });
     await ap.reload();
     await ap.locator('.pdfv').scrollIntoViewIfNeeded(); // the reader starts when it is near the screen
