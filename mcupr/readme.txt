@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.71.0 =
+* Post head redesigned: the category above the title, a lighter title, and date / reading time / views on one calm line without boxes; on Cover posts the text and every block under it sit in one centred column with equal space on both sides
+
 = 1.70.1 =
 * Cover posts: the text now starts at the same side as the blocks under it (gallery, attachments, tags, share) instead of being centred in the wide panel, and the head, the side rail and the panel line up
 

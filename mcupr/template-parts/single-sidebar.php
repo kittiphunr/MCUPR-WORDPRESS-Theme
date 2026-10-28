@@ -13,8 +13,9 @@ $box = 'soft-card p-5';
 	<div class="mt-2 grid gap-10 min-[1000px]:grid-cols-[minmax(0,1fr)_20rem]">
 		<article data-layout="sidebar" id="post-<?php the_ID(); ?>" <?php post_class( 'panel-card min-w-0' ); ?>>
 			<header<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
-				<h1 class="mcu-title post-title mt-5 mb-6"><?php the_title(); ?></h1>
-				<?php get_template_part( 'template-parts/article-meta' ); ?>
+				<?php get_template_part( 'template-parts/article-meta', null, array( 'part' => 'cat' ) ); ?>
+				<h1 class="mcu-title post-title mt-4 mb-5"><?php the_title(); ?></h1>
+				<?php get_template_part( 'template-parts/article-meta', null, array( 'part' => 'info' ) ); ?>
 			</header>
 			<?php mcupr_missing_translation_notice(); ?>
 			<?php if ( has_post_thumbnail() ) : ?>
