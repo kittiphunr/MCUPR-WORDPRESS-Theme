@@ -94,7 +94,7 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
   // ---- off in high-contrast mode, with the large-cursor option, and in TV mode
   for (const [name, prefs] of [['high contrast', '{"contrast":"wb"}'], ['large cursor option', '{"cursor":"1"}'], ['TV mode', '{"tv":"1"}'], ['"animations off" option', '{"motion":"1"}']]) {
     const c = await newCtx();
-    await c.addInitScript((v) => localStorage.setItem('mcupr_prefs', v), prefs);
+    await c.addInitScript((v) => { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', v); }, prefs);
     const p = await c.newPage();
     await p.goto(B + '/');
     await p.mouse.move(400, 400, { steps: 3 });

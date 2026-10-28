@@ -11,7 +11,6 @@
 	'use strict';
 
 	var KEY = 'mcupr_prefs';
-	var CONSENT_KEY = 'mcupr_consent';
 	var RECENT_KEY = 'mcupr_recent';
 	var FONT_LEVELS = [87.5, 100, 125, 150, 200]; // % of browser default; 200% satisfies WCAG 1.4.4
 	var FONT_DEFAULT = 1;
@@ -1312,17 +1311,7 @@
 		if (spatialMove(dir)) { e.preventDefault(); }
 	});
 
-	/* ---------------------------------------------------------------- cookie / PDPA notice
-	   The banner is plain HTML in the footer, shown by CSS while <html class="needs-consent"> (set before
-	   first paint by the inline head script), so it costs no JavaScript or library download. */
-	var cookieBox = $('#cookie-notice');
-	var cookieOk = cookieBox && $('[data-cookie-ok]', cookieBox);
-	if (cookieOk) {
-		cookieOk.addEventListener('click', function () {
-			try { localStorage.setItem(CONSENT_KEY, '1'); } catch (e) { /* ignore */ }
-			root.classList.remove('needs-consent');
-		});
-	}
+	/* The cookie / PDPA banner, the settings and what follows from the choice are in cookie-center.js (inc/cookie-center.php). */
 
 	/* ---- Finder-style news browser: view switcher (remembered) + source-list filter ---- */
 	var fb = $('[data-fb]');
@@ -1506,7 +1495,7 @@
 		var n = $('.vid-note', box);
 		if (n) { n.remove(); }
 		box.classList.add('is-on');
-		f.focus();
+		if (!window.__ccAuto) { f.focus(); } // not when the cookie choice showed it by itself
 	});
 
 	/* ---- Google Drive / Docs in a post: nothing is loaded from Google until "show here" is pressed ---- */
@@ -1531,7 +1520,7 @@
 		if (note) { note.hidden = true; }
 		b.hidden = true;
 		box.classList.add('is-on');
-		f.focus();
+		if (!window.__ccAuto) { f.focus(); }
 	});
 
 	/* ---- FAQ: live search (opens the matching questions) ---- */

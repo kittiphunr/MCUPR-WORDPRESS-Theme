@@ -13,6 +13,43 @@
 		return root.getAttribute('data-motion') !== '1' && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 	}
 
+	/* ------------------------------------------- nested accordion and nested tabs (Elementor 3.15+) */
+	$$('.e-n-accordion[data-one]').forEach(function (acc) {
+		var items = $$('details.e-n-accordion-item', acc);
+		items.forEach(function (d) {
+			d.addEventListener('toggle', function () {
+				if (d.open) { items.forEach(function (o) { if (o !== d) { o.open = false; } }); }
+			});
+		});
+	});
+	$$('.e-n-tabs').forEach(function (w) {
+		var titles = $$('.e-n-tab-title', w);
+		var panes = $$('.e-n-tab-panel', w);
+		if (!titles.length) { return; }
+		function show(n, focus) {
+			titles.forEach(function (t) {
+				var on = t.getAttribute('data-tab-index') === String(n);
+				t.setAttribute('aria-selected', String(on));
+				t.setAttribute('tabindex', on ? '0' : '-1');
+				t.classList.toggle('e-active', on);
+				if (on && focus) { t.focus(); }
+			});
+			panes.forEach(function (p) { p.hidden = p.getAttribute('data-tab-index') !== String(n); });
+		}
+		show(1, false);
+		titles.forEach(function (t, i) {
+			t.addEventListener('click', function () { show(t.getAttribute('data-tab-index'), false); });
+			t.addEventListener('keydown', function (e) {
+				var to = -1;
+				if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { to = (i + 1) % titles.length; }
+				else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { to = (i - 1 + titles.length) % titles.length; }
+				else if (e.key === 'Home') { to = 0; }
+				else if (e.key === 'End') { to = titles.length - 1; }
+				if (to > -1) { e.preventDefault(); show(titles[to].getAttribute('data-tab-index'), true); }
+			});
+		});
+	});
+
 	/* ---------------------------------------------------------------- tabs */
 	$$('.elementor-widget-tabs').forEach(function (w) {
 		var titles = $$('.elementor-tab-title', w);

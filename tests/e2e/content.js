@@ -129,7 +129,7 @@ const speechStub = (speakMs) => `(() => {
   ]) {
     for (const theme of ['light', 'dark']) {
       const c = await newCtx({}, mods);
-      await c.addInitScript((t) => localStorage.setItem('mcupr_prefs', JSON.stringify({ theme: t })), theme);
+      await c.addInitScript((t) => { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ theme: t })); }, theme);
       const p = await c.newPage();
       await p.goto(B + '/');
       const o = await probe(p);
@@ -486,7 +486,7 @@ const speechStub = (speakMs) => `(() => {
     ok((await p.locator('header.mcu-wheel').evaluate((el) => getComputedStyle(el, '::before').display)) === 'none', 'seal watermark hidden when printing');
     await c.close();
     const c2 = await newCtx({}, null);
-    await c2.addInitScript(() => localStorage.setItem('mcupr_prefs', JSON.stringify({ contrast: 'wb' })));
+    await c2.addInitScript(() => { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ contrast: 'wb' })); });
     const p2 = await c2.newPage();
     await p2.goto(B + '/about/');
     ok((await p2.locator('header.mcu-wheel').evaluate((el) => getComputedStyle(el, '::before').display)) === 'none', 'seal watermark hidden in high-contrast mode');

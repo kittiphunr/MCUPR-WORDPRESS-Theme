@@ -118,6 +118,9 @@ function mcupr_el_render_element( $el, $post_id, $parent = null ) {
 			return mcupr_el_render_container( $el, $post_id, $root, $parent );
 		case 'widget':
 			return mcupr_el_render_widget( $el, $post_id, $root );
+		case 'e-div-block':
+		case 'e-flexbox':
+			return mcupr_el_render_atomic_block( $el, $post_id, $parent );
 	}
 	return '';
 }

@@ -1951,6 +1951,158 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       }
       await ap.setViewportSize({ width: 1366, height: 900 });
     }
+    // Elementor pages made by the real Elementor (its own test templates), printed by the theme without the plugin: Elementor 4 blocks, nested tabs, nested accordion
+    {
+      const { execSync } = require('child_process'); const fsx = require('fs'); const pth = require('path');
+      const wlx = pth.resolve(__dirname, '../.site-starter/wp-load.php'), fxd = pth.resolve(__dirname, '../fixtures/elementor-real');
+      const phpx = (code) => { const f = require('os').tmpdir() + '/e2e-elr-' + process.pid + '.php'; fsx.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wlx) + '; wp_set_current_user(1); ' + code); return execSync('php ' + f + ' 2>/dev/null').toString().trim(); };
+      const mk = (slug, file) => phpx('$d = json_decode( file_get_contents( ' + JSON.stringify(pth.join(fxd, file)) + ' ), true ); $c = isset( $d["content"] ) ? $d["content"] : $d; $p = wp_insert_post( array( "post_type" => "page", "post_status" => "publish", "post_title" => "ELR ' + slug + '", "post_name" => ' + JSON.stringify(slug) + ', "post_content" => "<p>old</p>" ) ); update_post_meta( $p, "_elementor_edit_mode", "builder" ); update_post_meta( $p, "_elementor_data", wp_slash( wp_json_encode( $c ) ) ); update_post_meta( $p, "_elementor_template_type", "wp-page" ); echo $p;');
+      const ids = [mk('elr-mixed', 'mixed.json'), mk('elr-tabs', 'playwright/nested-tabs-with-icons.json'), mk('elr-acc', 'playwright/nested-accordion-with-content.json')];
+      const ep = await (await br.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
+      const eerr = []; ep.on('pageerror', (e) => eerr.push(e.message)); ep.on('console', (m) => { if (m.type() === 'error' && !/favicon|gravatar|net::ERR/.test(m.text())) { eerr.push(m.text()); } });
+      await ep.goto(B + '/elr-mixed/');
+      const mx = await ep.evaluate(() => { const hs = [...document.querySelectorAll('.e-heading-base')], bc = getComputedStyle(document.body).color; return { blocks: document.querySelectorAll('.e-div-block-base').length, heads: hs.length, paras: document.querySelectorAll('.e-paragraph-base').length, missing: document.querySelectorAll('.mcupr-el-missing').length, styled: hs.filter((h) => getComputedStyle(h).color !== bc).length, sized: new Set(hs.map((h) => getComputedStyle(h).fontSize)).size, hscroll: document.documentElement.scrollWidth > innerWidth + 1 }; });
+      ok(mx.blocks >= 50 && mx.heads >= 35 && mx.paras >= 25 && mx.missing === 0 && mx.styled >= 25 && mx.sized >= 4 && !mx.hscroll, 'elementor 4 page (real template): ' + mx.blocks + ' blocks, ' + mx.heads + ' headings (' + mx.styled + ' with their own colour, ' + mx.sized + ' sizes), ' + mx.paras + ' paragraphs, nothing left out, no sideways scroll');
+      await ep.goto(B + '/elr-tabs/');
+      const tb0 = await ep.evaluate(() => ({ tabs: document.querySelectorAll('.e-n-tab-title').length, shown: [...document.querySelectorAll('.e-n-tab-panel')].filter((p) => !p.hidden).length, sel: document.querySelectorAll('.e-n-tab-title[aria-selected=true]').length }));
+      ok(tb0.tabs >= 2 && tb0.shown === 1 && tb0.sel === 1, 'nested tabs (real template): ' + tb0.tabs + ' tabs, one panel shown');
+      await ep.click('.e-n-tab-title >> nth=1');
+      await ep.keyboard.press('ArrowRight');
+      const tb1 = await ep.evaluate(() => ({ sel: [...document.querySelectorAll('.e-n-tab-title')].findIndex((t) => t.getAttribute('aria-selected') === 'true'), shown: [...document.querySelectorAll('.e-n-tab-panel')].filter((p) => !p.hidden).map((p) => p.getAttribute('data-tab-index')) }));
+      ok(tb1.sel >= 1 && tb1.shown.length === 1 && +tb1.shown[0] === tb1.sel + 1, 'nested tabs: a click and the arrow key move to another tab and show only its panel (tab ' + (tb1.sel + 1) + ')');
+      await ep.goto(B + '/elr-acc/');
+      const ac0 = await ep.evaluate(() => ({ items: document.querySelectorAll('details.e-n-accordion-item').length, open: document.querySelectorAll('details.e-n-accordion-item[open]').length }));
+      await ep.click('summary.e-n-accordion-item-title >> nth=1');
+      await ep.click('summary.e-n-accordion-item-title >> nth=2');
+      await ep.waitForTimeout(200);
+      const ac1 = await ep.evaluate(() => ({ open: [...document.querySelectorAll('details.e-n-accordion-item')].map((d) => d.open) }));
+      ok(ac0.items >= 3 && ac1.open.filter(Boolean).length === 1 && ac1.open[2] === true, 'nested accordion (real template): ' + ac0.items + ' items, opening one closes the other (' + ac1.open.join(',') + ')');
+      for (const sl of ['elr-mixed', 'elr-tabs', 'elr-acc']) {
+        await ep.goto(B + '/' + sl + '/');
+        await ep.addScriptTag({ content: axeSource() });
+        const axr = await ep.evaluate(() => axe.run(document.querySelector('main') || document.body, { runOnly: ['wcag2a', 'wcag2aa'], rules: { 'color-contrast': { enabled: false } } })); // the colours are the page author's own
+        ok(axr.violations.length === 0, 'axe (' + sl + ', real Elementor template): ' + (axr.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      }
+      ok(eerr.length === 0, 'elementor pages (real templates): no script error' + (eerr.length ? ': ' + eerr.slice(0, 2).join(' | ') : ''));
+      await ep.context().close();
+      phpx('foreach ( ' + JSON.stringify(ids) + ' as $i ) { wp_delete_post( (int) $i, true ); }');
+    }
+    // cookie centre: the visitor chooses; nothing is kept for long, and nothing of other websites is loaded, without a yes
+    {
+      const { execSync } = require('child_process'); const fsx = require('fs'); const pth = require('path');
+      const wlx = pth.resolve(__dirname, '../.site-starter/wp-load.php');
+      const phpx = (code) => { const f = require('os').tmpdir() + '/e2e-cc-' + process.pid + '.php'; fsx.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wlx) + '; wp_set_current_user(1); ' + code); return execSync('php ' + f + ' 2>/dev/null').toString().trim(); };
+      const UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0';
+      const fresh = async (o = {}) => { const c = await br.newContext(Object.assign({ userAgent: UA, viewport: { width: 1280, height: 900 } }, o)); const pg = await c.newPage(); return { c, pg }; };
+      const rec = async (c) => { const k = (await c.cookies()).find((x) => x.name === 'mcupr_cc'); return k ? JSON.parse(decodeURIComponent(k.value)) : null; };
+      const ck = async (c, n) => (await c.cookies()).find((x) => x.name === n);
+      const stored = (pg) => pg.evaluate(() => { const l = []; for (let i = 0; i < localStorage.length; i++) { l.push(localStorage.key(i)); } const s = []; for (let i = 0; i < sessionStorage.length; i++) { s.push(sessionStorage.key(i)); } return { local: l.filter((k) => k.indexOf('mcupr_') === 0), session: s.filter((k) => k.indexOf('mcupr_') === 0) }; });
+      // 1. a first visit: the banner with three equal choices, nothing kept for long, other websites wait for their button
+      let { c: c1, pg: p1 } = await fresh();
+      await p1.goto(B + '/fx-media/');
+      await p1.waitForSelector('#cookie-notice', { state: 'visible' });
+      const b1 = await p1.evaluate(() => { const bs = [...document.querySelectorAll('#cookie-notice .cc-btns .btn')].map((b) => Math.round(b.getBoundingClientRect().height)); return { n: bs.length, same: Math.max(...bs) - Math.min(...bs) <= 2, needs: document.documentElement.classList.contains('needs-consent'), dlg: document.getElementById('cc-dialog').open, frames: document.querySelectorAll('.gemb-frame, .vid-frame, .fmap-frame').length, focus: !!(document.activeElement && document.activeElement.closest && document.activeElement.closest('#cookie-notice')) }; });
+      ok(b1.n === 3 && b1.same && b1.needs && !b1.dlg && b1.frames === 0 && !b1.focus, 'cookie centre: a first visit shows the banner with three equal buttons; the dialog is closed, no embedded content is loaded, the banner does not take the focus');
+      await p1.evaluate(() => { localStorage.setItem('mcupr_prefs', '{"theme":"dark"}'); });
+      let st = await stored(p1);
+      ok(!st.local.includes('mcupr_prefs') && st.session.includes('mcupr_prefs') && (await p1.evaluate(() => localStorage.getItem('mcupr_prefs'))) === '{"theme":"dark"}', 'cookie centre: before a choice a display setting works but is held for this visit only (sessionStorage), not kept in localStorage');
+      await p1.goto(B + '/fx-media/?lang=en');
+      const lg0 = await ck(c1, 'mcupr_lang'), sn0 = await ck(c1, 'mcupr_seen');
+      ok(lg0 && lg0.expires === -1 && sn0 && sn0.expires === -1, 'cookie centre: before a choice the language and view-counter cookies last only until the browser is closed');
+      // 2. necessary only
+      await p1.click('#cookie-notice [data-cc-reject]');
+      const r1 = await rec(c1);
+      ok(r1 && r1.p === 0 && r1.s === 0 && r1.e === 0 && r1.v === 1 && !(await p1.isVisible('#cookie-notice')), 'cookie centre: "necessary only" is saved (cookie mcupr_cc, all three off) and hides the banner');
+      await p1.reload();
+      ok(!(await p1.isVisible('#cookie-notice')) && (await p1.evaluate(() => window.mcuprConsent.has('preferences'))) === false, 'cookie centre: the banner does not come back, the choice is remembered');
+      st = await stored(p1);
+      ok(!st.local.includes('mcupr_prefs'), 'cookie centre: with "necessary only" nothing of the theme is in localStorage');
+      // 3. the dialog from the footer
+      await p1.locator('footer [data-cc-open]').scrollIntoViewIfNeeded();
+      await p1.click('footer [data-cc-open]');
+      await p1.waitForSelector('#cc-dialog[open]');
+      const d1 = await p1.evaluate(() => { const sw = [...document.querySelectorAll('#cc-dialog input.cc-sw')]; return { n: sw.length, roles: sw.every((i) => i.getAttribute('role') === 'switch'), names: sw.every((i) => !!document.querySelector('label[for="' + i.id + '"]')), off: [...document.querySelectorAll('#cc-dialog input[data-cc-cat]')].every((i) => !i.checked), nec: (() => { const n = document.getElementById('cc-c-necessary'); return n.checked && n.disabled; })(), tables: document.querySelectorAll('#cc-dialog .cc-table').length, modal: document.getElementById('cc-dialog').matches(':modal') }; });
+      ok(d1.n === 4 && d1.roles && d1.names && d1.off && d1.nec && d1.tables === 4 && d1.modal, 'cookie centre: the footer button opens the settings (a modal dialog): 4 kinds, the necessary one fixed on, the rest off as chosen, each switch labelled, a table of what is kept for each kind');
+      await p1.addScriptTag({ content: axeSource() });
+      const ax1 = await p1.evaluate(() => axe.run(document.getElementById('cc-dialog'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+      ok(ax1.violations.length === 0, 'axe (cookie dialog): ' + (ax1.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      await p1.keyboard.press('Escape');
+      await p1.waitForFunction(() => !document.getElementById('cc-dialog').open);
+      ok(await p1.evaluate(() => !!(document.activeElement && document.activeElement.hasAttribute('data-cc-open'))), 'cookie centre: Esc closes the settings and the focus goes back to the button that opened them');
+      // 4. preferences and statistics on
+      await p1.click('footer [data-cc-open]');
+      await p1.waitForSelector('#cc-dialog[open]');
+      await p1.check('#cc-c-preferences'); await p1.check('#cc-c-statistics');
+      await p1.click('#cc-dialog [data-cc-save]');
+      await p1.waitForFunction(() => !document.getElementById('cc-dialog').open);
+      const r2 = await rec(c1);
+      ok(r2 && r2.p === 1 && r2.s === 1 && r2.e === 0, 'cookie centre: choosing display settings and statistics is saved');
+      await p1.evaluate(() => { localStorage.setItem('mcupr_prefs', '{"theme":"dark"}'); });
+      st = await stored(p1);
+      ok(st.local.includes('mcupr_prefs'), 'cookie centre: with a yes the display settings are kept in localStorage');
+      await c1.clearCookies(); await p1.evaluate(() => { document.cookie = 'mcupr_cc=' + encodeURIComponent(JSON.stringify({ v: 1, t: 1, p: 1, s: 1, e: 0 })) + '; Path=/'; });
+      await p1.goto(B + '/works/work-1/?lang=th');
+      const lg1 = await ck(c1, 'mcupr_lang'), sn1 = await ck(c1, 'mcupr_seen');
+      ok(lg1 && lg1.expires > Date.now() / 1000 + 300 * 86400 && sn1 && sn1.expires > Date.now() / 1000 + 3600, 'cookie centre: with a yes the language cookie lasts a year and the view-counter cookie hours');
+      // 5. taking the yes back removes what was kept
+      await p1.locator('footer [data-cc-open]').scrollIntoViewIfNeeded();
+      await p1.click('footer [data-cc-open]');
+      await p1.waitForSelector('#cc-dialog[open]');
+      await p1.uncheck('#cc-c-preferences'); await p1.uncheck('#cc-c-statistics');
+      await p1.click('#cc-dialog [data-cc-save]');
+      await p1.waitForFunction(() => !document.getElementById('cc-dialog').open);
+      st = await stored(p1);
+      ok(!st.local.includes('mcupr_prefs') && !(await ck(c1, 'mcupr_lang')) && !(await ck(c1, 'mcupr_seen')), 'cookie centre: taking the yes back removes the stored display settings and the language / view-counter cookies');
+      await c1.close();
+      // 6. accept all: embedded content is shown at once, without the focus and without autoplay
+      ({ c: c1, pg: p1 } = await fresh());
+      await p1.goto(B + '/fx-media/');
+      await p1.click('#cookie-notice [data-cc-accept]');
+      await p1.waitForSelector('.gemb-frame', { timeout: 15000 });
+      const e1 = await p1.evaluate(() => ({ frames: document.querySelectorAll('.gemb-frame, .vid-frame').length, focusIn: !!(document.activeElement && document.activeElement.tagName === 'IFRAME'), play: [...document.querySelectorAll('.vid-frame')].some((f) => /autoplay=1/.test(f.src)), rec: window.mcuprConsent.state }));
+      ok(e1.frames >= 1 && !e1.focusIn && !e1.play && e1.rec.e === 1 && e1.rec.p === 1 && e1.rec.s === 1, 'cookie centre: "accept all" shows the Google document at once (' + e1.frames + ' embedded), without taking the focus and without autoplay');
+      await c1.close();
+      // 7. the old notice counts as a yes to display settings only; a new version asks again
+      ({ c: c1, pg: p1 } = await fresh());
+      await c1.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+      await p1.goto(B + '/');
+      const lg = await p1.evaluate(() => ({ shown: document.documentElement.classList.contains('needs-consent'), p: window.mcuprConsent.has('preferences'), e: window.mcuprConsent.has('embeds'), cookie: /mcupr_cc=/.test(document.cookie) }));
+      ok(!lg.shown && lg.p && !lg.e && lg.cookie, 'cookie centre: a visitor who accepted the old notice is not asked again: display settings yes, embedded content no, the cookie is written for the server');
+      await c1.close();
+      phpx('set_theme_mod( "mcupr_cc_ver", 2 );');
+      ({ c: c1, pg: p1 } = await fresh());
+      await c1.addCookies([{ name: 'mcupr_cc', value: encodeURIComponent(JSON.stringify({ v: 1, t: 1, p: 1, s: 1, e: 1 })), url: B }]);
+      await p1.goto(B + '/');
+      ok(await p1.isVisible('#cookie-notice'), 'cookie centre: when the version of the question is raised in the Customizer, a visitor with an older choice is asked again');
+      await c1.close();
+      phpx('remove_theme_mod( "mcupr_cc_ver" );');
+      // 8. a phone: the banner and the dialog fit, the dialog scrolls, no sideways scroll
+      ({ c: c1, pg: p1 } = await fresh({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true }));
+      await p1.goto(B + '/');
+      await p1.waitForSelector('#cookie-notice', { state: 'visible' });
+      const m1 = await p1.evaluate(() => { const r = document.getElementById('cookie-notice').getBoundingClientRect(); return { fit: r.left >= 0 && r.right <= innerWidth && r.bottom <= innerHeight, h: document.documentElement.scrollWidth > innerWidth + 1, btn: Math.min(...[...document.querySelectorAll('#cookie-notice .btn')].map((b) => b.getBoundingClientRect().height)) }; });
+      ok(m1.fit && !m1.h && m1.btn >= 44, 'cookie centre, phone: the banner fits the screen and its buttons are at least 44 px tall (' + Math.round(m1.btn) + ')');
+      await p1.click('#cookie-notice [data-cc-open]');
+      await p1.waitForSelector('#cc-dialog[open]');
+      const m2 = await p1.evaluate(() => { const d = document.getElementById('cc-dialog'), r = d.getBoundingClientRect(); return { fit: r.left >= 0 && r.right <= innerWidth && r.height <= innerHeight, sw: Math.min(...[...d.querySelectorAll('.cc-sw')].map((s) => s.getBoundingClientRect().height)), h: document.documentElement.scrollWidth > innerWidth + 1 }; });
+      ok(m2.fit && !m2.h && m2.sw >= 24, 'cookie centre, phone: the dialog fits the screen (it scrolls inside) with no sideways scroll');
+      await c1.close();
+      // 9. the cookie policy page lists what is kept and has the settings button
+      ({ c: c1, pg: p1 } = await fresh());
+      await c1.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+      await p1.goto(B + '/cookie-policy/');
+      const pp = await p1.evaluate(() => ({ tables: document.querySelectorAll('main .cc-table').length, btn: document.querySelectorAll('main [data-cc-open]').length, names: [...document.querySelectorAll('main .cc-table code')].map((c) => c.textContent).join(' ') }));
+      ok(pp.tables === 4 && pp.btn === 1 && /mcupr_cc/.test(pp.names) && /mcupr_seen/.test(pp.names), 'cookie centre: the cookie policy page lists what is kept (' + pp.tables + ' tables, built from the theme\'s own list) and has the settings button');
+      await c1.close();
+      // 10. switched off in the Customizer: no banner, no dialog, no script
+      phpx('set_theme_mod( "mcupr_cc_on", false );');
+      ({ c: c1, pg: p1 } = await fresh());
+      await p1.goto(B + '/');
+      const off = await p1.evaluate(() => ({ banner: !!document.getElementById('cookie-notice'), dlg: !!document.getElementById('cc-dialog'), api: typeof window.mcuprConsent, needs: document.documentElement.classList.contains('needs-consent') }));
+      ok(!off.banner && !off.dlg && off.api === 'undefined' && !off.needs, 'cookie centre: switched off in the Customizer there is no banner, no dialog and no script (a site with its own consent tool)');
+      await c1.close();
+      phpx('remove_theme_mod( "mcupr_cc_on" );');
+    }
     // pictures: an uploaded JPEG becomes a WebP
     {
       const { execSync } = require('child_process');
@@ -3019,6 +3171,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     // an editor cannot open the page
     // the page for the student
     const sc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    await sc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
     const up = await sc.newPage();
     const uerr = [];
     up.on('pageerror', (e) => uerr.push(e.message));
@@ -3026,7 +3179,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     ok(await up.locator('.stu-form button').count() === 1 && /\*\*\*@mail-e2e/.test(await up.locator('.stu-intro').innerText()) && !/7701@mail-e2e/.test(await up.content()), 'unsubscribe page: opening the link shows a button and a hidden address, it changes nothing');
     ok(phpM('echo get_post_meta(' + ids[0] + ',"_mcupr_s_nomail",true)===""?"none":"stopped";') === 'none', 'unsubscribe page: and nothing was changed by opening it');
     await Promise.all([up.waitForNavigation(), up.click('.stu-form button')]);
-    ok(await up.locator('[role=status]').count() === 1 && phpM('echo get_post_meta(' + ids[0] + ',"_mcupr_s_nomail",true)===""?"none":"stopped";') === 'stopped', 'unsubscribe page: the button stops announcements and says so');
+    ok(await up.locator('main [role=status]').count() === 1 && phpM('echo get_post_meta(' + ids[0] + ',"_mcupr_s_nomail",true)===""?"none":"stopped";') === 'stopped', 'unsubscribe page: the button stops announcements and says so');
     ok(phpM('echo count(mcupr_mail_recipients(array())["ids"]) . " " . mcupr_mail_recipients(array())["stopped"];') === '2 1', 'unsubscribe page: that student is no longer in the list of who gets it');
     await Promise.all([up.waitForNavigation(), up.click('.stu-form button')]);
     ok(phpM('echo get_post_meta(' + ids[0] + ',"_mcupr_s_nomail",true)===""?"none":"stopped";') === 'none', 'unsubscribe page: the student can start announcements again');
@@ -4099,7 +4252,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         const ferr = [];
         fp.on('pageerror', (e) => ferr.push(e.message));
         fp.on('console', (m) => { if (m.type() === 'error') { ferr.push(m.text()); } });
-        await fp.addInitScript((f) => { try { if (!sessionStorage.getItem('fxinit')) { sessionStorage.setItem('fxinit', '1'); localStorage.removeItem('mcupr_bk_pos'); localStorage.setItem('mcupr_bk_sound', '1'); } } catch (e) { /* */ } }, fx);
+        await fp.addInitScript((f) => { try { localStorage.setItem('mcupr_consent', '1'); if (!sessionStorage.getItem('fxinit')) { sessionStorage.setItem('fxinit', '1'); localStorage.removeItem('mcupr_bk_pos'); localStorage.setItem('mcupr_bk_sound', '1'); } } catch (e) { /* */ } }, fx);
         await fp.goto(B + '/?p=' + ids[1]);
         await fp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
         await fp.locator('.bk-reader').scrollIntoViewIfNeeded();
@@ -4194,7 +4347,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await cp.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
         await cp.goto(B + '/?p=' + ids[1]);
         await cp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
-        try { await cp.click('text=รับทราบ', { timeout: 1000 }); } catch (e) { /* no banner */ }
+        try { await cp.click('#cookie-notice [data-cc-reject]', { timeout: 1000 }); } catch (e) { /* no banner */ }
         await cp.locator('.bk-reader').scrollIntoViewIfNeeded();
         await cp.waitForTimeout(800);
         if ((await cp.locator('.bk-reader').getAttribute('data-fx')) === 'webgl') {
@@ -4286,7 +4439,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
               await lp.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
               await lp.goto(B + '/?p=' + bid);
               await lp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
-              try { await lp.click('text=รับทราบ', { timeout: 1000 }); } catch (e) { /* no banner */ }
+              try { await lp.click('#cookie-notice [data-cc-reject]', { timeout: 1000 }); } catch (e) { /* no banner */ }
               await lp.locator('.bk-reader').scrollIntoViewIfNeeded();
               await lp.waitForTimeout(1200);
               const lrd = lp.locator('.bk-reader'), lst = lp.locator('.bk-stage'), tag = 'e-books: landscape ' + kind + ' (' + fx + ', ' + dev + ')';
@@ -4330,7 +4483,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       for (const [menu, w] of [['side', 1428], ['top', 1428], ['side', 1920], ['top', 1180]]) {
         const kc = await br.newContext({ viewport: { width: w, height: 700 } });
         const kp = await kc.newPage();
-        await kp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        await kp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
         await kp.goto(B + '/');
         await kp.waitForTimeout(900);
         const m = await kp.evaluate((menuMode) => {
@@ -4363,7 +4516,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await sp.goto(B + '/wp-login.php');
         await sp.fill('#user_login', 'e2eadmin'); await sp.fill('#user_pass', 'e2e-Admin-pass-1'); await sp.click('#wp-submit');
         await sp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
-        await sp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', m ? '1' : '0'); } catch (e) { /* */ } }, sbmin);
+        await sp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', m ? '1' : '0'); } catch (e) { /* */ } }, sbmin);
         await sp.goto(B + '/');
         await sp.waitForTimeout(900);
         const g = await sp.evaluate(() => { const f = document.querySelector('.site-page').getBoundingClientRect(), n = document.querySelector('.site-nav').getBoundingClientRect(), bar = document.getElementById('wpadminbar'), de = document.documentElement; return { right: de.clientWidth - f.right, nl: n.left, ntop: n.top - (bar ? bar.getBoundingClientRect().bottom : 0), ftop: f.top - (bar ? bar.getBoundingClientRect().bottom : 0), gap: f.left - n.right, sw: de.scrollWidth - de.clientWidth, bar: !!bar }; });
@@ -4379,7 +4532,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     for (const [w, sbmin] of [[1428, false], [1920, true], [1180, false]]) {
       const fc = await br.newContext({ viewport: { width: w, height: 800 } });
       const fp = await fc.newPage();
-      await fp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', m ? '1' : '0'); } catch (e) { /* */ } }, sbmin);
+      await fp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', m ? '1' : '0'); } catch (e) { /* */ } }, sbmin);
       await fp.goto(B + '/');
       await fp.waitForTimeout(700);
       const g = await fp.evaluate(() => { const r = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; }; const f = r('.site-page'), hero = r('.hero'); const ws = [...document.querySelectorAll('#content .wrap:not(.hero-wrap)')].slice(0, 6).map((e) => e.getBoundingClientRect()); return f && hero ? { top: hero.top - f.top, right: hero.right - f.right, left: hero.left - f.left, wl: Math.max.apply(null, ws.map((x) => Math.abs((x.left - f.left) - (f.right - x.right)))), gl: Math.min.apply(null, ws.map((x) => x.left - f.left)), gr: Math.max.apply(null, ws.map((x) => x.left - f.left)), sw: document.documentElement.scrollWidth - innerWidth } : null; });
@@ -4398,7 +4551,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     for (const [w, menu] of [[1428, 'side'], [1920, 'side'], [1180, 'top']]) {
       const oc = await br.newContext({ viewport: { width: w, height: 800 } });
       const op = await oc.newPage();
-      await op.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); localStorage.setItem('mcupr_sbmin', '0'); } catch (e) { /* */ } }, menu);
+      await op.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); localStorage.setItem('mcupr_sbmin', '0'); } catch (e) { /* */ } }, menu);
       await op.goto(B + '/offices/');
       await op.waitForTimeout(600);
       const og = await op.evaluate(() => { const gr = document.querySelector('.office-grid'); if (!gr) { return null; } const g = gr.getBoundingClientRect(); const cs = [...gr.children].map((e) => e.getBoundingClientRect()); return { n: cs.length, rows: new Set(cs.map((c) => Math.round(c.top))).size, gap: g.right - Math.max.apply(null, cs.map((c) => c.right)), sw: document.documentElement.scrollWidth - innerWidth }; });
@@ -4522,7 +4675,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       for (const [w, menu] of [[1428, 'side'], [390, 'top']]) {
         const bc = await br.newContext({ viewport: { width: w, height: 800 } });
         const bp = await bc.newPage();
-        await bp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        await bp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
         await bp.goto(B + '/?pagename=e2e-band');
         await bp.waitForTimeout(600);
         const bg = await bp.evaluate(() => { const h = document.querySelector('header.mcu-wheel'); const t = h.querySelector('.mcu-title'); return { room: parseFloat(getComputedStyle(t).paddingBottom) >= parseFloat(getComputedStyle(t).fontSize) * 0.25 && parseFloat(getComputedStyle(t).paddingTop) >= parseFloat(getComputedStyle(t).fontSize) * 0.15, fs: parseFloat(getComputedStyle(t).fontSize), grad: /gradient/.test(getComputedStyle(h).backgroundImage), radius: parseFloat(getComputedStyle(h).borderBottomLeftRadius), pill: parseFloat(getComputedStyle(h.querySelector('nav')).borderTopLeftRadius) > 20, chips: h.querySelectorAll('.band-chip').length, sw: document.documentElement.scrollWidth - innerWidth, dupUpdated: document.querySelectorAll('.reader')[0] ? document.querySelectorAll('.no-print .inline-flex .ic').length : 0 }; });
@@ -4551,7 +4704,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       for (const [w, menu] of [[1428, 'side'], [390, 'top']]) {
         const qc = await br.newContext({ viewport: { width: w, height: 800 } });
         const qp = await qc.newPage();
-        await qp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        await qp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
         await qp.goto(B + '/?mcupr_office=e2e-ofhead&mcupr_osec=albums');
         await qp.waitForTimeout(600);
         const qg = await qp.evaluate(() => { const h = document.querySelector('.of-head'); const up = document.querySelector('.of-trail ol'); return { head: !!h, h1: document.querySelectorAll('h1').length, count: h && h.querySelector('.of-count b') ? h.querySelector('.of-count b').textContent : '', lead: !!(h && h.querySelector('.of-head-lead')), icon: !!(h && h.querySelector('svg')), pill: up ? parseFloat(getComputedStyle(up).borderTopLeftRadius) > 15 : false, cards: document.querySelectorAll('.album-grid > *').length, sw: document.documentElement.scrollWidth - innerWidth }; });
@@ -4577,7 +4730,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       for (const [w, menu] of [[1428, 'side'], [390, 'top']]) {
         const rc = await br.newContext({ viewport: { width: w, height: 800 } });
         const rp = await rc.newPage();
-        await rp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        await rp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
         const rtag = 'office page (' + w + ' px, ' + menu + ' menu)';
         await rp.goto(B + '/?page_id=' + rids[1]);
         await rp.waitForTimeout(600);
@@ -4612,7 +4765,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       for (const w of [1428, 1920]) {
         const hc = await br.newContext({ viewport: { width: w, height: 800 } });
         const hp = await hc.newPage();
-        await hp.addInitScript(() => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); } catch (e) { /* */ } });
+        await hp.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); } catch (e) { /* */ } });
         await hp.goto(B + '/');
         await hp.waitForTimeout(700);
         const hg = await hp.evaluate(() => { const h = document.querySelector('.hero').getBoundingClientRect(); const f = document.querySelector('.site-page').getBoundingClientRect(); return { l: Math.abs(h.left - f.left), t: Math.abs(h.top - f.top), r: Math.abs(h.right - f.right), sw: document.documentElement.scrollWidth - innerWidth }; });
@@ -4629,7 +4782,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       const cerr = [];
       cp.on('pageerror', (e) => cerr.push(e.message));
       // a visitor sees neither the bar nor the icon
-      await cp.addInitScript(() => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', '0'); } catch (e) { /* */ } });
+      await cp.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', '0'); } catch (e) { /* */ } });
       await cp.goto(B + '/');
       await cp.waitForTimeout(600);
       ok((await cp.locator('.cc-fab').count()) === 0 && (await cp.locator('#wpadminbar').count()) === 0, 'toolbar: a visitor sees no bar and no icon');
@@ -4638,7 +4791,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await cp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
       await cp.goto(B + '/');
       await cp.waitForTimeout(900);
-      try { await cp.click('text=รับทราบ', { timeout: 800 }); } catch (e) { /* no banner */ }
+      try { await cp.click('#cookie-notice [data-cc-reject]', { timeout: 800 }); } catch (e) { /* no banner */ }
       ok((await cp.locator('#wpadminbar').count()) === 0 && (await cp.evaluate(() => getComputedStyle(document.documentElement).marginTop)) === '0px', 'toolbar: the black bar is not drawn and does not push the page down');
       const fab = cp.locator('.cc-fab');
       ok(await fab.isVisible(), 'toolbar: an editor sees the floating icon');
