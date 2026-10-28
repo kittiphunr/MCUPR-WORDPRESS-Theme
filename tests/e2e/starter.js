@@ -914,6 +914,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(hh.title.ta === 'left' && hh.title.l - hh.hero.l < 40 && (!hh.eye || hh.eye.l === hh.title.l), 'phone hero: the words start at the left, the greeting line and the title on one edge (' + hh.title.l + ' / ' + (hh.eye && hh.eye.l) + ')');
     ok(hh.hs && hh.hs.disp === 'flex' && hh.hs.b <= hh.dock.t && hh.hs.t > hh.hero.t && !hh.sw, 'phone hero: the search bar is in the first screen, above the bottom bar (bottom ' + (hh.hs && hh.hs.b) + ' px, bar from ' + hh.dock.t + ' px)');
     ok(hh.flt && hh.flt.w >= 44 && hh.flt.h >= 44, 'phone hero: the filter button is at least 44 x 44 px');
+    await ap.waitForTimeout(1500); // the slides that are not shown are still fading out just after the load: wait until the hero is still
     const hax = await ap.evaluate(() => axe.run(document.querySelector('.hero'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
     ok(hax.violations.length === 0, 'phone hero axe: ' + (hax.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
     await ap.locator('[data-hs-filter]').click();
