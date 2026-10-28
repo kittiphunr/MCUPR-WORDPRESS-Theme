@@ -893,7 +893,6 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.locator('[data-dock-menu]').click();
     const dm = await ap.evaluate(() => ({ exp: document.querySelector('[data-dock-menu]').getAttribute('aria-expanded'), hdr: document.querySelector('.nav-toggle').getAttribute('aria-expanded'), open: document.getElementById('site-nav').classList.contains('is-open') }));
     ok(dm.exp === 'true' && dm.hdr === 'true' && dm.open, 'bottom bar: the round button opens the menu drawer, and the header button agrees');
-    await ap.keyboard.press('Escape').catch(() => {});
     await ap.locator('[data-close-nav]').click();
     ok((await ap.getAttribute('[data-dock-menu]', 'aria-expanded')) === 'false', 'bottom bar: closing the drawer puts the round button back');
     await ap.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
