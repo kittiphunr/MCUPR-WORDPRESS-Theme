@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 	<header class="mcu-wheel bg-tint py-10"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<div class="wrap">
 			<?php mcupr_breadcrumb( false ); ?>
-			<h1 class="mt-4 mb-4 text-3xl font-bold leading-tight min-[900px]:text-4xl"><?php the_title(); ?></h1>
+			<h1 class="post-title mt-5 mb-6"><?php the_title(); ?></h1>
 			<?php get_template_part( 'template-parts/article-meta' ); ?>
 		</div>
 	</header>

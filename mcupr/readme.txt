@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.68.1 =
+* Post head: a calmer, more beautiful title (bold, balanced lines, accent bar), the category and date / reading time / views as pill chips, and on the Cover layout a glass breadcrumb, a stronger gradient and a taller picture with the content overlapping its bottom edge
+
 = 1.68.0 =
 * Cookie centre: visitors choose which cookies and stored settings the website may keep (necessary / your settings / anonymous statistics / content from other websites) in a banner with three equal buttons and a settings dialog that can be opened again from the footer; nothing but the necessary is kept for long before a yes; embedded videos, maps and Google documents are shown at once only with a yes; the cookie policy page lists what is kept from the theme's own list; Customizer: switch it off, choose the kinds, raise the version to ask everyone again
 

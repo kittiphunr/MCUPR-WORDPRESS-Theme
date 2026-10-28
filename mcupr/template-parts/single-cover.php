@@ -11,22 +11,23 @@ defined( 'ABSPATH' ) || exit;
 	<?php if ( mcupr_office_shown() ) : ?>
 		<?php get_template_part( 'template-parts/office-article-head' ); ?>
 	<?php else : ?>
-	<header class="mcu-wheel relative isolate flex min-h-[22rem] items-end overflow-hidden bg-neutral-800 text-white min-[900px]:min-h-[30rem]"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+	<header class="post-hero mcu-wheel relative isolate flex min-h-[24rem] items-end overflow-hidden bg-neutral-800 text-white min-[900px]:min-h-[32rem]"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<?php if ( has_post_thumbnail() ) : ?>
 			<span class="noimg:hidden absolute inset-0 -z-20" aria-hidden="true"><?php the_post_thumbnail( 'mcupr-hero', array( 'alt' => '', 'class' => 'size-full object-cover', 'sizes' => '100vw', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></span>
 		<?php endif; ?>
-		<span class="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/55 to-black/20" aria-hidden="true"></span>
-		<div class="wrap pt-24 pb-8 [&_nav]:text-white/90 [&_nav_a]:!text-white">
+		<span class="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/40 to-black/5" aria-hidden="true"></span>
+		<span class="absolute inset-0 -z-10 bg-gradient-to-r from-black/45 via-transparent to-transparent" aria-hidden="true"></span>
+		<div class="wrap pt-24 pb-24 [&_nav]:text-white/90 [&_nav_a]:!text-white">
 			<?php mcupr_breadcrumb( false ); ?>
 			<div class="mt-6 max-w-4xl">
-				<h1 class="mb-4 animate-fade-up text-3xl font-bold leading-tight min-[900px]:text-5xl"><?php the_title(); ?></h1>
+				<h1 class="post-title mt-5 mb-6 animate-fade-up"><?php the_title(); ?></h1>
 				<div class="[&_*]:!text-white [&_span.rounded-full]:!bg-primary [&_span.rounded-full]:!text-on-primary"><?php get_template_part( 'template-parts/article-meta' ); ?></div>
 			</div>
 		</div>
 	</header>
 	<?php endif; ?>
 
-	<div class="wrap mt-10 grid gap-8 min-[1000px]:grid-cols-[14rem_minmax(0,1fr)]">
+	<div class="wrap relative z-10 -mt-14 grid gap-8 min-[1000px]:grid-cols-[14rem_minmax(0,1fr)]">
 		<aside class="no-print min-[1000px]:sticky min-[1000px]:top-6 min-[1000px]:self-start" aria-label="<?php echo esc_attr( mcupr_t( 'article_tools' ) ); ?>">
 			<div class="space-y-4">
 				<?php get_template_part( 'template-parts/listen', null, array( 'target' => '#article-body', 'title' => wp_strip_all_tags( get_the_title() ) ) ); ?>
