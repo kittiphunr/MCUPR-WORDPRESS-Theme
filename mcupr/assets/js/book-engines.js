@@ -300,7 +300,8 @@
 	}
 
 	/* ------------------------------------------------------------------ WebGL */
-	var PAD = 0.955, OVER = 1.036; // the pages are a little smaller than the picture, so that the hard covers can stick out around them
+	var HEAD = 0.1; // the canvas reaches this much (of the book's size) beyond the book on every side, so that a page lifted towards the viewer, which looks bigger, is not cut off at the edge of the picture
+	var PAD = 0.955 / (1 + 2 * HEAD), OVER = 1.036; // the pages are a little smaller than the picture, so that the hard covers can stick out around them
 	var VS = [
 		'attribute vec2 aPos;',
 		'uniform vec2 uM, uN;', // the fold: a point on it, and the unit normal that points to the corner that is held
@@ -327,7 +328,7 @@
 		'}'
 	].join('\n');
 	var FS = [
-		'precision mediump float;',
+		'#ifdef GL_FRAGMENT_PRECISION_HIGH', 'precision highp float;', '#else', 'precision mediump float;', '#endif', // the light and the shadow are sums of small numbers: half precision (some phones and laptops) is not enough
 		'uniform sampler2D uFront, uBack;',
 		'uniform vec2 uShM, uShN;',
 		'uniform float uHasBack, uShade, uShI, uPaper, uCovF, uCovB, uInF, uInB, uOver;',
@@ -345,7 +346,7 @@
 		'  if (!front) { n = -n; }',
 		'  vec3 l = normalize(vec3(-0.30, 0.35, 0.89));',
 		'  float dif = max(dot(n, l), 0.0) / l.z;',
-		'  float lit = 0.5 + 0.5 * dif;',
+		'  float lit = 0.8 + 0.2 * min(dif, 1.0);', // a page lying flat is full bright; a turning one is shaded a little, never dark
 		'  vec3 h = normalize(l + vec3(0.0, 0.0, 1.0));',
 		'  float spec = pow(max(dot(n, h), 0.0), 38.0) * 0.10 * (1.0 - uShade);',
 		'  col = col * min(lit, 1.06) + spec;',
@@ -545,7 +546,7 @@
 			var nx = dx / dist, ny = dy / dist;
 			var rad = 0.1 * clamp(dist / 0.3, 0, 1) * clamp((2 - dist) / 0.3, 0, 1) * (m.cover ? 1.7 : 1) * (1 + 0.3 * Math.min(Math.abs(m.v) / 3, 1)) + 0.008; // never tighter than the mesh can show
 			var mx = (cx + m.px) / 2 - nx * Math.PI * rad / 2, my = (cyy + m.py) / 2 - ny * Math.PI * rad / 2;
-			return { M: [mx, my], N: [nx, ny], R: rad, I: 0.5 * clamp(dist / 0.3, 0, 1) * clamp((2 - dist) / 0.4, 0, 1) };
+			return { M: [mx, my], N: [nx, ny], R: rad, I: 0.4 * clamp(dist / 0.3, 0, 1) * clamp((2 - dist) / 0.4, 0, 1) };
 		}
 		/* the thickness of the book: the board that carries the pages (the back cover) and the pages stacked along the edges, each side
 		   as thick as the number of pages that are on it */
@@ -581,7 +582,7 @@
 			drawBlock(m, turning ? j : m.t, L - (turning ? j + 1 : m.t));
 			if (turning) {
 				fold = foldOf(m);
-				if (fold) { shadow = { M: fold.M, N: fold.N, I: fold.I }; }
+				if (fold && isFinite(fold.I) && isFinite(fold.M[0] + fold.M[1] + fold.N[0] + fold.N[1])) { shadow = { M: fold.M, N: fold.N, I: fold.I }; } // a shadow is only along the fold, never over the whole page
 			}
 			// the pages at rest: left (back of the leaf before, turned over) and right (front of the leaf after)
 			var left = turning ? j - 1 : m.t - 1, right = turning ? j + 1 : m.t;
@@ -633,7 +634,7 @@
 		this.resize = function (m) {
 			model = m || model;
 			if (!cv) { return; }
-			var dpr = Math.min(window.devicePixelRatio || 1, 2), w = Math.round(host.clientWidth * dpr), h = Math.round(host.clientHeight * dpr);
+			var dpr = Math.min(window.devicePixelRatio || 1, 2), w = Math.round(host.clientWidth * (1 + 2 * HEAD) * dpr), h = Math.round(host.clientHeight * (1 + 2 * HEAD) * dpr);
 			if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
 			want();
 		};
