@@ -75,7 +75,7 @@ function mcupr_remember_lang() {
 	if ( is_admin() || empty( $_GET['lang'] ) || headers_sent() ) {
 		return;
 	}
-	mcupr_set_cookie( 'mcupr_lang', mcupr_lang(), time() + YEAR_IN_SECONDS, true, COOKIEPATH ? COOKIEPATH : '/' );
+	mcupr_set_cookie( 'mcupr_lang', mcupr_lang(), time() + YEAR_IN_SECONDS, false, COOKIEPATH ? COOKIEPATH : '/' );
 }
 add_action( 'init', 'mcupr_remember_lang' );
 

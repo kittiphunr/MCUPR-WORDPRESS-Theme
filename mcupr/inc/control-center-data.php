@@ -202,6 +202,13 @@ function mcupr_cc_data_all() {
 				'desc' => 'ลิงก์นโยบายความเป็นส่วนตัว คุกกี้ และการเข้าถึงเว็บ',
 				'what' => 'เลือกหน้านโยบายที่จะแสดงลิงก์ในส่วนท้ายตามมาตรฐานเว็บภาครัฐ (ความเป็นส่วนตัว คุกกี้ การเข้าถึง ฯลฯ)', 'steps' => array( 'สร้างหน้านโยบายใน "หน้าเว็บ" ก่อน', 'กดเปิดแล้วเลือกหน้านั้นในแต่ละช่อง', 'กด "เผยแพร่"' ), 'tips' => array( 'ธีมมีหน้านโยบายตัวอย่างให้นำเข้าได้ที่ "ส่งออก/นำเข้าค่าตั้งค่า"' ),
 			),
+			'cookies'  => array(
+				'cat' => 'look', 'icon' => 'lock', 'title' => 'คุกกี้และความเป็นส่วนตัว', 'open' => 'cust:mcupr_cookies', 'cap' => 'edit_theme_options',
+				'desc' => 'ป้ายขออนุญาตคุกกี้ และให้ผู้เข้าชมตั้งค่าเอง (จำเป็น / การตั้งค่า / สถิติ / เนื้อหาจากเว็บอื่น)',
+				'what' => 'ผู้เข้าชมครั้งแรกเห็นป้ายให้เลือก "ยอมรับทั้งหมด" "เฉพาะที่จำเป็น" หรือ "ตั้งค่า" และเปลี่ยนใจได้ทุกเมื่อจากปุ่ม "ตั้งค่าคุกกี้" ท้ายหน้า ถ้าไม่อนุญาต การตั้งค่าการแสดงผลใช้ได้แค่จนปิดเบราว์เซอร์ ตัวนับผู้เข้าชมไม่เก็บคุกกี้ยาว วิดีโอ แผนที่ และเอกสาร Google รอให้กดปุ่มก่อนโหลด ตารางคุกกี้ในหน้า "นโยบายคุกกี้" สร้างจากสิ่งที่ธีมเก็บจริง',
+				'steps' => array( 'กดเปิด แล้วเลือกว่าจะถามเรื่องสถิติและเนื้อหาจากเว็บอื่นหรือไม่', 'ถ้าแก้นโยบายคุกกี้ ให้เพิ่ม "เวอร์ชันของคำถาม" หนึ่งหน่วย ผู้เข้าชมทุกคนจะถูกถามใหม่', 'ตรวจหน้า "นโยบายคุกกี้" ว่ามีตารางรายการคุกกี้ (รหัสสั้น [mcupr_cookie_table]) และปุ่มตั้งค่า ([mcupr_cookie_settings])' ),
+				'tips' => array( 'ปลั๊กอินที่เพิ่มคุกกี้เอง (สถิติ โฆษณา) ต้องเพิ่มรายการผ่านตัวกรอง mcupr_cc_inventory และควรรอความยินยอมก่อนโหลด (ฟังเหตุการณ์ mcupr:consent)', 'ปิดป้ายนี้ได้เฉพาะเมื่อเว็บมีเครื่องมือขอความยินยอมอื่นอยู่แล้ว' ),
+			),
 			// ------------------------------------------------------------ visitors
 			'forum'    => array(
 				'cat' => 'visitors', 'icon' => 'message-square', 'title' => 'กระดานสนทนา', 'open' => 'type:mcupr_topic', 'add' => 'new:mcupr_topic',
@@ -439,7 +446,7 @@ function mcupr_cc_data_all() {
 function mcupr_cc_order() {
 	return array(
 		'content'  => array( 'posts', 'pages', 'media', 'events', 'albums', 'videos', 'works', 'faq', 'books' ),
-		'look'     => array( 'identity', 'home', 'sections', 'blocks', 'numbers', 'notice', 'menus', 'logos', 'colors', 'display', 'print', 'policy', 'customizer' ),
+		'look'     => array( 'identity', 'home', 'sections', 'blocks', 'numbers', 'notice', 'menus', 'logos', 'colors', 'display', 'print', 'policy', 'cookies', 'customizer' ),
 		'visitors' => array( 'messages', 'answers', 'forms', 'forum', 'polls', 'social', 'stats' ),
 		'students' => array( 'students', 'student_import', 'requests', 'student_grades', 'student_settings', 'student_mail', 'student_codes', 'student_log' ),
 		'people'   => array( 'offices', 'groups', 'units', 'persons', 'staff_hub' ),

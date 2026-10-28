@@ -264,16 +264,11 @@ C['privacy-policy'] = (todo('แม่แบบตามพระราชบั
  '<h2>9. การติดต่อและการร้องเรียน</h2>\n<p>ท่านสามารถใช้สิทธิหรือสอบถามได้ที่ DPO ตามข้อ 1 หากเห็นว่าการประมวลผลไม่ชอบด้วยกฎหมาย มีสิทธิร้องเรียนต่อสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</p>\n'
  '<h2>10. การเปลี่ยนแปลงนโยบาย</h2>\n<p>หน่วยงานอาจปรับปรุงนโยบายนี้และจะแจ้งไว้ในหน้านี้ วันที่ปรับปรุงล่าสุดแสดงที่ส่วนบนของหน้า</p>\n')
 
-C['cookie-policy'] = (todo('ตารางด้านล่างตรงกับสิ่งที่ธีม MCUPR เก็บจริง — หากเพิ่มปลั๊กอิน (เช่น สถิติ โฆษณา) ต้องเพิ่มรายการในตาราง') +
- '<p>เว็บไซต์ของ [mcupr_org] ใช้ที่เก็บข้อมูลในเบราว์เซอร์เท่าที่จำเป็นต่อการทำงานและเพื่อจดจำค่าที่ท่านเลือก เว็บไซต์นี้ไม่ใช้คุกกี้เพื่อการโฆษณา และธีมไม่ส่งข้อมูลไปยังผู้ให้บริการภายนอก</p>\n'
- '<h2>รายการที่เก็บในเบราว์เซอร์</h2>\n' + table(['ชื่อ', 'ประเภท', 'วัตถุประสงค์', 'อายุ'], [
-  ['mcupr_lang', 'คุกกี้ที่จำเป็น', 'จำภาษาที่ท่านเลือก', '1 ปี'],
-  ['mcupr_prefs', 'ที่เก็บข้อมูลในเครื่อง (localStorage)', 'จำการตั้งค่าการแสดงผล: ธีม สี ขนาดอักษร โหมดสำหรับผู้มีปัญหาทางสายตา ตำแหน่งเมนู', 'จนกว่าท่านจะลบ'],
-  ['mcupr_consent', 'ที่เก็บข้อมูลในเครื่อง', 'จำว่าท่านรับทราบประกาศนี้แล้ว', 'จนกว่าท่านจะลบ'],
-  ['mcupr_seen', 'คุกกี้ที่จำเป็น', 'กันไม่ให้นับยอดผู้เข้าชมหน้าเดิมซ้ำ (เก็บเลขหน้าที่เปิดล่าสุด ไม่มีข้อมูลส่วนบุคคล)', '6 ชั่วโมง'],
-  ['mcupr_sbmin / รายการค้นหาล่าสุด', 'ที่เก็บข้อมูลในเครื่อง', 'จำการยุบเมนูด้านข้าง และคำค้นล่าสุดของท่าน', 'จนกว่าท่านจะลบ'],
-  ['wordpress_* / comment_author_*', 'คุกกี้ของ WordPress', 'การเข้าสู่ระบบของผู้ดูแล และการจำชื่อ/อีเมลผู้แสดงความคิดเห็น (เมื่อท่านติ๊กยินยอม)', 'ตามที่ WordPress กำหนด']]) +
- '<h2>การจัดการ</h2>\n<p>ท่านลบข้อมูลเหล่านี้ได้จากการตั้งค่าเบราว์เซอร์ หรือปุ่ม “รีเซ็ตทั้งหมด” ในกล่องตั้งค่าการแสดงผล</p>\n')
+C['cookie-policy'] = (todo('ตารางด้านล่างสร้างอัตโนมัติจากสิ่งที่ธีม MCUPR เก็บจริง — หากเพิ่มปลั๊กอิน (เช่น สถิติ โฆษณา) ต้องเพิ่มรายการ (ตัวกรอง mcupr_cc_inventory) และแจ้งในนโยบายนี้ แล้วเพิ่ม “เวอร์ชันของคำถาม” ในปรับแต่ง → คุกกี้ เพื่อถามผู้เข้าชมทุกคนใหม่') +
+ '<p>เว็บไซต์ของ [mcupr_org] ใช้คุกกี้และที่เก็บข้อมูลในเบราว์เซอร์ <strong>เท่าที่จำเป็นต่อการทำงานเท่านั้นโดยไม่ต้องขออนุญาต</strong> ส่วนการจดจำการตั้งค่า สถิติการเข้าชมแบบไม่ระบุตัวตน และการแสดงเนื้อหาจากเว็บไซต์อื่นทันที จะทำเมื่อท่านอนุญาตเท่านั้น ท่านเลือกได้เองที่ป้ายแจ้งเมื่อเข้าเว็บไซต์ครั้งแรก และเปลี่ยนใจได้ทุกเมื่อ เว็บไซต์นี้ไม่ใช้คุกกี้เพื่อการโฆษณา</p>\n'
+ '<h2>ตั้งค่าของท่าน</h2>\n<p>กดปุ่มด้านล่างเพื่อเลือกหรือเปลี่ยนการตั้งค่าคุกกี้ (เปิดได้จากปุ่ม “ตั้งค่าคุกกี้” ท้ายทุกหน้าด้วย) การเลือกเก็บไว้ 1 ปี</p>\n[mcupr_cookie_settings]\n'
+ '<h2>รายการที่เก็บในเบราว์เซอร์</h2>\n[mcupr_cookie_table]\n'
+ '<h2>การจัดการ</h2>\n<p>ท่านเปลี่ยนใจหรือถอนความยินยอมได้ทุกเมื่อจากปุ่มด้านบน การถอนความยินยอมไม่กระทบการเก็บข้อมูลที่ทำไปแล้วก่อนถอน และท่านลบข้อมูลเหล่านี้ได้จากการตั้งค่าเบราว์เซอร์ หรือปุ่ม “รีเซ็ตทั้งหมด” ในกล่องตั้งค่าการแสดงผล</p>\n')
 
 C['accessibility-statement'] = (todo('ตรวจสอบกับผลการทดสอบจริงของเว็บไซต์ของท่าน และใส่วันที่/ผู้ตรวจสอบ') +
  '<p>[mcupr_org] มุ่งมั่นให้เว็บไซต์นี้ใช้งานได้โดยทุกคน รวมถึงผู้พิการและผู้สูงอายุ โดยใช้มาตรฐาน WCAG 2.2 ระดับ AA (Web Content Accessibility Guidelines) และแนวทางมาตรฐานเว็บไซต์ภาครัฐ</p>\n'
@@ -311,7 +306,7 @@ C['eservice'] = (todo('ใส่ลิงก์ระบบจริงของ
 EN_BODY = {
  'about': '<p>[mcupr_org] – write a 2–3 sentence introduction here.</p>',
  'privacy-policy': '<p>This is the English version of the privacy policy of [mcupr_org]. Replace this text with the translated policy approved by your Data Protection Officer.</p>',
- 'cookie-policy': '<p>This website stores only what it needs to work and to remember your choices (language, display settings, notice acknowledgement). It uses no advertising cookies and sends no data to third parties.</p>',
+ 'cookie-policy': '<p>This website keeps only what it needs to work, without asking. Remembering your settings, anonymous visit statistics and showing content from other websites at once happen only if you allow them, at the notice on your first visit, and you can change your mind at any time. It uses no advertising cookies.</p>\n[mcupr_cookie_settings]\n[mcupr_cookie_table]',
  'accessibility-statement': '<p>[mcupr_org] aims to make this website usable by everyone, following WCAG 2.2 level AA. Tools: text size, light/dark and high-contrast modes, text-to-speech, full keyboard use. To report a problem write to [mcupr_org field="email"].</p>',
  'contact': '[mcupr_contact]',
  'sitemap': '[mcupr_sitemap]',

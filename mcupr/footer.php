@@ -88,6 +88,7 @@ foreach ( $policy as $row ) {
 				echo esc_html( mcupr_t( 'theme_credit' ) . ' ' . MCUPR_VERSION ) . ' · ';
 				?>
 				<button type="button" class="min-h-8 cursor-pointer border-0 bg-transparent p-0 text-link underline" data-open-about><?php mcupr_e( 'about' ); ?></button>
+				<?php if ( function_exists( 'mcupr_cc_enabled' ) && get_theme_mod( 'mcupr_cc_on', true ) ) : ?> · <?php echo mcupr_cc_button( 'min-h-8 cursor-pointer border-0 bg-transparent p-0 text-link underline' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php endif; ?>
 			</p>
 		</div>
 	</div>
@@ -98,15 +99,6 @@ foreach ( $policy as $row ) {
 <button type="button" id="back-to-top" class="btn fixed right-4 bottom-4 z-40 hidden shadow-lg print:hidden" aria-label="<?php echo esc_attr( mcupr_t( 'back_top' ) ); ?>" title="<?php echo esc_attr( mcupr_t( 'back_top' ) . ' · ' . mcupr_t( 'back_top_hold' ) ); ?>" aria-haspopup="true">
 	<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </button>
-
-<?php
-$cookie_url = mcupr_policy_url( 'cookie' ) ? mcupr_policy_url( 'cookie' ) : mcupr_policy_url( 'privacy' );
-?>
-<div id="cookie-notice" class="cookie-notice soft-card" role="region" aria-labelledby="cookie-title">
-	<p id="cookie-title" class="m-0 mb-1 font-bold"><?php mcupr_e( 'cookie_title' ); ?></p>
-	<p class="m-0 mb-3 text-sm text-fg2"><?php mcupr_e( 'cookie_msg' ); ?><?php if ( $cookie_url ) : ?> <a href="<?php echo esc_url( $cookie_url ); ?>"><?php mcupr_e( 'cookie_policy' ); ?></a><?php endif; ?></p>
-	<button type="button" class="btn" data-cookie-ok><?php mcupr_e( 'cookie_ok' ); ?></button>
-</div>
 
 <?php get_template_part( 'template-parts/modals' ); ?>
 

@@ -10,7 +10,7 @@
  *
  * Files: elementor.php (this: detection, the page, the style, the template, the report), elementor-render.php (sections, columns,
  * containers, widgets), elementor-css.php (settings → CSS), elementor-widgets.php (widgets of Elementor), elementor-widgets-pro.php
- * (widgets of Elementor Pro), assets/css/elementor-base.css, assets/js/elementor-compat.js.
+ * (widgets of Elementor Pro), elementor-atomic.php (Elementor 4: e-div-block, e-heading ...), assets/css/elementor-base.css, assets/js/elementor-compat.js.
  *
  * @package MCUPR
  */
@@ -21,6 +21,8 @@ require_once MCUPR_DIR . '/inc/elementor-css.php';
 require_once MCUPR_DIR . '/inc/elementor-render.php';
 require_once MCUPR_DIR . '/inc/elementor-widgets.php';
 require_once MCUPR_DIR . '/inc/elementor-widgets-pro.php';
+require_once MCUPR_DIR . '/inc/elementor-atomic.php';
+require_once MCUPR_DIR . '/inc/elementor-nested.php';
 
 /** Is the plugin itself running? Then it prints its pages and the theme leaves them alone. */
 function mcupr_el_plugin_active() {
