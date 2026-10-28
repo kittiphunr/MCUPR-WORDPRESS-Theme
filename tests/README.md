@@ -41,3 +41,17 @@ npm run check              # ตรวจเร็ว (ไม่ต้องม�
 ## ข้อมูลทดสอบ (`fixtures/seed.php`)
 ข่าวภาษาไทย 10 ข่าว (ข่าวที่ 1 มีคำแปล en/zh) พร้อมรูปที่สร้างด้วย GD, หน้านโยบายความเป็นส่วนตัว, เมนูครบทุกตำแหน่ง และค่า Customizer
 - `bash starter.sh` – imports the starter file with the real WordPress Importer into a clean site and checks pages/menus/footer/axe (needs network once to clone the importer).
+
+## Loading screen cost (not part of the automatic run)
+
+`perf/preloader.js` and `perf/preloader-nav.js` measure what the logo loading screen costs: FCP, LCP, CLS, TBT, INP and the time until the
+page is really seen (the later of LCP and the moment the screen left, because Chrome counts a picture as painted even when the screen covers it).
+Cold loads, median of N, on a slow phone (4× CPU, 1.6 Mbit/s, 150 ms) and without throttling; the three settings off / first page only / every page.
+
+    BASE_URL=http://localhost:8090 CHROMIUM_PATH=/opt/pw-browsers/chromium node perf/preloader.js 7
+    BASE_URL=http://localhost:8090 CHROMIUM_PATH=/opt/pw-browsers/chromium node perf/preloader-nav.js 7
+
+Result on 2026-10-28 (the local test site; a real host with real network will differ): FCP, CLS, TBT and INP are the same with the screen on or off;
+LCP as Chrome reports it is the same too. What changes is when the visitor sees the page: with "every page" a fast page (LCP 0.2–0.35 s) is seen
+after about 1.0–1.4 s, and a click from page to page takes about 1.0 s instead of 0.3 s; on the slow phone, where a page takes 3.4–4.1 s anyway,
+the screen adds 0.1–1.0 s. "First page only" costs the same on the first page and nothing afterwards.
