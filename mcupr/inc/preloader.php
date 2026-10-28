@@ -11,7 +11,7 @@
  *   • it stays at least 0.7 s on the first page of a visit and 0.35 s on the next ones (so it never just flashes), and at most 3.2 s
  *     whatever the page is still loading;
  *   • links that are not a normal move to another page (new tab, downloads, files, mailto, #anchors, with a key held) do not start it.
- * Customizer → MCUPR: Animation: on every page / only the first page of a visit / off.
+ * Customizer → MCUPR: Animation: on every page (the default) / only the first page of a visit / off, its own logo (and one for dark mode), and its own text or none.
  *
  * @package MCUPR
  */
@@ -55,10 +55,16 @@ if(mode==='every'){document.addEventListener('click',function(e){if(e.defaultPre
 }
 add_action( 'wp_head', 'mcupr_preload_head', 2 );
 
-/** The logo of the loading screen: the uploaded logo (with its dark-mode version) or the emblem of the theme. */
+/** The logo of the loading screen: the one chosen for it, else the uploaded site logo (with its dark-mode version), else the emblem of the theme. */
 function mcupr_preload_logo() {
-	$main = (int) get_theme_mod( 'custom_logo' );
-	$dark = (int) get_theme_mod( 'mcupr_logo_dark' );
+	$own = (int) get_theme_mod( 'mcupr_preload_logo' );
+	if ( $own && wp_attachment_is_image( $own ) ) {
+		$main = $own;
+		$dark = (int) get_theme_mod( 'mcupr_preload_logo_dark' );
+	} else {
+		$main = (int) get_theme_mod( 'custom_logo' );
+		$dark = (int) get_theme_mod( 'mcupr_logo_dark' );
+	}
 	if ( ! $main ) {
 		return mcupr_default_logo( 'pl-logo' );
 	}
@@ -69,12 +75,21 @@ function mcupr_preload_logo() {
 	return $o;
 }
 
+/** The words under the logo: the text written for it, else the name of the site; empty when the admin hid the text. */
+function mcupr_preload_text() {
+	if ( ! get_theme_mod( 'mcupr_preload_text_show', true ) ) {
+		return '';
+	}
+	$t = trim( wp_strip_all_tags( (string) get_theme_mod( 'mcupr_preload_text', '' ) ) );
+	return '' !== $t ? $t : mcupr_org_name();
+}
+
 /** The screen itself, first thing in the body (hidden by the stylesheet unless the head script switched it on). */
 function mcupr_preload_markup() {
 	if ( ! mcupr_preload_enabled() ) {
 		return;
 	}
-	echo '<div id="preloader" class="pl" aria-hidden="true"><span class="pl-bg"></span><div class="pl-box"><span class="pl-ring"><svg viewBox="0 0 100 100" focusable="false"><circle class="pl-track" cx="50" cy="50" r="46"/><circle class="pl-arc" cx="50" cy="50" r="46"/></svg>' . mcupr_preload_logo() . '</span><span class="pl-name">' . esc_html( mcupr_org_name() ) . '</span><span class="pl-bar"><i></i></span></div></div>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo '<div id="preloader" class="pl" aria-hidden="true"><span class="pl-bg"></span><div class="pl-box"><span class="pl-ring"><svg viewBox="0 0 100 100" focusable="false"><circle class="pl-track" cx="50" cy="50" r="46"/><circle class="pl-arc" cx="50" cy="50" r="46"/></svg>' . mcupr_preload_logo() . '</span>' . ( '' !== mcupr_preload_text() ? '<span class="pl-name">' . esc_html( mcupr_preload_text() ) . '</span>' : '' ) . '<span class="pl-bar"><i></i></span></div></div>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 }
 add_action( 'wp_body_open', 'mcupr_preload_markup', 1 );
 
@@ -101,6 +116,14 @@ add_action(
 				),
 			)
 		);
+		$wp_customize->add_setting( 'mcupr_preload_logo', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
+		$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'mcupr_preload_logo', array( 'section' => 'mcupr_display', 'priority' => 34, 'label' => __( 'Loading screen: its own logo', 'mcupr' ), 'description' => __( 'Leave empty to use the logo of the site.', 'mcupr' ), 'mime_type' => 'image' ) ) );
+		$wp_customize->add_setting( 'mcupr_preload_logo_dark', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
+		$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'mcupr_preload_logo_dark', array( 'section' => 'mcupr_display', 'priority' => 35, 'label' => __( 'Loading screen: its logo for dark mode', 'mcupr' ), 'description' => __( 'Only used together with its own logo above.', 'mcupr' ), 'mime_type' => 'image' ) ) );
+		$wp_customize->add_setting( 'mcupr_preload_text_show', array( 'default' => true, 'sanitize_callback' => static function ( $v ) { return (bool) $v; } ) );
+		$wp_customize->add_control( 'mcupr_preload_text_show', array( 'section' => 'mcupr_display', 'priority' => 36, 'label' => __( 'Loading screen: show the text under the logo', 'mcupr' ), 'type' => 'checkbox' ) );
+		$wp_customize->add_setting( 'mcupr_preload_text', array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ) );
+		$wp_customize->add_control( 'mcupr_preload_text', array( 'section' => 'mcupr_display', 'priority' => 37, 'label' => __( 'Loading screen: text', 'mcupr' ), 'description' => __( 'Leave empty to show the name of the site.', 'mcupr' ), 'type' => 'text' ) );
 	},
 	20
 );

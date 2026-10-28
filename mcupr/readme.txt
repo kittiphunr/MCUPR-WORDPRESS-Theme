@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.69.0 =
+* Loading screen: stays on every page by default and can still be switched off (or limited to the first page of a visit); it can now have its own logo (and one for dark mode) and its own text, or no text at all (Customizer → Animation)
+
 = 1.68.1 =
 * Post head: a calmer, more beautiful title (bold, balanced lines, accent bar), the category and date / reading time / views as pill chips, and on the Cover layout a glass breadcrumb, a stronger gradient and a taller picture with the content overlapping its bottom edge
 
