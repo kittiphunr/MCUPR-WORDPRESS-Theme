@@ -19,9 +19,10 @@ defined( 'ABSPATH' ) || exit;
 		<span class="absolute inset-0 -z-10 bg-gradient-to-r from-black/45 via-transparent to-transparent" aria-hidden="true"></span>
 		<div class="wrap pt-24 pb-24 [&_nav]:text-white/90 [&_nav_a]:!text-white">
 			<?php mcupr_breadcrumb( false ); ?>
-			<div class="mt-6 max-w-4xl">
-				<h1 class="post-title mt-5 mb-6 animate-fade-up"><?php the_title(); ?></h1>
-				<div class="[&_*]:!text-white [&_span.rounded-full]:!bg-primary [&_span.rounded-full]:!text-on-primary"><?php get_template_part( 'template-parts/article-meta' ); ?></div>
+			<div class="mt-8 max-w-4xl">
+				<?php get_template_part( 'template-parts/article-meta', null, array( 'part' => 'cat' ) ); ?>
+				<h1 class="post-title mt-4 mb-5 animate-fade-up"><?php the_title(); ?></h1>
+				<?php get_template_part( 'template-parts/article-meta', null, array( 'part' => 'info' ) ); ?>
 			</div>
 		</div>
 	</header>
@@ -35,11 +36,12 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 		</aside>
 		<div class="panel-card min-w-0">
+			<div class="post-col mx-auto max-w-[52rem]">
 			<?php mcupr_missing_translation_notice(); ?>
 			<?php if ( mcupr_office_shown() && has_post_thumbnail() ) : ?>
 				<figure class="noimg:hidden m-0 mb-6"><?php the_post_thumbnail( 'mcupr-hero', array( 'class' => 'w-full rounded-2xl', 'sizes' => '(min-width: 1300px) 940px, (min-width: 1000px) 70vw, calc(100vw - 4rem)', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></figure>
 			<?php endif; ?>
-			<div id="article-body" class="reader max-w-[48rem]"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+			<div id="article-body" class="reader"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 				<?php
 				the_content();
 				wp_link_pages();
@@ -49,6 +51,7 @@ defined( 'ABSPATH' ) || exit;
 			<?php the_tags( '<p class="mt-8 flex flex-wrap gap-2 text-sm [&_a]:inline-flex [&_a]:min-h-8 [&_a]:items-center [&_a]:rounded-full [&_a]:bg-tint [&_a]:px-3 [&_a]:no-underline"><span class="sr-only">' . esc_html( mcupr_t( 'tags' ) ) . '</span>', '', '</p>' ); ?>
 			<?php get_template_part( 'template-parts/share' ); ?>
 		<?php get_template_part( 'template-parts/post-nav' ); ?>
+			</div>
 		</div>
 	</div>
 </article>

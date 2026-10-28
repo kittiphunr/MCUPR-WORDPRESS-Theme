@@ -859,8 +859,22 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     for (const lay of ['cover', 'sidebar']) {
       await ap.goto(B + '/?name=fx-layout-' + lay);
       const lw = await ap.evaluate(() => { const r = (e) => e && e.getBoundingClientRect(), f = r(document.querySelector('#colophon .wrap')), b = r(document.querySelector('#article-body')), sd = r(document.querySelector('main aside')), pc = r(document.querySelector('.panel-card')); return { fl: Math.round(f.left), fr: Math.round(f.right), body: Math.round(b.width), left: Math.round(Math.min(...[sd, pc].filter(Boolean).map((x) => x.left))), right: Math.round(Math.max(...[sd, pc].filter(Boolean).map((x) => x.right))) }; });
-      ok(Math.abs(lw.left - lw.fl) <= 1 && Math.abs(lw.right - lw.fr) <= 1 && lw.body <= 770 && lw.body >= 300, 'post layout ' + lay + ': the frame runs from ' + lw.left + ' to ' + lw.right + ' px, the footer frame from ' + lw.fl + ' to ' + lw.fr + ' px; the text column is ' + lw.body + ' px');
+      ok(Math.abs(lw.left - lw.fl) <= 1 && Math.abs(lw.right - lw.fr) <= 1 && lw.body <= 840 && lw.body >= 300, 'post layout ' + lay + ': the frame runs from ' + lw.left + ' to ' + lw.right + ' px, the footer frame from ' + lw.fl + ' to ' + lw.fr + ' px; the text column is ' + lw.body + ' px');
     }
+    // a Cover post: the head and the side rail share a left edge; inside the panel one centred column holds the text and every block, with the same space on both sides
+    await ap.setViewportSize({ width: 1440, height: 900 });
+    await ap.goto(B + '/?name=fx-layout-cover');
+    const ce = await ap.evaluate(() => {
+      const R = (q) => { const x = document.querySelector(q); if (!x) { return null; } const b = x.getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right) }; };
+      const kids = [...document.querySelectorAll('.post-col > *')].filter((k) => k.getBoundingClientRect().width > 0).map((k) => Math.round(k.getBoundingClientRect().left));
+      return { crumb: R('.post-hero nav ol'), kick: R('.post-hero .pm-kicker .pm-cat'), title: R('.post-title'), info: R('.pm-info'), rail: R('article aside'), panel: R('.panel-card'), col: R('.post-col'), body: R('#article-body'), kids };
+    });
+    ok(ce.crumb && ce.kick && ce.crumb.l === ce.kick.l && ce.kick.l === ce.title.l && ce.title.l === ce.info.l && ce.info.l === ce.rail.l, 'cover post: breadcrumb, category, title, info line and the side rail share one left edge (' + [ce.crumb, ce.kick, ce.title, ce.info, ce.rail].map((x) => x && x.l).join('/') + ')');
+    ok(ce.body.l === ce.col.l && ce.kids.length >= 2 && ce.kids.every((k) => k === ce.col.l), 'cover post: the text and every block under it start at the same edge (' + ce.kids.join(',') + ')');
+    ok(Math.abs((ce.col.l - ce.panel.l) - (ce.panel.r - ce.col.r)) <= 2, 'cover post: the same space on the left and on the right of the column (' + (ce.col.l - ce.panel.l) + ' / ' + (ce.panel.r - ce.col.r) + ' px)');
+    const hd = await ap.evaluate(() => ({ cat: document.querySelectorAll('.post-hero .pm-kicker').length, above: document.querySelector('.pm-kicker').compareDocumentPosition(document.querySelector('.post-title')) & Node.DOCUMENT_POSITION_FOLLOWING, flat: getComputedStyle(document.querySelector('.pm-info .pm-chip')).backgroundColor === 'rgba(0, 0, 0, 0)' }));
+    ok(hd.cat === 1 && hd.above && hd.flat, 'post head: the category sits above the title and the date / time / views line has no boxes');
+    await ap.setViewportSize({ width: 1366, height: 900 });
     await ap.goto(B + '/?name=fx-media');
     await ap.locator('.pdfv').scrollIntoViewIfNeeded();
     await ap.waitForSelector('.pdfv[data-state="ready"]', { timeout: 30000 });

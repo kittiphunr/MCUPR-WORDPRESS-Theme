@@ -14,8 +14,9 @@ defined( 'ABSPATH' ) || exit;
 	<header class="mcu-wheel bg-tint py-10"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<div class="wrap">
 			<?php mcupr_breadcrumb( false ); ?>
-			<h1 class="post-title mt-5 mb-6"><?php the_title(); ?></h1>
-			<?php get_template_part( 'template-parts/article-meta' ); ?>
+			<?php get_template_part( 'template-parts/article-meta', null, array( 'part' => 'cat' ) ); ?>
+			<h1 class="post-title mt-4 mb-5"><?php the_title(); ?></h1>
+			<?php get_template_part( 'template-parts/article-meta', null, array( 'part' => 'info' ) ); ?>
 		</div>
 	</header>
 	<?php endif; ?>
