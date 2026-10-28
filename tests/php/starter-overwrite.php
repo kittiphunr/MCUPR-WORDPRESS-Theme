@@ -93,7 +93,7 @@ t( null === get_theme_mod( 'mcupr_num_bachelor', null ) || '' === get_theme_mod(
 t( $st['theme_mods']['mcupr_abt_text'] === get_theme_mod( 'mcupr_abt_text' ), 'settings: the home page "about" text is the starter\'s' );
 foreach ( get_theme_mods() as $k => $v ) { remove_theme_mod( $k ); }
 foreach ( (array) $keep as $k => $v ) { set_theme_mod( $k, $v ); }
-delete_option( 'mcupr_so_settings_backup' );
+delete_option( 'mcupr_so_settings_backup' ); delete_option( 'mcupr_so_settings_backups' );
 $set( $pages['history']['content'], $pages['history']['excerpt'] ); // leave the page as the import made it: later tests read its description
 $wpdb->update( $wpdb->posts, array( 'post_modified' => '2025-01-01 09:00:00' ), array( 'ID' => $id ) );
 

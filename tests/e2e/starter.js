@@ -191,6 +191,26 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok((await p.$$('.site-nav li.is-open')).length === 1, 'opening a second menu item closes the first (one panel at a time)');
   await p.keyboard.press('Escape');
 
+  // sidebar mode on a tablet: the menu has a button in the header (a lone round button in the corner was not found); on a phone the round button stays
+  for (const [w, h, dev] of [[820, 1180, 'tablet'], [1099, 800, 'small laptop'], [390, 800, 'phone']]) {
+    const sc = await br.newContext({ viewport: { width: w, height: h } });
+    await sc.addInitScript(() => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+    const sp = await sc.newPage();
+    await sp.goto(B + '/');
+    await sp.waitForTimeout(600);
+    const sv = await sp.evaluate(() => { const w = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().width) : 0; }; return { tog: w('.nav-toggle'), fab: w('#nav-fab'), top: Math.round(document.querySelector('.nav-toggle').getBoundingClientRect().top) }; });
+    if (dev === 'phone') {
+      ok(sv.fab >= 44 && sv.tog === 0, 'sidebar mode, ' + dev + ' (' + w + ' px): the round button in the corner opens the menu (' + sv.fab + ' px)');
+    } else {
+      ok(sv.tog >= 44 && sv.fab === 0 && sv.top < 80, 'sidebar mode, ' + dev + ' (' + w + ' px): the menu has a button in the header (' + sv.tog + ' px wide), no lone round button');
+      await sp.click('.nav-toggle');
+      await sp.waitForFunction(() => document.querySelector('#site-nav').classList.contains('is-open'));
+      await sp.waitForTimeout(700); // the drawer slides in
+      const nv = await sp.evaluate(() => { const n = document.querySelector('#site-nav'), b = n.getBoundingClientRect(); return { vis: getComputedStyle(n).visibility, left: Math.round(b.left), w: innerWidth, links: n.querySelectorAll('.menu > li > a').length, exp: document.querySelector('.nav-toggle').getAttribute('aria-expanded') }; });
+      ok(nv.vis === 'visible' && nv.left < nv.w - 200 && nv.links >= 5 && nv.exp === 'true', 'sidebar mode, ' + dev + ': the button opens the menu (' + nv.links + ' entries), aria-expanded says so');
+    }
+    await sc.close();
+  }
   // full-screen menu
   ok(await p.isVisible('[data-fs-open]'), 'desktop: the "All menu" button is shown');
   ok((await p.$('#fs-menu')) === null, 'full-screen menu is not in the page until it is opened');
@@ -1470,6 +1490,56 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         await ap.check('input[name="sure"]');
         await Promise.all([ap.waitForNavigation(), ap.click('button:has-text("แทนที่ด้วยข้อมูลตั้งต้นล่าสุด")')]);
         ok(await ap.evaluate(() => /แทนที่แล้ว: [01] หน้า/.test(document.body.innerText) || /ไม่ได้แตะต้อง/.test(document.body.innerText)), 'overwrite card: after the confirmation the result is shown in Thai');
+        // a lived-in site: pages edited by an editor, old, or built with Elementor; replace some, put one back, replace the settings and put them back
+        {
+          const { execSync } = require('child_process'); const fsx = require('fs');
+          const wlx = require('path').resolve(__dirname, '../.site-starter/wp-load.php');
+          const phpx = (code) => { const f = require('os').tmpdir() + '/e2e-so-' + process.pid + '.php'; fsx.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wlx) + '; wp_set_current_user(1); global $wpdb; ' + code); return execSync('php ' + f + ' 2>/dev/null').toString().trim(); };
+          const snapF = require('os').tmpdir() + '/e2e-so-snap-' + process.pid + '.json';
+          phpx('file_put_contents(' + JSON.stringify(snapF) + ', json_encode(array("mods" => mcupr_ss_export()["theme_mods"], "red" => get_option("mcupr_redirects", array()), "pri" => get_theme_mod("mcupr_primary", null))));');
+          phpx(`$o = static function ( $s, $c, $mod ) use ( $wpdb ) { $p = mcupr_so_find( $s ); $wpdb->update( $wpdb->posts, array( 'post_content' => $c, 'post_excerpt' => 'my own description', 'post_date' => '2025-01-01 09:00:00', 'post_modified' => $mod ), array( 'ID' => $p->ID ) ); delete_post_meta( $p->ID, '_mcupr_so_hash' ); delete_post_meta( $p->ID, '_mcupr_so_backup' ); delete_post_meta( $p->ID, '_mcupr_so_backups' ); clean_post_cache( $p->ID ); return $p->ID; };
+            $o( 'history', '<p>old starter text</p>', '2025-01-01 09:00:00' ); $o( 'about', '<p>written by the web team</p>', '2026-02-02 10:00:00' );
+            $c = $o( 'contact', '<p>old contact</p>', '2025-01-01 09:00:00' ); update_post_meta( $c, '_elementor_edit_mode', 'builder' ); update_post_meta( $c, '_elementor_data', '[{"id":"a1","elType":"section","elements":[]}]' );
+            set_theme_mod( 'mcupr_aud_1_title', 'MY OWN CARD' ); set_theme_mod( 'mcupr_aud_1_url', '/my-own/' ); set_theme_mod( 'mcupr_primary', '#123456' );`);
+          const content = (slug) => phpx('$p = mcupr_so_find(' + JSON.stringify(slug) + '); echo json_encode(array($p->post_content, $p->post_excerpt, get_post_meta($p->ID, "_elementor_data", true) ? 1 : 0));');
+          await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+          const lv = await ap.evaluate(() => { const row = (s) => { const c = document.getElementById('so-' + s); return c ? { on: c.checked, off: c.disabled, txt: c.closest('tr').innerText } : null; }; return { h: row('history'), a: row('about'), c: row('contact'), back: document.querySelectorAll('button[name=restore_page]').length }; });
+          ok(lv.h && lv.h.on && lv.a && !lv.a.on && lv.c && /Elementor/.test(lv.c.txt), 'overwrite card (lived-in site): the old page is ticked, the edited one is not, the Elementor one says what replacing does');
+          await ap.evaluate(() => { document.querySelectorAll('input[name="pages[]"]').forEach((c) => { c.checked = c.id === 'so-history' || c.id === 'so-contact'; }); });
+          await ap.check('input[name="sure"]');
+          await Promise.all([ap.waitForNavigation(), ap.click('button.button-primary:has-text("แทนที่ด้วยข้อมูลตั้งต้นล่าสุด")')]);
+          ok(/แทนที่แล้ว: 2 หน้า/.test(await ap.locator('body').innerText()), 'overwrite card (lived-in site): two pages replaced, the message says so');
+          const hs = JSON.parse(await content('history')), as = JSON.parse(await content('about')), cs = JSON.parse(await content('contact'));
+          ok(!/old starter text/.test(hs[0]) && as[0] === '<p>written by the web team</p>' && cs[2] === 0 && !/old contact/.test(cs[0]), 'overwrite card (lived-in site): the ticked pages have the starter text, the edited page keeps its own, the Elementor design is out of the way');
+          await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+          const rb = await ap.evaluate(() => [...document.querySelectorAll('button[name=restore_page]')].map((b) => b.value));
+          ok(rb.includes('history') && rb.includes('contact') && !rb.includes('about'), 'overwrite card (lived-in site): "put the previous text back" is offered for the replaced pages only (' + rb.join(',') + ')');
+          // Enter inside the form means "replace" (asks for the confirmation), never "put back"
+          await ap.evaluate(() => { document.querySelector('input[name=sure]').checked = false; });
+          await ap.focus('#so-about'); await ap.keyboard.press('Enter'); await ap.waitForTimeout(600);
+          ok(/mcupr-settings-io/.test(ap.url()) && !/admin-post/.test(ap.url()) && !/old starter text/.test(JSON.parse(await content('history'))[0]), 'overwrite card (lived-in site): Enter in the form puts nothing back');
+          await Promise.all([ap.waitForNavigation(), ap.click('button[name=restore_page][value=history]')]);
+          const hb = JSON.parse(await content('history'));
+          ok(hb[0] === '<p>old starter text</p>' && hb[1] === 'my own description', 'overwrite card (lived-in site): the previous text and description of the page are back');
+          await Promise.all([ap.waitForNavigation(), ap.click('button[name=restore_page][value=contact]')]);
+          const cb = JSON.parse(await content('contact'));
+          ok(cb[0] === '<p>old contact</p>' && cb[2] === 1, 'overwrite card (lived-in site): the Elementor page has its design back too');
+          // settings: replace, then put back
+          await ap.goto(B + '/wp-admin/admin.php?page=mcupr-settings-io');
+          await ap.evaluate(() => { document.querySelectorAll('input[name="pages[]"]').forEach((c) => { c.checked = false; }); });
+          await ap.check('input[name="settings"]'); await ap.check('input[name="sure"]');
+          await Promise.all([ap.waitForNavigation(), ap.click('button.button-primary:has-text("แทนที่ด้วยข้อมูลตั้งต้นล่าสุด")')]);
+          ok(phpx('echo get_theme_mod("mcupr_aud_1_title") !== "MY OWN CARD" ? 1 : 0;') === '1' && phpx('echo get_theme_mod("mcupr_primary");') === '#123456', 'overwrite card (lived-in site): the starter cards replace the site\'s, the colour is kept');
+          await ap.addScriptTag({ content: axeSource() });
+          const axs = await ap.evaluate(() => axe.run(document.querySelector('.wrap'), { runOnly: ['wcag2a', 'wcag2aa'] }));
+          ok(axs.violations.length === 0, 'axe (the overwrite card with its copies): ' + (axs.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+          ok((await ap.locator('button[name=restore_settings]').count()) >= 1, 'overwrite card (lived-in site): the settings as they were are listed with a button to put them back');
+          await Promise.all([ap.waitForNavigation(), ap.click('button[name=restore_settings][value="0"]')]);
+          ok(phpx('echo get_theme_mod("mcupr_aud_1_title");') === 'MY OWN CARD' && phpx('echo get_theme_mod("mcupr_aud_1_url");') === '/my-own/', 'overwrite card (lived-in site): the settings are back as they were');
+          // leave the site as the import made it
+          phpx(`$s = json_decode( file_get_contents( ${JSON.stringify(snapF)} ), true ); foreach ( array_keys( (array) get_theme_mods() ) as $k ) { if ( mcupr_ss_key( (string) $k ) ) { remove_theme_mod( $k ); } } foreach ( $s['mods'] as $k => $v ) { set_theme_mod( $k, $v ); } update_option( 'mcupr_redirects', $s['red'], false ); if ( null === $s['pri'] ) { remove_theme_mod( 'mcupr_primary' ); } else { set_theme_mod( 'mcupr_primary', $s['pri'] ); }
+            $pg = mcupr_so_pages(); foreach ( array( 'history', 'about', 'contact' ) as $sl ) { $p = mcupr_so_find( $sl ); $wpdb->update( $wpdb->posts, array( 'post_content' => $pg[ $sl ]['content'], 'post_excerpt' => $pg[ $sl ]['excerpt'], 'post_modified' => '2025-01-01 09:00:00' ), array( 'ID' => $p->ID ) ); delete_post_meta( $p->ID, '_elementor_data' ); delete_post_meta( $p->ID, '_elementor_edit_mode' ); delete_post_meta( $p->ID, '_mcupr_so_backup' ); delete_post_meta( $p->ID, '_mcupr_so_backups' ); delete_post_meta( $p->ID, '_mcupr_so_hash' ); clean_post_cache( $p->ID ); } delete_option( 'mcupr_so_settings_backup' ); delete_option( 'mcupr_so_settings_backups' );`);
+        }
         // the tab title choices in the Customizer on a phone: the number beside the slider, a tall slider, the controls that do not apply are hidden
         await ap.setViewportSize({ width: 390, height: 844 });
         await ap.goto(B + '/wp-admin/customize.php?autofocus[section]=mcupr_display');
@@ -4231,6 +4301,10 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
               const wide = dev === 'phone' ? ar1 : 2 * ar1;
               ok(Math.abs(box.width / box.height - wide) < 0.15, tag + ': the book has the shape of ' + (dev === 'phone' ? 'one landscape page' : 'two landscape pages side by side') + ' (' + (box.width / box.height).toFixed(2) + ')');
               ok(box.width <= rb.width + 1 && box.height <= rb.height + 1 && box.x >= rb.x - 1, tag + ': the book fits in the reader');
+              if (fx === 'webgl') {
+                const cvb = await lp.locator('.bkg-cv').boundingBox();
+                ok(cvb.x <= box.x - box.width * 0.08 && cvb.y <= box.y - box.height * 0.08 && cvb.x + cvb.width >= box.x + box.width * 1.08 && cvb.y + cvb.height >= box.y + box.height * 1.08, tag + ': the picture reaches beyond the book on every side, so a page lifted towards the viewer is not cut off at the edge');
+              }
               ok(await lp.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), tag + ': no sideways scroll');
               ok(isRed(await px(lp, lst, dev === 'phone' ? 0.5 : 0.5, 0.45)), tag + ': the closed book shows the red cover');
               await lp.click('.bk-reader [data-act="next"]');
@@ -4240,6 +4314,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
                 ok(isBlue(await px(lp, lst, 0.5, 0.45)), tag + ': the next page (blue) is shown');
               } else {
                 ok(isBlue(await px(lp, lst, 0.28, 0.45)) && isGreen(await px(lp, lst, 0.72, 0.45)), tag + ': pages 2 (blue, left) and 3 (green, right) are the right way round');
+                const gcol = await px(lp, lst, 0.72, 0.45), bcol = await px(lp, lst, 0.28, 0.45);
+                ok(gcol[1] > 150 && bcol[2] > 190, tag + ': both open pages are full bright, neither is shaded dark (right ' + gcol.join(',') + ', left ' + bcol.join(',') + ')');
               }
               await lp.focus('.bk-stage');
               await lp.keyboard.press('ArrowRight');
