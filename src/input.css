@@ -477,7 +477,7 @@ html[data-contrast] .mcu-title::after { background: var(--text); }
 
 /* Article reading typography */
 /* ---------- the head of a post: title, category, date / time / views ---------- */
-.post-title { font-size: clamp(1.9rem, 1.2rem + 2.6vw, 3.1rem); font-weight: 800; line-height: 1.32; letter-spacing: 0; text-wrap: balance; overflow-wrap: anywhere; max-width: 30ch; }
+.post-title { font-size: clamp(1.9rem, 1.2rem + 2.6vw, 3.1rem); font-weight: 800; line-height: 1.36; letter-spacing: 0; text-wrap: balance; overflow-wrap: anywhere; max-width: 30ch; }
 .post-title::before { content: ""; display: block; width: 3.5rem; height: .3rem; margin-bottom: 1rem; border-radius: 9999px; background: var(--primary); }
 .post-title.mcu-title::before { display: none; }
 .pm { row-gap: .5rem; }
