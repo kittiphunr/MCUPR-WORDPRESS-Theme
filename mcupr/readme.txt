@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.66.0 =
+* Replace with the latest starter, tested on a lived-in site: pages whose template no longer exists can be replaced; pages built with Elementor show the new text; the copy of a page keeps its description and translated titles; "Put the previous text back" per page; the settings copies (last 5) can be put back exactly, and overwriting twice no longer throws away the first copy
+
 = 1.65.1 =
 * News layouts Cover and Sidebar: the frame is as wide as the footer frame (the text column inside stays readable)
 
