@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.68.0 =
+* Cookie centre: visitors choose which cookies and stored settings the website may keep (necessary / your settings / anonymous statistics / content from other websites) in a banner with three equal buttons and a settings dialog that can be opened again from the footer; nothing but the necessary is kept for long before a yes; embedded videos, maps and Google documents are shown at once only with a yes; the cookie policy page lists what is kept from the theme's own list; Customizer: switch it off, choose the kinds, raise the version to ask everyone again
+
 = 1.67.0 =
 * Elementor pages: tested with 60 templates made by the real Elementor (1,171 widgets). Added what was missing: Elementor 4 blocks and widgets (e-div-block, e-flexbox, e-heading, e-paragraph, e-button, e-image, e-svg with their typed settings and styles), the new Tabs and Accordion (nested-tabs, nested-accordion), the testimonial carousel, Rating, Audio (a link, not a player) and Text path (as text)
 

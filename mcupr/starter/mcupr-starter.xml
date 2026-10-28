@@ -1982,12 +1982,15 @@
 	<dc:creator><![CDATA[admin]]></dc:creator>
 	<guid isPermaLink="false">https://example.org/?p=152</guid>
 	<description></description>
-	<content:encoded><![CDATA[<p class="mcupr-todo"><strong>โครงร่างหน้า (Draft):</strong> ตารางด้านล่างตรงกับสิ่งที่ธีม MCUPR เก็บจริง — หากเพิ่มปลั๊กอิน (เช่น สถิติ โฆษณา) ต้องเพิ่มรายการในตาราง — ลบกล่องนี้ออกเมื่อแก้ไขเสร็จ</p>
-<p>เว็บไซต์ของ [mcupr_org] ใช้ที่เก็บข้อมูลในเบราว์เซอร์เท่าที่จำเป็นต่อการทำงานและเพื่อจดจำค่าที่ท่านเลือก เว็บไซต์นี้ไม่ใช้คุกกี้เพื่อการโฆษณา และธีมไม่ส่งข้อมูลไปยังผู้ให้บริการภายนอก</p>
+	<content:encoded><![CDATA[<p class="mcupr-todo"><strong>โครงร่างหน้า (Draft):</strong> ตารางด้านล่างสร้างอัตโนมัติจากสิ่งที่ธีม MCUPR เก็บจริง — หากเพิ่มปลั๊กอิน (เช่น สถิติ โฆษณา) ต้องเพิ่มรายการ (ตัวกรอง mcupr_cc_inventory) และแจ้งในนโยบายนี้ แล้วเพิ่ม “เวอร์ชันของคำถาม” ในปรับแต่ง → คุกกี้ เพื่อถามผู้เข้าชมทุกคนใหม่ — ลบกล่องนี้ออกเมื่อแก้ไขเสร็จ</p>
+<p>เว็บไซต์ของ [mcupr_org] ใช้คุกกี้และที่เก็บข้อมูลในเบราว์เซอร์ <strong>เท่าที่จำเป็นต่อการทำงานเท่านั้นโดยไม่ต้องขออนุญาต</strong> ส่วนการจดจำการตั้งค่า สถิติการเข้าชมแบบไม่ระบุตัวตน และการแสดงเนื้อหาจากเว็บไซต์อื่นทันที จะทำเมื่อท่านอนุญาตเท่านั้น ท่านเลือกได้เองที่ป้ายแจ้งเมื่อเข้าเว็บไซต์ครั้งแรก และเปลี่ยนใจได้ทุกเมื่อ เว็บไซต์นี้ไม่ใช้คุกกี้เพื่อการโฆษณา</p>
+<h2>ตั้งค่าของท่าน</h2>
+<p>กดปุ่มด้านล่างเพื่อเลือกหรือเปลี่ยนการตั้งค่าคุกกี้ (เปิดได้จากปุ่ม “ตั้งค่าคุกกี้” ท้ายทุกหน้าด้วย) การเลือกเก็บไว้ 1 ปี</p>
+[mcupr_cookie_settings]
 <h2>รายการที่เก็บในเบราว์เซอร์</h2>
-<table><thead><tr><th scope="col">ชื่อ</th><th scope="col">ประเภท</th><th scope="col">วัตถุประสงค์</th><th scope="col">อายุ</th></tr></thead><tbody><tr><td>mcupr_lang</td><td>คุกกี้ที่จำเป็น</td><td>จำภาษาที่ท่านเลือก</td><td>1 ปี</td></tr><tr><td>mcupr_prefs</td><td>ที่เก็บข้อมูลในเครื่อง (localStorage)</td><td>จำการตั้งค่าการแสดงผล: ธีม สี ขนาดอักษร โหมดสำหรับผู้มีปัญหาทางสายตา ตำแหน่งเมนู</td><td>จนกว่าท่านจะลบ</td></tr><tr><td>mcupr_consent</td><td>ที่เก็บข้อมูลในเครื่อง</td><td>จำว่าท่านรับทราบประกาศนี้แล้ว</td><td>จนกว่าท่านจะลบ</td></tr><tr><td>mcupr_seen</td><td>คุกกี้ที่จำเป็น</td><td>กันไม่ให้นับยอดผู้เข้าชมหน้าเดิมซ้ำ (เก็บเลขหน้าที่เปิดล่าสุด ไม่มีข้อมูลส่วนบุคคล)</td><td>6 ชั่วโมง</td></tr><tr><td>mcupr_sbmin / รายการค้นหาล่าสุด</td><td>ที่เก็บข้อมูลในเครื่อง</td><td>จำการยุบเมนูด้านข้าง และคำค้นล่าสุดของท่าน</td><td>จนกว่าท่านจะลบ</td></tr><tr><td>wordpress_* / comment_author_*</td><td>คุกกี้ของ WordPress</td><td>การเข้าสู่ระบบของผู้ดูแล และการจำชื่อ/อีเมลผู้แสดงความคิดเห็น (เมื่อท่านติ๊กยินยอม)</td><td>ตามที่ WordPress กำหนด</td></tr></tbody></table>
+[mcupr_cookie_table]
 <h2>การจัดการ</h2>
-<p>ท่านลบข้อมูลเหล่านี้ได้จากการตั้งค่าเบราว์เซอร์ หรือปุ่ม “รีเซ็ตทั้งหมด” ในกล่องตั้งค่าการแสดงผล</p>
+<p>ท่านเปลี่ยนใจหรือถอนความยินยอมได้ทุกเมื่อจากปุ่มด้านบน การถอนความยินยอมไม่กระทบการเก็บข้อมูลที่ทำไปแล้วก่อนถอน และท่านลบข้อมูลเหล่านี้ได้จากการตั้งค่าเบราว์เซอร์ หรือปุ่ม “รีเซ็ตทั้งหมด” ในกล่องตั้งค่าการแสดงผล</p>
 ]]></content:encoded>
 	<excerpt:encoded><![CDATA[]]></excerpt:encoded>
 	<wp:post_id>152</wp:post_id>
@@ -2007,7 +2010,9 @@
 		<wp:postmeta><wp:meta_key>_mcupr_en_title</wp:meta_key><wp:meta_value><![CDATA[Cookie Policy]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_zh_title</wp:meta_key><wp:meta_value><![CDATA[Cookie 政策]]></wp:meta_value></wp:postmeta>
 		<wp:postmeta><wp:meta_key>_mcupr_ja_title</wp:meta_key><wp:meta_value><![CDATA[クッキーポリシー]]></wp:meta_value></wp:postmeta>
-		<wp:postmeta><wp:meta_key>_mcupr_en_content</wp:meta_key><wp:meta_value><![CDATA[<p>This website stores only what it needs to work and to remember your choices (language, display settings, notice acknowledgement). It uses no advertising cookies and sends no data to third parties.</p>]]></wp:meta_value></wp:postmeta>
+		<wp:postmeta><wp:meta_key>_mcupr_en_content</wp:meta_key><wp:meta_value><![CDATA[<p>This website keeps only what it needs to work, without asking. Remembering your settings, anonymous visit statistics and showing content from other websites at once happen only if you allow them, at the notice on your first visit, and you can change your mind at any time. It uses no advertising cookies.</p>
+[mcupr_cookie_settings]
+[mcupr_cookie_table]]]></wp:meta_value></wp:postmeta>
 </item>
 <item>
 	<title><![CDATA[คำประกาศการเข้าถึงเว็บไซต์]]></title>

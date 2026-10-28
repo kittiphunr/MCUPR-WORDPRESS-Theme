@@ -1987,6 +1987,122 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await ep.context().close();
       phpx('foreach ( ' + JSON.stringify(ids) + ' as $i ) { wp_delete_post( (int) $i, true ); }');
     }
+    // cookie centre: the visitor chooses; nothing is kept for long, and nothing of other websites is loaded, without a yes
+    {
+      const { execSync } = require('child_process'); const fsx = require('fs'); const pth = require('path');
+      const wlx = pth.resolve(__dirname, '../.site-starter/wp-load.php');
+      const phpx = (code) => { const f = require('os').tmpdir() + '/e2e-cc-' + process.pid + '.php'; fsx.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wlx) + '; wp_set_current_user(1); ' + code); return execSync('php ' + f + ' 2>/dev/null').toString().trim(); };
+      const UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0';
+      const fresh = async (o = {}) => { const c = await br.newContext(Object.assign({ userAgent: UA, viewport: { width: 1280, height: 900 } }, o)); const pg = await c.newPage(); return { c, pg }; };
+      const rec = async (c) => { const k = (await c.cookies()).find((x) => x.name === 'mcupr_cc'); return k ? JSON.parse(decodeURIComponent(k.value)) : null; };
+      const ck = async (c, n) => (await c.cookies()).find((x) => x.name === n);
+      const stored = (pg) => pg.evaluate(() => { const l = []; for (let i = 0; i < localStorage.length; i++) { l.push(localStorage.key(i)); } const s = []; for (let i = 0; i < sessionStorage.length; i++) { s.push(sessionStorage.key(i)); } return { local: l.filter((k) => k.indexOf('mcupr_') === 0), session: s.filter((k) => k.indexOf('mcupr_') === 0) }; });
+      // 1. a first visit: the banner with three equal choices, nothing kept for long, other websites wait for their button
+      let { c: c1, pg: p1 } = await fresh();
+      await p1.goto(B + '/fx-media/');
+      await p1.waitForSelector('#cookie-notice', { state: 'visible' });
+      const b1 = await p1.evaluate(() => { const bs = [...document.querySelectorAll('#cookie-notice .cc-btns .btn')].map((b) => Math.round(b.getBoundingClientRect().height)); return { n: bs.length, same: Math.max(...bs) - Math.min(...bs) <= 2, needs: document.documentElement.classList.contains('needs-consent'), dlg: document.getElementById('cc-dialog').open, frames: document.querySelectorAll('.gemb-frame, .vid-frame, .fmap-frame').length, focus: !!(document.activeElement && document.activeElement.closest && document.activeElement.closest('#cookie-notice')) }; });
+      ok(b1.n === 3 && b1.same && b1.needs && !b1.dlg && b1.frames === 0 && !b1.focus, 'cookie centre: a first visit shows the banner with three equal buttons; the dialog is closed, no embedded content is loaded, the banner does not take the focus');
+      await p1.evaluate(() => { localStorage.setItem('mcupr_prefs', '{"theme":"dark"}'); });
+      let st = await stored(p1);
+      ok(!st.local.includes('mcupr_prefs') && st.session.includes('mcupr_prefs') && (await p1.evaluate(() => localStorage.getItem('mcupr_prefs'))) === '{"theme":"dark"}', 'cookie centre: before a choice a display setting works but is held for this visit only (sessionStorage), not kept in localStorage');
+      await p1.goto(B + '/fx-media/?lang=en');
+      const lg0 = await ck(c1, 'mcupr_lang'), sn0 = await ck(c1, 'mcupr_seen');
+      ok(lg0 && lg0.expires === -1 && sn0 && sn0.expires === -1, 'cookie centre: before a choice the language and view-counter cookies last only until the browser is closed');
+      // 2. necessary only
+      await p1.click('#cookie-notice [data-cc-reject]');
+      const r1 = await rec(c1);
+      ok(r1 && r1.p === 0 && r1.s === 0 && r1.e === 0 && r1.v === 1 && !(await p1.isVisible('#cookie-notice')), 'cookie centre: "necessary only" is saved (cookie mcupr_cc, all three off) and hides the banner');
+      await p1.reload();
+      ok(!(await p1.isVisible('#cookie-notice')) && (await p1.evaluate(() => window.mcuprConsent.has('preferences'))) === false, 'cookie centre: the banner does not come back, the choice is remembered');
+      st = await stored(p1);
+      ok(!st.local.includes('mcupr_prefs'), 'cookie centre: with "necessary only" nothing of the theme is in localStorage');
+      // 3. the dialog from the footer
+      await p1.locator('footer [data-cc-open]').scrollIntoViewIfNeeded();
+      await p1.click('footer [data-cc-open]');
+      await p1.waitForSelector('#cc-dialog[open]');
+      const d1 = await p1.evaluate(() => { const sw = [...document.querySelectorAll('#cc-dialog input.cc-sw')]; return { n: sw.length, roles: sw.every((i) => i.getAttribute('role') === 'switch'), names: sw.every((i) => !!document.querySelector('label[for="' + i.id + '"]')), off: [...document.querySelectorAll('#cc-dialog input[data-cc-cat]')].every((i) => !i.checked), nec: (() => { const n = document.getElementById('cc-c-necessary'); return n.checked && n.disabled; })(), tables: document.querySelectorAll('#cc-dialog .cc-table').length, modal: document.getElementById('cc-dialog').matches(':modal') }; });
+      ok(d1.n === 4 && d1.roles && d1.names && d1.off && d1.nec && d1.tables === 4 && d1.modal, 'cookie centre: the footer button opens the settings (a modal dialog): 4 kinds, the necessary one fixed on, the rest off as chosen, each switch labelled, a table of what is kept for each kind');
+      await p1.addScriptTag({ content: axeSource() });
+      const ax1 = await p1.evaluate(() => axe.run(document.getElementById('cc-dialog'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
+      ok(ax1.violations.length === 0, 'axe (cookie dialog): ' + (ax1.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      await p1.keyboard.press('Escape');
+      await p1.waitForFunction(() => !document.getElementById('cc-dialog').open);
+      ok(await p1.evaluate(() => !!(document.activeElement && document.activeElement.hasAttribute('data-cc-open'))), 'cookie centre: Esc closes the settings and the focus goes back to the button that opened them');
+      // 4. preferences and statistics on
+      await p1.click('footer [data-cc-open]');
+      await p1.waitForSelector('#cc-dialog[open]');
+      await p1.check('#cc-c-preferences'); await p1.check('#cc-c-statistics');
+      await p1.click('#cc-dialog [data-cc-save]');
+      await p1.waitForFunction(() => !document.getElementById('cc-dialog').open);
+      const r2 = await rec(c1);
+      ok(r2 && r2.p === 1 && r2.s === 1 && r2.e === 0, 'cookie centre: choosing display settings and statistics is saved');
+      await p1.evaluate(() => { localStorage.setItem('mcupr_prefs', '{"theme":"dark"}'); });
+      st = await stored(p1);
+      ok(st.local.includes('mcupr_prefs'), 'cookie centre: with a yes the display settings are kept in localStorage');
+      await c1.clearCookies(); await p1.evaluate(() => { document.cookie = 'mcupr_cc=' + encodeURIComponent(JSON.stringify({ v: 1, t: 1, p: 1, s: 1, e: 0 })) + '; Path=/'; });
+      await p1.goto(B + '/works/work-1/?lang=th');
+      const lg1 = await ck(c1, 'mcupr_lang'), sn1 = await ck(c1, 'mcupr_seen');
+      ok(lg1 && lg1.expires > Date.now() / 1000 + 300 * 86400 && sn1 && sn1.expires > Date.now() / 1000 + 3600, 'cookie centre: with a yes the language cookie lasts a year and the view-counter cookie hours');
+      // 5. taking the yes back removes what was kept
+      await p1.locator('footer [data-cc-open]').scrollIntoViewIfNeeded();
+      await p1.click('footer [data-cc-open]');
+      await p1.waitForSelector('#cc-dialog[open]');
+      await p1.uncheck('#cc-c-preferences'); await p1.uncheck('#cc-c-statistics');
+      await p1.click('#cc-dialog [data-cc-save]');
+      await p1.waitForFunction(() => !document.getElementById('cc-dialog').open);
+      st = await stored(p1);
+      ok(!st.local.includes('mcupr_prefs') && !(await ck(c1, 'mcupr_lang')) && !(await ck(c1, 'mcupr_seen')), 'cookie centre: taking the yes back removes the stored display settings and the language / view-counter cookies');
+      await c1.close();
+      // 6. accept all: embedded content is shown at once, without the focus and without autoplay
+      ({ c: c1, pg: p1 } = await fresh());
+      await p1.goto(B + '/fx-media/');
+      await p1.click('#cookie-notice [data-cc-accept]');
+      await p1.waitForSelector('.gemb-frame', { timeout: 15000 });
+      const e1 = await p1.evaluate(() => ({ frames: document.querySelectorAll('.gemb-frame, .vid-frame').length, focusIn: !!(document.activeElement && document.activeElement.tagName === 'IFRAME'), play: [...document.querySelectorAll('.vid-frame')].some((f) => /autoplay=1/.test(f.src)), rec: window.mcuprConsent.state }));
+      ok(e1.frames >= 1 && !e1.focusIn && !e1.play && e1.rec.e === 1 && e1.rec.p === 1 && e1.rec.s === 1, 'cookie centre: "accept all" shows the Google document at once (' + e1.frames + ' embedded), without taking the focus and without autoplay');
+      await c1.close();
+      // 7. the old notice counts as a yes to display settings only; a new version asks again
+      ({ c: c1, pg: p1 } = await fresh());
+      await c1.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+      await p1.goto(B + '/');
+      const lg = await p1.evaluate(() => ({ shown: document.documentElement.classList.contains('needs-consent'), p: window.mcuprConsent.has('preferences'), e: window.mcuprConsent.has('embeds'), cookie: /mcupr_cc=/.test(document.cookie) }));
+      ok(!lg.shown && lg.p && !lg.e && lg.cookie, 'cookie centre: a visitor who accepted the old notice is not asked again: display settings yes, embedded content no, the cookie is written for the server');
+      await c1.close();
+      phpx('set_theme_mod( "mcupr_cc_ver", 2 );');
+      ({ c: c1, pg: p1 } = await fresh());
+      await c1.addCookies([{ name: 'mcupr_cc', value: encodeURIComponent(JSON.stringify({ v: 1, t: 1, p: 1, s: 1, e: 1 })), url: B }]);
+      await p1.goto(B + '/');
+      ok(await p1.isVisible('#cookie-notice'), 'cookie centre: when the version of the question is raised in the Customizer, a visitor with an older choice is asked again');
+      await c1.close();
+      phpx('remove_theme_mod( "mcupr_cc_ver" );');
+      // 8. a phone: the banner and the dialog fit, the dialog scrolls, no sideways scroll
+      ({ c: c1, pg: p1 } = await fresh({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true }));
+      await p1.goto(B + '/');
+      await p1.waitForSelector('#cookie-notice', { state: 'visible' });
+      const m1 = await p1.evaluate(() => { const r = document.getElementById('cookie-notice').getBoundingClientRect(); return { fit: r.left >= 0 && r.right <= innerWidth && r.bottom <= innerHeight, h: document.documentElement.scrollWidth > innerWidth + 1, btn: Math.min(...[...document.querySelectorAll('#cookie-notice .btn')].map((b) => b.getBoundingClientRect().height)) }; });
+      ok(m1.fit && !m1.h && m1.btn >= 44, 'cookie centre, phone: the banner fits the screen and its buttons are at least 44 px tall (' + Math.round(m1.btn) + ')');
+      await p1.click('#cookie-notice [data-cc-open]');
+      await p1.waitForSelector('#cc-dialog[open]');
+      const m2 = await p1.evaluate(() => { const d = document.getElementById('cc-dialog'), r = d.getBoundingClientRect(); return { fit: r.left >= 0 && r.right <= innerWidth && r.height <= innerHeight, sw: Math.min(...[...d.querySelectorAll('.cc-sw')].map((s) => s.getBoundingClientRect().height)), h: document.documentElement.scrollWidth > innerWidth + 1 }; });
+      ok(m2.fit && !m2.h && m2.sw >= 24, 'cookie centre, phone: the dialog fits the screen (it scrolls inside) with no sideways scroll');
+      await c1.close();
+      // 9. the cookie policy page lists what is kept and has the settings button
+      ({ c: c1, pg: p1 } = await fresh());
+      await c1.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+      await p1.goto(B + '/cookie-policy/');
+      const pp = await p1.evaluate(() => ({ tables: document.querySelectorAll('main .cc-table').length, btn: document.querySelectorAll('main [data-cc-open]').length, names: [...document.querySelectorAll('main .cc-table code')].map((c) => c.textContent).join(' ') }));
+      ok(pp.tables === 4 && pp.btn === 1 && /mcupr_cc/.test(pp.names) && /mcupr_seen/.test(pp.names), 'cookie centre: the cookie policy page lists what is kept (' + pp.tables + ' tables, built from the theme\'s own list) and has the settings button');
+      await c1.close();
+      // 10. switched off in the Customizer: no banner, no dialog, no script
+      phpx('set_theme_mod( "mcupr_cc_on", false );');
+      ({ c: c1, pg: p1 } = await fresh());
+      await p1.goto(B + '/');
+      const off = await p1.evaluate(() => ({ banner: !!document.getElementById('cookie-notice'), dlg: !!document.getElementById('cc-dialog'), api: typeof window.mcuprConsent, needs: document.documentElement.classList.contains('needs-consent') }));
+      ok(!off.banner && !off.dlg && off.api === 'undefined' && !off.needs, 'cookie centre: switched off in the Customizer there is no banner, no dialog and no script (a site with its own consent tool)');
+      await c1.close();
+      phpx('remove_theme_mod( "mcupr_cc_on" );');
+    }
     // pictures: an uploaded JPEG becomes a WebP
     {
       const { execSync } = require('child_process');
@@ -4230,7 +4346,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await cp.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
         await cp.goto(B + '/?p=' + ids[1]);
         await cp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
-        try { await cp.click('text=รับทราบ', { timeout: 1000 }); } catch (e) { /* no banner */ }
+        try { await cp.click('#cookie-notice [data-cc-reject]', { timeout: 1000 }); } catch (e) { /* no banner */ }
         await cp.locator('.bk-reader').scrollIntoViewIfNeeded();
         await cp.waitForTimeout(800);
         if ((await cp.locator('.bk-reader').getAttribute('data-fx')) === 'webgl') {
@@ -4322,7 +4438,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
               await lp.addInitScript(() => { try { localStorage.removeItem('mcupr_bk_pos'); } catch (e) { /* */ } });
               await lp.goto(B + '/?p=' + bid);
               await lp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
-              try { await lp.click('text=รับทราบ', { timeout: 1000 }); } catch (e) { /* no banner */ }
+              try { await lp.click('#cookie-notice [data-cc-reject]', { timeout: 1000 }); } catch (e) { /* no banner */ }
               await lp.locator('.bk-reader').scrollIntoViewIfNeeded();
               await lp.waitForTimeout(1200);
               const lrd = lp.locator('.bk-reader'), lst = lp.locator('.bk-stage'), tag = 'e-books: landscape ' + kind + ' (' + fx + ', ' + dev + ')';
@@ -4674,7 +4790,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       await cp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
       await cp.goto(B + '/');
       await cp.waitForTimeout(900);
-      try { await cp.click('text=รับทราบ', { timeout: 800 }); } catch (e) { /* no banner */ }
+      try { await cp.click('#cookie-notice [data-cc-reject]', { timeout: 800 }); } catch (e) { /* no banner */ }
       ok((await cp.locator('#wpadminbar').count()) === 0 && (await cp.evaluate(() => getComputedStyle(document.documentElement).marginTop)) === '0px', 'toolbar: the black bar is not drawn and does not push the page down');
       const fab = cp.locator('.cc-fab');
       ok(await fab.isVisible(), 'toolbar: an editor sees the floating icon');

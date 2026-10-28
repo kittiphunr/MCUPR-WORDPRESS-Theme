@@ -46,7 +46,7 @@ function mcupr_count_view() {
 		// first-party, functional (de-duplicates the counter); expires in 6 hours
 		$value = implode( '.', $seen );
 		$exp   = time() + 6 * HOUR_IN_SECONDS;
-		mcupr_set_cookie( 'mcupr_seen', $value, $exp, true, COOKIEPATH ? COOKIEPATH : '/' );
+		mcupr_set_cookie( 'mcupr_seen', $value, $exp, false, COOKIEPATH ? COOKIEPATH : '/' );
 	}
 	global $wpdb;
 	$done = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->postmeta} SET meta_value = meta_value + 1 WHERE post_id = %d AND meta_key = '_mcupr_views'", $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery

@@ -655,6 +655,41 @@ html.needs-consent .cookie-notice { display: block; }
 html[data-contrast] .cookie-notice { border: 2px solid var(--border); }
 @media (max-width: 480px) { .cookie-notice { right: .75rem; left: .75rem; width: auto; bottom: .75rem; } }
 @media print { .cookie-notice { display: none !important; } }
+.cc-btns { display: flex; flex-wrap: wrap; gap: .5rem; }
+.cc-btns .btn { flex: 1 1 auto; justify-content: center; min-height: 2.75rem; }
+.cc-banner .cc-btns .btn { flex: 1 1 7rem; }
+.cc-dialog { width: min(calc(100% - 1.5rem), 42rem); max-height: min(92vh, 52rem); margin: auto; padding: 0; overflow: hidden; color: var(--text); background: var(--bg); border: 1px solid var(--edge, var(--border)); }
+.cc-dialog::backdrop { background: rgb(15 23 42 / .55); }
+.cc-dialog[open] { display: flex; flex-direction: column; }
+.cc-form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; padding: 1.25rem; }
+.cc-dialog a { text-decoration: underline; text-underline-offset: .2em; }
+.cc-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0 0 .5rem; }
+.cc-x { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; border: 1px solid var(--edge, var(--border)); border-radius: 9999px; background: var(--bg); color: var(--text); cursor: pointer; }
+.cc-x:hover { background: var(--tint); }
+.cc-cats { display: grid; gap: .75rem; margin: 0 0 1rem; overflow: auto; min-height: 0; flex: 1 1 auto; padding: 3px; }
+.cc-cat { margin: 0; padding: .85rem 1rem; border: 1px solid var(--edge, var(--border)); border-radius: 1rem; min-width: 0; }
+.cc-cat-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.cc-cat-t { font-weight: 700; }
+.cc-cat-d { margin: .35rem 0 0; font-size: .9rem; color: var(--text-2, var(--muted)); }
+.cc-always { margin-inline-start: auto; font-size: .85rem; color: var(--muted); }
+.cc-sw { appearance: none; -webkit-appearance: none; position: relative; flex: none; width: 3rem; height: 1.75rem; margin: 0; border: 2px solid var(--muted); border-radius: 9999px; background: var(--tint); cursor: pointer; transition: background .15s, border-color .15s; }
+.cc-sw::before { content: ""; position: absolute; top: 50%; left: .2rem; width: 1.05rem; height: 1.05rem; border-radius: 50%; background: var(--muted); transform: translateY(-50%); transition: left .15s, background .15s; }
+.cc-sw:checked { border-color: var(--primary); background: var(--primary); }
+.cc-sw:checked::before { left: calc(100% - 1.25rem); background: var(--on-primary); }
+.cc-sw:disabled { cursor: default; opacity: .75; }
+.cc-sw:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.cc-more { margin-top: .6rem; font-size: .9rem; }
+.cc-more summary { cursor: pointer; min-height: 2.5rem; display: flex; align-items: center; color: var(--link); font-weight: 600; }
+.cc-table { width: 100%; margin: .5rem 0 0; border-collapse: collapse; font-size: .85rem; }
+.cc-table caption { text-align: start; font-weight: 700; padding: .25rem 0; }
+.cc-table th, .cc-table td { padding: .4rem .5rem; text-align: start; vertical-align: top; border-top: 1px solid var(--edge, var(--border)); overflow-wrap: anywhere; }
+.cc-table code { font-size: .8rem; }
+.cc-more .cc-table caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.cc-foot { flex: none; }
+@media (max-width: 520px) { .cc-table, .cc-table tbody, .cc-table tr, .cc-table td { display: block; } .cc-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .cc-table td { border: 0; padding: .1rem 0; } .cc-table tr { padding: .4rem 0; border-top: 1px solid var(--edge, var(--border)); } }
+@media (prefers-reduced-motion: reduce) { .cc-sw, .cc-sw::before { transition: none; } }
+html[data-contrast] .cc-dialog { border: 2px solid var(--border); }
+@media print { .cc-dialog { display: none !important; } }
 
 /* ===== Starter / editorial blocks (used by mcupr/starter pages, available to every page) ===== */
 .reader details { border: 1px solid var(--border); border-radius: 1rem; padding: .25rem 1.1rem; margin-top: .6rem; }

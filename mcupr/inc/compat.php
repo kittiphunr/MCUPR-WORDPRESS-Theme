@@ -321,6 +321,7 @@ function mcupr_set_cookie( $name, $value, $expires, $httponly = true, $path = '/
 	if ( headers_sent() ) {
 		return;
 	}
+	$expires = (int) apply_filters( 'mcupr_cookie_expires', $expires, $name ); // the cookie centre: kept longer only with the visitor's permission
 	if ( PHP_VERSION_ID >= 70300 ) {
 		setcookie( $name, $value, array( 'expires' => $expires, 'path' => $path, 'secure' => is_ssl(), 'httponly' => $httponly, 'samesite' => 'Lax' ) );
 	} else {
