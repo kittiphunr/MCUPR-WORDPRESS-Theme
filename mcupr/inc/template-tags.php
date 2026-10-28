@@ -169,6 +169,7 @@ function mcupr_hero_image_id( $fallback_post_id = 0 ) {
 /** The inline SVG icon set (24x24, stroke, Feather style): name => inner markup. */
 function mcupr_icon_paths() {
 	return array(
+		'menu'     => '<path d="M4 7h16M4 12h16M4 17h16"/>',
 		'layout-top'  => '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9.5h18"/><path d="M7 6.8h4"/>',
 		'layout-bar'  => '<rect x="3" y="4" width="18" height="16" rx="3"/><rect x="5.5" y="8.5" width="13" height="3.5" rx="1.75"/><path d="M8 10.25h0M11 10.25h4"/>',
 		'layout-side' => '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9.5 4v16"/><path d="M6.2 8h0M6.2 11h0M6.2 14h0"/>',
