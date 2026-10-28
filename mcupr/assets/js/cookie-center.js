@@ -57,18 +57,23 @@
 		list.forEach(function (b) { io.observe(b); });
 	}
 
-	function effects(o) {
-		if (o.p) { keepSession(); } else { C.purge(); expire('mcupr_lang'); expire('mcupr_welcome'); }
-		if (!o.s) { expire('mcupr_seen'); }
+	/* prev = the choice before this one (null at the start of a page): cookies are only taken away when a yes is taken back, never on every page */
+	function effects(o, prev) {
+		if (o.p) { keepSession(); } else {
+			C.purge();
+			if (prev && prev.p) { expire('mcupr_lang'); expire('mcupr_welcome'); }
+		}
+		if (!o.s && prev && prev.s) { expire('mcupr_seen'); }
 		autoEmbeds();
 	}
 
 	function save(p, s, e) {
 		var o = { v: C.v, t: Math.floor(Date.now() / 1000), p: p ? 1 : 0, s: s ? 1 : 0, e: e ? 1 : 0 };
 		C.write(o);
+		var prev = C.state;
 		C.state = o;
 		root.classList.remove('needs-consent');
-		effects(o);
+		effects(o, prev);
 		try { document.dispatchEvent(new CustomEvent('mcupr:consent', { detail: o })); } catch (err) { /* old browser */ }
 		return o;
 	}

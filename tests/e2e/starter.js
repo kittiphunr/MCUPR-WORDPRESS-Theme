@@ -3171,6 +3171,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     // an editor cannot open the page
     // the page for the student
     const sc = await br.newContext({ viewport: { width: 1280, height: 900 } });
+    await sc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* frame */ } });
     const up = await sc.newPage();
     const uerr = [];
     up.on('pageerror', (e) => uerr.push(e.message));

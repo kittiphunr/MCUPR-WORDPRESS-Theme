@@ -193,6 +193,13 @@ update_post_meta( $mid, '_mcupr_files', array(
 	array( 'id' => $mp['media-report.pdf'], 'title' => 'รายงานผลการดำเนินงาน', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 1 ),
 	array( 'id' => $mp['media-extra.pdf'], 'title' => 'เอกสารประกอบ (ดาวน์โหลดอย่างเดียว)', 'size' => '', 'max' => 0, 'count' => 0, 'show' => 0 ),
 ) );
+// notices: the two newest samples are made "recent" (1 and 3 days old) whatever day the tests run, so the "new" mark is what the tests expect
+$newest = get_posts( array( 'post_type' => 'mcupr_notice', 'post_status' => 'publish', 'numberposts' => 2, 'orderby' => 'date', 'order' => 'DESC' ) );
+foreach ( $newest as $i => $np ) {
+	$ts = time() - ( 1 + 2 * $i ) * DAY_IN_SECONDS;
+	$wpdb->update( $wpdb->posts, array( 'post_date' => wp_date( 'Y-m-d H:i:s', $ts ), 'post_date_gmt' => gmdate( 'Y-m-d H:i:s', $ts ) ), array( 'ID' => $np->ID ) );
+	clean_post_cache( $np->ID );
+}
 // notices: the closing dates of the samples were fixed when the starter file was made; put them relative to today so the days left are what the tests expect
 foreach ( array( 'notice-1' => 10, 'notice-2' => 3, 'notice-5' => -4, 'notice-8' => 14 ) as $slug => $off ) {
 	$nn = get_posts( array( 'post_type' => 'mcupr_notice', 'name' => $slug, 'post_status' => 'publish' ) );
