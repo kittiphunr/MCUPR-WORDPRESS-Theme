@@ -42,7 +42,9 @@ function mcupr_cc_url( $spec ) {
 		case 'page':
 			return admin_url( 'admin.php?page=' . $arg );
 		case 'cust':
-			return admin_url( 'customize.php?' . ( '' !== $arg ? 'autofocus[section]=' . $arg . '&' : '' ) . 'return=' . rawurlencode( admin_url( 'admin.php?page=mcupr' ) ) );
+			$kind_ = 0 === strpos( $arg, 'panel:' ) ? 'panel' : 'section'; // "cust:panel:id" opens a panel, "cust:id" a section
+			$arg   = 'panel' === $kind_ ? substr( $arg, 6 ) : $arg;
+			return admin_url( 'customize.php?' . ( '' !== $arg ? 'autofocus[' . $kind_ . ']=' . $arg . '&' : '' ) . 'return=' . rawurlencode( admin_url( 'admin.php?page=mcupr' ) ) );
 		case 'adm':
 			return admin_url( $arg );
 		case 'url':
