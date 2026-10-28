@@ -11,7 +11,7 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
   const newCtx = async (opts = {}, prefs = null, mods = null) => {
     const c = await br.newContext({ viewport: { width: 1366, height: 860 }, reducedMotion: 'reduce', ...opts });
     await c.addInitScript(consent);
-    if (prefs) await c.addInitScript((p) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('mcupr_prefs', p); sessionStorage.setItem('seeded', '1'); } }, prefs);
+    if (prefs) await c.addInitScript((p) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', p); sessionStorage.setItem('seeded', '1'); } }, prefs);
     if (mods) await c.addCookies([{ name: 'mod_stub', value: JSON.stringify(mods), url: B }]);
     return c;
   };
@@ -310,7 +310,7 @@ const consent = () => localStorage.setItem('mcupr_consent', '1');
   // ================= side (collapsed): floating header capsule + slim icon card; a saved legacy "hybrid" choice is the sidebar
   {
     const c = await newCtx({}, '{"menu":"hybrid"}');
-    await c.addInitScript(() => { if (!sessionStorage.getItem('sbseed')) { localStorage.setItem('mcupr_sbmin', '1'); sessionStorage.setItem('sbseed', '1'); } });
+    await c.addInitScript(() => { if (!sessionStorage.getItem('sbseed')) { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_sbmin', '1'); sessionStorage.setItem('sbseed', '1'); } });
     const p = await c.newPage();
     await p.goto(B + '/');
     ok((await attr(p)) === 'side', 'legacy hybrid choice: becomes the sidebar, applied before paint');

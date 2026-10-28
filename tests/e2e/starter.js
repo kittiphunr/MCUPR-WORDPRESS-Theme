@@ -3179,7 +3179,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     ok(await up.locator('.stu-form button').count() === 1 && /\*\*\*@mail-e2e/.test(await up.locator('.stu-intro').innerText()) && !/7701@mail-e2e/.test(await up.content()), 'unsubscribe page: opening the link shows a button and a hidden address, it changes nothing');
     ok(phpM('echo get_post_meta(' + ids[0] + ',"_mcupr_s_nomail",true)===""?"none":"stopped";') === 'none', 'unsubscribe page: and nothing was changed by opening it');
     await Promise.all([up.waitForNavigation(), up.click('.stu-form button')]);
-    ok(await up.locator('[role=status]').count() === 1 && phpM('echo get_post_meta(' + ids[0] + ',"_mcupr_s_nomail",true)===""?"none":"stopped";') === 'stopped', 'unsubscribe page: the button stops announcements and says so');
+    ok(await up.locator('main [role=status]').count() === 1 && phpM('echo get_post_meta(' + ids[0] + ',"_mcupr_s_nomail",true)===""?"none":"stopped";') === 'stopped', 'unsubscribe page: the button stops announcements and says so');
     ok(phpM('echo count(mcupr_mail_recipients(array())["ids"]) . " " . mcupr_mail_recipients(array())["stopped"];') === '2 1', 'unsubscribe page: that student is no longer in the list of who gets it');
     await Promise.all([up.waitForNavigation(), up.click('.stu-form button')]);
     ok(phpM('echo get_post_meta(' + ids[0] + ',"_mcupr_s_nomail",true)===""?"none":"stopped";') === 'none', 'unsubscribe page: the student can start announcements again');
@@ -4252,7 +4252,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         const ferr = [];
         fp.on('pageerror', (e) => ferr.push(e.message));
         fp.on('console', (m) => { if (m.type() === 'error') { ferr.push(m.text()); } });
-        await fp.addInitScript((f) => { try { if (!sessionStorage.getItem('fxinit')) { sessionStorage.setItem('fxinit', '1'); localStorage.removeItem('mcupr_bk_pos'); localStorage.setItem('mcupr_bk_sound', '1'); } } catch (e) { /* */ } }, fx);
+        await fp.addInitScript((f) => { try { localStorage.setItem('mcupr_consent', '1'); if (!sessionStorage.getItem('fxinit')) { sessionStorage.setItem('fxinit', '1'); localStorage.removeItem('mcupr_bk_pos'); localStorage.setItem('mcupr_bk_sound', '1'); } } catch (e) { /* */ } }, fx);
         await fp.goto(B + '/?p=' + ids[1]);
         await fp.waitForSelector('.bk-reader[data-ready="1"]', { timeout: 30000 });
         await fp.locator('.bk-reader').scrollIntoViewIfNeeded();
@@ -4483,7 +4483,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       for (const [menu, w] of [['side', 1428], ['top', 1428], ['side', 1920], ['top', 1180]]) {
         const kc = await br.newContext({ viewport: { width: w, height: 700 } });
         const kp = await kc.newPage();
-        await kp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        await kp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
         await kp.goto(B + '/');
         await kp.waitForTimeout(900);
         const m = await kp.evaluate((menuMode) => {
@@ -4516,7 +4516,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await sp.goto(B + '/wp-login.php');
         await sp.fill('#user_login', 'e2eadmin'); await sp.fill('#user_pass', 'e2e-Admin-pass-1'); await sp.click('#wp-submit');
         await sp.waitForURL(/wp-admin/, { waitUntil: 'domcontentloaded' });
-        await sp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', m ? '1' : '0'); } catch (e) { /* */ } }, sbmin);
+        await sp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', m ? '1' : '0'); } catch (e) { /* */ } }, sbmin);
         await sp.goto(B + '/');
         await sp.waitForTimeout(900);
         const g = await sp.evaluate(() => { const f = document.querySelector('.site-page').getBoundingClientRect(), n = document.querySelector('.site-nav').getBoundingClientRect(), bar = document.getElementById('wpadminbar'), de = document.documentElement; return { right: de.clientWidth - f.right, nl: n.left, ntop: n.top - (bar ? bar.getBoundingClientRect().bottom : 0), ftop: f.top - (bar ? bar.getBoundingClientRect().bottom : 0), gap: f.left - n.right, sw: de.scrollWidth - de.clientWidth, bar: !!bar }; });
@@ -4532,7 +4532,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     for (const [w, sbmin] of [[1428, false], [1920, true], [1180, false]]) {
       const fc = await br.newContext({ viewport: { width: w, height: 800 } });
       const fp = await fc.newPage();
-      await fp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', m ? '1' : '0'); } catch (e) { /* */ } }, sbmin);
+      await fp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', m ? '1' : '0'); } catch (e) { /* */ } }, sbmin);
       await fp.goto(B + '/');
       await fp.waitForTimeout(700);
       const g = await fp.evaluate(() => { const r = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; }; const f = r('.site-page'), hero = r('.hero'); const ws = [...document.querySelectorAll('#content .wrap:not(.hero-wrap)')].slice(0, 6).map((e) => e.getBoundingClientRect()); return f && hero ? { top: hero.top - f.top, right: hero.right - f.right, left: hero.left - f.left, wl: Math.max.apply(null, ws.map((x) => Math.abs((x.left - f.left) - (f.right - x.right)))), gl: Math.min.apply(null, ws.map((x) => x.left - f.left)), gr: Math.max.apply(null, ws.map((x) => x.left - f.left)), sw: document.documentElement.scrollWidth - innerWidth } : null; });
@@ -4551,7 +4551,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     for (const [w, menu] of [[1428, 'side'], [1920, 'side'], [1180, 'top']]) {
       const oc = await br.newContext({ viewport: { width: w, height: 800 } });
       const op = await oc.newPage();
-      await op.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); localStorage.setItem('mcupr_sbmin', '0'); } catch (e) { /* */ } }, menu);
+      await op.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); localStorage.setItem('mcupr_sbmin', '0'); } catch (e) { /* */ } }, menu);
       await op.goto(B + '/offices/');
       await op.waitForTimeout(600);
       const og = await op.evaluate(() => { const gr = document.querySelector('.office-grid'); if (!gr) { return null; } const g = gr.getBoundingClientRect(); const cs = [...gr.children].map((e) => e.getBoundingClientRect()); return { n: cs.length, rows: new Set(cs.map((c) => Math.round(c.top))).size, gap: g.right - Math.max.apply(null, cs.map((c) => c.right)), sw: document.documentElement.scrollWidth - innerWidth }; });
@@ -4675,7 +4675,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       for (const [w, menu] of [[1428, 'side'], [390, 'top']]) {
         const bc = await br.newContext({ viewport: { width: w, height: 800 } });
         const bp = await bc.newPage();
-        await bp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        await bp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
         await bp.goto(B + '/?pagename=e2e-band');
         await bp.waitForTimeout(600);
         const bg = await bp.evaluate(() => { const h = document.querySelector('header.mcu-wheel'); const t = h.querySelector('.mcu-title'); return { room: parseFloat(getComputedStyle(t).paddingBottom) >= parseFloat(getComputedStyle(t).fontSize) * 0.25 && parseFloat(getComputedStyle(t).paddingTop) >= parseFloat(getComputedStyle(t).fontSize) * 0.15, fs: parseFloat(getComputedStyle(t).fontSize), grad: /gradient/.test(getComputedStyle(h).backgroundImage), radius: parseFloat(getComputedStyle(h).borderBottomLeftRadius), pill: parseFloat(getComputedStyle(h.querySelector('nav')).borderTopLeftRadius) > 20, chips: h.querySelectorAll('.band-chip').length, sw: document.documentElement.scrollWidth - innerWidth, dupUpdated: document.querySelectorAll('.reader')[0] ? document.querySelectorAll('.no-print .inline-flex .ic').length : 0 }; });
@@ -4704,7 +4704,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       for (const [w, menu] of [[1428, 'side'], [390, 'top']]) {
         const qc = await br.newContext({ viewport: { width: w, height: 800 } });
         const qp = await qc.newPage();
-        await qp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        await qp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
         await qp.goto(B + '/?mcupr_office=e2e-ofhead&mcupr_osec=albums');
         await qp.waitForTimeout(600);
         const qg = await qp.evaluate(() => { const h = document.querySelector('.of-head'); const up = document.querySelector('.of-trail ol'); return { head: !!h, h1: document.querySelectorAll('h1').length, count: h && h.querySelector('.of-count b') ? h.querySelector('.of-count b').textContent : '', lead: !!(h && h.querySelector('.of-head-lead')), icon: !!(h && h.querySelector('svg')), pill: up ? parseFloat(getComputedStyle(up).borderTopLeftRadius) > 15 : false, cards: document.querySelectorAll('.album-grid > *').length, sw: document.documentElement.scrollWidth - innerWidth }; });
@@ -4730,7 +4730,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       for (const [w, menu] of [[1428, 'side'], [390, 'top']]) {
         const rc = await br.newContext({ viewport: { width: w, height: 800 } });
         const rp = await rc.newPage();
-        await rp.addInitScript((m) => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
+        await rp.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* */ } }, menu);
         const rtag = 'office page (' + w + ' px, ' + menu + ' menu)';
         await rp.goto(B + '/?page_id=' + rids[1]);
         await rp.waitForTimeout(600);
@@ -4765,7 +4765,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       for (const w of [1428, 1920]) {
         const hc = await br.newContext({ viewport: { width: w, height: 800 } });
         const hp = await hc.newPage();
-        await hp.addInitScript(() => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); } catch (e) { /* */ } });
+        await hp.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); } catch (e) { /* */ } });
         await hp.goto(B + '/');
         await hp.waitForTimeout(700);
         const hg = await hp.evaluate(() => { const h = document.querySelector('.hero').getBoundingClientRect(); const f = document.querySelector('.site-page').getBoundingClientRect(); return { l: Math.abs(h.left - f.left), t: Math.abs(h.top - f.top), r: Math.abs(h.right - f.right), sw: document.documentElement.scrollWidth - innerWidth }; });
@@ -4782,7 +4782,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       const cerr = [];
       cp.on('pageerror', (e) => cerr.push(e.message));
       // a visitor sees neither the bar nor the icon
-      await cp.addInitScript(() => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', '0'); } catch (e) { /* */ } });
+      await cp.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_sbmin', '0'); } catch (e) { /* */ } });
       await cp.goto(B + '/');
       await cp.waitForTimeout(600);
       ok((await cp.locator('.cc-fab').count()) === 0 && (await cp.locator('#wpadminbar').count()) === 0, 'toolbar: a visitor sees no bar and no icon');
