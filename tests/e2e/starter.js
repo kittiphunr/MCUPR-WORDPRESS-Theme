@@ -191,24 +191,20 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok((await p.$$('.site-nav li.is-open')).length === 1, 'opening a second menu item closes the first (one panel at a time)');
   await p.keyboard.press('Escape');
 
-  // sidebar mode on a tablet: the menu has a button in the header (a lone round button in the corner was not found); on a phone the round button stays
-  for (const [w, h, dev] of [[820, 1180, 'tablet'], [1099, 800, 'small laptop'], [390, 800, 'phone']]) {
+  // sidebar mode below 1100 px (tablet, phone): the menu has a button in the header, as in the top menu (a lone round button in the corner was not found)
+  for (const [w, h, dev] of [[820, 1180, 'tablet'], [1099, 800, 'small laptop'], [390, 800, 'phone'], [320, 640, 'small phone']]) {
     const sc = await br.newContext({ viewport: { width: w, height: h } });
     await sc.addInitScript(() => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
     const sp = await sc.newPage();
     await sp.goto(B + '/');
     await sp.waitForTimeout(600);
     const sv = await sp.evaluate(() => { const w = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().width) : 0; }; return { tog: w('.nav-toggle'), fab: w('#nav-fab'), top: Math.round(document.querySelector('.nav-toggle').getBoundingClientRect().top) }; });
-    if (dev === 'phone') {
-      ok(sv.fab >= 44 && sv.tog === 0, 'sidebar mode, ' + dev + ' (' + w + ' px): the round button in the corner opens the menu (' + sv.fab + ' px)');
-    } else {
-      ok(sv.tog >= 44 && sv.fab === 0 && sv.top < 80, 'sidebar mode, ' + dev + ' (' + w + ' px): the menu has a button in the header (' + sv.tog + ' px wide), no lone round button');
-      await sp.click('.nav-toggle');
-      await sp.waitForFunction(() => document.querySelector('#site-nav').classList.contains('is-open'));
-      await sp.waitForTimeout(700); // the drawer slides in
-      const nv = await sp.evaluate(() => { const n = document.querySelector('#site-nav'), b = n.getBoundingClientRect(); return { vis: getComputedStyle(n).visibility, left: Math.round(b.left), w: innerWidth, links: n.querySelectorAll('.menu > li > a').length, exp: document.querySelector('.nav-toggle').getAttribute('aria-expanded') }; });
-      ok(nv.vis === 'visible' && nv.left < nv.w - 200 && nv.links >= 5 && nv.exp === 'true', 'sidebar mode, ' + dev + ': the button opens the menu (' + nv.links + ' entries), aria-expanded says so');
-    }
+    ok(sv.tog >= 44 && sv.fab === 0 && sv.top < 90, 'sidebar mode, ' + dev + ' (' + w + ' px): the menu has a button (three bars) in the header (' + sv.tog + ' px wide), no lone round button');
+    await sp.click('.nav-toggle');
+    await sp.waitForFunction(() => document.querySelector('#site-nav').classList.contains('is-open'));
+    await sp.waitForTimeout(700); // the drawer slides in
+    const nv = await sp.evaluate(() => { const n = document.querySelector('#site-nav'), b = n.getBoundingClientRect(); return { vis: getComputedStyle(n).visibility, left: Math.round(b.left), w: innerWidth, links: n.querySelectorAll('.menu > li > a').length, exp: document.querySelector('.nav-toggle').getAttribute('aria-expanded') }; });
+    ok(nv.vis === 'visible' && nv.left < nv.w - 200 && nv.links >= 5 && nv.exp === 'true', 'sidebar mode, ' + dev + ': the button opens the menu (' + nv.links + ' entries), aria-expanded says so');
     await sc.close();
   }
   // full-screen menu

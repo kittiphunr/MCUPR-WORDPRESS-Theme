@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.66.3 =
+* Sidebar menu mode on phones too: the menu button (three bars) is in the header below 1100 px, as in the top menu; the round button in the corner is gone
+
 = 1.66.2 =
 * E-books (WebGL page turn): a page at rest is drawn at full brightness whatever the graphics card makes of its surface direction; only a page being turned is lit from the side (both open pages are now equally bright)
 
