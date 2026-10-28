@@ -93,8 +93,8 @@ require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 $GLOBALS['wp_customize'] = new WP_Customize_Manager();
 do_action( 'customize_register', $GLOBALS['wp_customize'] );
 $c = $GLOBALS['wp_customize']->get_control( 'mcupr_preload' );
-foreach ( array( 'mcupr_preload_logo', 'mcupr_preload_logo_dark', 'mcupr_preload_text_show', 'mcupr_preload_text' ) as $id ) { $cc = $GLOBALS['wp_customize']->get_control( $id ); t( $cc && 'mcupr_display' === $cc->section, "customizer: $id is in the Animation section" ); }
-t( $c && 'mcupr_display' === $c->section && array( 'every', 'session', 'off' ) === array_keys( $c->choices ), 'customizer: the choice is in the Animation section: every page / first page of a visit / never' );
+foreach ( array( 'mcupr_preload_logo', 'mcupr_preload_logo_dark', 'mcupr_preload_text_show', 'mcupr_preload_text' ) as $id ) { $cc = $GLOBALS['wp_customize']->get_control( $id ); t( $cc && 'mcupr_loading' === $cc->section, "customizer: $id is in the Loading screen section" ); }
+t( $c && 'mcupr_loading' === $c->section && array( 'every', 'session', 'off' ) === array_keys( $c->choices ), 'customizer: the choice is in the Loading screen section: every page / first page of a visit / never' );
 
 foreach ( array( 'mcupr_preload' => $keep[0], 'custom_logo' => $keep[1], 'mcupr_logo_dark' => $keep[2] ) as $k => $v ) { null === $v ? remove_theme_mod( $k ) : set_theme_mod( $k, $v ); }
 foreach ( array( 'mcupr_preload_logo', 'mcupr_preload_logo_dark', 'mcupr_preload_text', 'mcupr_preload_text_show' ) as $k ) { remove_theme_mod( $k ); }
