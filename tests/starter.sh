@@ -69,6 +69,7 @@ php php/notices.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\
 php php/notice-fields.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/google-embed.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/preloader.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
+php php/mobile-dock.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/customizer-order.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/low-risk.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/groups-import.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true

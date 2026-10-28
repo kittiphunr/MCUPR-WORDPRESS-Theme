@@ -464,6 +464,7 @@
 	var nav = $('#site-nav');
 	var navBtn = $('.nav-toggle');
 	var fab = $('#nav-fab');
+	var dockBtn = $('[data-dock-menu]');
 	var overlay = $('#nav-overlay');
 	var desktopMq = window.matchMedia ? window.matchMedia('(min-width: 1100px)') : { matches: true };
 
@@ -473,6 +474,7 @@
 		navBtn.setAttribute('aria-expanded', String(open));
 		navBtn.setAttribute('aria-label', navBtn.getAttribute(open ? 'data-label-close' : 'data-label-open') || '');
 		if (fab) { fab.setAttribute('aria-expanded', String(open)); fab.setAttribute('aria-label', navBtn.getAttribute(open ? 'data-label-close' : 'data-label-open') || ''); }
+		if (dockBtn) { dockBtn.setAttribute('aria-expanded', String(open)); dockBtn.setAttribute('aria-label', navBtn.getAttribute(open ? 'data-label-close' : 'data-label-open') || ''); }
 		if (overlay) {
 			if (open) { overlay.hidden = false; }
 			window.requestAnimationFrame(function () {
@@ -494,6 +496,7 @@
 	if (nav && navBtn) {
 		navBtn.addEventListener('click', function () { setNav(navBtn.getAttribute('aria-expanded') !== 'true', false); });
 		if (fab) { fab.addEventListener('click', function () { setNav(navBtn.getAttribute('aria-expanded') !== 'true', false); }); }
+		if (dockBtn) { dockBtn.addEventListener('click', function () { setNav(navBtn.getAttribute('aria-expanded') !== 'true', false); }); }
 
 		/* sidebar rail: collapse / expand (remembered) */
 		var sbBtn = $('[data-sb-toggle]', nav);
