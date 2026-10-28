@@ -191,6 +191,25 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
   ok((await p.$$('.site-nav li.is-open')).length === 1, 'opening a second menu item closes the first (one panel at a time)');
   await p.keyboard.press('Escape');
 
+  // sidebar mode on a tablet: the menu has a button in the header (a lone round button in the corner was not found); on a phone the round button stays
+  for (const [w, h, dev] of [[820, 1180, 'tablet'], [1099, 800, 'small laptop'], [390, 800, 'phone']]) {
+    const sc = await br.newContext({ viewport: { width: w, height: h } });
+    await sc.addInitScript(() => { try { localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })); localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
+    const sp = await sc.newPage();
+    await sp.goto(B + '/');
+    await sp.waitForTimeout(600);
+    const sv = await sp.evaluate(() => { const w = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().width) : 0; }; return { tog: w('.nav-toggle'), fab: w('#nav-fab'), top: Math.round(document.querySelector('.nav-toggle').getBoundingClientRect().top) }; });
+    if (dev === 'phone') {
+      ok(sv.fab >= 44 && sv.tog === 0, 'sidebar mode, ' + dev + ' (' + w + ' px): the round button in the corner opens the menu (' + sv.fab + ' px)');
+    } else {
+      ok(sv.tog >= 44 && sv.fab === 0 && sv.top < 80, 'sidebar mode, ' + dev + ' (' + w + ' px): the menu has a button in the header (' + sv.tog + ' px wide), no lone round button');
+      await sp.click('.nav-toggle');
+      await sp.waitForFunction(() => document.querySelector('#site-nav').classList.contains('is-open'));
+      const nv = await sp.evaluate(() => { const n = document.querySelector('#site-nav'), b = n.getBoundingClientRect(); return { vis: getComputedStyle(n).visibility, left: Math.round(b.left), w: innerWidth, links: n.querySelectorAll('.menu > li > a').length, exp: document.querySelector('.nav-toggle').getAttribute('aria-expanded') }; });
+      ok(nv.vis === 'visible' && nv.left < nv.w - 200 && nv.links >= 5 && nv.exp === 'true', 'sidebar mode, ' + dev + ': the button opens the menu (' + nv.links + ' entries), aria-expanded says so');
+    }
+    await sc.close();
+  }
   // full-screen menu
   ok(await p.isVisible('[data-fs-open]'), 'desktop: the "All menu" button is shown');
   ok((await p.$('#fs-menu')) === null, 'full-screen menu is not in the page until it is opened');
@@ -4281,6 +4300,10 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
               const wide = dev === 'phone' ? ar1 : 2 * ar1;
               ok(Math.abs(box.width / box.height - wide) < 0.15, tag + ': the book has the shape of ' + (dev === 'phone' ? 'one landscape page' : 'two landscape pages side by side') + ' (' + (box.width / box.height).toFixed(2) + ')');
               ok(box.width <= rb.width + 1 && box.height <= rb.height + 1 && box.x >= rb.x - 1, tag + ': the book fits in the reader');
+              if (fx === 'webgl') {
+                const cvb = await lp.locator('.bkg-cv').boundingBox();
+                ok(cvb.x <= box.x - box.width * 0.08 && cvb.y <= box.y - box.height * 0.08 && cvb.x + cvb.width >= box.x + box.width * 1.08 && cvb.y + cvb.height >= box.y + box.height * 1.08, tag + ': the picture reaches beyond the book on every side, so a page lifted towards the viewer is not cut off at the edge');
+              }
               ok(await lp.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), tag + ': no sideways scroll');
               ok(isRed(await px(lp, lst, dev === 'phone' ? 0.5 : 0.5, 0.45)), tag + ': the closed book shows the red cover');
               await lp.click('.bk-reader [data-act="next"]');
@@ -4290,6 +4313,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
                 ok(isBlue(await px(lp, lst, 0.5, 0.45)), tag + ': the next page (blue) is shown');
               } else {
                 ok(isBlue(await px(lp, lst, 0.28, 0.45)) && isGreen(await px(lp, lst, 0.72, 0.45)), tag + ': pages 2 (blue, left) and 3 (green, right) are the right way round');
+                const gcol = await px(lp, lst, 0.72, 0.45), bcol = await px(lp, lst, 0.28, 0.45);
+                ok(gcol[1] > 150 && bcol[2] > 190, tag + ': both open pages are full bright, neither is shaded dark (right ' + gcol.join(',') + ', left ' + bcol.join(',') + ')');
               }
               await lp.focus('.bk-stage');
               await lp.keyboard.press('ArrowRight');

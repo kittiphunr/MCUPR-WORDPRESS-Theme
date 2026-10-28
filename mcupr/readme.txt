@@ -32,6 +32,10 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.66.1 =
+* Sidebar menu mode on a tablet (700-1099 px): the menu has a button in the header again (only a lone round button in the corner was there)
+* E-books (WebGL page turn): a page lifted towards the reader is no longer cut off at the edge of the picture; pages at rest are never shaded dark (a safer light, high-precision shading)
+
 = 1.66.0 =
 * Replace with the latest starter, tested on a lived-in site: pages whose template no longer exists can be replaced; pages built with Elementor show the new text; the copy of a page keeps its description and translated titles; "Put the previous text back" per page; the settings copies (last 5) can be put back exactly, and overwriting twice no longer throws away the first copy
 
