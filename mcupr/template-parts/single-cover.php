@@ -39,7 +39,7 @@ defined( 'ABSPATH' ) || exit;
 			<?php if ( mcupr_office_shown() && has_post_thumbnail() ) : ?>
 				<figure class="noimg:hidden m-0 mb-6"><?php the_post_thumbnail( 'mcupr-hero', array( 'class' => 'w-full rounded-2xl', 'sizes' => '(min-width: 1300px) 940px, (min-width: 1000px) 70vw, calc(100vw - 4rem)', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></figure>
 			<?php endif; ?>
-			<div id="article-body" class="reader mx-auto max-w-[48rem]"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+			<div id="article-body" class="reader max-w-[48rem]"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 				<?php
 				the_content();
 				wp_link_pages();

@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.70.1 =
+* Cover posts: the text now starts at the same side as the blocks under it (gallery, attachments, tags, share) instead of being centred in the wide panel, and the head, the side rail and the panel line up
+
 = 1.70.0 =
 * Customizer and control center re-ordered by how they are really used: notice bar, home page and menus first; then what is set once (identity, logos, organisation, colours, footer); then reading, loading screen, print, policy and cookies; the rarely used last. The long organisation and animation sections are split (footer map and social links, website credit, loading screen) and each long section follows the order of work. The control center has menus for organisation, languages, footer, loading screen and credit, tools are ordered by use, and "Colours" now opens the colour section.
 
