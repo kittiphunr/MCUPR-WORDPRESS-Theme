@@ -331,7 +331,7 @@
 		'#ifdef GL_FRAGMENT_PRECISION_HIGH', 'precision highp float;', '#else', 'precision mediump float;', '#endif', // the light and the shadow are sums of small numbers: half precision (some phones and laptops) is not enough
 		'uniform sampler2D uFront, uBack;',
 		'uniform vec2 uShM, uShN;',
-		'uniform float uHasBack, uShade, uShI, uPaper, uCovF, uCovB, uInF, uInB, uOver;',
+		'uniform float uHasBack, uShade, uLit, uShI, uPaper, uCovF, uCovB, uInF, uInB, uOver;',
 		'uniform vec3 uPaperCol;',
 		'varying vec2 vUv; varying vec3 vN; varying float vX, vY;',
 		'void main() {',
@@ -346,9 +346,9 @@
 		'  if (!front) { n = -n; }',
 		'  vec3 l = normalize(vec3(-0.30, 0.35, 0.89));',
 		'  float dif = max(dot(n, l), 0.0) / l.z;',
-		'  float lit = 0.8 + 0.2 * min(dif, 1.0);', // a page lying flat is full bright; a turning one is shaded a little, never dark
+		'  float lit = uLit > 0.5 ? 0.8 + 0.2 * min(dif, 1.0) : 1.0;', // a page lying flat is full bright whatever the graphics card makes of its normal; only a page that is being turned is lit from the side, never dark
 		'  vec3 h = normalize(l + vec3(0.0, 0.0, 1.0));',
-		'  float spec = pow(max(dot(n, h), 0.0), 38.0) * 0.10 * (1.0 - uShade);',
+		'  float spec = uLit > 0.5 ? pow(max(dot(n, h), 0.0), 38.0) * 0.10 * (1.0 - uShade) : 0.0;',
 		'  col = col * min(lit, 1.06) + spec;',
 		'  col *= 1.0 - 0.17 * exp(-abs(vX) * 7.0);',
 		'  if ((front ? uCovF : uCovB) > 0.5) {', // a hard cover: a darker rim, a thin edge line and the groove of the hinge
@@ -422,7 +422,7 @@
 			gl = cv.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: true }) || cv.getContext('experimental-webgl');
 			prog = link(VS, FS); prog2 = link(VS2, FS2);
 			gl.useProgram(prog);
-			['uM', 'uN', 'uOn', 'uR', 'uH', 'uViewW', 'uCx', 'uD', 'uZoff', 'uSc', 'uPad', 'uDx', 'uFront', 'uBack', 'uHasBack', 'uShade', 'uShM', 'uShN', 'uShI', 'uPaperCol', 'uCovF', 'uCovB', 'uInF', 'uInB', 'uOver'].forEach(function (n) { loc[n] = gl.getUniformLocation(prog, n); });
+			['uM', 'uN', 'uOn', 'uR', 'uH', 'uViewW', 'uCx', 'uD', 'uZoff', 'uSc', 'uPad', 'uDx', 'uFront', 'uBack', 'uHasBack', 'uShade', 'uLit', 'uShM', 'uShN', 'uShI', 'uPaperCol', 'uCovF', 'uCovB', 'uInF', 'uInB', 'uOver'].forEach(function (n) { loc[n] = gl.getUniformLocation(prog, n); });
 			['uH', 'uViewW', 'uCx', 'uPad', 'uCol', 'uAxis'].forEach(function (n) { loc2[n] = gl.getUniformLocation(prog2, n); });
 			var v = [], idx = [], i, r;
 			for (r = 0; r <= M; r++) { for (i = 0; i <= N; i++) { v.push(i / N, 0.5 - r / M); } } // a grid, so that the top and the bottom of a page can turn by different angles
@@ -445,6 +445,7 @@
 			gl.uniform3f(loc.uPaperCol, 0.984, 0.980, 0.965);
 			gl.uniform1f(loc.uD, 5.2);
 			gl.uniform1f(loc.uPad, PAD); gl.uniform1f(loc.uOver, OVER);
+			try { var dbg = gl.getExtension('WEBGL_debug_renderer_info'); cv.setAttribute('data-gl', dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : 'webgl'); } catch (err) { /* only for support: right-click → inspect shows the graphics card */ }
 			texs = {};
 			paper = tex1x1();
 		}
@@ -534,6 +535,7 @@
 			gl.uniform1f(loc.uCovF, j === 0 || (!land && last) ? 1 : 0); gl.uniform1f(loc.uCovB, land && last ? 1 : 0);
 			gl.uniform1f(loc.uInF, land && last && j !== 0 ? 1 : 0); gl.uniform1f(loc.uInB, land && j === 0 && !last ? 1 : 0);
 			gl.uniform1f(loc.uShade, 0);
+			gl.uniform1f(loc.uLit, fold && fold !== 'flip' ? 1 : 0);
 			if (shadow) { gl.uniform2f(loc.uShM, shadow.M[0], shadow.M[1]); gl.uniform2f(loc.uShN, shadow.N[0], shadow.N[1]); gl.uniform1f(loc.uShI, shadow.I); } else { gl.uniform1f(loc.uShI, 0); }
 			gl.drawElements(gl.TRIANGLES, nIdx, gl.UNSIGNED_SHORT, 0);
 		}

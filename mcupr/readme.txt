@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.66.2 =
+* E-books (WebGL page turn): a page at rest is drawn at full brightness whatever the graphics card makes of its surface direction; only a page being turned is lit from the side (both open pages are now equally bright)
+
 = 1.66.1 =
 * Sidebar menu mode on a tablet (700-1099 px): the menu has a button in the header again (only a lone round button in the corner was there)
 * E-books (WebGL page turn): a page lifted towards the reader is no longer cut off at the edge of the picture; pages at rest are never shaded dark (a safer light, high-precision shading)
