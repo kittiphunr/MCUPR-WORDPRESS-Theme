@@ -460,6 +460,21 @@
 		}
 	});
 
+	/* ---------------------------------------------------------------- the search bar of the home hero (phones): the button chooses what to search in */
+	$$('[data-hs]').forEach(function (f) {
+		var b = $('[data-hs-filter]', f), box = $('.hs-scope', f);
+		if (!b || !box) { return; }
+		function set(open) { box.hidden = !open; b.setAttribute('aria-expanded', String(open)); }
+		function sync() { var c = $('input[name="post_type"]:checked', f); if (c && c.value !== '') { b.setAttribute('data-on', ''); } else { b.removeAttribute('data-on'); } }
+		b.addEventListener('click', function () { set(box.hidden); });
+		f.addEventListener('change', function (e) { if (e.target && e.target.name === 'post_type') { sync(); set(false); b.focus(); } });
+		f.addEventListener('submit', function () { var c = $('input[name="post_type"]:checked', f); if (c && c.value === '') { c.disabled = true; } }); /* "everything" adds nothing to the address */
+		window.addEventListener('pageshow', function () { $$('input[name="post_type"]', f).forEach(function (r) { r.disabled = false; }); sync(); });
+		document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !box.hidden) { set(false); b.focus(); } });
+		document.addEventListener('click', function (e) { if (!box.hidden && !f.contains(e.target)) { set(false); } });
+		sync();
+	});
+
 	/* ---------------------------------------------------------------- navigation */
 	var nav = $('#site-nav');
 	var navBtn = $('.nav-toggle');

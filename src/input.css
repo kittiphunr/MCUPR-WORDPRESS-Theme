@@ -530,6 +530,42 @@ html[data-contrast] .is-speaking { outline: 3px solid var(--focus); background: 
 	/* Sidebar mode below 1100px: the menu button (three bars) is in the header, as in the top menu; the old round button in the corner is no longer used */
 	.nav-fab { display: none !important; }
 
+	/* Home hero of a phone: a dark rounded top with the words at the left and a round picture in the corner, and a search bar floating on its lower edge (inc/mobile-dock.php, template-parts/hero.php) */
+	.hero-avatar, .hero .hero-search { display: none; }
+	@media (max-width: 899px) {
+		.hero { min-height: 25rem; padding: 4.6rem 1.25rem 2.2rem; border-radius: 1.75rem 1.75rem 2.4rem 2.4rem; align-items: flex-start; justify-content: flex-start; text-align: left; }
+		.hero-stage { justify-items: start; }
+		.hero .hero-slide, .hero .hero-slide.items-center { align-items: flex-start; text-align: left; }
+		.hero .hero-eyebrow { margin: 0 0 .3rem; padding: 0; border: 0; background: none; font-size: 1rem; font-weight: 500; letter-spacing: 0; }
+		.hero-title > span:first-child:not(:only-child) { font-size: 1.2rem; font-weight: 400; }
+		.hero-title > span:last-child { font-size: clamp(1.7rem, 7.2vw, 2.3rem); font-weight: 800; line-height: 1.35; }
+		.hero-sub { font-size: 1rem; }
+		.hero .hero-btns { justify-content: flex-start; gap: .6rem; }
+		.hero .hero-btn { flex: 1 1 auto; padding-inline: 1rem; font-size: .95rem; text-align: center; }
+		.hero .hero-ctl { align-self: flex-start; }
+		.hero .persona { justify-content: flex-start; margin-top: 1.25rem; }
+		.hero-quick { margin-top: 1.25rem; }
+		.hero-avatar { position: absolute; top: 1.1rem; right: 1.1rem; z-index: 1; display: grid; place-items: center; width: 3.4rem; height: 3.4rem; padding: .35rem; overflow: hidden; border-radius: 9999px; background: #fff; box-shadow: 0 0 0 3px rgb(255 255 255 / .28), 0 6px 16px rgb(0 0 0 / .3); }
+		.hero-avatar img, .hero-avatar .hero-avatar-img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 9999px; }
+		.hero-avatar img.avatar { object-fit: cover; }
+		.hero .hero-search { position: relative; z-index: 2; display: flex; align-items: center; align-self: stretch; gap: .6rem; margin: 1.4rem 0 0; padding: .5rem .55rem .5rem 1.1rem; border: 1px solid var(--border); border-radius: 1.4rem; background: var(--bg); color: var(--muted); box-shadow: 0 14px 34px rgb(15 23 42 / .17); }
+		.hero-search:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+		.hero-search > svg { flex: none; }
+		.hero-search input[type="search"] { flex: 1 1 auto; min-width: 0; min-height: 2.75rem; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--text); font: inherit; font-size: 1rem; outline: none; box-shadow: none; }
+		.hero-search input[type="search"]::placeholder { color: var(--muted); opacity: 1; }
+		.hs-filter { position: relative; flex: none; display: grid; place-items: center; width: 2.9rem; height: 2.9rem; padding: 0; border: 0; border-radius: .95rem; background: var(--bar-bg); color: var(--bar-fg); cursor: pointer; }
+		.hs-filter[aria-expanded="true"] { background: var(--primary); color: var(--on-primary); }
+		.hs-filter[data-on]::after { content: ""; position: absolute; top: .3rem; right: .3rem; width: .55rem; height: .55rem; border-radius: 9999px; background: var(--accent); box-shadow: 0 0 0 2px var(--bar-bg); }
+		.hs-scope { position: absolute; z-index: 3; top: calc(100% + .5rem); right: 0; min-width: 12.5rem; margin: 0; padding: .6rem .9rem; border: 1px solid var(--border); border-radius: 1.1rem; background: var(--bg); color: var(--text); box-shadow: 0 16px 38px rgb(15 23 42 / .22); }
+		.hs-scope:not([hidden]) { display: grid; }
+		.hs-scope legend { float: left; width: 100%; padding: 0; margin-bottom: .2rem; color: var(--muted); font-size: .85rem; font-weight: 700; }
+		.hs-scope label { display: flex; align-items: center; gap: .65rem; min-height: 2.75rem; cursor: pointer; font-weight: 600; }
+		.hs-scope input { width: 1.25rem; height: 1.25rem; accent-color: var(--primary); }
+	}
+	html[data-contrast] .hero-search, html[data-contrast] .hs-scope { border: 2px solid var(--text); box-shadow: none; }
+	html[data-contrast] .hs-filter { background: var(--text); color: var(--bg); }
+	html[data-contrast] .hero-avatar { box-shadow: 0 0 0 3px var(--text); }
+
 	/* Bottom bar of a phone: Home, News, [round menu button], Events, Search (inc/mobile-dock.php). Below 1100px only, where the menu is a drawer. */
 	.m-dock { display: none; }
 	@media (max-width: 1099px) {
