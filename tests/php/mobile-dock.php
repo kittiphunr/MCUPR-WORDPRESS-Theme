@@ -65,6 +65,23 @@ t( false !== strpos( $hero, 'mcupr_hero_search()' ) && strpos( $hero, 'mcupr_her
 $css2 = preg_replace( '/\s+/', '', (string) file_get_contents( get_theme_file_path( 'assets/css/tailwind.css' ) ) );
 foreach ( array( '.hero-avatar', '.hs-filter', '.hs-scope', '.hero.hero-search' ) as $needle ) { t( false !== strpos( $css2, $needle ), "css: $needle is in the stylesheet" ); }
 
+// search without a page load
+t( false !== strpos( $hs, 'data-hs-res="' ) && preg_match( '/data-hs-res="(hs-\d+-res)"/', $hs, $m3 ) && false !== strpos( $hs, 'id="' . $m3[1] . '" hidden aria-live="polite"' ), 'live search: the results area belongs to the form, starts hidden and is announced politely' );
+foreach ( array( 'data-live=', 'data-t-busy=', 'data-t-none=', 'data-t-count=', 'data-t-all=', 'data-t-error=' ) as $a ) { t( false !== strpos( $hs, $a ), "live search: the results area carries $a" ); }
+foreach ( array( 'live_busy', 'live_none', 'live_count', 'live_all', 'live_error' ) as $k ) { foreach ( array( 'th', 'en', 'zh', 'ja' ) as $l ) { if ( mcupr_t( $k, $l ) === $k || '' === mcupr_t( $k, $l ) ) { t( false, "language $l: $k" ); } } }
+t( true, 'live search: its texts are in all four languages' );
+t( 6 === MCUPR_LIVE_N && function_exists( 'mcupr_live_requested' ) && ! mcupr_live_requested(), 'live search: six results at most; a normal request is not a live one' );
+$_GET['s'] = 'x'; $_GET['mcupr_live'] = '1';
+t( mcupr_live_requested(), 'live search: ?s=…&mcupr_live=1 is a live request' );
+unset( $_GET['s'], $_GET['mcupr_live'] );
+$po = get_posts( array( 'numberposts' => 1, 'post_type' => 'post' ) ); $pg = get_posts( array( 'numberposts' => 1, 'post_type' => 'page' ) );
+t( ( ! $po || mcupr_t( 'dock_news' ) === mcupr_live_kind( $po[0] ) ) && ( ! $pg || mcupr_t( 'scope_pages' ) === mcupr_live_kind( $pg[0] ) ), 'live search: news and pages are named in words' );
+$src = (string) file_get_contents( get_theme_file_path( 'inc/live-search.php' ) );
+t( false !== strpos( $src, "'template_redirect'" ) && preg_match( '/},\s*2\s*\);\s*$/', trim( $src ) ), 'live search: answers before the statistics hook (3), which then never counts a pause in the typing' );
+t( false !== strpos( $src, "! empty( \$_GET['final'] )" ) && false !== strpos( $src, 'mcupr_ins_log_search' ), 'live search: the word is written to the statistics only for a real search (final=1)' );
+$js = (string) file_get_contents( get_theme_file_path( 'assets/js/main.js' ) );
+t( false !== strpos( $js, 'mcupr_live' ) && false === strpos( preg_replace( '/\/\*.*?\*\//s', '', substr( $js, strpos( $js, 'the results come under the bar' ), 6000 ) ), 'innerHTML' ), 'live search: the script builds the results with textContent, never innerHTML' );
+
 null === $keep ? remove_theme_mod( 'mcupr_dock' ) : set_theme_mod( 'mcupr_dock', $keep );
 echo $fails ? "$fails FAILED\n" : "all passed\n";
 exit( $fails ? 1 : 0 );

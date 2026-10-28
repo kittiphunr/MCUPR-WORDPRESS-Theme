@@ -99,7 +99,7 @@ function mcupr_hero_search_scopes() {
 function mcupr_hero_search() {
 	$uid = wp_unique_id( 'hs-' );
 	?>
-	<form class="hero-search" method="get" role="search" action="<?php echo esc_url( mcupr_home_url() ); ?>" data-hs>
+	<form class="hero-search" method="get" role="search" action="<?php echo esc_url( mcupr_home_url() ); ?>" data-hs data-hs-res="<?php echo esc_attr( $uid ); ?>-res">
 		<label for="<?php echo esc_attr( $uid ); ?>" class="sr-only"><?php mcupr_e( 'search' ); ?></label>
 		<?php echo mcupr_icon( 'search', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		<input type="search" id="<?php echo esc_attr( $uid ); ?>" name="s" placeholder="<?php echo esc_attr( mcupr_t( 'hero_search_ph' ) ); ?>" autocomplete="off" enterkeyhint="search">
@@ -115,5 +115,8 @@ function mcupr_hero_search() {
 			<?php endforeach; ?>
 		</fieldset>
 	</form>
+	<div class="hs-results" id="<?php echo esc_attr( $uid ); ?>-res" hidden aria-live="polite" aria-label="<?php echo esc_attr( mcupr_t( 'search' ) ); ?>"
+		data-live="<?php echo esc_url( mcupr_home_url() ); ?>"
+		data-t-busy="<?php echo esc_attr( mcupr_t( 'live_busy' ) ); ?>" data-t-none="<?php echo esc_attr( mcupr_t( 'live_none' ) ); ?>" data-t-count="<?php echo esc_attr( mcupr_t( 'live_count' ) ); ?>" data-t-all="<?php echo esc_attr( mcupr_t( 'live_all' ) ); ?>" data-t-error="<?php echo esc_attr( mcupr_t( 'live_error' ) ); ?>"></div>
 	<?php
 }

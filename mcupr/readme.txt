@@ -33,7 +33,7 @@ SweetAlert2: MIT License.
 
 
 = 1.73.0 =
-* Phones, home hero: the words at the left with the logo (or the signed-in person's picture) as a round picture in the corner, buttons side by side, and a search bar under them with a button to choose what to search in (everything, news, events, pages); the same in light, dark and high-contrast modes
+* Phones, home hero: the words at the left with the logo (or the signed-in person's picture) as a round picture in the corner, buttons side by side, and a search bar under them with a button to choose what to search in (everything, news, events, pages); the same in light, dark and high-contrast modes. The search shows its first results under the bar while you type or press Enter, with no page to load (a small JSON answer from the normal search query; "see all" opens the full page).
 
 = 1.72.0 =
 * Phones (below 1100 px): a bottom bar with Home, News, a big round button that opens the menu drawer, Events and Search, in every menu layout and colour mode (light, dark, high contrast); the page and the floating buttons keep clear of it; switch it off in Customizer → Animation, news & reading

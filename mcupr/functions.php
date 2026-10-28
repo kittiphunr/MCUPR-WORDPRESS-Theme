@@ -44,6 +44,7 @@ require_once MCUPR_DIR . '/inc/notice-fields.php';
 require_once MCUPR_DIR . '/inc/preloader.php';
 require_once MCUPR_DIR . '/inc/cookie-center.php';
 require_once MCUPR_DIR . '/inc/mobile-dock.php';
+require_once MCUPR_DIR . '/inc/live-search.php';
 require_once MCUPR_DIR . '/inc/customizer-order.php';
 require_once MCUPR_DIR . '/inc/works.php';
 require_once MCUPR_DIR . '/inc/browser.php';

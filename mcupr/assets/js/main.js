@@ -464,11 +464,87 @@
 	$$('[data-hs]').forEach(function (f) {
 		var b = $('[data-hs-filter]', f), box = $('.hs-scope', f);
 		if (!b || !box) { return; }
+		var input = $('input[type="search"]', f), res = document.getElementById(f.getAttribute('data-hs-res') || '');
+		var rerun = function () {};
+
+		/* the results come under the bar, with no page to load: the first few from /?s=…&mcupr_live=1 (inc/live-search.php) */
+		if (input && res && window.fetch && window.URL && window.URLSearchParams) {
+			var T = { busy: res.getAttribute('data-t-busy') || '', none: res.getAttribute('data-t-none') || '', count: res.getAttribute('data-t-count') || '', all: res.getAttribute('data-t-all') || '', error: res.getAttribute('data-t-error') || '' };
+			var base = res.getAttribute('data-live') || '/', cache = {}, timer = 0, ctl = null, shown = '';
+			var fmt = function (t, v) { return t.replace('%s', function () { return v; }).replace('%d', function () { return v; }); }; /* (a function: a word with $& or $' in it must not be read as a pattern) */
+			var el = function (tag, cls, text) { var e = document.createElement(tag); if (cls) { e.className = cls; } if (text !== undefined) { e.textContent = text; } return e; };
+			var safe = function (u) { try { var x = new URL(u, location.href); return /^https?:$/.test(x.protocol) ? x.href : ''; } catch (e) { return ''; } };
+			var clear = function () { shown = ''; res.hidden = true; res.textContent = ''; res.removeAttribute('aria-busy'); };
+			var scope = function () { var c = $('input[name="post_type"]:checked', f); return c ? c.value : ''; };
+			var qs = function (q, final) {
+				var p = new URLSearchParams();
+				p.set('s', q);
+				if (scope()) { p.set('post_type', scope()); }
+				var lg = $('input[name="lang"]', f);
+				if (lg) { p.set('lang', lg.value); }
+				p.set('mcupr_live', '1');
+				if (final) { p.set('final', '1'); }
+				return p.toString();
+			};
+			var render = function (d) {
+				res.textContent = '';
+				res.removeAttribute('aria-busy');
+				res.appendChild(el('p', 'hs-count', d.total ? fmt(T.count, d.total) : fmt(T.none, d.q)));
+				if (d.items && d.items.length) {
+					var ul = el('ul', 'hs-list');
+					d.items.forEach(function (it) {
+						var href = safe(it.u);
+						if (!href) { return; }
+						var li = el('li'), a = el('a', 'hs-item'), tx = el('span', 'hs-text');
+						a.href = href;
+						var th = it.i ? safe(it.i) : '';
+						if (th) { var im = el('img', 'hs-thumb'); im.src = th; im.alt = ''; im.width = 52; im.height = 52; im.loading = 'lazy'; im.decoding = 'async'; a.appendChild(im); }
+						if (it.k) { tx.appendChild(el('span', 'hs-k', it.k)); }
+						tx.appendChild(el('span', 'hs-t', it.t));
+						if (it.d) { tx.appendChild(el('span', 'hs-d', it.d)); }
+						a.appendChild(tx); li.appendChild(a); ul.appendChild(li);
+					});
+					res.appendChild(ul);
+				}
+				if (d.total > (d.items || []).length && safe(d.all)) { var all = el('a', 'hs-all', fmt(T.all, d.total)); all.href = safe(d.all); res.appendChild(all); }
+				res.hidden = false;
+				shown = d.q;
+			};
+			var run = function (q, final) {
+				if (q.length < 2) { clear(); return; }
+				var key = qs(q, false);
+				if (!final && cache[key]) { render(cache[key]); return; }
+				if (ctl) { ctl.abort(); }
+				ctl = window.AbortController ? new AbortController() : null;
+				res.setAttribute('aria-busy', 'true');
+				if (res.hidden) { res.textContent = ''; res.appendChild(el('p', 'hs-count', T.busy)); res.hidden = false; }
+				fetch(base + '?' + qs(q, final), { credentials: 'same-origin', headers: { Accept: 'application/json' }, signal: ctl ? ctl.signal : undefined })
+					.then(function (r) { if (!r.ok || !/json/.test(r.headers.get('Content-Type') || '')) { throw new Error('bad'); } return r.json(); })
+					.then(function (d) { cache[key] = d; if (input.value.trim() === q) { render(d); if (final) { res.scrollIntoView({ block: 'nearest', behavior: motionOn() ? 'smooth' : 'auto' }); } } })
+					.catch(function (err) {
+						if (err && err.name === 'AbortError') { return; }
+						if (final) { res.textContent = ''; res.appendChild(el('p', 'hs-count', T.error)); res.hidden = false; window.setTimeout(function () { f.submit(); }, 600); } else { clear(); }
+					});
+			};
+			rerun = function () { var q = input.value.trim(); if (q.length >= 2) { window.clearTimeout(timer); run(q, false); } };
+			input.addEventListener('input', function () { window.clearTimeout(timer); var q = input.value.trim(); if (q.length < 2) { if (ctl) { ctl.abort(); } clear(); return; } timer = window.setTimeout(function () { run(q, false); }, 280); });
+			f.addEventListener('submit', function (e) {
+				var q = input.value.trim();
+				if (q.length < 2) { return; } /* too short for a live answer: the normal search page */
+				e.preventDefault();
+				window.clearTimeout(timer);
+				run(q, true);
+				if (document.activeElement === input) { input.blur(); } /* the keyboard goes away, the results are in view */
+			});
+			input.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown' && !res.hidden) { var first = $('a', res); if (first) { e.preventDefault(); first.focus(); } } });
+			document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !res.hidden && box.hidden && (f.contains(document.activeElement) || res.contains(document.activeElement))) { clear(); input.focus(); } });
+		}
+
 		function set(open) { box.hidden = !open; b.setAttribute('aria-expanded', String(open)); }
 		function sync() { var c = $('input[name="post_type"]:checked', f); if (c && c.value !== '') { b.setAttribute('data-on', ''); } else { b.removeAttribute('data-on'); } }
 		b.addEventListener('click', function () { set(box.hidden); });
-		f.addEventListener('change', function (e) { if (e.target && e.target.name === 'post_type') { sync(); set(false); b.focus(); } });
-		f.addEventListener('submit', function () { var c = $('input[name="post_type"]:checked', f); if (c && c.value === '') { c.disabled = true; } }); /* "everything" adds nothing to the address */
+		f.addEventListener('change', function (e) { if (e.target && e.target.name === 'post_type') { sync(); set(false); b.focus(); rerun(); } });
+		f.addEventListener('submit', function (e) { if (e.defaultPrevented) { return; } var c = $('input[name="post_type"]:checked', f); if (c && c.value === '') { c.disabled = true; } }); /* "everything" adds nothing to the address */
 		window.addEventListener('pageshow', function () { $$('input[name="post_type"]', f).forEach(function (r) { r.disabled = false; }); sync(); });
 		document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !box.hidden) { set(false); b.focus(); } });
 		document.addEventListener('click', function (e) { if (!box.hidden && !f.contains(e.target)) { set(false); } });
