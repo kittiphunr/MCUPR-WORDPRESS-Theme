@@ -3614,7 +3614,7 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       const rl = await vp.goto(B + '/' + slug + '/');
       ok(rl.status() === 200 && (await vp.locator('#loginform').count()) === 1 && (await vp.locator('#loginform').getAttribute('action')) === B + '/' + slug + '/', 'private address: the sign-in form is there and posts to the private address');
       ok((await vp.locator('a[href*="action=lostpassword"]').getAttribute('href')).startsWith(B + '/' + slug + '/'), 'private address: the lost-password link keeps to it too');
-      await vp.fill('#user_login', 'e2eadmin'); await vp.fill('#user_pass', 'not-the-password'); await vp.click('#wp-submit');
+      await vp.fill('#user_login', 'e2eadmin'); await vp.fill('#user_pass', 'not-the-password'); await Promise.all([vp.waitForNavigation({ waitUntil: 'domcontentloaded' }), vp.click('#wp-submit')]); // wait for the answer to the POST itself
       await vp.waitForSelector('#login_error');
       ok(vp.url().startsWith(B + '/' + slug + '/'), 'private address: a wrong password stays on the private address and says so');
       await signIn(vp, '/' + slug + '/');
