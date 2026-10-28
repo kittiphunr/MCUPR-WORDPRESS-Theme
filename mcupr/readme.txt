@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.72.0 =
+* Phones (below 1100 px): a bottom bar with Home, News, a big round button that opens the menu drawer, Events and Search, in every menu layout and colour mode (light, dark, high contrast); the page and the floating buttons keep clear of it; switch it off in Customizer → Animation, news & reading
+
 = 1.71.0 =
 * Post head redesigned: the category above the title, a lighter title, and date / reading time / views on one calm line without boxes; on Cover posts the text and every block under it sit in one centred column with equal space on both sides
 
