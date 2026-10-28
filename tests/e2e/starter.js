@@ -205,6 +205,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       ok(sv.tog >= 44 && sv.fab === 0 && sv.top < 80, 'sidebar mode, ' + dev + ' (' + w + ' px): the menu has a button in the header (' + sv.tog + ' px wide), no lone round button');
       await sp.click('.nav-toggle');
       await sp.waitForFunction(() => document.querySelector('#site-nav').classList.contains('is-open'));
+      await sp.waitForTimeout(700); // the drawer slides in
       const nv = await sp.evaluate(() => { const n = document.querySelector('#site-nav'), b = n.getBoundingClientRect(); return { vis: getComputedStyle(n).visibility, left: Math.round(b.left), w: innerWidth, links: n.querySelectorAll('.menu > li > a').length, exp: document.querySelector('.nav-toggle').getAttribute('aria-expanded') }; });
       ok(nv.vis === 'visible' && nv.left < nv.w - 200 && nv.links >= 5 && nv.exp === 'true', 'sidebar mode, ' + dev + ': the button opens the menu (' + nv.links + ' entries), aria-expanded says so');
     }
