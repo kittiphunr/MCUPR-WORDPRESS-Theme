@@ -476,6 +476,23 @@ html[data-contrast] .mcu-wheel::before { display: none; }
 html[data-contrast] .mcu-title::after { background: var(--text); }
 
 /* Article reading typography */
+/* ---------- the head of a post: title, category, date / time / views ---------- */
+.post-title { font-size: clamp(1.9rem, 1.2rem + 2.6vw, 3.1rem); font-weight: 800; line-height: 1.36; letter-spacing: 0; text-wrap: balance; overflow-wrap: anywhere; max-width: 30ch; }
+.post-title::before { content: ""; display: block; width: 3.5rem; height: .3rem; margin-bottom: 1rem; border-radius: 9999px; background: var(--primary); }
+.post-title.mcu-title::before { display: none; }
+.pm { row-gap: .5rem; }
+.pm-chip { padding: .3rem .8rem .3rem .65rem; border-radius: 9999px; background: var(--tint); color: var(--text-2, var(--muted)); font-size: .9rem; }
+.pm-chip svg { flex: none; color: var(--primary); }
+.pm-cat { box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 35%, transparent); letter-spacing: .01em; }
+.post-hero .post-title { max-width: 26ch; color: #fff; text-shadow: 0 2px 22px rgb(0 0 0 / .5); }
+.post-hero .post-title::before { background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 40%, #fff)); }
+.post-hero .pm-chip { background: rgb(255 255 255 / .14); border: 1px solid rgb(255 255 255 / .28); color: #fff; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.post-hero .pm-chip svg { color: #fff; }
+.post-hero nav ol { display: inline-flex; padding: .35rem .9rem; border-radius: 9999px; background: rgb(255 255 255 / .12); border: 1px solid rgb(255 255 255 / .22); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.post-hero .mcu-title, .post-hero .pm-cat { text-shadow: none; }
+html[data-contrast] .post-hero .pm-chip, html[data-contrast] .post-hero nav ol { background: #000; border-color: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (max-width: 640px) { .post-title { max-width: none; } }
+@media print { .post-title::before { display: none; } .pm-chip { background: none; padding: 0; } }
 .reader { font-size: 1.1875rem; line-height: 1.95; }
 .reader > * + * { margin-top: 1.25em; }
 .reader > p:first-of-type::first-line { font-weight: 600; }

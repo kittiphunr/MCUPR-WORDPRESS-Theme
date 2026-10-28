@@ -64,7 +64,7 @@ function mcupr_views_html( $post_id = 0 ) {
 		return '';
 	}
 	$n = mcupr_views( $post_id );
-	return '<span class="inline-flex items-center gap-1.5">' . mcupr_icon( 'eye', 16 ) . esc_html( sprintf( mcupr_t( 'views_fmt' ), number_format_i18n( $n ) ) ) . '</span>';
+	return '<span class="pm-chip inline-flex items-center gap-1.5">' . mcupr_icon( 'eye', 16 ) . esc_html( sprintf( mcupr_t( 'views_fmt' ), number_format_i18n( $n ) ) ) . '</span>';
 }
 
 function mcupr_views_box_add() {
