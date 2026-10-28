@@ -1951,6 +1951,42 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       }
       await ap.setViewportSize({ width: 1366, height: 900 });
     }
+    // Elementor pages made by the real Elementor (its own test templates), printed by the theme without the plugin: Elementor 4 blocks, nested tabs, nested accordion
+    {
+      const { execSync } = require('child_process'); const fsx = require('fs'); const pth = require('path');
+      const wlx = pth.resolve(__dirname, '../.site-starter/wp-load.php'), fxd = pth.resolve(__dirname, '../fixtures/elementor-real');
+      const phpx = (code) => { const f = require('os').tmpdir() + '/e2e-elr-' + process.pid + '.php'; fsx.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(wlx) + '; wp_set_current_user(1); ' + code); return execSync('php ' + f + ' 2>/dev/null').toString().trim(); };
+      const mk = (slug, file) => phpx('$d = json_decode( file_get_contents( ' + JSON.stringify(pth.join(fxd, file)) + ' ), true ); $c = isset( $d["content"] ) ? $d["content"] : $d; $p = wp_insert_post( array( "post_type" => "page", "post_status" => "publish", "post_title" => "ELR ' + slug + '", "post_name" => ' + JSON.stringify(slug) + ', "post_content" => "<p>old</p>" ) ); update_post_meta( $p, "_elementor_edit_mode", "builder" ); update_post_meta( $p, "_elementor_data", wp_slash( wp_json_encode( $c ) ) ); update_post_meta( $p, "_elementor_template_type", "wp-page" ); echo $p;');
+      const ids = [mk('elr-mixed', 'mixed.json'), mk('elr-tabs', 'playwright/nested-tabs-with-icons.json'), mk('elr-acc', 'playwright/nested-accordion-with-content.json')];
+      const ep = await (await br.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
+      const eerr = []; ep.on('pageerror', (e) => eerr.push(e.message)); ep.on('console', (m) => { if (m.type() === 'error' && !/favicon|gravatar|net::ERR/.test(m.text())) { eerr.push(m.text()); } });
+      await ep.goto(B + '/elr-mixed/');
+      const mx = await ep.evaluate(() => { const hs = [...document.querySelectorAll('.e-heading-base')], bc = getComputedStyle(document.body).color; return { blocks: document.querySelectorAll('.e-div-block-base').length, heads: hs.length, paras: document.querySelectorAll('.e-paragraph-base').length, missing: document.querySelectorAll('.mcupr-el-missing').length, styled: hs.filter((h) => getComputedStyle(h).color !== bc).length, sized: new Set(hs.map((h) => getComputedStyle(h).fontSize)).size, hscroll: document.documentElement.scrollWidth > innerWidth + 1 }; });
+      ok(mx.blocks >= 50 && mx.heads >= 35 && mx.paras >= 25 && mx.missing === 0 && mx.styled >= 25 && mx.sized >= 4 && !mx.hscroll, 'elementor 4 page (real template): ' + mx.blocks + ' blocks, ' + mx.heads + ' headings (' + mx.styled + ' with their own colour, ' + mx.sized + ' sizes), ' + mx.paras + ' paragraphs, nothing left out, no sideways scroll');
+      await ep.goto(B + '/elr-tabs/');
+      const tb0 = await ep.evaluate(() => ({ tabs: document.querySelectorAll('.e-n-tab-title').length, shown: [...document.querySelectorAll('.e-n-tab-panel')].filter((p) => !p.hidden).length, sel: document.querySelectorAll('.e-n-tab-title[aria-selected=true]').length }));
+      ok(tb0.tabs >= 2 && tb0.shown === 1 && tb0.sel === 1, 'nested tabs (real template): ' + tb0.tabs + ' tabs, one panel shown');
+      await ep.click('.e-n-tab-title >> nth=1');
+      await ep.keyboard.press('ArrowRight');
+      const tb1 = await ep.evaluate(() => ({ sel: [...document.querySelectorAll('.e-n-tab-title')].findIndex((t) => t.getAttribute('aria-selected') === 'true'), shown: [...document.querySelectorAll('.e-n-tab-panel')].filter((p) => !p.hidden).map((p) => p.getAttribute('data-tab-index')) }));
+      ok(tb1.sel >= 1 && tb1.shown.length === 1 && +tb1.shown[0] === tb1.sel + 1, 'nested tabs: a click and the arrow key move to another tab and show only its panel (tab ' + (tb1.sel + 1) + ')');
+      await ep.goto(B + '/elr-acc/');
+      const ac0 = await ep.evaluate(() => ({ items: document.querySelectorAll('details.e-n-accordion-item').length, open: document.querySelectorAll('details.e-n-accordion-item[open]').length }));
+      await ep.click('summary.e-n-accordion-item-title >> nth=1');
+      await ep.click('summary.e-n-accordion-item-title >> nth=2');
+      await ep.waitForTimeout(200);
+      const ac1 = await ep.evaluate(() => ({ open: [...document.querySelectorAll('details.e-n-accordion-item')].map((d) => d.open) }));
+      ok(ac0.items >= 3 && ac1.open.filter(Boolean).length === 1 && ac1.open[2] === true, 'nested accordion (real template): ' + ac0.items + ' items, opening one closes the other (' + ac1.open.join(',') + ')');
+      for (const sl of ['elr-mixed', 'elr-tabs', 'elr-acc']) {
+        await ep.goto(B + '/' + sl + '/');
+        await ep.addScriptTag({ content: axeSource() });
+        const axr = await ep.evaluate(() => axe.run(document.querySelector('main') || document.body, { runOnly: ['wcag2a', 'wcag2aa'], rules: { 'color-contrast': { enabled: false } } })); // the colours are the page author's own
+        ok(axr.violations.length === 0, 'axe (' + sl + ', real Elementor template): ' + (axr.violations.map((v) => v.id + '(' + v.nodes.length + ') ' + v.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(', ')).join('; ') || '0 violations'));
+      }
+      ok(eerr.length === 0, 'elementor pages (real templates): no script error' + (eerr.length ? ': ' + eerr.slice(0, 2).join(' | ') : ''));
+      await ep.context().close();
+      phpx('foreach ( ' + JSON.stringify(ids) + ' as $i ) { wp_delete_post( (int) $i, true ); }');
+    }
     // pictures: an uploaded JPEG becomes a WebP
     {
       const { execSync } = require('child_process');

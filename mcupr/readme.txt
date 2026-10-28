@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.67.0 =
+* Elementor pages: tested with 60 templates made by the real Elementor (1,171 widgets). Added what was missing: Elementor 4 blocks and widgets (e-div-block, e-flexbox, e-heading, e-paragraph, e-button, e-image, e-svg with their typed settings and styles), the new Tabs and Accordion (nested-tabs, nested-accordion), the testimonial carousel, Rating, Audio (a link, not a player) and Text path (as text)
+
 = 1.66.3 =
 * Sidebar menu mode on phones too: the menu button (three bars) is in the header below 1100 px, as in the top menu; the round button in the corner is gone
 

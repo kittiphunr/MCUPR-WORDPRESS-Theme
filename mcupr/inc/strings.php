@@ -397,6 +397,7 @@ return array(
 	'pdf_fit'       => array( 'พอดีความกว้าง', 'Fit to width', '适合宽度', '幅に合わせる' ),
 	'pdf_full'      => array( 'เต็มจอ', 'Full screen', '全屏', '全画面' ),
 	'pdf_open'      => array( 'เปิด / ดาวน์โหลดไฟล์ PDF', 'Open / download the PDF', '打开 / 下载 PDF', 'PDF を開く / ダウンロード' ),
+	'el_listen'     => array( 'ฟังเสียง', 'Listen', '收听', '聴く' ),
 	'pdf_search'    => array( 'ค้นหาในเอกสาร', 'Search in the document', '在文档中搜索', '文書内を検索' ),
 	'pdf_search_ph' => array( 'ค้นหาในเอกสาร…', 'Search in the document…', '在文档中搜索…', '文書内を検索…' ),
 	'pdf_hit_prev'  => array( 'ผลการค้นหาก่อนหน้า', 'Previous result', '上一个结果', '前の結果' ),
