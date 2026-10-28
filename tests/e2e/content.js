@@ -87,6 +87,22 @@ const speechStub = (speakMs) => `(() => {
     }
   }
 
+  // ================= the edges of a Cover post line up: the head, the side rail, and every block of the panel start at the same side
+  {
+    const c = await newCtx();
+    const p = await c.newPage();
+    await p.setViewportSize({ width: 1440, height: 900 });
+    await p.goto(B + '/?name=fx-layout-cover');
+    const e = await p.evaluate(() => {
+      const L = (s) => { const x = document.querySelector(s); return x ? Math.round(x.getBoundingClientRect().left) : null; };
+      const pad = parseFloat(getComputedStyle(document.querySelector('.panel-card')).paddingLeft);
+      return { crumb: L('.post-hero nav ol'), title: L('.post-title'), meta: L('.pm'), rail: L('article aside'), panel: L('.panel-card'), body: L('#article-body'), pad };
+    });
+    ok(e.crumb === e.title && e.title === e.meta && e.meta === e.rail, `cover post: breadcrumb, title, chips and the side rail share one left edge (${e.crumb}/${e.title}/${e.meta}/${e.rail})`);
+    ok(Math.abs(e.body - (e.panel + e.pad)) <= 1, `cover post: the text starts at the panel's own padding, like the blocks under it, not centred (${e.body} vs ${e.panel + e.pad})`);
+    await c.close();
+  }
+
   // ================= page + archive design
   {
     const c = await newCtx();
