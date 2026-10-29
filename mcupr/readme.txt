@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.75.4 =
+* Control center: the long "look" group (19 menus) is split. The home page has a group of its own (notice bar, hero, sections, blocks, numbers); the "Information and look" group is read in two parts with headings (set once, then display and print); privacy and cookies moved to the visitors. Notices were missing from the content order, and every group is now ordered by how often its menus are used (maintenance and users first in the system group).
+
 = 1.75.3 =
 * The scroll bar on the very top of the screen (how far down the page the reader is) can be seen again, in every menu (top, one capsule, sidebar) and on phones. It had been at zero width since Tailwind 4: its scale-x-0 class sets the separate `scale` property, which multiplies with the script's own transform. Now a pink-to-gold line along the top edge, a solid line in high contrast.
 

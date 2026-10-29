@@ -47,9 +47,9 @@ t( (bool) array_filter( $sub, function ( $s ) { return 0 === strpos( $s, 'custom
 // the menu is short: the control center and the groups are shown, everything else stays registered but is hidden
 $shown = array_values( array_filter( $submenu['mcupr'], function ( $it ) { return false === strpos( isset( $it[4] ) ? $it[4] : '', 'mcupr-sub-hidden' ); } ) );
 $shown_slugs = array_map( function ( $it ) { return $it[2]; }, $shown );
-t( 'mcupr' === $shown_slugs[0] && 9 === count( $shown_slugs ), 'MCUPR menu: only the control center and 8 groups are shown (' . count( $shown_slugs ) . ')' );
+t( 'mcupr' === $shown_slugs[0] && 10 === count( $shown_slugs ), 'MCUPR menu: only the control center and 9 groups are shown (' . count( $shown_slugs ) . ')' );
 t( 'Control center' === wp_strip_all_tags( $submenu['mcupr'][0][0] ) || 'ศูนย์ควบคุม' === wp_strip_all_tags( $submenu['mcupr'][0][0] ), 'MCUPR menu: the first entry is the control center' );
-foreach ( array( 'start', 'content', 'look', 'visitors', 'students', 'people', 'system', 'help' ) as $g ) { t( in_array( 'admin.php?page=mcupr&cat=' . $g, $shown_slugs, true ), 'MCUPR menu: the group "' . $g . '" has its page' ); }
+foreach ( array( 'start', 'content', 'home', 'look', 'visitors', 'students', 'people', 'system', 'help' ) as $g ) { t( in_array( 'admin.php?page=mcupr&cat=' . $g, $shown_slugs, true ), 'MCUPR menu: the group "' . $g . '" has its page' ); }
 t( count( $sub ) > 20 && count( $submenu['mcupr'] ) === count( $sub ), 'MCUPR menu: the pages below the groups are still registered (' . count( $sub ) . ' in all), so they can be opened' );
 // a registrar (no right to edit pages) sees the control center, the students group and help
 $rg = wp_insert_user( array( 'user_login' => 'rg' . wp_rand(), 'user_pass' => wp_generate_password(), 'user_email' => 'rg' . wp_rand() . '@example.org', 'role' => MCUPR_REGISTRAR_ROLE ) );

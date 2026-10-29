@@ -15,7 +15,7 @@ $offices = mcupr_offices();
 $data    = mcupr_cc_data();
 
 // ---- the data itself
-t( 8 === count( $data['cats'] ) && array( 'start', 'content', 'look', 'visitors', 'students', 'people', 'system', 'help' ) === array_keys( $data['cats'] ), 'eight groups, in this order: start, content, look, visitors, students, people, system, help' );
+t( 9 === count( $data['cats'] ) && array( 'start', 'content', 'home', 'look', 'visitors', 'students', 'people', 'system', 'help' ) === array_keys( $data['cats'] ), 'nine groups, in this order: start, content, home, look, visitors, students, people, system, help' );
 $set_icons = mcupr_feather_set();
 $bad = array(); $nolink = array();
 foreach ( $data['cats'] as $k => $c ) { if ( ! isset( $set_icons[ $c['icon'] ] ) ) { $bad[] = 'cat ' . $k; } }
@@ -56,7 +56,7 @@ t( ! preg_match( '/[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]/u', file_get_contents(
 
 // ---- the links
 $byc = array(); foreach ( $data['items'] as $iid => $it ) { $byc[ $it['cat'] ][] = $iid; }
-t( 'people' === $data['items']['groups']['cat'] && array( 'offices', 'groups', 'units' ) === array_slice( $byc['people'], 0, 3 ) && array( 'posts', 'pages', 'media', 'events' ) === array_slice( $byc['content'], 0, 4 ) && ! in_array( 'groups', $byc['content'], true ), 'control center: the work groups sit with the offices (people), the menus are in the order of use inside each group' );
+t( 'people' === $data['items']['groups']['cat'] && array( 'offices', 'groups', 'persons' ) === array_slice( $byc['people'], 0, 3 ) && array( 'posts', 'pages', 'media', 'events' ) === array_slice( $byc['content'], 0, 4 ) && ! in_array( 'groups', $byc['content'], true ), 'control center: the work groups sit with the offices (people), the menus are in the order of use inside each group' );
 t( admin_url( 'edit.php?post_type=mcupr_event' ) === mcupr_cc_url( 'type:mcupr_event' ) && admin_url( 'post-new.php' ) === mcupr_cc_url( 'new:post' ) && admin_url( 'post-new.php?post_type=page' ) === mcupr_cc_url( 'new:page' ) && admin_url( 'admin.php?page=mcupr-ics' ) === mcupr_cc_url( 'page:mcupr-ics' ) && false !== strpos( mcupr_cc_url( 'cust:mcupr_home' ), 'autofocus[section]=mcupr_home' ) && false === strpos( mcupr_cc_url( 'cust:' ), 'autofocus' ), 'links: list, new, page, customizer (with or without a section)' );
 
 wp_set_current_user( 1 );
@@ -65,7 +65,7 @@ $h = $page();
 t( false !== strpos( $h, 'class="mcc-hero"' ) && false !== strpos( $h, 'v' . MCUPR_VERSION ) && false !== strpos( $h, 'id="mcc-q"' ) && false !== strpos( $h, 'id="mcc-index"' ), 'home: the title with the version, a search box and its index' );
 $idx = json_decode( preg_replace( '#.*<script type="application/json" id="mcc-index">(.*?)</script>.*#s', '$1', $h ), true );
 t( is_array( $idx ) && count( $idx ) >= count( $data['guides'] ) + 40 && 5 === count( $idx[0] ), 'search: the index lists every menu and every guide (' . ( is_array( $idx ) ? count( $idx ) : 0 ) . ' entries)' );
-t( 8 === substr_count( $h, 'class="mcc-card"' ), 'home: a card for each of the eight groups (' . substr_count( $h, 'class="mcc-card"' ) . ')' );
+t( 9 === substr_count( $h, 'class="mcc-card"' ), 'home: a card for each of the nine groups (' . substr_count( $h, 'class="mcc-card"' ) . ')' );
 t( 3 === preg_match_all( '/class="mcc-chip" data-mode="(maint|welcome|mourning)"/', $h ) && ! preg_match( '/is-on" data-mode="(maint|welcome|mourning)"/', $h ), 'status: three modes, all off' );
 $set( 1, 0, 1 );
 $h = $page();
