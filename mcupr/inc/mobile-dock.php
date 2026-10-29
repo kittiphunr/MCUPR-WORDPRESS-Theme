@@ -72,3 +72,51 @@ add_action(
 	},
 	20
 );
+
+/* ------------------------------------------------------------------ the home hero of a phone: a round picture at the corner and a search bar floating on its lower edge */
+
+/** Who is in the corner: the signed-in person's picture, else the logo of the site. Shown on phones only (the stylesheet). */
+function mcupr_hero_avatar() {
+	if ( is_user_logged_in() ) {
+		$img = get_avatar( get_current_user_id(), 56, '', '', array( 'class' => 'hero-avatar-img' ) );
+	} else {
+		$img = mcupr_logo( 'header', 'hero-avatar-img' );
+		$img = $img ? $img : mcupr_default_logo( 'hero-avatar-img' );
+	}
+	return '<span class="hero-avatar" aria-hidden="true">' . $img . '</span>';
+}
+
+/** What the search can be limited to (the value is the post type WordPress understands in ?post_type=). */
+function mcupr_hero_search_scopes() {
+	$scopes = array( '' => mcupr_t( 'scope_all' ), 'post' => mcupr_t( 'dock_news' ) );
+	if ( post_type_exists( 'mcupr_event' ) ) {
+		$scopes['mcupr_event'] = mcupr_t( 'dock_events' );
+	}
+	$scopes['page'] = mcupr_t( 'scope_pages' );
+	return (array) apply_filters( 'mcupr_hero_search_scopes', $scopes );
+}
+
+function mcupr_hero_search() {
+	$uid = wp_unique_id( 'hs-' );
+	?>
+	<form class="hero-search" method="get" role="search" action="<?php echo esc_url( mcupr_home_url() ); ?>" data-hs data-hs-res="<?php echo esc_attr( $uid ); ?>-res">
+		<label for="<?php echo esc_attr( $uid ); ?>" class="sr-only"><?php mcupr_e( 'search' ); ?></label>
+		<?php echo mcupr_icon( 'search', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+		<input type="search" id="<?php echo esc_attr( $uid ); ?>" name="s" placeholder="<?php echo esc_attr( mcupr_t( 'hero_search_ph' ) ); ?>" autocomplete="off" enterkeyhint="search">
+		<?php if ( isset( $_GET['lang'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+			<input type="hidden" name="lang" value="<?php echo esc_attr( mcupr_lang() ); ?>">
+		<?php endif; ?>
+		<button type="button" class="hs-filter" aria-haspopup="true" aria-expanded="false" aria-controls="<?php echo esc_attr( $uid ); ?>-scope" data-hs-filter><?php echo mcupr_icon( 'sliders', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span class="sr-only"><?php mcupr_e( 'scope_t' ); ?></span></button>
+		<button type="submit" class="sr-only"><?php mcupr_e( 'search' ); ?></button>
+		<fieldset class="hs-scope" id="<?php echo esc_attr( $uid ); ?>-scope" hidden>
+			<legend><?php mcupr_e( 'scope_t' ); ?></legend>
+			<?php foreach ( mcupr_hero_search_scopes() as $val => $label ) : ?>
+				<label><input type="radio" name="post_type" value="<?php echo esc_attr( $val ); ?>"<?php echo '' === $val ? ' checked' : ''; ?>> <span><?php echo esc_html( $label ); ?></span></label>
+			<?php endforeach; ?>
+		</fieldset>
+	</form>
+	<div class="hs-results" id="<?php echo esc_attr( $uid ); ?>-res" hidden aria-live="polite" aria-label="<?php echo esc_attr( mcupr_t( 'search' ) ); ?>"
+		data-live="<?php echo esc_url( mcupr_home_url() ); ?>"
+		data-t-busy="<?php echo esc_attr( mcupr_t( 'live_busy' ) ); ?>" data-t-none="<?php echo esc_attr( mcupr_t( 'live_none' ) ); ?>" data-t-count="<?php echo esc_attr( mcupr_t( 'live_count' ) ); ?>" data-t-all="<?php echo esc_attr( mcupr_t( 'live_all' ) ); ?>" data-t-error="<?php echo esc_attr( mcupr_t( 'live_error' ) ); ?>"></div>
+	<?php
+}
