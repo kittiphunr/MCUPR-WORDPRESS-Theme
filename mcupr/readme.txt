@@ -32,6 +32,14 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.75.0 =
+* Cover post head: the photo is calmed with one soft shade (dark at the bottom and at the left, where the words are) instead of two crude ones, the pink watermark wheel is no longer printed over a photo (it stays when there is none, on a dark brand gradient), a lighter title, a hairline over the date / reading time / views, and a long title is cut with "…" in a one-line breadcrumb pill.
+* Sidebar menu (wide screens): the Cover head puts its words at the top instead of the bottom, with the breadcrumb level with the tools capsule and the same small gaps as the menu has (every page band in this menu now has its breadcrumb level with the capsule); the head is only as tall as its words when there is no photo. The other menus are unchanged.
+* Search page: the form and its choices no longer make the page wider than a 320 px phone.
+
+= 1.74.0 =
+* Search page, phone and wide screen: the form is on the page (it was only there when nothing was found) with the choice of what to search in (everything, news, events, pages) that searches again at once; it says how many results there are and every result says what kind of page it is; an empty search lists nothing and offers the popular words (it used to list every post); the <title> is in the language of the page; when nothing is found the one form stays above the message.
+
 = 1.73.0 =
 * Phones, home hero: the words at the left with the logo (or the signed-in person's picture) as a round picture in the corner, buttons side by side, and a search bar under them with a button to choose what to search in (everything, news, events, pages); the same in light, dark and high-contrast modes. The search shows its first results under the bar while you type or press Enter, with no page to load (a small JSON answer from the normal search query; "see all" opens the full page).
 

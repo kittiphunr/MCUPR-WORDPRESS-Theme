@@ -874,6 +874,57 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(Math.abs((ce.col.l - ce.panel.l) - (ce.panel.r - ce.col.r)) <= 2, 'cover post: the same space on the left and on the right of the column (' + (ce.col.l - ce.panel.l) + ' / ' + (ce.panel.r - ce.col.r) + ' px)');
     const hd = await ap.evaluate(() => ({ cat: document.querySelectorAll('.post-hero .pm-kicker').length, above: document.querySelector('.pm-kicker').compareDocumentPosition(document.querySelector('.post-title')) & Node.DOCUMENT_POSITION_FOLLOWING, flat: getComputedStyle(document.querySelector('.pm-info .pm-chip')).backgroundColor === 'rgba(0, 0, 0, 0)' }));
     ok(hd.cat === 1 && hd.above && hd.flat, 'post head: the category sits above the title and the date / time / views line has no boxes');
+    // the Cover head with a photo: a calm shade over the photo, no watermark wheel on it, a hairline over the facts, a long title in one line of the breadcrumb
+    {
+      const cp = require('child_process'), fsx = require('fs'), osx = require('os'), pth = require('path');
+      const runPhp = (code) => { const f = osx.tmpdir() + '/e2e-hd-' + process.pid + '.php'; fsx.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(pth.join(__dirname, '..', '.site-starter', 'wp-load.php')) + '; ' + code); return cp.execSync('php ' + f + ' 2>/dev/null').toString().trim(); };
+      const pid = runPhp('$p = get_posts( array( "name" => "fx-wide", "post_type" => "post", "numberposts" => 1 ) ); update_post_meta( $p[0]->ID, "_mcupr_layout", "cover" ); wp_update_post( array( "ID" => $p[0]->ID, "post_title" => "กิจกรรมพิธีวางพวงมาลา เนื่องในวันปิยมหาราช พ.ศ.๒๕๖๙ ณ บริเวณพระบรมราชานุสาวรีย์ พร้อมกิจกรรมจิตอาสาพัฒนา" ) ); echo $p[0]->ID;');
+      try {
+        for (const [w, h] of [[1440, 900], [390, 800]]) {
+          await ap.setViewportSize({ width: w, height: h });
+          await ap.goto(B + '/?name=fx-wide');
+          const ph = await ap.evaluate(() => {
+            const hd = document.querySelector('.post-hero'), cs = (e, ps) => getComputedStyle(e, ps || null);
+            const sc = document.querySelector('.post-hero-scrim'), ol = document.querySelector('.post-hero nav ol'), cur = document.querySelector('.post-hero nav [aria-current]'), info = document.querySelector('.post-hero .pm-info'), t = document.querySelector('.post-hero .post-title');
+            return { photo: hd.classList.contains('has-photo'), wheel: cs(hd, '::before').display, scrim: sc && cs(sc).backgroundImage.split('linear-gradient').length - 1, ol: ol && { h: Math.round(ol.getBoundingClientRect().height), w: Math.round(ol.getBoundingClientRect().width), vw: innerWidth, ws: cs(ol).flexWrap }, ell: cur && cs(cur).textOverflow, hair: info && cs(info).borderTopStyle, color: t && cs(t).color, sw: document.documentElement.scrollWidth > innerWidth };
+          });
+          ok(ph.photo && ph.wheel === 'none' && ph.scrim === 3, 'cover head with a photo (' + w + ' px): the watermark wheel is off and one shade of three layers calms the picture');
+          ok(ph.ol.h < 60 && ph.ol.w <= ph.ol.vw && ph.ell === 'ellipsis' && ph.ol.ws === 'nowrap', 'cover head (' + w + ' px): a long title is cut with "…" in a one-line breadcrumb (' + ph.ol.h + ' px high)');
+          ok(ph.hair === 'solid' && ph.color === 'rgb(255, 255, 255)' && !ph.sw, 'cover head (' + w + ' px): a hairline over the facts, the title in white, no sideways scroll');
+        }
+        await ap.setViewportSize({ width: 1440, height: 900 });
+        await ap.goto(B + '/?name=fx-wide');
+        await ap.addScriptTag({ content: axeSource() });
+        await ap.waitForTimeout(1500);
+        const hxa = await ap.evaluate(() => axe.run(document.querySelector('.post-hero'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+        ok(hxa.violations.length === 0, 'cover head with a photo axe: ' + (hxa.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        // the sidebar menu: the words of the head are at the top, the breadcrumb is level with the tools capsule; the other menus keep the words at the bottom
+        await ap.evaluate(() => localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })));
+        await ap.goto(B + '/?name=fx-wide');
+        const sd = await ap.evaluate(() => {
+          const R = (q) => { const e = document.querySelector(q); if (!e) { return null; } const b = e.getBoundingClientRect(); return { t: b.top, b: b.bottom, l: b.left, h: b.height }; };
+          const hd = R('.post-hero'), bc = R('.post-hero nav ol'), cap = R('#masthead'), info = R('.post-hero .pm-info'), rail = R('article aside');
+          return { menu: document.documentElement.dataset.menu, ai: getComputedStyle(document.querySelector('.post-hero')).alignItems, hd, bcMid: bc.t + bc.h / 2, capMid: cap.t + cap.h / 2, infoGap: hd.b - info.b, topGap: bc.t - hd.t, left: bc.l, rail: rail && rail.l };
+        });
+        ok(sd.menu === 'side' && sd.ai === 'flex-start', 'cover head in the sidebar menu: the words start at the top of the head, not at the bottom');
+        ok(Math.abs(sd.bcMid - sd.capMid) <= 3, 'cover head in the sidebar menu: the breadcrumb is level with the tools capsule (' + Math.round(sd.bcMid) + ' / ' + Math.round(sd.capMid) + ' px)');
+        ok(sd.infoGap >= 56 && sd.topGap < 40, 'cover head in the sidebar menu: the same small gap above (' + Math.round(sd.topGap) + ' px) and room for the panel that overlaps below (' + Math.round(sd.infoGap) + ' px)');
+        ok(Math.abs(sd.left - sd.rail) <= 14, 'cover head in the sidebar menu: the words and the side rail start at the same side (' + Math.round(sd.left) + ' / ' + Math.round(sd.rail) + ' px)');
+        await ap.goto(B + '/?name=fx-layout-cover');
+        const sn = await ap.evaluate(() => ({ photo: document.querySelector('.post-hero').classList.contains('has-photo'), h: document.querySelector('.post-hero').getBoundingClientRect().height, info: document.querySelector('.post-hero .pm-info').getBoundingClientRect().bottom - document.querySelector('.post-hero').getBoundingClientRect().top }));
+        ok(!sn.photo && sn.h < sn.info + 120, 'cover head in the sidebar menu without a photo: the head is only as tall as its words (' + Math.round(sn.h) + ' px)');
+        await ap.evaluate(() => localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'top' })));
+        await ap.goto(B + '/?name=fx-wide');
+        const tp = await ap.evaluate(() => getComputedStyle(document.querySelector('.post-hero')).alignItems);
+        ok(tp === 'flex-end', 'cover head in the top menu: the words stay at the bottom');
+        await ap.evaluate(() => localStorage.removeItem('mcupr_prefs'));
+        await ap.goto(B + '/?name=fx-layout-cover');
+        const np = await ap.evaluate(() => { const hd = document.querySelector('.post-hero'); return { photo: hd.classList.contains('has-photo'), wheel: getComputedStyle(hd, '::before').display, bg: getComputedStyle(hd).backgroundImage }; });
+        ok(!np.photo && np.wheel !== 'none' && /gradient/.test(np.bg), 'cover head without a photo: the watermark wheel stays, on a dark brand gradient');
+      } finally {
+        runPhp('delete_post_meta( ' + Number(pid) + ', "_mcupr_layout" ); wp_update_post( array( "ID" => ' + Number(pid) + ', "post_title" => "ข่าวทดสอบ fx-wide" ) );');
+      }
+    }
     await ap.setViewportSize({ width: 1366, height: 900 });
     // the bottom bar of a phone: Home · News · [round menu button] · Events · Search
     await ap.setViewportSize({ width: 390, height: 800 });
@@ -969,6 +1020,34 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.fill('.hero-search input[type=search]', 'ก');
     await Promise.all([ap.waitForNavigation(), ap.press('.hero-search input[type=search]', 'Enter')]);
     ok(new URL(ap.url()).searchParams.get('s') === 'ก' && !/mcupr_live/.test(ap.url()), 'live search: a single letter goes to the normal search page');
+    // the search page itself, on a phone and on a wide screen
+    for (const [w, h, label] of [[320, 568, 'small phone'], [390, 800, 'phone'], [1280, 900, 'wide screen']]) {
+      await ap.setViewportSize({ width: w, height: h });
+      await ap.goto(B + '/?s=' + encodeURIComponent('ข่าว'));
+      await ap.addScriptTag({ content: axeSource() });
+      const sp = await ap.evaluate(() => ({ forms: document.querySelectorAll('form[role=search]').length, field: document.querySelector('.sp-form input[type=search]').value, chips: document.querySelectorAll('.sp-chip input').length, on: [...document.querySelectorAll('.sp-chip input:checked')].map((i) => i.value), status: (document.querySelector('.sp-status') || {}).textContent, cards: document.querySelectorAll('main article, #content article').length, kinds: [...document.querySelectorAll('article .news-kind')].length, h1: document.querySelectorAll('h1').length, sw: document.documentElement.scrollWidth > innerWidth, cur: document.querySelectorAll('.sp-chip input').length }));
+      ok(sp.forms === 1 && sp.field === 'ข่าว' && sp.chips >= 3 && sp.on.length === 1 && sp.on[0] === '' && sp.h1 === 1 && !sp.sw, 'search page (' + label + '): one search form with the words in it, the choices with "everything" on, one heading, no sideways scroll');
+      ok(/พบ \d+ รายการ/.test(sp.status || '') && sp.cards >= 1 && sp.kinds === sp.cards, 'search page (' + label + '): it says how many results ("' + (sp.status || '').trim() + '") and every result says what kind of page it is');
+      const sax = await ap.evaluate(() => axe.run(document.querySelector('main') || document.body, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+      ok(sax.violations.length === 0, 'search page (' + label + ') axe: ' + (sax.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+      const html = await (await ap.request.get(B + '/?s=' + encodeURIComponent('ข่าว'))).text();
+      ok(/<title>ผลการค้นหา: ข่าว/.test(html) && /name='robots' content='noindex/.test(html), 'search page (' + label + '): the <title> is in the language of the page and search engines are told not to list it');
+      // choosing what to search in searches again at once
+      await Promise.all([ap.waitForNavigation(), ap.locator('.sp-chip', { hasText: 'ข่าว' }).first().click()]);
+      const u3 = new URL(ap.url());
+      const kk = await ap.evaluate(() => [...new Set([...document.querySelectorAll('article .news-kind')].map((e) => e.textContent))]);
+      ok(u3.searchParams.get('s') === 'ข่าว' && u3.searchParams.get('post_type') === 'post' && kk.join() === 'ข่าว' && (await ap.locator('.sp-chip input:checked').getAttribute('value')) === 'post', 'search page (' + label + '): choosing "news" searches again at once, only news is listed and the choice stays on (' + u3.search + ')');
+      await Promise.all([ap.waitForNavigation(), ap.locator('.sp-chip', { hasText: 'ทั้งหมด' }).first().click()]);
+      ok(!new URL(ap.url()).searchParams.has('post_type') && new URL(ap.url()).searchParams.get('s') === 'ข่าว', 'search page (' + label + '): choosing "everything" takes the kind out of the address (' + new URL(ap.url()).search + ')');
+      // an empty search lists nothing and asks for a word
+      await ap.goto(B + '/?s=');
+      const em = await ap.evaluate(() => ({ cards: document.querySelectorAll('main article, #content article').length, h1: document.querySelector('h1').textContent.trim(), hint: (document.querySelector('.sp-status') || {}).textContent, pop: document.querySelectorAll('.sp-pop a').length }));
+      ok(em.cards === 0 && !/ผลการค้นหา:/.test(em.h1) && /พิมพ์/.test(em.hint || '') && em.pop >= 1, 'search page (' + label + '): an empty search lists nothing, asks for a word and offers popular ones (' + em.pop + ')');
+      // nothing found
+      await ap.goto(B + '/?s=zzzqqq');
+      const nf = await ap.evaluate(() => ({ cards: document.querySelectorAll('main article, #content article').length, state: document.querySelectorAll('.state-card').length, forms: document.querySelectorAll('form[role=search]').length, status: (document.querySelector('.sp-status') || {}).textContent }));
+      ok(nf.cards === 0 && nf.state === 1 && nf.forms === 1 && /zzzqqq/.test(nf.status || ''), 'search page (' + label + '): nothing found says so once, keeps the one form above, and names the words');
+    }
     await ap.setViewportSize({ width: 1280, height: 900 });
     await ap.goto(B + '/');
     const dsk = await ap.evaluate(() => ({ av: getComputedStyle(document.querySelector('.hero-avatar')).display, hs: getComputedStyle(document.querySelector('.hero .hero-search')).display }));

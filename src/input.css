@@ -484,10 +484,18 @@ html[data-contrast] .mcu-title::after { background: var(--text); }
 .pm-info { column-gap: 1.5rem; row-gap: .4rem; }
 .pm-chip { color: var(--text-2, var(--muted)); font-size: .95rem; }
 .pm-chip svg { flex: none; color: var(--primary); }
-.post-hero .post-title { max-width: 30ch; color: #fff; text-shadow: 0 2px 22px rgb(0 0 0 / .55); }
-.post-hero .pm-info, .post-hero .pm-chip { color: rgb(255 255 255 / .94); text-shadow: 0 1px 12px rgb(0 0 0 / .5); }
+/* the Cover head: the photo is calmed with one soft shade (dark at the bottom and at the left, where the words are), the watermark wheel only where there is no photo, a lighter title, and a hairline over the date / time / views */
+.post-hero-scrim { position: absolute; inset: 0; z-index: -10; background: linear-gradient(180deg, rgb(8 10 20 / .38) 0, rgb(8 10 20 / 0) 24%), linear-gradient(0deg, rgb(8 10 20 / .92) 0, rgb(8 10 20 / .62) 36%, rgb(8 10 20 / .1) 76%), linear-gradient(90deg, rgb(8 10 20 / .5) 0, rgb(8 10 20 / .16) 50%, transparent 80%); }
+.post-hero.has-photo::before { display: none; }
+.post-hero:not(.has-photo) { background: linear-gradient(135deg, #171c2b, color-mix(in srgb, var(--primary) 42%, #171c2b)); }
+.post-hero .post-title { max-width: 24ch; font-size: clamp(1.75rem, 1.1rem + 2.4vw, 2.6rem); line-height: 1.4; color: #fff; text-shadow: 0 2px 18px rgb(0 0 0 / .6), 0 1px 2px rgb(0 0 0 / .45); }
+.post-hero .pm-info { width: fit-content; max-width: 100%; padding-top: .95rem; border-top: 1px solid rgb(255 255 255 / .26); }
+.post-hero .pm-info, .post-hero .pm-chip { color: rgb(255 255 255 / .95); text-shadow: 0 1px 12px rgb(0 0 0 / .55); }
 .post-hero .pm-chip svg { color: #fff; }
-.post-hero nav ol { display: inline-flex; padding: .35rem .9rem; border-radius: 9999px; background: rgb(255 255 255 / .12); border: 1px solid rgb(255 255 255 / .22); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.post-hero nav ol { display: inline-flex; flex-wrap: nowrap; max-width: 100%; padding: .35rem .95rem; border-radius: 9999px; background: rgb(255 255 255 / .12); border: 1px solid rgb(255 255 255 / .24); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.post-hero nav ol li { flex: none; }
+.post-hero nav ol li:last-child { display: flex; flex: 0 1 auto; min-width: 0; }
+.post-hero nav ol li:last-child [aria-current] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .post-hero .mcu-title, .post-hero .pm-cat { text-shadow: none; }
 html[data-contrast] .post-hero nav ol { background: #000; border-color: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
 html[data-contrast] .post-hero .post-title, html[data-contrast] .post-hero .pm-info, html[data-contrast] .post-hero .pm-chip { text-shadow: none; }
@@ -1091,11 +1099,16 @@ html[data-contrast] .fcontact > div, html[data-contrast] .flinks .footer-menu a 
 	html[data-contrast]:is([data-menu="side"],[data-menu="hybrid"]) .site-page { box-shadow: none; border: 2px solid var(--border); }
 	/* the band reaches the top of the frame; the capsule floats on it */
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child,
-	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: 1.7rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: 1.2rem; } /* the middle of the breadcrumb is on the middle of the tools capsule */
 	/* the content is as wide as the frame (a small gap each side, the same as the header capsule's), and the home hero starts at the top edge of the capsule */
 	html:is([data-menu="side"],[data-menu="hybrid"]) .wrap { width: calc(100% - 1.5rem); max-width: 120rem; }
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-footer { padding-bottom: .75rem; } /* the footer card is as far from the bottom of the frame as from its sides */
 	html:is([data-menu="side"],[data-menu="hybrid"]) .hero-wrap { width: 100%; max-width: none; margin-top: calc(-1 * var(--hdr-h, 5.5rem)); }
+	/* the Cover head of a post in the sidebar menu: the words are at the top (the other menus keep them at the bottom), the breadcrumb on the line of the tools capsule on the right, and the same small gaps as the menu has */
+	html:is([data-menu="side"],[data-menu="hybrid"]) .post-hero { align-items: flex-start; min-height: 28rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .post-hero:not(.has-photo) { min-height: 0; } /* no photo to show: the head is as tall as its words */
+	html:is([data-menu="side"],[data-menu="hybrid"]) .post-hero > .wrap { padding-top: 0; padding-bottom: 5.5rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .post-hero > .wrap > div { margin-top: 1.75rem; }
 	/* the hero photo fills the frame edge to edge (the frame's rounded corners shape its top); the bottom edge is straight */
 	html:is([data-menu="side"],[data-menu="hybrid"]) .hero-wrap > .hero { border-radius: 0; }
 
@@ -2420,6 +2433,32 @@ html:is([data-menu="side"],[data-menu="hybrid"]) .site-nav :is(.current-menu-ite
 .sr-chips { display: flex; flex-wrap: wrap; gap: .6rem; margin: 0; padding: 0; list-style: none; }
 .sr-chips a { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.75rem; padding: 0 1.1rem; border: 1px solid var(--border); border-radius: 9999px; background: var(--bg); color: var(--text); text-decoration: none; transition: background-color .15s, border-color .15s; }
 .sr-chips a svg { color: var(--link); flex: none; }
+
+/* ---------- the search results page: the form, the choice of what to search in, the count, the kind of each result ---------- */
+.sp-top { max-width: 52rem; }
+.sp-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: .9rem; padding: 1rem; border: 1px solid var(--border); border-radius: 1.6rem; background: var(--bg); box-shadow: var(--shadow-soft); }
+.sp-field { display: flex; align-items: center; min-width: 0; gap: .6rem; padding: .3rem .35rem .3rem 1.1rem; border: 2px solid var(--control); border-radius: 9999px; background: var(--bg); color: var(--muted); }
+.sp-field:focus-within { border-color: var(--primary); outline: 3px solid var(--focus); outline-offset: 2px; }
+.sp-field > svg { flex: none; }
+.sp-field input[type="search"] { flex: 1 1 auto; min-width: 0; min-height: 2.75rem; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--text); font: inherit; font-size: 1.05rem; outline: none; box-shadow: none; }
+.sp-field input[type="search"]::placeholder { color: var(--muted); opacity: 1; }
+.sp-go { flex: none; min-height: 2.9rem; padding: 0 1.5rem; border: 0; border-radius: 9999px; background: var(--primary); color: var(--on-primary); font: inherit; font-weight: 700; cursor: pointer; }
+.sp-chips { display: flex; flex-wrap: wrap; gap: .5rem; min-width: 0; margin: 0; padding: 0; border: 0; } /* (a fieldset does not shrink below its contents unless told so) */
+.sp-chip { position: relative; display: inline-flex; }
+.sp-chip input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.sp-chip span { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.75rem; padding: 0 1.15rem; border: 1px solid var(--control); border-radius: 9999px; background: var(--bg); color: var(--text); font-weight: 600; }
+.sp-chip input:checked + span { border-color: var(--primary); background: var(--primary); color: var(--on-primary); }
+.sp-chip input:checked + span::before { content: "\2713"; font-weight: 800; }
+.sp-chip input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
+html[data-contrast] .sp-chip input:checked + span { border-color: var(--text); background: var(--text); color: var(--bg); }
+html[data-contrast] .sp-form, html[data-contrast] .sp-field { border-color: var(--text); box-shadow: none; }
+html[data-contrast] .sp-go { background: var(--text); color: var(--bg); }
+.sp-status { margin: 1.25rem 0 1.5rem; color: var(--text-2); font-size: 1.05rem; font-weight: 700; }
+.sp-pop { margin-top: 2rem; }
+.sp-pop-t { margin: 0 0 .75rem; font-size: 1rem; font-weight: 700; }
+.news-kind { display: inline-flex; align-items: center; padding: .1rem .65rem; border: 1px solid currentColor; border-radius: 9999px; color: var(--link); font-size: .8rem; font-weight: 800; }
+@media (max-width: 480px) { .sp-go { padding: 0 1.1rem; } .sp-form { padding: .75rem; border-radius: 1.4rem; } }
+@media print { .sp-form, .sp-pop { display: none; } }
 .sr-chips a:hover, .sr-chips a:focus-visible { border-color: var(--primary); background: var(--tint); color: var(--link); }
 .sr-hint { margin: 2rem 0 0; color: var(--muted); font-size: .85rem; }
 @media (max-width: 520px) {

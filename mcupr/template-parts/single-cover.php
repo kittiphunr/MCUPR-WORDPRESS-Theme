@@ -11,12 +11,11 @@ defined( 'ABSPATH' ) || exit;
 	<?php if ( mcupr_office_shown() ) : ?>
 		<?php get_template_part( 'template-parts/office-article-head' ); ?>
 	<?php else : ?>
-	<header class="post-hero mcu-wheel relative isolate flex min-h-[24rem] items-end overflow-hidden bg-neutral-800 text-white min-[900px]:min-h-[32rem]"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+	<header class="post-hero<?php echo has_post_thumbnail() ? ' has-photo' : ''; ?> mcu-wheel relative isolate flex min-h-[24rem] items-end overflow-hidden bg-neutral-800 text-white min-[900px]:min-h-[32rem]"<?php echo mcupr_part_lang_attr(); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<?php if ( has_post_thumbnail() ) : ?>
 			<span class="noimg:hidden absolute inset-0 -z-20" aria-hidden="true"><?php the_post_thumbnail( 'mcupr-hero', array( 'alt' => '', 'class' => 'size-full object-cover', 'sizes' => '100vw', 'loading' => 'eager', 'fetchpriority' => 'high', 'decoding' => 'async' ) ); ?></span>
 		<?php endif; ?>
-		<span class="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/40 to-black/5" aria-hidden="true"></span>
-		<span class="absolute inset-0 -z-10 bg-gradient-to-r from-black/45 via-transparent to-transparent" aria-hidden="true"></span>
+		<span class="post-hero-scrim" aria-hidden="true"></span>
 		<div class="wrap pt-24 pb-24 [&_nav]:text-white/90 [&_nav_a]:!text-white">
 			<?php mcupr_breadcrumb( false ); ?>
 			<div class="mt-8 max-w-4xl">
