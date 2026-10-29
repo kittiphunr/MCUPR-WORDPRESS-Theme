@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 <body <?php body_class( "bg-canvas text-fg" ); ?>>
 <?php wp_body_open(); ?>
 
-<div id="progress" class="fixed inset-x-0 top-0 z-[60] h-1 origin-left scale-x-0 bg-primary print:hidden" aria-hidden="true"></div>
+<div id="progress" class="fixed inset-x-0 top-0 z-[60] origin-left print:hidden" aria-hidden="true"></div>
 
 <nav aria-label="<?php echo esc_attr( mcupr_t( 'skip_content' ) ); ?>">
 	<?php $skip = 'absolute left-2 -top-16 z-[1000] rounded-lg bg-primary px-4 py-3 font-bold text-on-primary focus:top-2'; ?>
