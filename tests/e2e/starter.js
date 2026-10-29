@@ -874,6 +874,37 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     ok(Math.abs((ce.col.l - ce.panel.l) - (ce.panel.r - ce.col.r)) <= 2, 'cover post: the same space on the left and on the right of the column (' + (ce.col.l - ce.panel.l) + ' / ' + (ce.panel.r - ce.col.r) + ' px)');
     const hd = await ap.evaluate(() => ({ cat: document.querySelectorAll('.post-hero .pm-kicker').length, above: document.querySelector('.pm-kicker').compareDocumentPosition(document.querySelector('.post-title')) & Node.DOCUMENT_POSITION_FOLLOWING, flat: getComputedStyle(document.querySelector('.pm-info .pm-chip')).backgroundColor === 'rgba(0, 0, 0, 0)' }));
     ok(hd.cat === 1 && hd.above && hd.flat, 'post head: the category sits above the title and the date / time / views line has no boxes');
+    // the Cover head with a photo: a calm shade over the photo, no watermark wheel on it, a hairline over the facts, a long title in one line of the breadcrumb
+    {
+      const cp = require('child_process'), fsx = require('fs'), osx = require('os'), pth = require('path');
+      const runPhp = (code) => { const f = osx.tmpdir() + '/e2e-hd-' + process.pid + '.php'; fsx.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(pth.join(__dirname, '..', '.site-starter', 'wp-load.php')) + '; ' + code); return cp.execSync('php ' + f + ' 2>/dev/null').toString().trim(); };
+      const pid = runPhp('$p = get_posts( array( "name" => "fx-wide", "post_type" => "post", "numberposts" => 1 ) ); update_post_meta( $p[0]->ID, "_mcupr_layout", "cover" ); wp_update_post( array( "ID" => $p[0]->ID, "post_title" => "กิจกรรมพิธีวางพวงมาลา เนื่องในวันปิยมหาราช พ.ศ.๒๕๖๙ ณ บริเวณพระบรมราชานุสาวรีย์ พร้อมกิจกรรมจิตอาสาพัฒนา" ) ); echo $p[0]->ID;');
+      try {
+        for (const [w, h] of [[1440, 900], [390, 800]]) {
+          await ap.setViewportSize({ width: w, height: h });
+          await ap.goto(B + '/?name=fx-wide');
+          const ph = await ap.evaluate(() => {
+            const hd = document.querySelector('.post-hero'), cs = (e, ps) => getComputedStyle(e, ps || null);
+            const sc = document.querySelector('.post-hero-scrim'), ol = document.querySelector('.post-hero nav ol'), cur = document.querySelector('.post-hero nav [aria-current]'), info = document.querySelector('.post-hero .pm-info'), t = document.querySelector('.post-hero .post-title');
+            return { photo: hd.classList.contains('has-photo'), wheel: cs(hd, '::before').display, scrim: sc && cs(sc).backgroundImage.split('linear-gradient').length - 1, ol: ol && { h: Math.round(ol.getBoundingClientRect().height), w: Math.round(ol.getBoundingClientRect().width), vw: innerWidth, ws: cs(ol).flexWrap }, ell: cur && cs(cur).textOverflow, hair: info && cs(info).borderTopStyle, color: t && cs(t).color, sw: document.documentElement.scrollWidth > innerWidth };
+          });
+          ok(ph.photo && ph.wheel === 'none' && ph.scrim === 3, 'cover head with a photo (' + w + ' px): the watermark wheel is off and one shade of three layers calms the picture');
+          ok(ph.ol.h < 60 && ph.ol.w <= ph.ol.vw && ph.ell === 'ellipsis' && ph.ol.ws === 'nowrap', 'cover head (' + w + ' px): a long title is cut with "…" in a one-line breadcrumb (' + ph.ol.h + ' px high)');
+          ok(ph.hair === 'solid' && ph.color === 'rgb(255, 255, 255)' && !ph.sw, 'cover head (' + w + ' px): a hairline over the facts, the title in white, no sideways scroll');
+        }
+        await ap.setViewportSize({ width: 1440, height: 900 });
+        await ap.goto(B + '/?name=fx-wide');
+        await ap.addScriptTag({ content: axeSource() });
+        await ap.waitForTimeout(1500);
+        const hxa = await ap.evaluate(() => axe.run(document.querySelector('.post-hero'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+        ok(hxa.violations.length === 0, 'cover head with a photo axe: ' + (hxa.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        await ap.goto(B + '/?name=fx-layout-cover');
+        const np = await ap.evaluate(() => { const hd = document.querySelector('.post-hero'); return { photo: hd.classList.contains('has-photo'), wheel: getComputedStyle(hd, '::before').display, bg: getComputedStyle(hd).backgroundImage }; });
+        ok(!np.photo && np.wheel !== 'none' && /gradient/.test(np.bg), 'cover head without a photo: the watermark wheel stays, on a dark brand gradient');
+      } finally {
+        runPhp('delete_post_meta( ' + Number(pid) + ', "_mcupr_layout" ); wp_update_post( array( "ID" => ' + Number(pid) + ', "post_title" => "ข่าวทดสอบ fx-wide" ) );');
+      }
+    }
     await ap.setViewportSize({ width: 1366, height: 900 });
     // the bottom bar of a phone: Home · News · [round menu button] · Events · Search
     await ap.setViewportSize({ width: 390, height: 800 });
@@ -970,7 +1001,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await Promise.all([ap.waitForNavigation(), ap.press('.hero-search input[type=search]', 'Enter')]);
     ok(new URL(ap.url()).searchParams.get('s') === 'ก' && !/mcupr_live/.test(ap.url()), 'live search: a single letter goes to the normal search page');
     // the search page itself, on a phone and on a wide screen
-    for (const [w, h, label] of [[390, 800, 'phone'], [1280, 900, 'wide screen']]) {
+    for (const [w, h, label] of [[320, 568, 'small phone'], [390, 800, 'phone'], [1280, 900, 'wide screen']]) {
       await ap.setViewportSize({ width: w, height: h });
       await ap.goto(B + '/?s=' + encodeURIComponent('ข่าว'));
       await ap.addScriptTag({ content: axeSource() });
