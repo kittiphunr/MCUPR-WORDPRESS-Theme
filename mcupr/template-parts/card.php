@@ -9,6 +9,7 @@ defined( 'ABSPATH' ) || exit;
 $part_lang = mcupr_part_lang_attr();
 $heading   = isset( $args['heading'] ) && 'h2' === $args['heading'] ? 'h2' : 'h3';
 $featured  = isset( $args['variant'] ) && 'featured' === $args['variant'];
+$kind      = isset( $args['kind'] ) ? (string) $args['kind'] : ''; // search results: what kind of page it is
 ?>
 <?php
 // Posters and other tall / very wide pictures are shown whole on a soft blurred copy of themselves instead of being cropped.
@@ -26,6 +27,9 @@ $thumb    = $thumb_id ? wp_get_attachment_image_url( $thumb_id, 'medium' ) : '';
 	<?php endif; ?>
 	<div class="news-body flex flex-1 flex-col px-5 pt-4 pb-5 <?php echo $featured ? 'min-[900px]:w-1/2 min-[900px]:justify-center min-[900px]:p-8' : ''; ?>"<?php echo $part_lang; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<p class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+			<?php if ( '' !== $kind ) : ?>
+				<span class="news-kind"><?php echo esc_html( $kind ); ?></span>
+			<?php endif; ?>
 			<?php if ( mcupr_first_category() ) : ?>
 				<span class="news-cat"><?php echo esc_html( mcupr_first_category() ); ?></span>
 			<?php endif; ?>
