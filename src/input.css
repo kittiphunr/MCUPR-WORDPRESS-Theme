@@ -1883,6 +1883,10 @@ html[data-contrast] .of-crumbs a { color: var(--link); }
 	.print-src { margin: 1mm 0 0; text-align: center; font-size: 8pt; color: #666; }
 }
 
+/* ===== The scroll bar on the very top of the screen: how far down the page the reader is (scripts: main.js sets its scaleX). It is its own transform: Tailwind's scale-x-0 sets the separate `scale` property, which multiplies with the script's transform and kept the bar at zero width in every menu. ===== */
+#progress { height: .3125rem; transform: scaleX(0); background: linear-gradient(90deg, var(--primary), var(--accent)); box-shadow: 0 1px 8px color-mix(in srgb, var(--primary) 50%, transparent); border-radius: 0 9999px 9999px 0; }
+html[data-contrast] #progress { background: var(--text); box-shadow: none; }
+
 /* ===== Sidebar expand button: loading runner + scroll-progress ring ===== */
 .sb-ring { display: none; }
 @media (min-width: 1100px) {
