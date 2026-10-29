@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.78.0 =
+* Footer statistics card: now under the contact details, in three sizes like the widgets of a phone (large, medium – four tiles, small – one line) chosen in the Customizer, and a button on the card lets a visitor shrink it to one line and open it again (kept in the browser, no cookie; can be switched off).
+
 = 1.77.0 =
 * Footer: a visitor statistics card (online now, visits today, this week, this month, this year and in all, and the visitor before the latest with the address masked and the time). No cookie; one visit is one visitor in 30 minutes; robots, editors, previews and live search are not counted. Customizer → Footer: show the card, show the masked address, a number to start the total from.
 

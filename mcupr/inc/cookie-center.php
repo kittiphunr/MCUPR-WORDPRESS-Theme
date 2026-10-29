@@ -99,7 +99,7 @@ function mcupr_cc_inventory() {
 		array( 'mcupr_lang', 'preferences', 'cookie', 'cc_p_lang', 'cc_d_year_or_session' ),
 		array( 'mcupr_welcome', 'preferences', 'cookie', 'cc_p_welcome', 'cc_d_days_or_session' ),
 		array( 'mcupr_prefs', 'preferences', 'storage', 'cc_p_prefs', 'cc_d_forever_or_session' ),
-		array( 'mcupr_sbmin / mcupr_view / mcupr_persona / mcupr_recent / mcupr_rate', 'preferences', 'storage', 'cc_p_ui', 'cc_d_forever_or_session' ),
+		array( 'mcupr_sbmin / mcupr_view / mcupr_persona / mcupr_recent / mcupr_rate / mcupr_vc_size', 'preferences', 'storage', 'cc_p_ui', 'cc_d_forever_or_session' ),
 		array( 'mcupr_bk_*', 'preferences', 'storage', 'cc_p_book', 'cc_d_forever_or_session' ),
 		array( 'comment_author_*', 'preferences', 'cookie', 'cc_p_comment', 'cc_d_year' ),
 		array( 'mcupr_seen', 'statistics', 'cookie', 'cc_p_seen', 'cc_d_6h_or_session' ),

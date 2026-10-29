@@ -1964,18 +1964,18 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     // @only footer-stats
     // Visitor statistics card in the footer: shown, counted once per visitor, robots and editors left out, fits every width, readable
     {
-      const vcNums = async (pg) => pg.evaluate(() => { const o = {}; document.querySelectorAll('.fstat-l > div').forEach((d) => { o[d.className === 'fstat-all' ? 'total' : d.querySelector('dt').textContent.trim()] = parseInt(d.querySelector('b').textContent.replace(/[^0-9]/g, ''), 10); }); return o; });
+      const vcNums = async (pg) => pg.evaluate(() => { const o = {}; document.querySelectorAll('.fstat-l > div').forEach((d) => { o[d.getAttribute('data-k') === 'total' ? 'total' : d.querySelector('dt').textContent.trim()] = parseInt(d.querySelector('b').textContent.replace(/[^0-9]/g, ''), 10); }); return o; });
       const mk = (ua) => br.newContext({ userAgent: ua, viewport: { width: 1366, height: 900 } });
-      const c1 = await mk('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36 e2e-visitor-one');
+      const c1 = await mk('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36 e2e-visitor-one-' + Date.now());
       const p1 = await c1.newPage();
       await p1.goto(B + '/', { waitUntil: 'load' });
       const a1 = await vcNums(p1);
-      const hasCard = await p1.evaluate(() => { const c = document.querySelector('#colophon .fstat'); const h = c && c.querySelector('h2'); return !!c && !!h && c.getAttribute('aria-labelledby') === h.id && c.querySelectorAll('dt').length === 6; });
-      ok(hasCard, 'footer statistics: the card is in the footer with its heading and six rows (' + JSON.stringify(a1) + ')');
+      const hasCard = await p1.evaluate(() => { const c = document.querySelector('#colophon .fstat'); const h = c && c.querySelector('h2'); return !!c && !!h && c.getAttribute('aria-labelledby') === h.id && c.querySelectorAll('dt').length === 6 && !!document.querySelector('#colophon .fgrid > div:first-child > .fcontact + .fstat'); });
+      ok(hasCard, 'footer statistics: the card sits right under the contact details, with its heading and six rows (' + JSON.stringify(a1) + ')');
       await p1.reload({ waitUntil: 'load' });
       const a2 = await vcNums(p1);
       ok(a2.total === a1.total && a2['เข้าชมวันนี้:'] === a1['เข้าชมวันนี้:'], 'footer statistics: opening the same visitor again within the visit adds nothing (' + a1.total + ' → ' + a2.total + ')');
-      const c2 = await mk('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36 e2e-visitor-two');
+      const c2 = await mk('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36 e2e-visitor-two-' + Date.now());
       const p2 = await c2.newPage();
       await p2.goto(B + '/', { waitUntil: 'load' });
       const b1 = await vcNums(p2);
@@ -2007,6 +2007,51 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         await p2.addScriptTag({ content: axeSource() }).catch(() => {});
         const ax = await p2.evaluate(() => axe.run(document.querySelector('#colophon .fstat'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
         ok(ax.violations.length === 0, 'footer statistics axe' + (mode ? ' (high contrast ' + mode + ')' : '') + ': ' + (ax.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+      }
+      // like a widget of a phone: a button makes it one line and opens it again, and the choice is kept by this browser
+      const vcState = () => p2.evaluate(() => { const c = document.querySelector('#fstat'), b = c.querySelector('.fstat-tg'); const vis = [...c.querySelectorAll('.fstat-l > div')].filter((d) => d.offsetParent !== null).map((d) => d.getAttribute('data-k')); return { size: c.getAttribute('data-size'), vis, btn: !b.hidden, label: b.getAttribute('aria-label'), pressed: b.getAttribute('aria-pressed'), prev: !!(c.querySelector('.fstat-p') && c.querySelector('.fstat-p').offsetParent !== null), h: Math.round(c.getBoundingClientRect().height) }; });
+      await p2.reload({ waitUntil: 'load' });
+      const full0 = await vcState();
+      await p2.click('#fstat .fstat-tg');
+      const sm = await vcState();
+      ok(full0.size === 'full' && full0.vis.length === 6 && full0.prev && full0.btn && sm.size === 'small' && sm.vis.join() === 'online,today,total' && !sm.prev && sm.pressed === 'true' && sm.label !== full0.label && sm.h < full0.h / 2, 'footer statistics: the button shrinks the card to one line (online, today, in all) and changes its label (' + full0.h + ' → ' + sm.h + ' px)');
+      await p2.reload({ waitUntil: 'load' });
+      const kept = await vcState();
+      ok(kept.size === 'small', 'footer statistics: the small size is remembered by the browser');
+      await p2.setViewportSize({ width: 320, height: 700 });
+      const m320 = await p2.evaluate(() => ({ side: document.documentElement.scrollWidth > innerWidth + 1, r: document.querySelector('#fstat').getBoundingClientRect().right <= innerWidth + 1 }));
+      ok(!m320.side && m320.r, 'footer statistics: the small line fits a 320 px screen');
+      await p2.setViewportSize({ width: 1366, height: 900 });
+      await p2.addScriptTag({ content: axeSource() }).catch(() => {});
+      const axS = await p2.evaluate(() => axe.run(document.querySelector('#fstat'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+      ok(axS.violations.length === 0, 'footer statistics axe (small): ' + (axS.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+      await p2.click('#fstat .fstat-tg');
+      const back = await vcState();
+      ok(back.size === 'full' && back.vis.length === 6, 'footer statistics: the button opens the card again');
+      // the owner chooses the size in the Customizer: medium is four tiles; small is the one line
+      const setMod = (n, v) => require('child_process').execFileSync('php', [require('path').join(__dirname, '..', 'php', 'set-mod.php'), require('path').join(__dirname, '..', '.site-starter'), n, v]);
+      try {
+        await p2.evaluate(() => { try { localStorage.removeItem('mcupr_vc_size'); } catch (e) { /* none */ } });
+        setMod('mcupr_vc_size', 'medium');
+        await p2.reload({ waitUntil: 'load' });
+        const md = await vcState();
+        const tiles = await p2.evaluate(() => { const r = [...document.querySelectorAll('#fstat .fstat-l > div')].filter((d) => d.offsetParent !== null).map((d) => d.getBoundingClientRect()); return { n: r.length, twoCols: new Set(r.map((x) => Math.round(x.left))).size === 2 }; });
+        ok(md.size === 'medium' && md.vis.join() === 'online,today,month,total' && !md.prev && tiles.twoCols, 'footer statistics: medium is four tiles in two columns (online, today, this month, in all)');
+        await p2.addScriptTag({ content: axeSource() }).catch(() => {});
+        const axM = await p2.evaluate(() => axe.run(document.querySelector('#fstat'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+        ok(axM.violations.length === 0, 'footer statistics axe (medium): ' + (axM.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        setMod('mcupr_vc_size', 'small');
+        await p2.reload({ waitUntil: 'load' });
+        const so = await vcState();
+        await p2.click('#fstat .fstat-tg');
+        const opened = await vcState();
+        ok(so.size === 'small' && opened.size === 'full' && opened.vis.length === 6, 'footer statistics: when the owner chose small, the button opens the full card');
+        setMod('mcupr_vc_toggle', '0');
+        await p2.evaluate(() => { try { localStorage.removeItem('mcupr_vc_size'); } catch (e) { /* none */ } });
+        await p2.reload({ waitUntil: 'load' });
+        ok((await p2.locator('#fstat .fstat-tg').count()) === 0, 'footer statistics: with the owner switching the button off, there is none');
+      } finally {
+        setMod('mcupr_vc_size', '--remove'); setMod('mcupr_vc_toggle', '--remove');
       }
       await c1.close(); await c2.close();
     }
