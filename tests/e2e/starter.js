@@ -979,7 +979,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     // searching: the results come under the bar, with no page to load
     let navs = 0; const onNav = (fr) => { if (fr === ap.mainFrame()) { navs++; } }; ap.on('framenavigated', onNav);
     await ap.press('.hero-search input[type=search]', 'Enter');
-    await ap.waitForSelector('.hs-results:not([hidden]) .hs-item', { timeout: 8000 });
+    // the answer to this Enter (not the one the typing pause asked for a moment before, which may still be on the screen while this one is on its way)
+    await ap.waitForFunction(() => { const r = document.querySelector('.hs-results'); return r && !r.hidden && !r.hasAttribute('aria-busy') && r.querySelector('.hs-item'); }, null, { timeout: 8000 });
     const lr = await ap.evaluate(() => ({ url: location.href, items: document.querySelectorAll('.hs-item').length, kinds: [...document.querySelectorAll('.hs-k')].map((e) => e.textContent), cnt: document.querySelector('.hs-count').textContent, all: (document.querySelector('.hs-all') || {}).href || '', live: document.querySelector('.hs-results').getAttribute('aria-live'), busy: document.querySelector('.hs-results').getAttribute('aria-busy') }));
     ok(navs === 0 && new URL(lr.url).pathname === '/' && new URL(lr.url).search === '', 'live search: pressing Enter loads no page, the address stays the same (' + navs + ' page loads)');
     ok(lr.items >= 1 && lr.items <= 6 && lr.kinds.length === lr.items && lr.kinds.every((k) => k === 'ข่าว') && /\d/.test(lr.cnt), 'live search: the first results (at most 6) appear under the bar, only news when the choice is news (' + lr.items + ' results, "' + lr.cnt + '")');
