@@ -979,7 +979,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     // searching: the results come under the bar, with no page to load
     let navs = 0; const onNav = (fr) => { if (fr === ap.mainFrame()) { navs++; } }; ap.on('framenavigated', onNav);
     await ap.press('.hero-search input[type=search]', 'Enter');
-    await ap.waitForSelector('.hs-results:not([hidden]) .hs-item', { timeout: 8000 });
+    // the answer to this Enter (not the one the typing pause asked for a moment before, which may still be on the screen while this one is on its way)
+    await ap.waitForFunction(() => { const r = document.querySelector('.hs-results'); return r && !r.hidden && !r.hasAttribute('aria-busy') && r.querySelector('.hs-item'); }, null, { timeout: 8000 });
     const lr = await ap.evaluate(() => ({ url: location.href, items: document.querySelectorAll('.hs-item').length, kinds: [...document.querySelectorAll('.hs-k')].map((e) => e.textContent), cnt: document.querySelector('.hs-count').textContent, all: (document.querySelector('.hs-all') || {}).href || '', live: document.querySelector('.hs-results').getAttribute('aria-live'), busy: document.querySelector('.hs-results').getAttribute('aria-busy') }));
     ok(navs === 0 && new URL(lr.url).pathname === '/' && new URL(lr.url).search === '', 'live search: pressing Enter loads no page, the address stays the same (' + navs + ' page loads)');
     ok(lr.items >= 1 && lr.items <= 6 && lr.kinds.length === lr.items && lr.kinds.every((k) => k === 'ข่าว') && /\d/.test(lr.cnt), 'live search: the first results (at most 6) appear under the bar, only news when the choice is news (' + lr.items + ' results, "' + lr.cnt + '")');
@@ -4092,6 +4093,44 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
       const n1 = await mp.locator('.attachments .attachment').count();
       ok(n1 === n0 - 1 && (await dest.locator('.mf-n').innerText()) === '1', 'media folders: dragging a file onto a folder moves it (unfiled ' + n0 + ' -> ' + n1 + ', the folder counts 1)');
       ok((await mp.locator('.mf-row:has(.mf-name:text-is("ข่าวทดสอบ")) .mf-n').innerText()) === '1', 'media folders: a parent counts the files of its sub-folders');
+      // a drag with the real mouse (the one above sends the events straight to the folder and so could not see what is on top of it): WordPress covers the page with its "Drop files to upload" sheet while anything is dragged, and a file dropped on a folder landed on the sheet
+      {
+        const realDrag = async (srcSel, destSel) => {
+          const src = mp.locator(srcSel).first(), dst = mp.locator(destSel).first();
+          await src.scrollIntoViewIfNeeded();
+          const sb = await src.boundingBox(), db = await dst.boundingBox();
+          await mp.mouse.move(sb.x + 30, sb.y + sb.height / 2); await mp.mouse.down();
+          await mp.mouse.move(sb.x + 50, sb.y + sb.height / 2 + 10, { steps: 4 });
+          await mp.mouse.move(db.x + db.width / 2, db.y + db.height / 2, { steps: 20 });
+          await mp.waitForTimeout(400);
+          const top = await mp.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); const uw = document.querySelector('.uploader-window'); return { onFolder: !!(e && e.closest('[data-drop]')), sheet: uw ? getComputedStyle(uw).display : 'none' }; }, [db.x + db.width / 2, db.y + db.height / 2]);
+          await mp.mouse.up(); await mp.waitForTimeout(1500);
+          return top;
+        };
+        const cnt = async (name) => parseInt(await mp.locator('.mf-row[data-drop]:has(.mf-name:text-is("' + name + '")) .mf-n').innerText(), 10);
+        await mp.click('.mf-link:has-text("ยังไม่จัดโฟลเดอร์")'); await mp.waitForTimeout(900);
+        const c0 = await cnt('ปี 2569'), u0 = await mp.locator('.attachments .attachment').count();
+        const t1 = await realDrag('.attachments .attachment', '.mf-row[data-drop]:has(.mf-name:text-is("ปี 2569"))');
+        ok(t1.onFolder && t1.sheet === 'none', 'media folders (real mouse): while a file is dragged, the folder is what is under the pointer and WordPress\'s upload sheet stays away');
+        ok((await cnt('ปี 2569')) === c0 + 1 && (await mp.locator('.attachments .attachment').count()) === u0 - 1, 'media folders (real mouse): a file dragged onto a folder with the mouse moves into it (' + c0 + ' -> ' + (c0 + 1) + ')');
+        await mp.click('.mf-link:has(.mf-name:text-is("ปี 2569"))'); await mp.waitForTimeout(900);
+        const t2 = await realDrag('.attachments .attachment', '.mf-row[data-drop="0"]');
+        ok(t2.onFolder && (await cnt('ปี 2569')) === c0, 'media folders (real mouse): dragged onto "unfiled" it leaves the folder again');
+        ok((await mp.locator('.attachments .attachment img[draggable="false"]').count()) >= 1, 'media folders: the picture inside a file is not dragged on its own (the file is)');
+        await mp.goto(B + '/wp-admin/upload.php?mode=list&mcupr_folder=none'); await mp.waitForSelector('#the-list tr'); await mp.waitForTimeout(600); // the unfiled ones only, so the first row is not already in the folder
+        const parL = mp.locator('li[data-mf]:has(> .mf-row .mf-name:text-is("ข่าวทดสอบ"))'); // the sub-folder is inside this one: open it so that it can be seen
+        if ((await parL.getAttribute('aria-expanded')) !== 'true') { await parL.locator('> .mf-row > .mf-tog').click(); await mp.waitForTimeout(300); }
+        const l0 = await cnt('ปี 2569');
+        await realDrag('#the-list > tr', '.mf-row[data-drop]:has(.mf-name:text-is("ปี 2569"))');
+        await mp.waitForSelector('#the-list tr');
+        ok((await cnt('ปี 2569')) === l0 + 1, 'media folders (real mouse, list view): a row dragged onto a folder moves into it (' + l0 + ' -> ' + (l0 + 1) + ')');
+        await mp.goto(B + '/wp-admin/upload.php?mode=grid'); await mp.waitForSelector('.attachments .attachment'); await mp.waitForTimeout(800);
+        const parG = mp.locator('li[data-mf]:has(> .mf-row .mf-name:text-is("ข่าวทดสอบ"))');
+        if ((await parG.getAttribute('aria-expanded')) !== 'true') { await parG.locator('> .mf-row > .mf-tog').click(); await mp.waitForTimeout(300); }
+        await mp.click('.mf-link:has(.mf-name:text-is("ปี 2569"))'); await mp.waitForTimeout(900);
+        await realDrag('.attachments .attachment', '.mf-row[data-drop="0"]'); // put it back: what follows counts on it
+        await mp.click('.mf-link:has-text("ยังไม่จัดโฟลเดอร์")'); await mp.waitForTimeout(900);
+      }
       await mp.click('.mf-link:has(.mf-name:text-is("ข่าวทดสอบ"))'); await mp.waitForTimeout(900);
       ok((await mp.locator('.attachments .attachment').count()) === 1 && (await mp.locator('.mf-sub li').count()) === 1, 'media folders: opening the parent shows its file and its sub-folder tile');
       const parLi = mp.locator('li[data-mf]:has(> .mf-row .mf-name:text-is("ข่าวทดสอบ"))');
