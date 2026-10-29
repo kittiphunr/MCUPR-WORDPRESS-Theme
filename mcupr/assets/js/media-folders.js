@@ -228,6 +228,8 @@
 	function makeDraggable() {
 		$('.attachments .attachment:not([draggable])').attr('draggable', 'true');
 		$('#the-list > tr:not([draggable])').attr('draggable', 'true');
+		/* the picture and the links inside are not dragged on their own (the browser would drag the picture's address, not the file) */
+		$('.attachments .attachment img:not([draggable]), #the-list > tr img:not([draggable]), #the-list > tr a:not([draggable])').attr('draggable', 'false');
 	}
 	function dropOn(target, folder) {
 		if (!dragIds.length) { return; }
