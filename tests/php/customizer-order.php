@@ -59,11 +59,21 @@ foreach ( $d['checklist'] as $st ) { if ( ! empty( $st['link'] ) && 0 === strpos
 t( ! $bad, 'control center: every link into the Customizer opens a section or panel that exists' . ( $bad ? ' (' . implode( ', ', $bad ) . ')' : '' ) );
 t( 'cust:colors' === $d['items']['colors']['open'], 'control center: "colours" opens the colour section, where the scheme really is' );
 t( false !== strpos( mcupr_cc_url( 'cust:panel:mcupr_langs' ), 'autofocus[panel]=mcupr_langs' ) && false !== strpos( mcupr_cc_url( 'cust:mcupr_home' ), 'autofocus[section]=mcupr_home' ), 'control center: a link can open a panel or a section' );
-$look = array_keys( array_filter( $d['items'], static function ( $i ) { return 'look' === $i['cat']; } ) );
-t( array_search( 'notice', $look ) < array_search( 'identity', $look ) && array_search( 'identity', $look ) < array_search( 'display', $look ) && array_search( 'display', $look ) < array_search( 'credit', $look ) && 'customizer' === end( $look ), 'control center: the "look" menus follow the Customizer (notice, home, menus, then set-once, then reading, rarely used; all-in-one last)' );
+$grp = static function ( $cat ) use ( $d ) { return array_keys( array_filter( $d['items'], static function ( $i ) use ( $cat ) { return $cat === $i['cat']; } ) ); };
+$home = $grp( 'home' ); $look = $grp( 'look' );
+t( array( 'notice', 'home', 'sections', 'blocks', 'numbers' ) === $home, 'control center: the home page has its own group, the weekly work first (notice bar, hero, sections, blocks, numbers)' );
+t( array_search( 'identity', $look ) < array_search( 'menus', $look ) && array_search( 'menus', $look ) < array_search( 'display', $look ) && array_search( 'display', $look ) < array_search( 'print', $look ) && 'customizer' === end( $look ), 'control center: the "look" menus go set-once first (identity…credit), then display and print, the all-in-one Customizer last' );
 foreach ( array( 'org', 'languages', 'footer', 'loading', 'credit' ) as $id ) { t( isset( $d['items'][ $id ] ), "control center: a menu for \"$id\"" ); }
-$sys = array_keys( array_filter( $d['items'], static function ( $i ) { return 'system' === $i['cat']; } ) );
-t( array_search( 'insights', $sys ) < array_search( 'status', $sys ) && array_search( 'status', $sys ) < array_search( 'speed', $sys ) && 'updates' === end( $sys ), 'control center: tools used often (insights, pictures) before occasional (maintenance) before upkeep (speed, updates)' );
+$sys = $grp( 'system' );
+t( 'status' === $sys[0] && array_search( 'users', $sys ) < array_search( 'images', $sys ) && array_search( 'images', $sys ) < array_search( 'speed', $sys ) && 'updates' === end( $sys ), 'control center: system tools by how often they are used (maintenance, users and access first; speed and updates last)' );
+// the standard: nothing is left to fall to the end of its group, no group is a wall, a part of a long group has a heading
+$ranked = array_merge( ...array_values( mcupr_cc_order() ) );
+t( ! array_diff( array_keys( $d['items'] ), $ranked ) && count( $ranked ) === count( array_unique( $ranked ) ), 'control center: every menu has a place in the order, none twice' . ( array_diff( array_keys( $d['items'] ), $ranked ) ? ' (' . implode( ', ', array_diff( array_keys( $d['items'] ), $ranked ) ) . ')' : '' ) );
+$wall = array(); foreach ( array_keys( $d['cats'] ) as $c ) { if ( count( $grp( $c ) ) > 12 ) { $wall[] = $c; } }
+t( ! $wall, 'control center: no group has more than 12 menus' . ( $wall ? ' (' . implode( ', ', $wall ) . ')' : '' ) );
+$subs = array_map( static function ( $id ) use ( $d ) { return isset( $d['items'][ $id ]['sub'] ) ? $d['items'][ $id ]['sub'] : ''; }, $look );
+t( ! in_array( '', $subs, true ) && count( array_unique( $subs ) ) === 2 && $subs === array_values( $subs ) && array_unique( $subs ) === array( 0 => $subs[0], array_search( end( $subs ), $subs ) => end( $subs ) ), 'control center: the long "look" group is read in two parts, each with its own heading, in one run' );
+t( isset( $d['items']['policy'] ) && 'visitors' === $d['items']['policy']['cat'] && 'visitors' === $d['items']['cookies']['cat'], 'control center: privacy and cookies sit with the visitors' );
 
 echo $fails ? "$fails FAILED\n" : "all passed\n";
 exit( $fails ? 1 : 0 );

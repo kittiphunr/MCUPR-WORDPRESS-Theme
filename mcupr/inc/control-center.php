@@ -506,11 +506,18 @@ function mcupr_cc_render_cat( $key ) {
 	} elseif ( 'help' === $key ) {
 		mcupr_cc_render_help();
 	} else {
-		echo '<ul class="mcc-rows">';
+		$sub = null;
 		foreach ( mcupr_cc_items( $key ) as $it ) {
+			$now = isset( $it['sub'] ) ? $it['sub'] : '';
+			if ( $now !== $sub ) { // a long group is read in parts: one heading and one list for each
+				echo null === $sub ? '' : '</ul>';
+				echo '' !== $now ? '<h2 class="mcc-sub">' . esc_html( $now ) . '</h2>' : '';
+				echo '<ul class="mcc-rows">';
+				$sub = $now;
+			}
 			echo mcupr_cc_row( $it, $c['color'] ); // phpcs:ignore WordPress.Security.EscapeOutput
 		}
-		echo '</ul>';
+		echo null === $sub ? '' : '</ul>';
 	}
 	echo '</main></div>';
 }
@@ -678,6 +685,7 @@ function mcupr_cc_css() {
 .mcc-ph h1{margin:0;padding:0;font-size:1.5rem}.mcc-ph p{margin:4px 0 0;color:var(--mc-m)}
 .mcc-ph .mcc-ic{width:56px;height:56px;border-radius:16px}
 .mcc-rows,.mcc-steps,.mcc-guides{margin:0;padding:0;list-style:none}
+.mcc-sub{margin:18px 2px 8px;padding:0;font-size:.8125rem;font-weight:600;letter-spacing:.02em;color:var(--mc-m)}.mcc-sub:first-child{margin-top:4px}
 .mcc-row{margin:0 0 12px;padding:14px 16px;border:1px solid var(--mc-b);border-radius:18px;background:var(--mc-bg)}
 .mcc-row-main{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
 .mcc-row-t{flex:1 1 18rem;min-width:0}
