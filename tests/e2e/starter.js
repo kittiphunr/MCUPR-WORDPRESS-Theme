@@ -1964,9 +1964,9 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     // @only footer-stats
     // Visitor statistics card in the footer: shown, counted once per visitor, robots and editors left out, fits every width, readable
     {
-      const vcNums = async (pg) => pg.evaluate(() => { const o = {}; document.querySelectorAll('.fstat-l > div').forEach((d) => { o[d.className === 'fstat-all' ? 'total' : d.querySelector('dt').textContent.trim()] = parseInt(d.querySelector('b').textContent.replace(/[^0-9]/g, ''), 10); }); return o; });
+      const vcNums = async (pg) => pg.evaluate(() => { const o = {}; document.querySelectorAll('.fstat-l > div').forEach((d) => { o[d.getAttribute('data-k') === 'total' ? 'total' : d.querySelector('dt').textContent.trim()] = parseInt(d.querySelector('b').textContent.replace(/[^0-9]/g, ''), 10); }); return o; });
       const mk = (ua) => br.newContext({ userAgent: ua, viewport: { width: 1366, height: 900 } });
-      const c1 = await mk('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36 e2e-visitor-one');
+      const c1 = await mk('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36 e2e-visitor-one-' + Date.now());
       const p1 = await c1.newPage();
       await p1.goto(B + '/', { waitUntil: 'load' });
       const a1 = await vcNums(p1);
@@ -1975,7 +1975,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await p1.reload({ waitUntil: 'load' });
       const a2 = await vcNums(p1);
       ok(a2.total === a1.total && a2['เข้าชมวันนี้:'] === a1['เข้าชมวันนี้:'], 'footer statistics: opening the same visitor again within the visit adds nothing (' + a1.total + ' → ' + a2.total + ')');
-      const c2 = await mk('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36 e2e-visitor-two');
+      const c2 = await mk('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36 e2e-visitor-two-' + Date.now());
       const p2 = await c2.newPage();
       await p2.goto(B + '/', { waitUntil: 'load' });
       const b1 = await vcNums(p2);
@@ -2037,6 +2037,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         const md = await vcState();
         const tiles = await p2.evaluate(() => { const r = [...document.querySelectorAll('#fstat .fstat-l > div')].filter((d) => d.offsetParent !== null).map((d) => d.getBoundingClientRect()); return { n: r.length, twoCols: new Set(r.map((x) => Math.round(x.left))).size === 2 }; });
         ok(md.size === 'medium' && md.vis.join() === 'online,today,month,total' && !md.prev && tiles.twoCols, 'footer statistics: medium is four tiles in two columns (online, today, this month, in all)');
+        await p2.addScriptTag({ content: axeSource() }).catch(() => {});
         const axM = await p2.evaluate(() => axe.run(document.querySelector('#fstat'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
         ok(axM.violations.length === 0, 'footer statistics axe (medium): ' + (axM.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
         setMod('mcupr_vc_size', 'small');
