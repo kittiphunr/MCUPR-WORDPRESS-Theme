@@ -959,17 +959,19 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await ap.evaluate((m) => localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })), menu);
       await ap.goto(B + '/');
       const bw = () => ap.evaluate(() => { const r = document.getElementById('progress').getBoundingClientRect(); return { w: r.width, t: r.top, h: r.height, vw: innerWidth }; });
+      // go to a place and wait until the page is really there (the eased scrolling may still be on its way), then a little for the bar to follow
+      const goTo = async (f) => { await ap.waitForFunction((k) => { const max = document.documentElement.scrollHeight - innerHeight, y = Math.round(max * k); if (Math.abs(window.scrollY - y) > 2) { window.scrollTo(0, y); return false; } return true; }, f, { timeout: 15000, polling: 200 }); await ap.waitForTimeout(250); };
       const b0 = await bw();
-      await ap.evaluate(() => window.scrollTo(0, (document.documentElement.scrollHeight - innerHeight) * 0.5)); await ap.waitForTimeout(500);
+      await goTo(0.5);
       const b5 = await bw();
-      await ap.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await ap.waitForTimeout(500);
+      await goTo(1);
       const b9 = await bw();
       ok(b0.w < 2 && Math.abs(b5.w / b5.vw - 0.5) < 0.05 && b9.w >= b9.vw - 2 && b5.t === 0 && b5.h >= 4, 'scroll bar on top (' + menu + ' menu, ' + w + ' px): none at the top of the page, half-way at half, full at the end (' + Math.round(b0.w) + ' / ' + Math.round(b5.w) + ' / ' + Math.round(b9.w) + ' of ' + b9.vw + ' px, ' + b5.h + ' px high)');
     }
     await ap.setViewportSize({ width: 1440, height: 800 });
     await ap.evaluate(() => localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'top', contrast: 'wb' })));
     await ap.goto(B + '/');
-    await ap.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await ap.waitForTimeout(400);
+    await ap.waitForFunction(() => { const max = document.documentElement.scrollHeight - innerHeight; if (Math.abs(window.scrollY - max) > 2) { window.scrollTo(0, max); return false; } return true; }, null, { timeout: 15000, polling: 200 }); await ap.waitForTimeout(250);
     const hcb = await ap.evaluate(() => { const e = document.getElementById('progress'), cs = getComputedStyle(e); return { img: cs.backgroundImage, bg: cs.backgroundColor, text: getComputedStyle(document.body).color, w: e.getBoundingClientRect().width, vw: innerWidth }; });
     ok(hcb.img === 'none' && hcb.bg === hcb.text && hcb.w >= hcb.vw - 2, 'scroll bar on top in high contrast: one solid colour, the colour of the text (' + hcb.bg + '), and it is full at the end');
     await ap.evaluate(() => localStorage.removeItem('mcupr_prefs'));
