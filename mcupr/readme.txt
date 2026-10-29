@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.76.0 =
+* Pictures (WebP): a button converts every JPEG and PNG already in the Media Library to WebP at the set size, deletes the original files and old thumbnails, and rewrites their addresses in pages, post meta (also JSON and serialised data, so Elementor keeps working), options and term meta; in batches, can be stopped and continued, needs a ticked confirmation. File manager: a folder with many files now scrolls inside the window (the grid row grew with the content before).
+
 = 1.75.4 =
 * Control center: the long "look" group (19 menus) is split. The home page has a group of its own (notice bar, hero, sections, blocks, numbers); the "Information and look" group is read in two parts with headings (set once, then display and print); privacy and cookies moved to the visitors. Notices were missing from the content order, and every group is now ordered by how often its menus are used (maintenance and users first in the system group).
 

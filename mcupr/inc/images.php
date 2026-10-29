@@ -11,7 +11,7 @@
  *   - a camera photo is turned the right way up first (WebP does not keep the rotation note);
  *   - pictures longer than the limit (default 2000 px on the long side) are scaled down;
  *   - if the server cannot write WebP (no GD/Imagick WebP support) nothing happens and the page says so.
- * Pictures that are already in the Media Library are not touched (their addresses are used inside pages).
+ * Pictures that are already in the Media Library are converted on request, in batches (inc/images-bulk.php).
  *
  * @package MCUPR
  */
@@ -148,7 +148,7 @@ function mcupr_img_page() {
 	if ( $done ) {
 		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Saved.', 'mcupr' ) . '</p></div>';
 	}
-	echo '<p style="max-width:60rem">' . esc_html__( 'JPEG and PNG pictures are saved as WebP, and cut to a sensible size, the moment they are uploaded. WebP files are typically 25–35% smaller with no visible difference, which is the biggest single help for page speed. Pictures already in the Media Library are not changed (their addresses are used inside your pages).', 'mcupr' ) . '</p>';
+	echo '<p style="max-width:60rem">' . esc_html__( 'JPEG and PNG pictures are saved as WebP, and cut to a sensible size, the moment they are uploaded. WebP files are typically 25–35% smaller with no visible difference, which is the biggest single help for page speed. Pictures already in the Media Library are changed only when you press the button in the box below.', 'mcupr' ) . '</p>';
 	echo '<div class="card" style="max-width:60rem"><h2>' . esc_html__( 'Status', 'mcupr' ) . '</h2><p>';
 	if ( $sup ) {
 		echo '<strong style="color:#1a7f37">' . mcupr_feather_i( 'check', 15 ) . ' ' . esc_html__( 'This server can write WebP.', 'mcupr' ) . '</strong>';
@@ -156,6 +156,7 @@ function mcupr_img_page() {
 		echo '<strong style="color:#b32d2e">' . mcupr_feather_i( 'x', 15 ) . ' ' . esc_html__( 'This server cannot write WebP (no WebP support in GD or Imagick). Nothing will be converted: ask the host to enable it.', 'mcupr' ) . '</strong>';
 	}
 	echo '</p><p>' . esc_html( sprintf( /* translators: 1: pictures, 2: size */ __( 'Converted so far: %1$d pictures, %2$s saved.', 'mcupr' ), $n, size_format( $saved ) ) ) . '</p></div>';
+	mcupr_imgb_card();
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="mcupr_img">';
 	wp_nonce_field( 'mcupr_img', 'mcupr_img_nonce' );
 	echo '<table class="form-table" role="presentation"><tbody>';
