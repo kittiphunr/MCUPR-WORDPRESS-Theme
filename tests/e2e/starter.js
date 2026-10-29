@@ -1961,6 +1961,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.click('#accordion-section-mcupr_logos .accordion-section-title button, #accordion-section-mcupr_logos > .accordion-section-title');
     await ap.waitForSelector('#sub-accordion-section-mcupr_logos.open, #sub-accordion-section-mcupr_logos[style*="block"]', { timeout: 10000 }).catch(() => {});
     ok(await ap.isVisible('#customize-control-mcupr_logo_dark, #sub-accordion-section-mcupr_logos .customize-control') && !/MCUPR:/.test(await ap.locator('#sub-accordion-section-mcupr_logos .customize-section-title').innerText()), 'customizer: a row still opens its section, and the section heading has no "MCUPR:" either');
+    // @only footer-stats
     // Visitor statistics card in the footer: shown, counted once per visitor, robots and editors left out, fits every width, readable
     {
       const vcNums = async (pg) => pg.evaluate(() => { const o = {}; document.querySelectorAll('.fstat-l > div').forEach((d) => { o[d.className === 'fstat-all' ? 'total' : d.querySelector('dt').textContent.trim()] = parseInt(d.querySelector('b').textContent.replace(/[^0-9]/g, ''), 10); }); return o; });
@@ -2009,6 +2010,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       }
       await c1.close(); await c2.close();
     }
+    // @end footer-stats
+    // @only pictures-bulk
     // Pictures (WebP): convert the pictures already in the library, from the page, in batches
     {
       const pth = require('path');
@@ -2035,6 +2038,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         imgb('clean');
       }
     }
+    // @end pictures-bulk
     // File manager of the uploads folder: Finder-like, colour tags, safe paths, administrators only
     {
       const fsF = require('fs');
@@ -2046,6 +2050,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await fmReady();
       const fm0 = await ap.evaluate(() => ({ tags: document.querySelectorAll('.fm-tagrow').length, tree: !!document.querySelector('.fm-tree [role="treeitem"]'), bar: !!document.querySelector('.fm-bar [data-view="icons"]') && !!document.querySelector('.fm-bar [data-act="mkdir"]') && !!document.querySelector('.fm-search input'), path: !!document.querySelector('.fm-path .fm-crumb'), items: document.querySelectorAll('.fm-it').length }));
       ok(fm0.tags === 7 && fm0.tree && fm0.bar && fm0.path && fm0.items >= 1, 'file manager: sidebar with the folders and seven colour tags, a bar with the views, new folder and search, a path bar (' + JSON.stringify(fm0) + ')');
+      // @only fm-scroll
       // a folder with many files scrolls inside the window, in the icon view and the list view, on a wide and on a narrow screen
       {
         const pth = require('path');
@@ -2078,6 +2083,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         await ap.goto(fmUrl, { waitUntil: 'domcontentloaded' });
         await fmReady();
       }
+      // @end fm-scroll
       // a new folder, named at once, like the Finder
       await ap.click('[data-act="mkdir"]');
       await ap.waitForSelector('.fm-edit', { timeout: 10000 });
