@@ -1961,6 +1961,32 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.click('#accordion-section-mcupr_logos .accordion-section-title button, #accordion-section-mcupr_logos > .accordion-section-title');
     await ap.waitForSelector('#sub-accordion-section-mcupr_logos.open, #sub-accordion-section-mcupr_logos[style*="block"]', { timeout: 10000 }).catch(() => {});
     ok(await ap.isVisible('#customize-control-mcupr_logo_dark, #sub-accordion-section-mcupr_logos .customize-control') && !/MCUPR:/.test(await ap.locator('#sub-accordion-section-mcupr_logos .customize-section-title').innerText()), 'customizer: a row still opens its section, and the section heading has no "MCUPR:" either');
+    // Pictures (WebP): convert the pictures already in the library, from the page, in batches
+    {
+      const pth = require('path');
+      const imgb = (...a) => JSON.parse(require('child_process').execFileSync('php', [pth.join(__dirname, '..', 'php', 'imgb-fixture.php'), pth.join(__dirname, '..', '.site-starter'), ...a]).toString().split('\n').filter((l) => l.startsWith('{') || l.startsWith('[')).pop());
+      const fx = imgb('make');
+      try {
+        await ap.setViewportSize({ width: 1280, height: 900 });
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr-images', { waitUntil: 'domcontentloaded' });
+        await ap.waitForSelector('#mcupr-imgb-go');
+        const off0 = await ap.isDisabled('#mcupr-imgb-go');
+        await ap.check('#mcupr-imgb-ok');
+        ok(off0 && !(await ap.isDisabled('#mcupr-imgb-go')), 'pictures page: the convert button waits for the confirmation box');
+        await ap.click('#mcupr-imgb-go');
+        await ap.waitForFunction(() => /\d/.test(document.querySelector('#mcupr-imgb-msg').textContent) && !document.querySelector('#mcupr-imgb-go').disabled && document.querySelector('#mcupr-imgb-bar').hidden, null, { timeout: 120000 });
+        const msg = await ap.textContent('#mcupr-imgb-msg');
+        const chk = imgb('check', fx.ids.join(','));
+        ok(/แปลง 2 รูป/.test(msg) && chk.every((c) => c.mime === 'image/webp' && /\.webp$/.test(c.file) && c.exists && c.jpgLeft === 0), 'pictures page: both pictures became WebP and no .jpg of them is left on the disk (' + msg + ')');
+        const pg = await ap.context().newPage();
+        await pg.goto(fx.link, { waitUntil: 'load' });
+        const imgs = await pg.evaluate(() => [...document.querySelectorAll('img.e2e-imgb')].map((i) => ({ src: i.currentSrc || i.src, w: i.naturalWidth })));
+        ok(imgs.length === 2 && imgs.every((i) => /\.webp/.test(i.src) && i.w > 0), 'pictures page: the post that used them now shows the WebP files, and they load (' + imgs.map((i) => i.w).join(',') + ')');
+        await pg.close();
+      } finally {
+        imgb('clean');
+      }
+    }
     // File manager of the uploads folder: Finder-like, colour tags, safe paths, administrators only
     {
       const fsF = require('fs');
@@ -1972,6 +1998,36 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await fmReady();
       const fm0 = await ap.evaluate(() => ({ tags: document.querySelectorAll('.fm-tagrow').length, tree: !!document.querySelector('.fm-tree [role="treeitem"]'), bar: !!document.querySelector('.fm-bar [data-view="icons"]') && !!document.querySelector('.fm-bar [data-act="mkdir"]') && !!document.querySelector('.fm-search input'), path: !!document.querySelector('.fm-path .fm-crumb'), items: document.querySelectorAll('.fm-it').length }));
       ok(fm0.tags === 7 && fm0.tree && fm0.bar && fm0.path && fm0.items >= 1, 'file manager: sidebar with the folders and seven colour tags, a bar with the views, new folder and search, a path bar (' + JSON.stringify(fm0) + ')');
+      // a folder with many files scrolls inside the window, in the icon view and the list view, on a wide and on a narrow screen
+      {
+        const pth = require('path');
+        const manyDir = pth.join(__dirname, '..', '.site-starter', 'wp-content', 'uploads', 'e2e-fm-many');
+        fsF.mkdirSync(manyDir, { recursive: true });
+        for (let i = 1; i <= 150; i++) { fsF.writeFileSync(pth.join(manyDir, 'doc-' + String(i).padStart(3, '0') + '.txt'), 'x'); }
+        try {
+          for (const [vw, vh] of [[1440, 900], [390, 800]]) {
+            await ap.setViewportSize({ width: vw, height: vh });
+            await ap.goto(fmUrl, { waitUntil: 'domcontentloaded' });
+            await fmReady();
+            await ap.dblclick('.fm-it[data-path="e2e-fm-many"]');
+            await ap.waitForSelector('.fm-it[data-path="e2e-fm-many/doc-150.txt"]', { timeout: 20000 });
+            for (const view of ['icons', 'list']) {
+              await ap.click('.fm-bar [data-view="' + view + '"]');
+              await ap.waitForTimeout(300);
+              const m0 = await ap.evaluate(() => { const b = document.querySelector('.fm-body'), f = document.querySelector('.fm'); return { box: f.clientHeight, win: innerHeight, body: b.clientHeight, all: b.scrollHeight }; });
+              await ap.evaluate(() => { const b = document.querySelector('.fm-body'); b.scrollTop = b.scrollHeight; });
+              await ap.waitForTimeout(200);
+              const m1 = await ap.evaluate(() => { const b = document.querySelector('.fm-body'), l = document.querySelector('.fm-it[data-path="e2e-fm-many/doc-150.txt"]').getBoundingClientRect(), r = b.getBoundingClientRect(); return { top: b.scrollTop, visible: l.bottom <= r.bottom + 1 && l.top >= r.top - 1, page: document.documentElement.scrollHeight > innerHeight + 200 }; });
+              ok(m0.box <= m0.win && m0.all > m0.body + 200 && m1.top > 0 && m1.visible && !m1.page, 'file manager ' + vw + 'px, ' + view + ' view: 150 files scroll inside the window and the last one can be reached (box ' + m0.box + ' of ' + m0.win + ' px, content ' + m0.all + ' in ' + m0.body + ')');
+            }
+          }
+        } finally {
+          fsF.rmSync(manyDir, { recursive: true, force: true });
+        }
+        await ap.setViewportSize({ width: 1440, height: 900 });
+        await ap.goto(fmUrl, { waitUntil: 'domcontentloaded' });
+        await fmReady();
+      }
       // a new folder, named at once, like the Finder
       await ap.click('[data-act="mkdir"]');
       await ap.waitForSelector('.fm-edit', { timeout: 10000 });
