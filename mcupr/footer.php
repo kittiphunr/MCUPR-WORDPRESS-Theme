@@ -63,7 +63,8 @@ foreach ( $policy as $row ) {
 		</div>
 		<?php mcupr_social_links(); ?>
 	</div>
-	<div class="fgrid px-6 pb-10<?php echo $policy_links ? '' : ' fgrid-2'; ?>">
+	<?php $vc_on = function_exists( 'mcupr_vc_enabled' ) && mcupr_vc_enabled(); ?>
+	<div class="fgrid px-6 pb-10<?php echo ( $policy_links ? '' : ' fgrid-2' ) . ( $vc_on ? ' fgrid-s' : '' ); ?>">
 		<div><?php mcupr_contact_list(); ?></div>
 
 		<div class="fmap-col"><?php mcupr_map_card(); ?></div>
@@ -77,6 +78,10 @@ foreach ( $policy as $row ) {
 				<?php endforeach; ?>
 			</ul>
 		</nav>
+		<?php endif; ?>
+
+		<?php if ( $vc_on ) : ?>
+		<div class="fstat-col"><?php mcupr_vc_card(); ?></div>
 		<?php endif; ?>
 	</div>
 	<div class="fbar border-t border-line py-4 text-[.9375rem] text-muted">
