@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.77.0 =
+* Footer: a visitor statistics card (online now, visits today, this week, this month, this year and in all, and the visitor before the latest with the address masked and the time). No cookie; one visit is one visitor in 30 minutes; robots, editors, previews and live search are not counted. Customizer → Footer: show the card, show the masked address, a number to start the total from.
+
 = 1.76.0 =
 * Pictures (WebP): a button converts every JPEG and PNG already in the Media Library to WebP at the set size, deletes the original files and old thumbnails, and rewrites their addresses in pages, post meta (also JSON and serialised data, so Elementor keeps working), options and term meta; in batches, can be stopped and continued, needs a ticked confirmation. File manager: a folder with many files now scrolls inside the window (the grid row grew with the content before).
 

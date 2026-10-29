@@ -1961,6 +1961,54 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.click('#accordion-section-mcupr_logos .accordion-section-title button, #accordion-section-mcupr_logos > .accordion-section-title');
     await ap.waitForSelector('#sub-accordion-section-mcupr_logos.open, #sub-accordion-section-mcupr_logos[style*="block"]', { timeout: 10000 }).catch(() => {});
     ok(await ap.isVisible('#customize-control-mcupr_logo_dark, #sub-accordion-section-mcupr_logos .customize-control') && !/MCUPR:/.test(await ap.locator('#sub-accordion-section-mcupr_logos .customize-section-title').innerText()), 'customizer: a row still opens its section, and the section heading has no "MCUPR:" either');
+    // Visitor statistics card in the footer: shown, counted once per visitor, robots and editors left out, fits every width, readable
+    {
+      const vcNums = async (pg) => pg.evaluate(() => { const o = {}; document.querySelectorAll('.fstat-l > div').forEach((d) => { o[d.className === 'fstat-all' ? 'total' : d.querySelector('dt').textContent.trim()] = parseInt(d.querySelector('b').textContent.replace(/[^0-9]/g, ''), 10); }); return o; });
+      const mk = (ua) => br.newContext({ userAgent: ua, viewport: { width: 1366, height: 900 } });
+      const c1 = await mk('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36 e2e-visitor-one');
+      const p1 = await c1.newPage();
+      await p1.goto(B + '/', { waitUntil: 'load' });
+      const a1 = await vcNums(p1);
+      const hasCard = await p1.evaluate(() => { const c = document.querySelector('#colophon .fstat'); const h = c && c.querySelector('h2'); return !!c && !!h && c.getAttribute('aria-labelledby') === h.id && c.querySelectorAll('dt').length === 6; });
+      ok(hasCard, 'footer statistics: the card is in the footer with its heading and six rows (' + JSON.stringify(a1) + ')');
+      await p1.reload({ waitUntil: 'load' });
+      const a2 = await vcNums(p1);
+      ok(a2.total === a1.total && a2['เข้าชมวันนี้:'] === a1['เข้าชมวันนี้:'], 'footer statistics: opening the same visitor again within the visit adds nothing (' + a1.total + ' → ' + a2.total + ')');
+      const c2 = await mk('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36 e2e-visitor-two');
+      const p2 = await c2.newPage();
+      await p2.goto(B + '/', { waitUntil: 'load' });
+      const b1 = await vcNums(p2);
+      ok(b1.total === a1.total + 1 && b1['เข้าชมวันนี้:'] === a1['เข้าชมวันนี้:'] + 1 && b1['เข้าชมเดือนนี้:'] === a1['เข้าชมเดือนนี้:'] + 1 && b1['เข้าชมปีนี้:'] === a1['เข้าชมปีนี้:'] + 1 && b1['เข้าชมสัปดาห์นี้:'] === a1['เข้าชมสัปดาห์นี้:'] + 1 && b1['กำลังออนไลน์:'] >= 2, 'footer statistics: a second visitor adds one to today, the week, the month, the year and the total, and is online with the first (' + JSON.stringify(b1) + ')');
+      const prevTxt = await p2.evaluate(() => (document.querySelector('.fstat-p') || {}).textContent || '');
+      ok(/IP:\s*\d+\.\d+\.\*\.\*|IP:\s*[0-9a-f:]+:\*:\*/i.test(prevTxt) && !/\d+\.\d+\.\d+\.\d+/.test(prevTxt) && /\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/.test(prevTxt), 'footer statistics: the visitor before is shown with the address masked and the time (' + prevTxt.replace(/\s+/g, ' ').trim() + ')');
+      const bot = await mk('Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)');
+      const pb = await bot.newPage();
+      await pb.goto(B + '/', { waitUntil: 'load' });
+      const nb = await vcNums(pb);
+      ok(nb.total === b1.total, 'footer statistics: a robot is not counted (' + b1.total + ' → ' + nb.total + ')');
+      await bot.close();
+      // an editor who is signed in is not counted either
+      const ed = await ap.context().newPage();
+      await ed.goto(B + '/', { waitUntil: 'load' });
+      const ne = await vcNums(ed);
+      await ed.close();
+      ok(ne.total === b1.total, 'footer statistics: a signed-in editor is not counted (' + b1.total + ' → ' + ne.total + ')');
+      // fits, and is readable, at every width, in dark mode and in high contrast
+      for (const [w, h] of [[1366, 900], [900, 900], [390, 800], [320, 700]]) {
+        await p2.setViewportSize({ width: w, height: h });
+        await p2.waitForTimeout(150);
+        const m = await p2.evaluate(() => { const c = document.querySelector('#colophon .fstat').getBoundingClientRect(); return { side: document.documentElement.scrollWidth > innerWidth + 1, inside: c.left >= -1 && c.right <= innerWidth + 1, wide: c.width }; });
+        ok(!m.side && m.inside, 'footer statistics ' + w + 'px: the card fits the screen, no sideways scroll (' + Math.round(m.wide) + ' px wide)');
+      }
+      await p2.setViewportSize({ width: 1366, height: 900 });
+      for (const mode of ['', 'wb', 'by']) {
+        await p2.evaluate((md) => { md ? document.documentElement.setAttribute('data-contrast', md) : document.documentElement.removeAttribute('data-contrast'); }, mode);
+        await p2.addScriptTag({ content: axeSource() }).catch(() => {});
+        const ax = await p2.evaluate(() => axe.run(document.querySelector('#colophon .fstat'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+        ok(ax.violations.length === 0, 'footer statistics axe' + (mode ? ' (high contrast ' + mode + ')' : '') + ': ' + (ax.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+      }
+      await c1.close(); await c2.close();
+    }
     // Pictures (WebP): convert the pictures already in the library, from the page, in batches
     {
       const pth = require('path');
@@ -2021,6 +2069,7 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
               const m1 = await ap.evaluate(() => { const b = document.querySelector('.fm-body'), l = document.querySelector('.fm-it[data-path="e2e-fm-many/doc-150.txt"]').getBoundingClientRect(), r = b.getBoundingClientRect(); return { top: b.scrollTop, visible: l.bottom <= r.bottom + 1 && l.top >= r.top - 1, page: document.documentElement.scrollHeight > innerHeight + 200 }; });
               ok(m0.box <= m0.win && m0.all > m0.body + 200 && m1.top > 0 && m1.visible && !m1.page, 'file manager ' + vw + 'px, ' + view + ' view: 150 files scroll inside the window and the last one can be reached (box ' + m0.box + ' of ' + m0.win + ' px, content ' + m0.all + ' in ' + m0.body + ')');
             }
+            await ap.click('.fm-bar [data-view="icons"]'); // the view is remembered: leave it as the other checks expect
           }
         } finally {
           fsF.rmSync(manyDir, { recursive: true, force: true });
