@@ -31,9 +31,9 @@ function mcupr_cz_order() {
 function mcupr_cz_groups() {
 	return array(
 		'mcupr_footer'  => array(
-			'title' => __( 'MCUPR: Footer – map and social links', 'mcupr' ),
-			'desc'  => __( 'The map card and the icons of the organisation’s pages at the bottom of every page.', 'mcupr' ),
-			'items' => array( 'mcupr_map_on', 'mcupr_map_query', 'mcupr_social_facebook', 'mcupr_social_youtube', 'mcupr_social_line', 'mcupr_social_instagram', 'mcupr_social_x', 'mcupr_social_tiktok' ),
+			'title' => __( 'MCUPR: Footer – map, social links and visitor statistics', 'mcupr' ),
+			'desc'  => __( 'The map card, the icons of the organisation’s pages and the visitor statistics card at the bottom of every page.', 'mcupr' ),
+			'items' => array( 'mcupr_map_on', 'mcupr_map_query', 'mcupr_social_facebook', 'mcupr_social_youtube', 'mcupr_social_line', 'mcupr_social_instagram', 'mcupr_social_x', 'mcupr_social_tiktok', 'mcupr_vc_on', 'mcupr_vc_ip', 'mcupr_vc_start' ),
 		),
 		'mcupr_credit'  => array(
 			'title' => __( 'MCUPR: Website credit', 'mcupr' ),
