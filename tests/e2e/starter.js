@@ -4117,6 +4117,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         ok(t2.onFolder && (await cnt('ปี 2569')) === c0, 'media folders (real mouse): dragged onto "unfiled" it leaves the folder again');
         ok((await mp.locator('.attachments .attachment img[draggable="false"]').count()) >= 1, 'media folders: the picture inside a file is not dragged on its own (the file is)');
         await mp.goto(B + '/wp-admin/upload.php?mode=list&mcupr_folder=none'); await mp.waitForSelector('#the-list tr'); await mp.waitForTimeout(600); // the unfiled ones only, so the first row is not already in the folder
+        const parL = mp.locator('li[data-mf]:has(> .mf-row .mf-name:text-is("ข่าวทดสอบ"))'); // the sub-folder is inside this one: open it so that it can be seen
+        if ((await parL.getAttribute('aria-expanded')) !== 'true') { await parL.locator('> .mf-row > .mf-tog').click(); await mp.waitForTimeout(300); }
         const l0 = await cnt('ปี 2569');
         await realDrag('#the-list > tr', '.mf-row[data-drop]:has(.mf-name:text-is("ปี 2569"))');
         await mp.waitForSelector('#the-list tr');
