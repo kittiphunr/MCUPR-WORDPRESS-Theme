@@ -108,6 +108,7 @@
 		'<div class="fm-acts"><button type="button" class="fm-btn" data-act="mkdir" aria-label="' + esc( T.newFolder ) + '" title="' + esc( T.newFolder ) + '">' + I[ 'folder-plus' ] + '</button><button type="button" class="fm-btn" data-act="upload" aria-label="' + esc( T.upload ) + '" title="' + esc( T.upload ) + '">' + I.upload + '</button><button type="button" class="fm-btn" data-act="download" aria-label="' + esc( T.download ) + '" title="' + esc( T.download ) + '">' + I.download + '</button><button type="button" class="fm-btn fm-danger" data-act="delete" aria-label="' + esc( T[ 'delete' ] ) + '" title="' + esc( T[ 'delete' ] ) + '">' + I[ 'trash-2' ] + '</button><button type="button" class="fm-pill fm-bar-pill" data-act="restore" hidden>' + I[ 'rotate-ccw' ] + '<span>' + esc( T.putBack ) + '</span></button><button type="button" class="fm-pill fm-pill-danger fm-bar-pill" data-act="empty" hidden><span>' + esc( T.emptyTrash ) + '</span></button></div>' +
 		'<label class="fm-search">' + I.search + '<input type="search" placeholder="' + esc( T.search ) + '" aria-label="' + esc( T.search ) + '"></label>' +
 		'</div>' +
+		'<div class="fm-lh" hidden></div>' +
 		'<div class="fm-body" tabindex="0" role="listbox" aria-multiselectable="true" aria-label="' + esc( T.title ) + '"></div>' +
 		'<div class="fm-status"><nav class="fm-path" aria-label="' + esc( T.locations ) + '"></nav><span class="fm-count"></span></div>' +
 		'</div>' +
@@ -116,7 +117,7 @@
 	root.insertAdjacentHTML( 'afterbegin', DEFS );
 	root.appendChild( live );
 	var $ = function ( s ) { return root.querySelector( s ); };
-	var elTree = $( '.fm-tree' ), elTags = $( '.fm-tags' ), elBody = $( '.fm-body' ), elTitle = $( '.fm-title' ), elPath = $( '.fm-path' ), elCount = $( '.fm-count' ), elMenu = $( '.fm-menu' ), elFile = $( '.fm-file' ), elQ = $( '.fm-search input' ), elDrop = $( '.fm-drop-note' );
+	var elTree = $( '.fm-tree' ), elTags = $( '.fm-tags' ), elBody = $( '.fm-body' ), elHead = $( '.fm-lh' ), elTitle = $( '.fm-title' ), elPath = $( '.fm-path' ), elCount = $( '.fm-count' ), elMenu = $( '.fm-menu' ), elFile = $( '.fm-file' ), elQ = $( '.fm-search input' ), elDrop = $( '.fm-drop-note' );
 
 	/* ------------------------------------------------------------ data */
 	function byPath( p ) { for ( var i = 0; i < S.items.length; i++ ) { if ( S.items[ i ].path === p ) { return S.items[ i ]; } } return null; }
@@ -291,12 +292,15 @@
 		var list = shown();
 		elBody.innerHTML = '';
 		elBody.className = 'fm-body is-' + S.view;
+		elHead.innerHTML = '';
+		elHead.hidden = true;
 		if ( ! list.length ) {
 			elBody.appendChild( el( 'p', 'fm-empty', esc( S.q ? T.noMatch : ( S.trash ? T.trashEmpty : ( S.tag ? T.noTagItems : T.empty ) ) ) ) );
 			return;
 		}
 		if ( 'list' === S.view ) {
-			var head = el( 'div', 'fm-lh' );
+			var head = elHead;
+			elHead.hidden = false;
 			[ [ 'name', T.name ], [ 'date', S.trash ? T.deletedOn : T.modified ], [ 'size', T.size ], [ 'kind', S.trash ? T.whereFrom : T.kind ] ].forEach( function ( c ) {
 				var b = el( 'button', 'fm-lc fm-c-' + c[ 0 ] );
 				b.type = 'button';
@@ -304,9 +308,10 @@
 				b.addEventListener( 'click', function () { S.sort = { key: c[ 0 ], dir: S.sort.key === c[ 0 ] ? -S.sort.dir : 1 }; renderBody(); } );
 				head.appendChild( b );
 			} );
-			elBody.appendChild( head );
+			// the sort header sits beside the listbox (a listbox may only hold options); keep its columns level with the rows when a scrollbar shows
 		}
 		list.forEach( function ( e ) { elBody.appendChild( item( e ) ); } );
+		elHead.style.paddingRight = ( 14 + elBody.offsetWidth - elBody.clientWidth ) + 'px';
 	}
 
 	function item( e ) {
