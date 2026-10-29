@@ -4124,6 +4124,8 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
         await mp.waitForSelector('#the-list tr');
         ok((await cnt('ปี 2569')) === l0 + 1, 'media folders (real mouse, list view): a row dragged onto a folder moves into it (' + l0 + ' -> ' + (l0 + 1) + ')');
         await mp.goto(B + '/wp-admin/upload.php?mode=grid'); await mp.waitForSelector('.attachments .attachment'); await mp.waitForTimeout(800);
+        const parG = mp.locator('li[data-mf]:has(> .mf-row .mf-name:text-is("ข่าวทดสอบ"))');
+        if ((await parG.getAttribute('aria-expanded')) !== 'true') { await parG.locator('> .mf-row > .mf-tog').click(); await mp.waitForTimeout(300); }
         await mp.click('.mf-link:has(.mf-name:text-is("ปี 2569"))'); await mp.waitForTimeout(900);
         await realDrag('.attachments .attachment', '.mf-row[data-drop="0"]'); // put it back: what follows counts on it
         await mp.click('.mf-link:has-text("ยังไม่จัดโฟลเดอร์")'); await mp.waitForTimeout(900);
