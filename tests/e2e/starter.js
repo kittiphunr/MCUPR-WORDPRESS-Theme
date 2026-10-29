@@ -2008,7 +2008,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
           for (const [vw, vh] of [[1440, 900], [390, 800]]) {
             await ap.setViewportSize({ width: vw, height: vh });
             await ap.goto(fmUrl, { waitUntil: 'domcontentloaded' });
-            await fmReady();
+            await ap.waitForSelector('#mcupr-fm .fm-it[data-path="e2e-fm-many"]', { timeout: 30000 }); // (the folder tree is hidden on a narrow screen)
+            await ap.waitForTimeout(600);
             await ap.dblclick('.fm-it[data-path="e2e-fm-many"]');
             await ap.waitForSelector('.fm-it[data-path="e2e-fm-many/doc-150.txt"]', { timeout: 20000 });
             for (const view of ['icons', 'list']) {
