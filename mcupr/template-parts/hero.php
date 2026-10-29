@@ -41,6 +41,7 @@ foreach ( $extra as $e ) {
 	<?php if ( $multi ) : // the page heading stays in the accessibility tree whichever slide is showing ?>
 		<h1 class="sr-only"><?php echo esc_html( trim( $line1 . ' ' . $line2 ) ); ?></h1>
 	<?php endif; ?>
+	<?php echo mcupr_hero_avatar(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 	<div class="hero-stage <?php echo $left ? 'items-start' : 'items-center'; ?>">
 		<?php foreach ( $slides as $i => $sl ) : ?>
 			<div class="hero-slide <?php echo $left ? 'items-start' : 'items-center'; ?><?php echo 0 === $i ? ' is-active' : ''; ?>" data-slide<?php echo $multi ? ' role="group" aria-roledescription="slide" aria-label="' . esc_attr( ( $i + 1 ) . ' / ' . $total ) . '"' : ''; ?>>
@@ -73,6 +74,8 @@ foreach ( $extra as $e ) {
 			<button type="button" class="hero-arrow hero-pause" data-hero-pause hidden aria-pressed="false" aria-label="<?php echo esc_attr( mcupr_t( 'hero_pause' ) ); ?>"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg></button>
 		</div>
 	<?php endif; ?>
+
+	<?php mcupr_hero_search(); // phones: the search bar sits under the words and the buttons, above the quick links ?>
 
 	<?php
 	// Quick links: the "Quick links" menu; until one is assigned, the first items of the main menu.

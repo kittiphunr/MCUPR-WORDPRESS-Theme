@@ -902,6 +902,77 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.setViewportSize({ width: 1280, height: 900 });
     await ap.waitForTimeout(200);
     ok((await ap.evaluate(() => getComputedStyle(document.getElementById('m-dock')).display)) === 'none', 'bottom bar: not shown from 1100 px up, where the menu is in the header');
+    // the home hero of a phone: words at the left, a round picture in the corner, a search bar that can choose what to search in
+    await ap.setViewportSize({ width: 390, height: 800 });
+    await ap.goto(B + '/');
+    await ap.addScriptTag({ content: axeSource() });
+    const hh = await ap.evaluate(() => {
+      const R = (q) => { const e = document.querySelector(q); if (!e) { return null; } const b = e.getBoundingClientRect(), cs = getComputedStyle(e); return { l: Math.round(b.left), r: Math.round(b.right), t: Math.round(b.top), b: Math.round(b.bottom), w: Math.round(b.width), h: Math.round(b.height), disp: cs.display, ta: cs.textAlign }; };
+      return { hero: R('.hero'), title: R('.hero-title'), eye: R('.hero .hero-eyebrow'), av: R('.hero-avatar'), hs: R('.hero .hero-search'), flt: R('.hs-filter'), dock: R('#m-dock'), sw: document.documentElement.scrollWidth > innerWidth };
+    });
+    ok(hh.av && hh.av.disp !== 'none' && hh.av.w >= 48 && hh.av.r <= hh.hero.r && hh.av.t >= hh.hero.t, 'phone hero: the round picture sits in the corner of the dark top (' + (hh.av && hh.av.w) + ' px)');
+    ok(hh.title.ta === 'left' && hh.title.l - hh.hero.l < 40 && (!hh.eye || hh.eye.l === hh.title.l), 'phone hero: the words start at the left, the greeting line and the title on one edge (' + hh.title.l + ' / ' + (hh.eye && hh.eye.l) + ')');
+    ok(hh.hs && hh.hs.disp === 'flex' && hh.hs.b <= hh.dock.t && hh.hs.t > hh.hero.t && !hh.sw, 'phone hero: the search bar is in the first screen, above the bottom bar (bottom ' + (hh.hs && hh.hs.b) + ' px, bar from ' + hh.dock.t + ' px)');
+    ok(hh.flt && hh.flt.w >= 44 && hh.flt.h >= 44, 'phone hero: the filter button is at least 44 x 44 px');
+    await ap.waitForTimeout(1500); // the slides that are not shown are still fading out just after the load: wait until the hero is still
+    const hax = await ap.evaluate(() => axe.run(document.querySelector('.hero'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+    ok(hax.violations.length === 0, 'phone hero axe: ' + (hax.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+    await ap.locator('[data-hs-filter]').click();
+    ok((await ap.getAttribute('[data-hs-filter]', 'aria-expanded')) === 'true' && (await ap.locator('.hs-scope').isVisible()), 'phone hero: the filter button opens the choice of what to search in');
+    await ap.keyboard.press('Escape');
+    ok((await ap.getAttribute('[data-hs-filter]', 'aria-expanded')) === 'false' && !(await ap.locator('.hs-scope').isVisible()), 'phone hero: Escape closes it');
+    await ap.fill('.hero-search input[type=search]', 'ทดสอบ');
+    await ap.locator('[data-hs-filter]').click();
+    await ap.locator('.hs-scope input[value=post]').check();
+    ok((await ap.locator('[data-hs-filter][data-on]').count()) === 1, 'phone hero: the filter button shows that a choice is on');
+    // searching: the results come under the bar, with no page to load
+    let navs = 0; const onNav = (fr) => { if (fr === ap.mainFrame()) { navs++; } }; ap.on('framenavigated', onNav);
+    await ap.press('.hero-search input[type=search]', 'Enter');
+    await ap.waitForSelector('.hs-results:not([hidden]) .hs-item', { timeout: 8000 });
+    const lr = await ap.evaluate(() => ({ url: location.href, items: document.querySelectorAll('.hs-item').length, kinds: [...document.querySelectorAll('.hs-k')].map((e) => e.textContent), cnt: document.querySelector('.hs-count').textContent, all: (document.querySelector('.hs-all') || {}).href || '', live: document.querySelector('.hs-results').getAttribute('aria-live'), busy: document.querySelector('.hs-results').getAttribute('aria-busy') }));
+    ok(navs === 0 && new URL(lr.url).pathname === '/' && new URL(lr.url).search === '', 'live search: pressing Enter loads no page, the address stays the same (' + navs + ' page loads)');
+    ok(lr.items >= 1 && lr.items <= 6 && lr.kinds.length === lr.items && lr.kinds.every((k) => k === 'ข่าว') && /\d/.test(lr.cnt), 'live search: the first results (at most 6) appear under the bar, only news when the choice is news (' + lr.items + ' results, "' + lr.cnt + '")');
+    const lsa = lr.all ? new URL(lr.all) : null;
+    ok(lsa && lsa.searchParams.get('s') === 'ทดสอบ' && lsa.searchParams.get('post_type') === 'post' && !lsa.searchParams.has('mcupr_live'), 'live search: "see all" opens the normal search page with the same words and the same choice (' + (lsa && lsa.search) + ')');
+    ok(lr.live === 'polite' && lr.busy === null, 'live search: the list is announced politely and is not left "busy"');
+    const jr = await ap.request.get(B + '/?s=' + encodeURIComponent('ทดสอบ') + '&mcupr_live=1');
+    const jd = await jr.json();
+    ok(jr.ok() && /json/.test(jr.headers()['content-type']) && jr.headers()['x-robots-tag'] === 'noindex' && jd.items.length <= 6 && jd.total >= jd.items.length && jd.items.every((i) => i.t && /^https?:/.test(i.u) && 'k' in i && 'd' in i), 'live search: the answer is a small JSON (not a page), not for search engines, with title, address, kind and date');
+    ok(Buffer.byteLength(JSON.stringify(jd)) < 6000, 'live search: the answer is small (' + Buffer.byteLength(JSON.stringify(jd)) + ' bytes)');
+    // another choice that was not asked yet: a new request with that kind (a choice that was asked before is answered from memory)
+    await ap.locator('[data-hs-filter]').click();
+    const reqPg = ap.waitForRequest((r) => /mcupr_live/.test(r.url()));
+    await ap.locator('.hs-scope input[value=page]').check();
+    const ru = new URL((await reqPg).url());
+    ok(ru.searchParams.get('s') === 'ทดสอบ' && ru.searchParams.get('post_type') === 'page', 'live search: changing the choice asks again at once, for that kind (' + ru.search + ')');
+    await ap.waitForFunction(() => !document.querySelector('.hs-results').hasAttribute('aria-busy') && document.querySelector('.hs-count'));
+    // a word that is a page of HTML is shown as text, never run
+    await ap.fill('.hero-search input[type=search]', '<img src=x onerror=window.__xss=1>');
+    await ap.press('.hero-search input[type=search]', 'Enter');
+    await ap.waitForSelector('.hs-count');
+    await ap.waitForFunction(() => /img/.test(document.querySelector('.hs-count').textContent));
+    ok((await ap.locator('.hs-results img').count()) === 0 && (await ap.evaluate(() => window.__xss)) === undefined && /<img/.test(await ap.locator('.hs-count').textContent()), 'live search: a word that looks like HTML is shown as plain text and nothing is run');
+    // Escape clears the list and gives the focus back to the field
+    await ap.locator('.hero-search input[type=search]').focus();
+    await ap.keyboard.press('Escape');
+    ok(!(await ap.locator('.hs-results').isVisible()) && (await ap.evaluate(() => document.activeElement && document.activeElement.type === 'search')), 'live search: Escape clears the list and the focus stays in the field');
+    ap.off('framenavigated', onNav);
+    // when the quick answer is not possible the normal search page opens
+    await ap.route('**/*mcupr_live*', (r) => r.abort());
+    await ap.fill('.hero-search input[type=search]', 'ทดสอบ');
+    await ap.press('.hero-search input[type=search]', 'Enter');
+    await ap.waitForURL((u) => /[?&]s=/.test(u.search) && !/mcupr_live/.test(u.search), { timeout: 12000 });
+    ok(new URL(ap.url()).searchParams.get('s') === 'ทดสอบ', 'live search: if the quick answer fails, the normal search page opens with the same words (' + new URL(ap.url()).search + ')');
+    await ap.unroute('**/*mcupr_live*');
+    // one letter is too short for a quick answer: the normal search page
+    await ap.goto(B + '/');
+    await ap.fill('.hero-search input[type=search]', 'ก');
+    await Promise.all([ap.waitForNavigation(), ap.press('.hero-search input[type=search]', 'Enter')]);
+    ok(new URL(ap.url()).searchParams.get('s') === 'ก' && !/mcupr_live/.test(ap.url()), 'live search: a single letter goes to the normal search page');
+    await ap.setViewportSize({ width: 1280, height: 900 });
+    await ap.goto(B + '/');
+    const dsk = await ap.evaluate(() => ({ av: getComputedStyle(document.querySelector('.hero-avatar')).display, hs: getComputedStyle(document.querySelector('.hero .hero-search')).display }));
+    ok(dsk.av === 'none' && dsk.hs === 'none', 'phone hero: the picture and the search bar are not part of the wide-screen hero');
     await ap.goto(B + '/?name=fx-media');
     await ap.locator('.pdfv').scrollIntoViewIfNeeded();
     await ap.waitForSelector('.pdfv[data-state="ready"]', { timeout: 30000 });
