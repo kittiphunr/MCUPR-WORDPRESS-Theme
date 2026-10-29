@@ -3,7 +3,7 @@
 ธีม WordPress สำหรับเว็บไซต์หน่วยงานภาครัฐ/สถาบันการศึกษา โครงสร้างหน้าเว็บอ้างอิง [www.chula.ac.th](https://www.chula.ac.th/)
 (แถบเครื่องมือด้านบน → โลโก้/ชื่อหน่วยงาน → เมนูหลักแบบหลายระดับ → ข่าวเด่น + หัวข้อข่าว → ลิงก์ด่วน → ข่าวล่าสุด → ท้ายเว็บไซต์)
 
-โฟลเดอร์ธีมคือ `mcupr/` — zip โฟลเดอร์นี้แล้วอัปโหลดที่ *Appearance → Themes → Add New → Upload*
+โฟลเดอร์ธีมคือ `mcupr/` — **สร้าง zip ด้วย `npm run package`** (ได้ `dist/mcupr-<เวอร์ชัน>.zip` แล้วอัปโหลดที่ *Appearance → Themes → Add New → Upload* หรือที่ WordPress.org Theme Upload) **ห้ามบีบอัดโฟลเดอร์ด้วย Finder บน Mac** เพราะ macOS ใส่ `.DS_Store` และ `__MACOSX` ลงใน zip เอง ซึ่งระบบตรวจอัตโนมัติของ WordPress.org ปฏิเสธ ("The theme contains 1 file that the automated review cannot read: .DS_Store"); ไม่มี npm: `zip -r mcupr.zip mcupr -x "*.DS_Store" "*__MACOSX*" "*/._*"` แล้วตรวจด้วย `bash scripts/check-zip.sh mcupr.zip`
 
 ## เทคโนโลยี UI
 
@@ -1195,6 +1195,12 @@ MCUPR → นำเข้า/ส่งออกตั้งค่า → ส่�
 - ตารางการ์ดหน่วยงาน (`.office-grid`) แสดงสูงสุด 3 การ์ดต่อแถว และยืดให้เต็มความกว้างของกรอบ ไม่เหลือคอลัมน์ว่างด้านขวา (เดิมใช้ auto-fill ที่เว้นช่องว่างไว้ตามจำนวนคอลัมน์ที่พอดีกับหน้าจอ)
 - จอแคบลงจะลดเป็น 2 และ 1 คอลัมน์เอง
 - เทสต์ e2e: สร้างหน่วยงาน 3 แห่งชั่วคราวแล้ววัดที่ 1428 / 1920 (เมนูข้าง) และ 1180 (เมนูบน)
+
+## v1.75.2 – zip ติดตั้งสะอาด (แก้ข้อความ .DS_Store ของ WordPress.org)
+
+- สาเหตุที่อัปโหลดธีมที่ wordpress.org/themes/upload ไม่ผ่าน: zip ถูกสร้างด้วย Finder ของ Mac (ไม่ใช่จากคลังโค้ด — ไฟล์ที่ติดตามใน git 435 ไฟล์ ไม่มีไฟล์ซ่อนเลย)
+- `scripts/package.sh` ตัดไฟล์ขยะของ macOS/Windows ครบ (`.DS_Store`, `__MACOSX`, `._*`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*.map`, `.git`, `.idea` ฯลฯ) แล้วเรียก `scripts/check-zip.sh` ตรวจ zip: ไม่มีไฟล์/โฟลเดอร์ซ่อน, มีโฟลเดอร์บนสุดโฟลเดอร์เดียว `mcupr/`, มี `style.css` `functions.php` `index.php` `readme.txt` `screenshot.jpg` — ถ้าไม่ผ่านจะหยุดและบอกชื่อไฟล์
+- README เลิกแนะนำให้ zip โฟลเดอร์เอง; เทสต์ใหม่ `tests/package-zip.sh` (สร้าง zip จากโฟลเดอร์ที่ใส่ไฟล์ขยะ 17 ชนิด, จำนวนไฟล์ใน zip เท่ากับที่ git ติดตาม, ตรวจว่า zip แบบ Finder ถูกปฏิเสธ)
 
 ## v1.75.1 – แก้การย้ายไฟล์เข้าโฟลเดอร์สื่อ (ลากไม่ได้)
 

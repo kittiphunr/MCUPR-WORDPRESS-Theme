@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.75.2 =
+* Packaging: the installable zip is built by scripts/package.sh (npm run package), which leaves out the files a Mac or a Windows machine adds to a folder (.DS_Store, __MACOSX, ._*, Thumbs.db) and checks the zip before it is uploaded to WordPress.org. Do not zip the folder with Finder.
+
 = 1.75.1 =
 * Media folders: dragging a file onto a folder with the mouse now moves it. WordPress covers the page with its "Drop files to upload" sheet while anything is dragged, and the file was dropped on that sheet instead of the folder; the sheet now stays away while one of our own drags is on, and the picture inside a file is no longer dragged on its own.
 

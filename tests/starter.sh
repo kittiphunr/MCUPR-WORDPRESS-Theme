@@ -71,6 +71,7 @@ php php/google-embed.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FA
 php php/preloader.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/mobile-dock.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/search-page.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
+bash package-zip.sh 2>&1 | grep "^FAIL\|FAILED" || true
 php php/customizer-order.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED\|Fatal" || true
 php php/low-risk.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
 php php/groups-import.php "$SITE_DIR" 2>&1 | grep -v Deprecated | grep "^FAIL\|FAILED" || true
