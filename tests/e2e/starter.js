@@ -1610,10 +1610,19 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       m.cards = cardsInfo.cards; m.hscroll = cardsInfo.hscroll; m.info = cardsInfo;
       ok(m.tops.filter((t) => /MCUPR/.test(t)).length === 1 && m.subs.length >= 18 && m.open, 'admin ' + w + 'px: one MCUPR menu, open on its overview, with ' + m.subs.length + ' entries');
       const vis = await ap.evaluate(() => [...document.querySelectorAll('#adminmenu > li.toplevel_page_mcupr .wp-submenu li')].filter((l) => l.offsetParent !== null).map((l) => l.textContent.trim()));
-      ok(vis.length === 9 && !vis.some((t) => /หมวดหมู่ผลงาน|ตั้งค่ากระดาน|นำเข้านิสิต|ผังการบริหาร|Theme options/.test(t)), 'admin ' + w + 'px: the MCUPR menu shows only the control center and the eight groups (' + vis.length + ': ' + vis.join(' | ') + ')');
+      ok(vis.length === 10 && !vis.some((t) => /หมวดหมู่ผลงาน|ตั้งค่ากระดาน|นำเข้านิสิต|ผังการบริหาร|Theme options/.test(t)), 'admin ' + w + 'px: the MCUPR menu shows only the control center and the nine groups (' + vis.length + ': ' + vis.join(' | ') + ')');
       ok(!m.tops.some((t) => /กระดาน|วิดีโอ|อัลบั้ม|กิจกรรม|บุคลากร|Forum|Video|Album|Event|Staff|Polls|FAQ|Form messages/i.test(t)), 'admin ' + w + 'px: none of the theme sections is scattered in the main menu, except the two that have a menu of their own: works and notices (' + m.tops.join(' | ') + ')');
-      ok(m.cards === 8 && !m.hscroll, 'admin ' + w + 'px: the control center shows ' + m.cards + ' group cards without sideways scroll');
+      ok(m.cards === 9 && !m.hscroll, 'admin ' + w + 'px: the control center shows ' + m.cards + ' group cards without sideways scroll');
       ok(m.info.hero && m.info.chips >= 3 && m.info.acts >= 4 && m.info.tools >= 4, 'admin ' + w + 'px: the control center has the title, the search, the status chips (' + m.info.chips + '), the shortcuts (' + m.info.acts + ') and its groups');
+      if (w === 1366 || w === 390) {
+        // the long "look" group is read in two parts, each with a heading; the home page has a group of its own
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr&cat=look');
+        const lk = await ap.evaluate(() => ({ heads: [...document.querySelectorAll('.mcc-main h2.mcc-sub')].map((h) => h.textContent.trim()), lists: document.querySelectorAll('.mcc-main ul.mcc-rows').length, rows: document.querySelectorAll('.mcc-main ul.mcc-rows > li').length, first: (document.querySelector('.mcc-main ul.mcc-rows li') || {}).textContent, hscroll: document.documentElement.scrollWidth > innerWidth + 1 }));
+        ok(lk.heads.length === 2 && lk.lists === 2 && lk.rows === 12 && /ชื่อเว็บ/.test(lk.first || '') && !lk.hscroll, 'admin ' + w + 'px: the look group has 12 menus in two lists under two headings, the set-once ones first (' + JSON.stringify(lk.heads) + ')');
+        await ap.goto(B + '/wp-admin/admin.php?page=mcupr&cat=home');
+        const hm = await ap.evaluate(() => [...document.querySelectorAll('.mcc-main ul.mcc-rows > li')].map((l) => l.textContent.replace(/\s+/g, ' ').trim().slice(0, 24)));
+        ok(hm.length === 5 && /ประกาศด่วน/.test(hm[0]), 'admin ' + w + 'px: the home-page group opens with the notice bar (' + hm.length + ' menus)');
+      }
       if (w === 1366) {
         for (const u of ['edit.php?post_type=mcupr_video', 'edit-tags.php?taxonomy=mcupr_video_cat&post_type=mcupr_video', 'post-new.php?post_type=mcupr_faq', 'admin.php?page=mcupr-forum', 'admin.php?page=mcupr-staff-hub', 'admin.php?page=mcupr-status', 'edit.php?post_type=mcupr_unit']) {
           const r = await ap.goto(B + '/wp-admin/' + u);
