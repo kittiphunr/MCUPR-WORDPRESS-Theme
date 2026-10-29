@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.74.0 =
+* Search page, phone and wide screen: the form is on the page (it was only there when nothing was found) with the choice of what to search in (everything, news, events, pages) that searches again at once; it says how many results there are and every result says what kind of page it is; an empty search lists nothing and offers the popular words (it used to list every post); the <title> is in the language of the page; when nothing is found the one form stays above the message.
+
 = 1.73.0 =
 * Phones, home hero: the words at the left with the logo (or the signed-in person's picture) as a round picture in the corner, buttons side by side, and a search bar under them with a button to choose what to search in (everything, news, events, pages); the same in light, dark and high-contrast modes. The search shows its first results under the bar while you type or press Enter, with no page to load (a small JSON answer from the normal search query; "see all" opens the full page).
 

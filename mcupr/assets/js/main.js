@@ -460,6 +460,16 @@
 		}
 	});
 
+	/* ---------------------------------------------------------------- the search page: choosing what to search in searches again at once */
+	$$('[data-sp]').forEach(function (f) {
+		var input = $('input[type="search"]', f);
+		f.addEventListener('change', function (e) {
+			if (e.target && e.target.name === 'post_type' && input && input.value.trim() !== '') { if (f.requestSubmit) { f.requestSubmit(); } else { f.submit(); } }
+		});
+		f.addEventListener('submit', function () { var c = $('input[name="post_type"]:checked', f); if (c && c.value === '') { c.disabled = true; } }); /* "everything" adds nothing to the address */
+		window.addEventListener('pageshow', function () { $$('input[name="post_type"]', f).forEach(function (r) { r.disabled = false; }); });
+	});
+
 	/* ---------------------------------------------------------------- the search bar of the home hero (phones): the button chooses what to search in */
 	$$('[data-hs]').forEach(function (f) {
 		var b = $('[data-hs-filter]', f), box = $('.hs-scope', f);
