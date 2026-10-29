@@ -953,6 +953,27 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     await ap.setViewportSize({ width: 1280, height: 900 });
     await ap.waitForTimeout(200);
     ok((await ap.evaluate(() => getComputedStyle(document.getElementById('m-dock')).display)) === 'none', 'bottom bar: not shown from 1100 px up, where the menu is in the header');
+    // the scroll bar on the very top of the screen: it is really seen (Tailwind's scale-x-0 had kept it at zero width in every menu), grows with the reading and is full at the end
+    for (const [menu, w, h] of [['top', 1440, 800], ['side', 1440, 800], ['top', 390, 800]]) {
+      await ap.setViewportSize({ width: w, height: h });
+      await ap.evaluate((m) => localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })), menu);
+      await ap.goto(B + '/');
+      const bw = () => ap.evaluate(() => { const r = document.getElementById('progress').getBoundingClientRect(); return { w: r.width, t: r.top, h: r.height, vw: innerWidth }; });
+      const b0 = await bw();
+      await ap.evaluate(() => window.scrollTo(0, (document.documentElement.scrollHeight - innerHeight) * 0.5)); await ap.waitForTimeout(500);
+      const b5 = await bw();
+      await ap.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await ap.waitForTimeout(500);
+      const b9 = await bw();
+      ok(b0.w < 2 && Math.abs(b5.w / b5.vw - 0.5) < 0.05 && b9.w >= b9.vw - 2 && b5.t === 0 && b5.h >= 4, 'scroll bar on top (' + menu + ' menu, ' + w + ' px): none at the top of the page, half-way at half, full at the end (' + Math.round(b0.w) + ' / ' + Math.round(b5.w) + ' / ' + Math.round(b9.w) + ' of ' + b9.vw + ' px, ' + b5.h + ' px high)');
+    }
+    await ap.setViewportSize({ width: 1440, height: 800 });
+    await ap.evaluate(() => localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'top', contrast: 'wb' })));
+    await ap.goto(B + '/');
+    await ap.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await ap.waitForTimeout(400);
+    const hcb = await ap.evaluate(() => { const e = document.getElementById('progress'), cs = getComputedStyle(e); return { img: cs.backgroundImage, bg: cs.backgroundColor, text: getComputedStyle(document.body).color, w: e.getBoundingClientRect().width, vw: innerWidth }; });
+    ok(hcb.img === 'none' && hcb.bg === hcb.text && hcb.w >= hcb.vw - 2, 'scroll bar on top in high contrast: one solid colour, the colour of the text (' + hcb.bg + '), and it is full at the end');
+    await ap.evaluate(() => localStorage.removeItem('mcupr_prefs'));
+    await ap.setViewportSize({ width: 1280, height: 900 });
     // the home hero of a phone: words at the left, a round picture in the corner, a search bar that can choose what to search in
     await ap.setViewportSize({ width: 390, height: 800 });
     await ap.goto(B + '/');

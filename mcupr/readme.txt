@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.75.3 =
+* The scroll bar on the very top of the screen (how far down the page the reader is) can be seen again, in every menu (top, one capsule, sidebar) and on phones. It had been at zero width since Tailwind 4: its scale-x-0 class sets the separate `scale` property, which multiplies with the script's own transform. Now a pink-to-gold line along the top edge, a solid line in high contrast.
+
 = 1.75.2 =
 * Packaging: the installable zip is built by scripts/package.sh (npm run package), which leaves out the files a Mac or a Windows machine adds to a folder (.DS_Store, __MACOSX, ._*, Thumbs.db) and checks the zip before it is uploaded to WordPress.org. Do not zip the folder with Finder.
 
