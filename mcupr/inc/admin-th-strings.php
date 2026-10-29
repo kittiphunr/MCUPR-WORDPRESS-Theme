@@ -2308,4 +2308,13 @@ The old address (wp-login.php and wp-admin) no longer shows the form. If you los
 	'Small – one line' => 'เล็ก – บรรทัดเดียว',
 	'Statistics: let visitors shrink the card' => 'สถิติ: ให้ผู้เข้าชมย่อการ์ดได้',
 	'A small button on the card makes it one line and opens it again; the choice stays in the visitor’s browser.' => 'ปุ่มเล็กบนการ์ดย่อเป็นบรรทัดเดียวและเปิดกลับได้ การเลือกอยู่ในเบราว์เซอร์ของผู้เข้าชมเท่านั้น',
+	'Footer: column of the contact details' => 'ท้ายเว็บ: คอลัมน์ของข้อมูลติดต่อ',
+	'Footer: column of the map' => 'ท้ายเว็บ: คอลัมน์ของแผนที่',
+	'Footer: column of the policy links' => 'ท้ายเว็บ: คอลัมน์ของลิงก์นโยบาย',
+	'Footer: column of the visitor statistics' => 'ท้ายเว็บ: คอลัมน์ของสถิติผู้เข้าชม',
+	'Column 1 (left)' => 'คอลัมน์ 1 (ซ้าย)',
+	'Column 2 (middle)' => 'คอลัมน์ 2 (กลาง)',
+	'Column 3 (right)' => 'คอลัมน์ 3 (ขวา)',
+	'Hide' => 'ซ่อน',
+	'Put each part of the footer in the column you want. Parts in the same column sit one under the other (contact, map, links, statistics); an empty column is left out. On a phone the columns stack in this order.' => 'วางแต่ละส่วนของท้ายเว็บในคอลัมน์ที่ต้องการ ส่วนที่อยู่คอลัมน์เดียวกันจะเรียงต่อกันลงมา (ติดต่อ แผนที่ ลิงก์ สถิติ) คอลัมน์ที่ว่างจะถูกตัดออก บนมือถือคอลัมน์ต่างๆ เรียงต่อกันตามลำดับนี้',
 );

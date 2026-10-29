@@ -93,6 +93,7 @@ require_once MCUPR_DIR . '/inc/demo-offices.php';
 require_once MCUPR_DIR . '/inc/images.php';
 require_once MCUPR_DIR . '/inc/images-bulk.php';
 require_once MCUPR_DIR . '/inc/visitor-counter.php';
+require_once MCUPR_DIR . '/inc/footer-layout.php';
 require_once MCUPR_DIR . '/inc/lordicon.php';
 require_once MCUPR_DIR . '/inc/elementor.php';
 require_once MCUPR_DIR . '/inc/elementor-admin.php';
