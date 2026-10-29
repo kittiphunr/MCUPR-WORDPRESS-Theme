@@ -1099,11 +1099,16 @@ html[data-contrast] .fcontact > div, html[data-contrast] .flinks .footer-menu a 
 	html[data-contrast]:is([data-menu="side"],[data-menu="hybrid"]) .site-page { box-shadow: none; border: 2px solid var(--border); }
 	/* the band reaches the top of the frame; the capsule floats on it */
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child,
-	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: 1.7rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: 1.2rem; } /* the middle of the breadcrumb is on the middle of the tools capsule */
 	/* the content is as wide as the frame (a small gap each side, the same as the header capsule's), and the home hero starts at the top edge of the capsule */
 	html:is([data-menu="side"],[data-menu="hybrid"]) .wrap { width: calc(100% - 1.5rem); max-width: 120rem; }
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-footer { padding-bottom: .75rem; } /* the footer card is as far from the bottom of the frame as from its sides */
 	html:is([data-menu="side"],[data-menu="hybrid"]) .hero-wrap { width: 100%; max-width: none; margin-top: calc(-1 * var(--hdr-h, 5.5rem)); }
+	/* the Cover head of a post in the sidebar menu: the words are at the top (the other menus keep them at the bottom), the breadcrumb on the line of the tools capsule on the right, and the same small gaps as the menu has */
+	html:is([data-menu="side"],[data-menu="hybrid"]) .post-hero { align-items: flex-start; min-height: 28rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .post-hero:not(.has-photo) { min-height: 0; } /* no photo to show: the head is as tall as its words */
+	html:is([data-menu="side"],[data-menu="hybrid"]) .post-hero > .wrap { padding-top: 0; padding-bottom: 5.5rem; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) .post-hero > .wrap > div { margin-top: 1.75rem; }
 	/* the hero photo fills the frame edge to edge (the frame's rounded corners shape its top); the bottom edge is straight */
 	html:is([data-menu="side"],[data-menu="hybrid"]) .hero-wrap > .hero { border-radius: 0; }
 

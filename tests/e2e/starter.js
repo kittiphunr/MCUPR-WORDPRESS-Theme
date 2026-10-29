@@ -898,6 +898,26 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         await ap.waitForTimeout(1500);
         const hxa = await ap.evaluate(() => axe.run(document.querySelector('.post-hero'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
         ok(hxa.violations.length === 0, 'cover head with a photo axe: ' + (hxa.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        // the sidebar menu: the words of the head are at the top, the breadcrumb is level with the tools capsule; the other menus keep the words at the bottom
+        await ap.evaluate(() => localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'side' })));
+        await ap.goto(B + '/?name=fx-wide');
+        const sd = await ap.evaluate(() => {
+          const R = (q) => { const e = document.querySelector(q); if (!e) { return null; } const b = e.getBoundingClientRect(); return { t: b.top, b: b.bottom, l: b.left, h: b.height }; };
+          const hd = R('.post-hero'), bc = R('.post-hero nav ol'), cap = R('#masthead'), info = R('.post-hero .pm-info'), rail = R('article aside');
+          return { menu: document.documentElement.dataset.menu, ai: getComputedStyle(document.querySelector('.post-hero')).alignItems, hd, bcMid: bc.t + bc.h / 2, capMid: cap.t + cap.h / 2, infoGap: hd.b - info.b, topGap: bc.t - hd.t, left: bc.l, rail: rail && rail.l };
+        });
+        ok(sd.menu === 'side' && sd.ai === 'flex-start', 'cover head in the sidebar menu: the words start at the top of the head, not at the bottom');
+        ok(Math.abs(sd.bcMid - sd.capMid) <= 3, 'cover head in the sidebar menu: the breadcrumb is level with the tools capsule (' + Math.round(sd.bcMid) + ' / ' + Math.round(sd.capMid) + ' px)');
+        ok(sd.infoGap >= 56 && sd.topGap < 40, 'cover head in the sidebar menu: the same small gap above (' + Math.round(sd.topGap) + ' px) and room for the panel that overlaps below (' + Math.round(sd.infoGap) + ' px)');
+        ok(Math.abs(sd.left - sd.rail) <= 14, 'cover head in the sidebar menu: the words and the side rail start at the same side (' + Math.round(sd.left) + ' / ' + Math.round(sd.rail) + ' px)');
+        await ap.goto(B + '/?name=fx-layout-cover');
+        const sn = await ap.evaluate(() => ({ photo: document.querySelector('.post-hero').classList.contains('has-photo'), h: document.querySelector('.post-hero').getBoundingClientRect().height, info: document.querySelector('.post-hero .pm-info').getBoundingClientRect().bottom - document.querySelector('.post-hero').getBoundingClientRect().top }));
+        ok(!sn.photo && sn.h < sn.info + 120, 'cover head in the sidebar menu without a photo: the head is only as tall as its words (' + Math.round(sn.h) + ' px)');
+        await ap.evaluate(() => localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: 'top' })));
+        await ap.goto(B + '/?name=fx-wide');
+        const tp = await ap.evaluate(() => getComputedStyle(document.querySelector('.post-hero')).alignItems);
+        ok(tp === 'flex-end', 'cover head in the top menu: the words stay at the bottom');
+        await ap.evaluate(() => localStorage.removeItem('mcupr_prefs'));
         await ap.goto(B + '/?name=fx-layout-cover');
         const np = await ap.evaluate(() => { const hd = document.querySelector('.post-hero'); return { photo: hd.classList.contains('has-photo'), wheel: getComputedStyle(hd, '::before').display, bg: getComputedStyle(hd).backgroundImage }; });
         ok(!np.photo && np.wheel !== 'none' && /gradient/.test(np.bg), 'cover head without a photo: the watermark wheel stays, on a dark brand gradient');

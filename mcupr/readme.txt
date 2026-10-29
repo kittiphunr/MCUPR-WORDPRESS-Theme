@@ -34,6 +34,7 @@ SweetAlert2: MIT License.
 
 = 1.75.0 =
 * Cover post head: the photo is calmed with one soft shade (dark at the bottom and at the left, where the words are) instead of two crude ones, the pink watermark wheel is no longer printed over a photo (it stays when there is none, on a dark brand gradient), a lighter title, a hairline over the date / reading time / views, and a long title is cut with "…" in a one-line breadcrumb pill.
+* Sidebar menu (wide screens): the Cover head puts its words at the top instead of the bottom, with the breadcrumb level with the tools capsule and the same small gaps as the menu has (every page band in this menu now has its breadcrumb level with the capsule); the head is only as tall as its words when there is no photo. The other menus are unchanged.
 * Search page: the form and its choices no longer make the page wider than a 320 px phone.
 
 = 1.74.0 =
