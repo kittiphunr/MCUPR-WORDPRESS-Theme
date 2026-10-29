@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.75.1 =
+* Media folders: dragging a file onto a folder with the mouse now moves it. WordPress covers the page with its "Drop files to upload" sheet while anything is dragged, and the file was dropped on that sheet instead of the folder; the sheet now stays away while one of our own drags is on, and the picture inside a file is no longer dragged on its own.
+
 = 1.75.0 =
 * Cover post head: the photo is calmed with one soft shade (dark at the bottom and at the left, where the words are) instead of two crude ones, the pink watermark wheel is no longer printed over a photo (it stays when there is none, on a dark brand gradient), a lighter title, a hairline over the date / reading time / views, and a long title is cut with "…" in a one-line breadcrumb pill.
 * Sidebar menu (wide screens): the Cover head puts its words at the top instead of the bottom, with the breadcrumb level with the tools capsule and the same small gaps as the menu has (every page band in this menu now has its breadcrumb level with the capsule); the head is only as tall as its words when there is no photo. The other menus are unchanged.

@@ -107,3 +107,7 @@ body.mf-dragging .mf-row[data-drop], body.mf-dragging .mf-sub li { box-shadow: i
 .mf-main .media-toolbar #media-search-input:focus { border-color: var(--fm-sel-strong); box-shadow: 0 0 0 3px var(--fm-sel); outline: none; }
 .mf-main .media-toolbar .spinner { margin: 0; }
 @media (max-width: 782px) { .mf-main .media-toolbar-primary.search-form { flex: 1 1 100%; margin-left: 0; } .mf-main .media-toolbar #media-search-input { width: 100%; } }
+
+/* WordPress shows its "Drop files to upload" sheet over the whole page whenever anything is dragged; it sits on top of the folders, so a file
+   dragged onto a folder was dropped on the sheet and nothing moved. While one of our own drags is on, the sheet stays away. */
+body.mf-dragging .uploader-window { display: none !important; pointer-events: none !important; }
