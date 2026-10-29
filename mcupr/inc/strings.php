@@ -239,6 +239,8 @@ return array(
 	'vc_people'     => array( 'คน', 'people', '人', '人' ),
 	'vc_times'      => array( 'ครั้ง', 'visits', '次', '回' ),
 	'vc_clock'      => array( ' น.', '', '', '' ),
+	'vc_shrink'     => array( 'ย่อการ์ดสถิติ', 'Make the statistics card small', '缩小统计卡片', '統計カードを小さくする' ),
+	'vc_expand'     => array( 'ขยายการ์ดสถิติ', 'Open the statistics card', '展开统计卡片', '統計カードを開く' ),
 	'rights'        => array( 'สงวนลิขสิทธิ์', 'All rights reserved.', '版权所有。', '無断転載を禁じます。' ),
 	'cookie_msg'    => array(
 		'เว็บไซต์นี้ใช้คุกกี้และพื้นที่จัดเก็บในเครื่องที่จำเป็นเพื่อจดจำภาษาและการตั้งค่าการแสดงผลของคุณ ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562',

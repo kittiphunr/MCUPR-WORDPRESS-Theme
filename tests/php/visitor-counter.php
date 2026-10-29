@@ -52,7 +52,13 @@ t( 1 === mcupr_vc_snapshot( $now )['online'], 'whoever reads the card counts as 
 // ---- the card
 set_theme_mod( 'mcupr_vc_on', true ); set_theme_mod( 'mcupr_vc_ip', true );
 ob_start(); mcupr_vc_card(); $h = ob_get_clean();
-t( false !== strpos( $h, 'class="fstat"' ) && false !== strpos( $h, 'aria-labelledby="fstat-h"' ) && 6 === substr_count( $h, '<dt>' ), 'the card has its heading and its six rows' );
+t( false !== strpos( $h, 'class="fstat is-full"' ) && false !== strpos( $h, 'aria-labelledby="fstat-h"' ) && 6 === substr_count( $h, '<dt>' ), 'the card has its heading and its six rows, large by default' );
+t( false !== strpos( $h, 'class="fstat-tg" hidden' ), 'the button that shrinks the card is there (shown by the script)' );
+foreach ( array( 'medium', 'small' ) as $sz ) { set_theme_mod( 'mcupr_vc_size', $sz ); ob_start(); mcupr_vc_card(); $hs = ob_get_clean(); t( false !== strpos( $hs, 'class="fstat is-' . $sz . '"' ) && false !== strpos( $hs, 'data-full="' . ( 'small' === $sz ? 'full' : $sz ) . '"' ), "size $sz: the card says so, and what it opens to" ); }
+set_theme_mod( 'mcupr_vc_size', 'huge' ); t( 'full' === mcupr_vc_size(), 'a wrong size is the large one' );
+remove_theme_mod( 'mcupr_vc_size' );
+set_theme_mod( 'mcupr_vc_toggle', false ); ob_start(); mcupr_vc_card(); $hn = ob_get_clean(); t( false === strpos( $hn, 'fstat-tg' ), 'the button is not there when the owner switched it off' );
+remove_theme_mod( 'mcupr_vc_toggle' );
 t( false !== strpos( $h, '5.5.*.*' ) || false !== strpos( $h, '4.4.*.*' ), 'the address shown is a masked one, never a whole one' );
 t( ! preg_match( '/\d+\.\d+\.\d+\.\d+/', $h ), 'no whole address is anywhere in the card' );
 set_theme_mod( 'mcupr_vc_ip', false );
@@ -61,9 +67,9 @@ t( false === strpos( $h2, 'IP:' ) && false !== strpos( $h2, '<time' ), 'with the
 set_theme_mod( 'mcupr_vc_on', false );
 ob_start(); mcupr_vc_card(); $h3 = ob_get_clean();
 t( '' === $h3 && ! mcupr_vc_enabled(), 'switched off: nothing is shown' );
-foreach ( array( 'vc_title', 'vc_online', 'vc_today', 'vc_week', 'vc_month', 'vc_year', 'vc_total', 'vc_prev', 'vc_people', 'vc_times' ) as $k ) { t( mcupr_t( $k, 'th' ) !== $k && mcupr_t( $k, 'en' ) !== $k && mcupr_t( $k, 'zh' ) !== mcupr_t( $k, 'en' ) && mcupr_t( $k, 'ja' ) !== mcupr_t( $k, 'en' ), "words in four languages: $k" ); }
+foreach ( array( 'vc_shrink', 'vc_expand', 'vc_title', 'vc_online', 'vc_today', 'vc_week', 'vc_month', 'vc_year', 'vc_total', 'vc_prev', 'vc_people', 'vc_times' ) as $k ) { t( mcupr_t( $k, 'th' ) !== $k && mcupr_t( $k, 'en' ) !== $k && mcupr_t( $k, 'zh' ) !== mcupr_t( $k, 'en' ) && mcupr_t( $k, 'ja' ) !== mcupr_t( $k, 'en' ), "words in four languages: $k" ); }
 
-remove_theme_mod( 'mcupr_vc_on' ); remove_theme_mod( 'mcupr_vc_ip' );
+remove_theme_mod( 'mcupr_vc_on' ); remove_theme_mod( 'mcupr_vc_ip' ); remove_theme_mod( 'mcupr_vc_size' ); remove_theme_mod( 'mcupr_vc_toggle' );
 null === $keep[0] ? delete_option( 'mcupr_vc' ) : update_option( 'mcupr_vc', $keep[0], false );
 update_option( 'start_of_week', $keep[1] );
 null === $keep[2] ? remove_theme_mod( 'mcupr_vc_start' ) : set_theme_mod( 'mcupr_vc_start', $keep[2] );

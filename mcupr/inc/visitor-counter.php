@@ -154,34 +154,63 @@ function mcupr_vc_track() {
 }
 add_action( 'template_redirect', 'mcupr_vc_track', 25 );
 
-/** The card (a green panel like the other cards of the footer, in the colours of the theme). */
+/** The sizes of the card, like the widgets of a phone: the whole card, a square of four numbers, one small line. */
+function mcupr_vc_sizes() {
+	return array( 'full', 'medium', 'small' );
+}
+
+function mcupr_vc_size() {
+	$s = (string) get_theme_mod( 'mcupr_vc_size', 'full' );
+	return in_array( $s, mcupr_vc_sizes(), true ) ? $s : 'full';
+}
+
+/**
+ * The card (a panel in the colours of the theme), under the contact details. $size: the size the owner chose in the Customizer;
+ * a visitor can shrink it to the small line and open it again with the button (kept in the browser, see assets/js/visitor-card.js).
+ */
 function mcupr_vc_card() {
 	if ( ! mcupr_vc_enabled() ) {
 		return;
 	}
 	$s    = mcupr_vc_snapshot();
+	$size = mcupr_vc_size();
 	$rows = array(
-		array( 'vc_online', $s['online'], 'vc_people', '' ),
-		array( 'vc_today', $s['today'], 'vc_times', '' ),
-		array( 'vc_week', $s['week'], 'vc_times', '' ),
-		array( 'vc_month', $s['month'], 'vc_times', '' ),
-		array( 'vc_year', $s['year'], 'vc_times', '' ),
+		array( 'online', 'vc_online', $s['online'], 'vc_people' ),
+		array( 'today', 'vc_today', $s['today'], 'vc_times' ),
+		array( 'week', 'vc_week', $s['week'], 'vc_times' ),
+		array( 'month', 'vc_month', $s['month'], 'vc_times' ),
+		array( 'year', 'vc_year', $s['year'], 'vc_times' ),
+		array( 'total', 'vc_total', $s['total'], 'vc_times' ),
 	);
-	echo '<section class="fstat" aria-labelledby="fstat-h"><h2 class="fstat-h" id="fstat-h">' . mcupr_icon( 'trending-up', 20 ) . esc_html( mcupr_t( 'vc_title' ) ) . '</h2><dl class="fstat-l">'; // phpcs:ignore WordPress.Security.EscapeOutput
-	foreach ( $rows as $r ) {
-		echo '<div><dt>' . esc_html( mcupr_t( $r[0] ) ) . '</dt><dd><b>' . esc_html( number_format_i18n( $r[1] ) ) . '</b> ' . esc_html( mcupr_t( $r[2] ) ) . '</dd></div>';
+	$can  = (bool) get_theme_mod( 'mcupr_vc_toggle', true );
+	echo '<section class="fstat is-' . esc_attr( $size ) . '" id="fstat" data-size="' . esc_attr( $size ) . '" data-full="' . esc_attr( 'small' === $size ? 'full' : $size ) . '" aria-labelledby="fstat-h"><div class="fstat-top"><h2 class="fstat-h" id="fstat-h">' . mcupr_icon( 'trending-up', 20 ) . '<span>' . esc_html( mcupr_t( 'vc_title' ) ) . '</span></h2>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	if ( $can ) {
+		echo '<button type="button" class="fstat-tg" hidden aria-controls="fstat" aria-pressed="' . ( 'small' === $size ? 'true' : 'false' ) . '" data-t-small="' . esc_attr( mcupr_t( 'vc_shrink' ) ) . '" data-t-full="' . esc_attr( mcupr_t( 'vc_expand' ) ) . '" aria-label="' . esc_attr( mcupr_t( 'small' === $size ? 'vc_expand' : 'vc_shrink' ) ) . '" title="' . esc_attr( mcupr_t( 'small' === $size ? 'vc_expand' : 'vc_shrink' ) ) . '"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path class="fstat-tg-in" d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/><path class="fstat-tg-out" d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>';
 	}
-	echo '<div class="fstat-all"><dt>' . esc_html( mcupr_t( 'vc_total' ) ) . '</dt><dd><b>' . esc_html( number_format_i18n( $s['total'] ) ) . '</b> ' . esc_html( mcupr_t( 'vc_times' ) ) . '</dd></div></dl>';
+	echo '</div><dl class="fstat-l">';
+	foreach ( $rows as $r ) {
+		echo '<div data-k="' . esc_attr( $r[0] ) . '"><dt>' . esc_html( mcupr_t( $r[1] ) ) . '</dt><dd><b>' . esc_html( number_format_i18n( $r[2] ) ) . '</b> <span>' . esc_html( mcupr_t( $r[3] ) ) . '</span></dd></div>';
+	}
+	echo '</dl>';
 	if ( ! empty( $s['prev'] ) ) {
 		$show_ip = (bool) get_theme_mod( 'mcupr_vc_ip', true ) && ! empty( $s['prev']['ip'] );
 		echo '<div class="fstat-p"><p class="fstat-pl">' . esc_html( mcupr_t( 'vc_prev' ) ) . '</p>';
 		if ( $show_ip ) {
 			echo '<p>' . mcupr_icon( 'globe', 16 ) . 'IP: <span dir="ltr">' . esc_html( $s['prev']['ip'] ) . '</span></p>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		}
-		echo '<p>' . mcupr_icon( 'clock', 16 ) . '<time datetime="' . esc_attr( mcupr_vc_date( 'c', (int) $s['prev']['t'] ) ) . '">' . esc_html( mcupr_vc_date( 'd/m/Y H:i', (int) $s['prev']['t'] ) . mcupr_t( 'vc_clock' ) ) . '</time></p></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		echo '<p>' . mcupr_icon( 'clock', 16 ) . '<time datetime="' . esc_attr( mcupr_vc_date( 'c', (int) $s['prev']['t'] ) ) . '">' . esc_html( mcupr_vc_date( 'd/m/Y H:i', (int) $s['prev']['t'] ) . mcupr_t( 'vc_clock' ) ) . '</time></p></div>';
 	}
 	echo '</section>';
 }
+
+add_action(
+	'wp_enqueue_scripts',
+	static function () {
+		if ( mcupr_vc_enabled() && get_theme_mod( 'mcupr_vc_toggle', true ) ) {
+			wp_enqueue_script( 'mcupr-visitor-card', get_theme_file_uri( 'assets/js/visitor-card.js' ), array(), MCUPR_VERSION, true );
+		}
+	}
+);
 
 /* Customizer: show the card, the last visitor's address, where the total starts. */
 add_action(
@@ -191,6 +220,10 @@ add_action(
 		$wp_customize->add_control( 'mcupr_vc_on', array( 'section' => 'mcupr_org', 'type' => 'checkbox', 'label' => __( 'Show visitor statistics in the footer', 'mcupr' ), 'description' => __( 'Online now, visits today, this week, this month, this year and in all. No cookie is used; a visit is one visitor in 30 minutes; robots and people who edit the site are not counted.', 'mcupr' ) ) );
 		$wp_customize->add_setting( 'mcupr_vc_ip', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 		$wp_customize->add_control( 'mcupr_vc_ip', array( 'section' => 'mcupr_org', 'type' => 'checkbox', 'label' => __( 'Statistics: show the address of the previous visitor', 'mcupr' ), 'description' => __( 'Only the first two parts are shown (27.145.*.*); the full address is never stored. Untick it to show the time only.', 'mcupr' ) ) );
+		$wp_customize->add_setting( 'mcupr_vc_size', array( 'default' => 'full', 'sanitize_callback' => static function ( $v ) { return in_array( $v, mcupr_vc_sizes(), true ) ? $v : 'full'; } ) );
+		$wp_customize->add_control( 'mcupr_vc_size', array( 'section' => 'mcupr_org', 'type' => 'select', 'label' => __( 'Statistics: size of the card', 'mcupr' ), 'choices' => array( 'full' => __( 'Large – every number and the previous visitor', 'mcupr' ), 'medium' => __( 'Medium – four numbers in a square', 'mcupr' ), 'small' => __( 'Small – one line', 'mcupr' ) ) ) );
+		$wp_customize->add_setting( 'mcupr_vc_toggle', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+		$wp_customize->add_control( 'mcupr_vc_toggle', array( 'section' => 'mcupr_org', 'type' => 'checkbox', 'label' => __( 'Statistics: let visitors shrink the card', 'mcupr' ), 'description' => __( 'A small button on the card makes it one line and opens it again; the choice stays in the visitor’s browser.', 'mcupr' ) ) );
 		$wp_customize->add_setting( 'mcupr_vc_start', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
 		$wp_customize->add_control( 'mcupr_vc_start', array( 'section' => 'mcupr_org', 'type' => 'number', 'label' => __( 'Statistics: start the total from', 'mcupr' ), 'description' => __( 'To carry on from an old counter, type its last number. It is added to the visits counted from now on.', 'mcupr' ), 'input_attrs' => array( 'min' => 0, 'step' => 1 ) ) );
 	},

@@ -2302,4 +2302,10 @@ The old address (wp-login.php and wp-admin) no longer shows the form. If you los
 	'Only the first two parts are shown (27.145.*.*); the full address is never stored. Untick it to show the time only.' => 'แสดงเฉพาะสองส่วนแรก (27.145.*.*) ไม่เก็บที่อยู่เต็มไว้ ถ้าไม่ติ๊กจะแสดงแค่เวลา',
 	'Statistics: start the total from' => 'สถิติ: เริ่มนับยอดรวมจาก',
 	'To carry on from an old counter, type its last number. It is added to the visits counted from now on.' => 'ถ้าจะนับต่อจากตัวนับเก่า ให้พิมพ์เลขสุดท้ายของตัวนับนั้น ระบบจะบวกกับจำนวนครั้งที่นับจากนี้ไป',
+	'Statistics: size of the card' => 'สถิติ: ขนาดของการ์ด',
+	'Large – every number and the previous visitor' => 'ใหญ่ – ทุกตัวเลขและผู้เข้าชมก่อนหน้า',
+	'Medium – four numbers in a square' => 'กลาง – สี่ตัวเลขเป็นสี่เหลี่ยม',
+	'Small – one line' => 'เล็ก – บรรทัดเดียว',
+	'Statistics: let visitors shrink the card' => 'สถิติ: ให้ผู้เข้าชมย่อการ์ดได้',
+	'A small button on the card makes it one line and opens it again; the choice stays in the visitor’s browser.' => 'ปุ่มเล็กบนการ์ดย่อเป็นบรรทัดเดียวและเปิดกลับได้ การเลือกอยู่ในเบราว์เซอร์ของผู้เข้าชมเท่านั้น',
 );
