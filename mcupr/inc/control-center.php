@@ -395,7 +395,7 @@ function mcupr_cc_render_home() {
 	$data  = mcupr_cc_data();
 	$admin = current_user_can( 'manage_options' );
 	$mine  = function_exists( 'mcupr_user_offices' ) ? mcupr_user_offices() : null;
-	echo '<header class="mcc-hero"><div><h1>' . mcupr_feather( 'sliders', 28 ) . esc_html__( 'Control center', 'mcupr' ) . '<span class="mcc-ver">v' . esc_html( MCUPR_VERSION ) . '</span></h1><p>' . esc_html__( 'Everything you can change on this website, in one place. Pick a group, or type what you want to do.', 'mcupr' ) . '</p></div>' . mcupr_cc_search_box() . '</header>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo '<header class="mcc-hero"><div><h1>' . mcupr_feather( 'sliders', 28 ) . esc_html__( 'Control center', 'mcupr' ) . '<span class="mcc-ver">v' . esc_html( mcupr_version_label() ) . '</span></h1><p>' . esc_html__( 'Everything you can change on this website, in one place. Pick a group, or type what you want to do.', 'mcupr' ) . '</p></div>' . mcupr_cc_search_box() . '</header>'; // phpcs:ignore WordPress.Security.EscapeOutput
 
 	// ---- what is on right now
 	$chips = array();

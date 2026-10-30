@@ -407,6 +407,7 @@ return array(
 	'expand_menu'   => array( 'ขยายเมนู', 'Expand menu', '展开菜单', 'メニューを展開' ),
 	'about'         => array( 'เกี่ยวกับเว็บไซต์', 'About this website', '关于本网站', 'このサイトについて' ),
 	'about_credit'  => array( 'จัดทำโดย', 'Made by', '制作', '制作' ),
+	'build'         => array( 'บิลด์', 'build', '构建', 'ビルド' ),
 	'theme_credit'  => array( 'ธีม MCUPR', 'MCUPR theme', 'MCUPR 主题', 'MCUPR テーマ' ),
 	'contact_us_at' => array( 'ติดต่อ', 'Contact', '联系方式', 'お問い合わせ' ),
 	'tr_missing'    => array(

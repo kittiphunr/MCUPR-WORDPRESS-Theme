@@ -116,6 +116,7 @@ suite '^FAIL\|FAILED' php php/images.php "$SITE_DIR"
 suite '^FAIL\|FAILED' php php/images-bulk.php "$SITE_DIR"
 suite '^FAIL\|FAILED' php php/visitor-counter.php "$SITE_DIR"
 suite '^FAIL\|FAILED' php php/footer-layout.php "$SITE_DIR"
+suite '^FAIL\|FAILED' bash versioning.sh
 suite '^FAIL\|FAILED' php php/demo-home.php "$SITE_DIR"
 suite '^FAIL\|FAILED' php php/numbers.php "$SITE_DIR"
 suite '^FAIL\|FAILED' php php/insights.php "$SITE_DIR"
