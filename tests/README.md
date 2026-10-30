@@ -41,7 +41,7 @@ npm run check              # ตรวจเร็ว (ไม่ต้องม�
 ## ข้อมูลทดสอบ (`fixtures/seed.php`)
 ข่าวภาษาไทย 10 ข่าว (ข่าวที่ 1 มีคำแปล en/zh) พร้อมรูปที่สร้างด้วย GD, หน้านโยบายความเป็นส่วนตัว, เมนูครบทุกตำแหน่ง และค่า Customizer
 - `bash only.sh php <suite…> e2e <block…>` – run only what you changed, in about a minute, on the site the last `starter.sh` left behind: PHP suites (`php/<name>.php`) and blocks of `e2e/starter.js` that are marked `// @only name` … `// @end name` (`bash only.sh --list` shows them). Mark a block that is self-contained (it may use `B`, `br`, `ap` – an administrator already signed in –, `ok`, `axeSource`, `fsF`, `fmUrl`, `fmReady`) to make it runnable alone. This is for working; **before a merge the whole of `starter.sh` still has to end with `EXIT=0`**.
-- `bash starter.sh` – imports the starter file with the real WordPress Importer into a clean site and checks pages/menus/footer/axe (needs network once to clone the importer).
+- `bash starter.sh` – imports the starter file with the real WordPress Importer into a clean site and checks pages/menus/footer/axe (needs network once to clone the importer). PHP suites that print a `FAIL` line, a fatal error, or exit with an error are listed together at the end (and just before the browser tests) as `FAILED PHP suites (n of N): …`, and make the run end with `EXIT=1`; with none the line reads `PHP suites: all N passed`.
 
 ## Loading screen cost (not part of the automatic run)
 
