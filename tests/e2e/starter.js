@@ -1970,8 +1970,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       const p1 = await c1.newPage();
       await p1.goto(B + '/', { waitUntil: 'load' });
       const a1 = await vcNums(p1);
-      const hasCard = await p1.evaluate(() => { const c = document.querySelector('#colophon .fstat'); const h = c && c.querySelector('h2'); return !!c && !!h && c.getAttribute('aria-labelledby') === h.id && c.querySelectorAll('dt').length === 6 && !!document.querySelector('#colophon .fgrid > div:first-child > .fcontact + .fstat'); });
-      ok(hasCard, 'footer statistics: the card sits right under the contact details, with its heading and six rows (' + JSON.stringify(a1) + ')');
+      const hasCard = await p1.evaluate(() => { const c = document.querySelector('#colophon .fstat'); const h = c && c.querySelector('h2'); return !!c && !!h && c.getAttribute('aria-labelledby') === h.id && c.querySelectorAll('dt').length === 6 && !!document.querySelector('#colophon .fgrid > .fcol:last-child > .fstat'); });
+      ok(hasCard, 'footer statistics: the card sits in the last column of the footer, with its heading and six rows (' + JSON.stringify(a1) + ')');
       await p1.reload({ waitUntil: 'load' });
       const a2 = await vcNums(p1);
       ok(a2.total === a1.total && a2['เข้าชมวันนี้:'] === a1['เข้าชมวันนี้:'], 'footer statistics: opening the same visitor again within the visit adds nothing (' + a1.total + ' → ' + a2.total + ')');
@@ -2056,6 +2056,46 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await c1.close(); await c2.close();
     }
     // @end footer-stats
+    // @only footer-layout
+    // The footer's parts sit in balanced columns, and each can be moved to another column (or hidden) in the Customizer
+    {
+      const setModF = (n, v) => require('child_process').execFileSync('php', [require('path').join(__dirname, '..', 'php', 'set-mod.php'), require('path').join(__dirname, '..', '.site-starter'), n, v]);
+      const cF = await br.newContext({ viewport: { width: 1366, height: 900 }, userAgent: 'Mozilla/5.0 (X11; Linux x86_64) Chrome/120 e2e-footer-layout-' + Date.now() });
+      const pF = await cF.newPage();
+      const shape = () => pF.evaluate(() => { const g = document.querySelector('#colophon .fgrid'); const cols = [...g.children].map((c) => ({ parts: [...c.children].map((e) => (e.classList.contains('fcontact') || e.tagName === 'ADDRESS') ? 'contact' : e.classList.contains('fmap-col') ? 'map' : e.classList.contains('flinks') ? 'links' : e.classList.contains('fstat') ? 'stats' : '?'), h: Math.round(c.lastElementChild.getBoundingClientRect().bottom - c.getBoundingClientRect().top), l: Math.round(c.getBoundingClientRect().left) })); return { cls: g.className, cols, side: document.documentElement.scrollWidth > innerWidth + 1 }; });
+      try {
+        await pF.goto(B + '/', { waitUntil: 'load' });
+        const d0 = await shape();
+        const hs = d0.cols.map((c) => c.h);
+        ok(d0.cols.length === 3 && d0.cols.map((c) => c.parts.join('+')).join(' | ') === 'contact | map+links | stats' && Math.max(...hs) / Math.min(...hs) < 1.8 && !d0.side, 'footer layout 1366px: contact | map and links | statistics, the contents of the columns within 1.8 times of each other in height (' + hs.join(', ') + ')');
+        setModF('mcupr_footer_col_stats', '1');
+        await pF.reload({ waitUntil: 'load' });
+        const d1 = await shape();
+        ok(d1.cols.map((c) => c.parts.join('+')).join(' | ') === 'contact+stats | map+links', 'footer layout: statistics moved to column 1 sit under the contact details, the empty third column is left out (' + d1.cols.map((c) => c.parts.join('+')).join(' | ') + ')');
+        setModF('mcupr_footer_col_map', '3'); setModF('mcupr_footer_col_links', '3');
+        await pF.reload({ waitUntil: 'load' });
+        const d2 = await shape();
+        ok(d2.cols.length === 2 && d2.cls.includes('fgrid-2') && d2.cols[1].parts.join('+') === 'map+links', 'footer layout: an empty column is left out and the other two share the width (' + d2.cols.map((c) => c.parts.join('+')).join(' | ') + ')');
+        setModF('mcupr_footer_col_contact', '0');
+        await pF.reload({ waitUntil: 'load' });
+        const d3 = await shape();
+        ok(!d3.cols.some((c) => c.parts.includes('contact')), 'footer layout: the contact details can be hidden');
+        for (const [w, h] of [[900, 800], [390, 800], [320, 700]]) {
+          await pF.setViewportSize({ width: w, height: h });
+          const m = await shape();
+          ok(!m.side, 'footer layout ' + w + 'px: no sideways scroll with the columns moved');
+        }
+        for (const b of ['contact', 'map', 'links', 'stats']) { setModF('mcupr_footer_col_' + b, '--remove'); }
+        await pF.setViewportSize({ width: 390, height: 800 });
+        await pF.reload({ waitUntil: 'load' });
+        const stack = await shape();
+        ok(new Set(stack.cols.map((c) => c.l)).size === 1 && stack.cols.length === 3, 'footer layout 390px: the columns stack one under the other (all start at the same left edge: ' + stack.cols.map((c) => c.l).join(',') + ')');
+      } finally {
+        for (const b of ['contact', 'map', 'links', 'stats']) { setModF('mcupr_footer_col_' + b, '--remove'); }
+        await cF.close();
+      }
+    }
+    // @end footer-layout
     // @only pictures-bulk
     // Pictures (WebP): convert the pictures already in the library, from the page, in batches
     {
