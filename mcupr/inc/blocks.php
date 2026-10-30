@@ -408,6 +408,7 @@ add_action(
 			$wp_customize->add_control( $id, array( 'section' => $section, 'label' => $label, 'type' => 'textarea' ) );
 		};
 		$icon  = static function ( $id, $label, $section ) use ( $wp_customize, $icons ) {
+			mcupr_icon_picker_controls( $id );
 			$wp_customize->add_setting( $id, array( 'default' => '', 'sanitize_callback' => static function ( $v ) use ( $icons ) { return array_key_exists( (string) $v, $icons ) ? (string) $v : ''; } ) );
 			$wp_customize->add_control( $id, array( 'section' => $section, 'label' => $label, 'type' => 'select', 'choices' => $icons ) );
 		};

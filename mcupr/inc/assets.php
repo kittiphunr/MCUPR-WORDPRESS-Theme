@@ -47,7 +47,6 @@ function mcupr_assets() {
 			'on'          => mcupr_t( 'on' ),
 			'off'         => mcupr_t( 'off' ),
 			'langBadge'   => mcupr_lang_badge(),
-			'lordUrl'     => mcupr_lord_map() ? esc_url_raw( MCUPR_URI . '/assets/vendor/lordicon/lordicon.js?ver=3.0.2' ) : '',
 			'animDefaultOff' => ! get_theme_mod( 'mcupr_anim_default', true ),
 			'patternDefaultOff' => ! get_theme_mod( 'mcupr_pattern', true ),
 			'menuDefault' => mcupr_menu_default(),

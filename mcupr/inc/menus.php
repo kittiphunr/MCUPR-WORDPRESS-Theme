@@ -51,7 +51,7 @@ function mcupr_menu_item_fields( $item_id, $item, $depth ) {
 	$cols = mcupr_menu_item_cols( $item_id );
 	echo '<input type="hidden" name="menu-item-mcupr-present[' . (int) $item_id . ']" value="1">';
 	echo '<p class="field-mcupr-icon description description-wide"><label for="edit-menu-item-mcupr-icon-' . (int) $item_id . '">' . esc_html__( 'Icon before the text', 'mcupr' ) . '<br>';
-	echo '<select class="widefat" id="edit-menu-item-mcupr-icon-' . (int) $item_id . '" name="menu-item-mcupr-icon[' . (int) $item_id . ']"><option value="">' . esc_html__( '— none —', 'mcupr' ) . '</option>';
+	echo '<select class="widefat" data-mcupr-icon-picker="1" id="edit-menu-item-mcupr-icon-' . (int) $item_id . '" name="menu-item-mcupr-icon[' . (int) $item_id . ']"><option value="">' . esc_html__( '— none —', 'mcupr' ) . '</option>';
 	foreach ( array_keys( mcupr_icon_paths() ) as $name ) {
 		echo '<option value="' . esc_attr( $name ) . '"' . selected( $icon, $name, false ) . '>' . esc_html( $name ) . '</option>';
 	}
