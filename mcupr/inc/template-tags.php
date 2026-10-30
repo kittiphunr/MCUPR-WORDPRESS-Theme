@@ -240,7 +240,7 @@ function mcupr_icon( $name, $size = 24 ) {
 	$paths = mcupr_icon_paths();
 	$p     = isset( $paths[ $name ] ) ? $paths[ $name ] : $paths['link'];
 	$svg   = '<svg width="' . (int) $size . '" height="' . (int) $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $p . '</svg>';
-	return function_exists( 'mcupr_lord_wrap' ) ? mcupr_lord_wrap( $name, $svg, $size ) : $svg; // an animated icon the owner chose (inc/lordicon.php) wraps it
+	return $svg;
 }
 
 /** Hero quick links: icon (menu item CSS class "icon-xxx" or the item's icon field) above the text. Other menus: inc/menus.php. */

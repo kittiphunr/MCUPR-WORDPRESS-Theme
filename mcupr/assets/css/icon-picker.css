@@ -1,9 +1,9 @@
 /* Icon picker (assets/js/icon-picker.js): the button, and the grid of icons it opens */
 .mcupr-ip { position: relative; display: block; margin-top: 4px; }
-.mcupr-ip-sel { position: absolute !important; width: 1px; height: 1px; margin: 0; padding: 0; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; }
+.mcupr-ip-sel { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; }
 .mcupr-ip-btn.button { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 36px; padding: 2px 10px; text-align: left; }
 .mcupr-ip-cur { display: inline-grid; place-items: center; flex: none; width: 26px; height: 26px; color: #1d2327; }
-.mcupr-ip-none { color: #646970; font-size: 18px; }
+.mcupr-ip-none { color: #646970; font-size: 18px; line-height: 1; }
 .mcupr-ip-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mcupr-ip-caret { color: #50575e; }
 .mcupr-ip-pop { position: absolute; z-index: 100; top: calc(100% + 4px); left: 0; width: min(24rem, calc(100vw - 2rem)); max-width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #8c8f94; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgb(0 0 0 / .2); }
