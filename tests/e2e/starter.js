@@ -2056,6 +2056,39 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await c1.close(); await c2.close();
     }
     // @end footer-stats
+    // @only crumb-capsule
+    // The breadcrumb of a band or a Cover head shares its line with the tools capsule in the sidebar menus: it ends before the capsule
+    // and the last words (the title of the page) are shortened with "…"; a short title is shown whole; the other menus are not touched
+    {
+      const cp = require('child_process'), pth = require('path');
+      const fx = JSON.parse(cp.execFileSync('php', [pth.join(__dirname, '..', 'php', 'crumb-fixture.php'), pth.join(__dirname, '..', '.site-starter'), 'make']).toString().split('\n').filter((l) => l.startsWith('{')).pop());
+      try {
+        const measure = async (path, w, menu) => {
+          const c = await br.newContext({ viewport: { width: w, height: 800 } });
+          await c.addInitScript((m) => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ menu: m })); } catch (e) { /* none */ } }, menu);
+          const pg = await c.newPage();
+          await pg.goto(B + path, { waitUntil: 'load' });
+          await pg.waitForFunction(() => document.documentElement.style.getPropertyValue('--hdr-w') !== '', null, { timeout: 15000 }).catch(() => {});
+          await pg.waitForTimeout(300);
+          const m = await pg.evaluate(() => { const nav = [...document.querySelectorAll('nav[aria-label]')].find((x) => x.querySelector('[aria-current]')); const ol = nav.querySelector('ol'); const cur = nav.querySelector('[aria-current]'); const h = document.querySelector('#masthead').getBoundingClientRect(); const r = ol.getBoundingClientRect(); const lines = new Set([...ol.children].map((li) => Math.round(li.getBoundingClientRect().top))).size; return { right: Math.round(r.right), hdrLeft: Math.round(h.left), cut: cur.scrollWidth > cur.clientWidth + 1, title: cur.getAttribute('title') || '', text: cur.textContent, lines, mr: getComputedStyle(nav).marginRight, side: document.documentElement.scrollWidth > innerWidth + 1 }; });
+          await c.close();
+          return m;
+        };
+        for (const [w, menu] of [[1440, 'side'], [1180, 'side'], [1440, 'hybrid']]) {
+          for (const [what, path] of [['Cover post', fx.cover], ['page', fx.long]]) {
+            const m = await measure(path, w, menu);
+            ok(m.right <= m.hdrLeft - 6 && m.cut && m.title === m.text && m.lines === 1 && !m.side, 'breadcrumb ' + w + 'px ' + menu + ' menu, ' + what + ': ends before the tools capsule (' + m.right + ' ≤ ' + m.hdrLeft + '), one line, the title is shortened and kept whole in its tooltip');
+          }
+          const sh = await measure(fx.short, w, menu);
+          ok(!sh.cut && sh.right <= sh.hdrLeft - 6, 'breadcrumb ' + w + 'px ' + menu + ' menu: a short title is shown whole');
+        }
+        const top = await measure(fx.long, 1440, 'top');
+        ok(top.mr === '0px' && !top.side, 'breadcrumb in the top menu: nothing changed (no space kept for a capsule)');
+      } finally {
+        cp.execFileSync('php', [pth.join(__dirname, '..', 'php', 'crumb-fixture.php'), pth.join(__dirname, '..', '.site-starter'), 'clean']);
+      }
+    }
+    // @end crumb-capsule
     // @only icon-picker
     // The icon picker (a menu item, the blocks of the home page) and the icons of the first screen of the Customizer
     {

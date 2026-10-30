@@ -73,7 +73,7 @@ function mcupr_breadcrumb( $wrap = true ) {
 	foreach ( $items as $i => $item ) {
 		$sep = $i ? '<span class="mr-2" aria-hidden="true">›</span>' : '';
 		if ( $i === $last || '' === $item[1] ) {
-			echo '<li>' . $sep . '<span aria-current="page">' . esc_html( $item[0] ) . '</span></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
+			echo '<li>' . $sep . '<span aria-current="page" title="' . esc_attr( $item[0] ) . '">' . esc_html( $item[0] ) . '</span></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		} else {
 			echo '<li>' . $sep . '<a href="' . esc_url( $item[1] ) . '">' . esc_html( $item[0] ) . '</a></li>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		}

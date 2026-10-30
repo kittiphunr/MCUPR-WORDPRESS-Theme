@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.80.2 =
+* The breadcrumb of a page band or a Cover head no longer runs under the tools capsule in the sidebar menus: it ends before the capsule and the last words (the title of the page) are shortened with an ellipsis, the whole title is in its tooltip (build 1057)
+
 = 1.80.1 =
 * Icon lists (a menu item, the home page blocks) show the icons themselves in a searchable grid; the first screen of the Customizer gives every section of the theme its own icon (the footer, loading screen, cookies and credit were "Other"); the animated icons (Lordicon) are taken out of the theme, with their player, settings and tests (build 1056)
 
