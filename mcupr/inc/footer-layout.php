@@ -3,7 +3,7 @@
  * Where the parts of the footer sit. The footer has up to three columns and four parts – the contact details, the map, the policy
  * links and the visitor statistics – and each part can be put in any column (Customizer → MCUPR: Footer). Parts in the same column
  * sit one under the other in that order; a column with nothing in it is left out and the others share the width; on a phone the
- * columns stack in order. The first arrangement balances the heights: contact | map | links and statistics.
+ * columns stack in order. The first arrangement balances the heights: contact | map and links | statistics.
  *
  * @package MCUPR
  */
@@ -16,7 +16,7 @@ function mcupr_footer_blocks() {
 
 /** The column of each part before anyone changes it. */
 function mcupr_footer_defaults() {
-	return array( 'contact' => 1, 'map' => 2, 'links' => 3, 'stats' => 3 );
+	return array( 'contact' => 1, 'map' => 2, 'links' => 2, 'stats' => 3 );
 }
 
 /** Parts that can also be hidden (the map and the statistics have a switch of their own). */

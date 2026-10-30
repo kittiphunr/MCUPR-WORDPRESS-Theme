@@ -6,12 +6,13 @@ $fails = 0;
 function t( $ok, $label ) { global $fails; echo ( $ok ? 'PASS ' : 'FAIL ' ) . $label . "\n"; if ( ! $ok ) { $fails++; } }
 $all = array( 'contact', 'map', 'links', 'stats' );
 foreach ( $all as $b ) { remove_theme_mod( 'mcupr_footer_col_' . $b ); }
-t( array( array( 'contact' ), array( 'map' ), array( 'links', 'stats' ) ) === mcupr_footer_layout( $all ), 'the first arrangement balances the heights: contact | map | links and statistics' );
-t( array( array( 'contact' ), array( 'map' ), array( 'links' ) ) === mcupr_footer_layout( array( 'contact', 'map', 'links' ) ), 'a part with nothing to show (statistics off) is left out' );
-t( array( array( 'contact' ), array( 'links', 'stats' ) ) === mcupr_footer_layout( array( 'contact', 'links', 'stats' ) ), 'a column with nothing in it is left out (no map: two columns)' );
+t( array( array( 'contact' ), array( 'map', 'links' ), array( 'stats' ) ) === mcupr_footer_layout( $all ), 'the first arrangement balances the heights: contact | map and links | statistics' );
+t( array( array( 'contact' ), array( 'map', 'links' ) ) === mcupr_footer_layout( array( 'contact', 'map', 'links' ) ), 'a part with nothing to show (statistics off) is left out, and so is its column' );
+t( array( array( 'contact' ), array( 'links' ), array( 'stats' ) ) === mcupr_footer_layout( array( 'contact', 'links', 'stats' ) ), 'without the map the links take the middle column alone' );
+t( array( array( 'contact' ), array( 'stats' ) ) === mcupr_footer_layout( array( 'contact', 'stats' ) ), 'a column with nothing in it is left out (no map, no links: two columns)' );
 t( array( array( 'contact' ) ) === mcupr_footer_layout( array( 'contact' ) ), 'only the contact details: one column' );
 set_theme_mod( 'mcupr_footer_col_stats', 1 );
-t( array( array( 'contact', 'stats' ), array( 'map' ), array( 'links' ) ) === mcupr_footer_layout( $all ), 'statistics moved to column 1: under the contact details' );
+t( array( array( 'contact', 'stats' ), array( 'map', 'links' ) ) === mcupr_footer_layout( $all ), 'statistics moved to column 1: under the contact details, and the empty third column is left out' );
 set_theme_mod( 'mcupr_footer_col_map', 3 ); set_theme_mod( 'mcupr_footer_col_links', 3 );
 t( array( array( 'contact', 'stats' ), array( 'map', 'links' ) ) === mcupr_footer_layout( $all ), 'parts in one column keep the order contact, map, links, statistics; column 2 is empty so there are two columns' );
 set_theme_mod( 'mcupr_footer_col_contact', 0 );
