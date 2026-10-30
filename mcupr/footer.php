@@ -77,7 +77,7 @@ foreach ( $policy as $row ) {
 			<p class="m-0">
 				<?php
 				// the site creator is credited in the About dialog
-				echo esc_html( mcupr_t( 'theme_credit' ) . ' ' . MCUPR_VERSION ) . ' · ';
+				echo esc_html( mcupr_t( 'theme_credit' ) . ' ' . mcupr_version_label() ) . ' · ';
 				?>
 				<button type="button" class="min-h-8 cursor-pointer border-0 bg-transparent p-0 text-link underline" data-open-about><?php mcupr_e( 'about' ); ?></button>
 				<?php if ( function_exists( 'mcupr_cc_enabled' ) && get_theme_mod( 'mcupr_cc_on', true ) ) : ?> · <?php echo mcupr_cc_button( 'min-h-8 cursor-pointer border-0 bg-transparent p-0 text-link underline' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php endif; ?>

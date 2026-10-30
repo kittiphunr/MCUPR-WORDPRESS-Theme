@@ -77,5 +77,6 @@ t( 7 === count( $d['parts'] ) && array( 1, 2, 3, 0 ) === array_keys( $d['zones']
 
 null === $keep[0] ? remove_theme_mod( 'mcupr_footer_layout' ) : set_theme_mod( 'mcupr_footer_layout', $keep[0] );
 update_option( 'sidebars_widgets', $keep[1] ); $GLOBALS['_wp_sidebars_widgets'] = $keep[1]; false === $keep[2] ? delete_option( 'widget_text' ) : update_option( 'widget_text', $keep[2] );
+t( (bool) preg_match( '/^\d+\.\d+\.\d+ \(\S+ \d+\)$/u', mcupr_version_label() ) && false !== strpos( mcupr_version_label(), (string) MCUPR_BUILD ), 'the version label is "x.y.z (build N)" with the build of this release (' . mcupr_version_label() . ')' );
 echo $fails ? "$fails FAILED\n" : "all passed\n";
 exit( $fails ? 1 : 0 );

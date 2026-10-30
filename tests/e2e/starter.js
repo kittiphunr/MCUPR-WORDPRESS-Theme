@@ -2109,6 +2109,8 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         const cr = await pF.evaluate(() => (document.querySelector('#colophon .fbar p') || {}).innerHTML || '');
         ok(/Copyright \d{4} /.test(cr) && /<strong>e2e-copy<\/strong>/.test(cr) && !/\{year\}|\{name\}/.test(cr), 'footer: the copyright line is the one written in the Customizer, with the year and the name filled in (' + cr.replace(/\s+/g, ' ').slice(0, 90) + ')');
         setModF('mcupr_copyright', '--remove');
+        const bt = await pF.evaluate(() => (document.querySelector('#colophon .fbar') || {}).textContent || '');
+        ok(/MCUPR \d+\.\d+\.\d+ \((บิลด์|build) \d+\)/.test(bt), 'footer: the version is followed by its build number (' + (bt.match(/MCUPR[^·]*/) || [''])[0].trim() + ')');
         // the colour of the statistics card
         const axCard = async () => { await pF.addScriptTag({ content: axeSource() }).catch(() => {}); return pF.evaluate(() => axe.run(document.querySelector('#fstat'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] })); };
         for (const [mode, custom, label] of [['dark', '', 'dark slate'], ['green', '', 'green'], ['blue', '', 'blue'], ['purple', '', 'purple'], ['red', '', 'red'], ['custom', '#ffd54f', 'my own light yellow'], ['custom', '#808080', 'my own mid grey']]) {
