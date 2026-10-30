@@ -154,6 +154,49 @@ function mcupr_vc_track() {
 }
 add_action( 'template_redirect', 'mcupr_vc_track', 25 );
 
+/** The colours the card can have besides the theme's own: array( key => array( label, hex ) ); white text on each is at least 4.5:1. */
+function mcupr_vc_colors() {
+	return array(
+		'dark'   => array( __( 'Dark slate', 'mcupr' ), '#1e293b' ),
+		'green'  => array( __( 'Green', 'mcupr' ), '#166534' ),
+		'blue'   => array( __( 'Blue', 'mcupr' ), '#1d4ed8' ),
+		'purple' => array( __( 'Purple', 'mcupr' ), '#7e22ce' ),
+		'red'    => array( __( 'Red', 'mcupr' ), '#b91c1c' ),
+	);
+}
+
+/** Relative luminance of a #rrggbb colour (WCAG). */
+function mcupr_vc_luminance( $hex ) {
+	$hex = ltrim( (string) $hex, '#' );
+	if ( 3 === strlen( $hex ) ) {
+		$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+	}
+	$c = array();
+	foreach ( array( 0, 2, 4 ) as $i ) {
+		$v   = hexdec( substr( $hex, $i, 2 ) ) / 255;
+		$c[] = $v <= 0.03928 ? $v / 12.92 : pow( ( $v + 0.055 ) / 1.055, 2.4 );
+	}
+	return 0.2126 * $c[0] + 0.7152 * $c[1] + 0.0722 * $c[2];
+}
+
+/** The text colour that reads better on this background: white or black (the better of the two is at least 4.58:1 on any background). */
+function mcupr_vc_readable( $hex ) {
+	$l = mcupr_vc_luminance( $hex );
+	return ( 1.05 / ( $l + 0.05 ) ) >= ( ( $l + 0.05 ) / 0.05 ) ? '#ffffff' : '#000000';
+}
+
+/** The style attribute for the colour chosen for the card ('' = the theme's own colour). */
+function mcupr_vc_color_style() {
+	$k   = (string) get_theme_mod( 'mcupr_vc_color', 'primary' );
+	$hex = '';
+	if ( 'custom' === $k ) {
+		$hex = (string) sanitize_hex_color( (string) get_theme_mod( 'mcupr_vc_color_custom', '' ) );
+	} elseif ( isset( mcupr_vc_colors()[ $k ] ) ) {
+		$hex = mcupr_vc_colors()[ $k ][1];
+	}
+	return '' === $hex ? '' : ' style="--vc-bg:' . esc_attr( $hex ) . ';--vc-fg:' . esc_attr( mcupr_vc_readable( $hex ) ) . '"';
+}
+
 /** The sizes of the card, like the widgets of a phone: the whole card, a square of four numbers, one small line. */
 function mcupr_vc_sizes() {
 	return array( 'full', 'medium', 'small' );
@@ -183,7 +226,7 @@ function mcupr_vc_card() {
 		array( 'total', 'vc_total', $s['total'], 'vc_times' ),
 	);
 	$can  = (bool) get_theme_mod( 'mcupr_vc_toggle', true );
-	echo '<section class="fstat is-' . esc_attr( $size ) . '" id="fstat" data-size="' . esc_attr( $size ) . '" data-full="' . esc_attr( 'small' === $size ? 'full' : $size ) . '" aria-labelledby="fstat-h"><div class="fstat-top"><h2 class="fstat-h" id="fstat-h">' . mcupr_icon( 'trending-up', 20 ) . '<span>' . esc_html( mcupr_t( 'vc_title' ) ) . '</span></h2>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo '<section class="fstat is-' . esc_attr( $size ) . '" id="fstat" data-size="' . esc_attr( $size ) . '" data-full="' . esc_attr( 'small' === $size ? 'full' : $size ) . '" aria-labelledby="fstat-h"' . mcupr_vc_color_style() . '><div class="fstat-top"><h2 class="fstat-h" id="fstat-h">' . mcupr_icon( 'trending-up', 20 ) . '<span>' . esc_html( mcupr_t( 'vc_title' ) ) . '</span></h2>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	if ( $can ) {
 		echo '<button type="button" class="fstat-tg" hidden aria-controls="fstat" aria-pressed="' . ( 'small' === $size ? 'true' : 'false' ) . '" data-t-small="' . esc_attr( mcupr_t( 'vc_shrink' ) ) . '" data-t-full="' . esc_attr( mcupr_t( 'vc_expand' ) ) . '" aria-label="' . esc_attr( mcupr_t( 'small' === $size ? 'vc_expand' : 'vc_shrink' ) ) . '" title="' . esc_attr( mcupr_t( 'small' === $size ? 'vc_expand' : 'vc_shrink' ) ) . '"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path class="fstat-tg-in" d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/><path class="fstat-tg-out" d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>';
 	}
@@ -222,6 +265,15 @@ add_action(
 		$wp_customize->add_control( 'mcupr_vc_ip', array( 'section' => 'mcupr_org', 'type' => 'checkbox', 'label' => __( 'Statistics: show the address of the previous visitor', 'mcupr' ), 'description' => __( 'Only the first two parts are shown (27.145.*.*); the full address is never stored. Untick it to show the time only.', 'mcupr' ) ) );
 		$wp_customize->add_setting( 'mcupr_vc_size', array( 'default' => 'full', 'sanitize_callback' => static function ( $v ) { return in_array( $v, mcupr_vc_sizes(), true ) ? $v : 'full'; } ) );
 		$wp_customize->add_control( 'mcupr_vc_size', array( 'section' => 'mcupr_org', 'type' => 'select', 'label' => __( 'Statistics: size of the card', 'mcupr' ), 'choices' => array( 'full' => __( 'Large – every number and the previous visitor', 'mcupr' ), 'medium' => __( 'Medium – four numbers in a square', 'mcupr' ), 'small' => __( 'Small – one line', 'mcupr' ) ) ) );
+		$cols = array( 'primary' => __( 'The colour of the theme', 'mcupr' ) );
+		foreach ( mcupr_vc_colors() as $k => $c ) {
+			$cols[ $k ] = $c[0];
+		}
+		$cols['custom'] = __( 'My own colour', 'mcupr' );
+		$wp_customize->add_setting( 'mcupr_vc_color', array( 'default' => 'primary', 'sanitize_callback' => static function ( $v ) use ( $cols ) { return isset( $cols[ $v ] ) ? $v : 'primary'; } ) );
+		$wp_customize->add_control( 'mcupr_vc_color', array( 'section' => 'mcupr_org', 'type' => 'select', 'label' => __( 'Statistics: colour of the card', 'mcupr' ), 'choices' => $cols ) );
+		$wp_customize->add_setting( 'mcupr_vc_color_custom', array( 'default' => '', 'sanitize_callback' => 'sanitize_hex_color' ) );
+		$wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'mcupr_vc_color_custom', array( 'section' => 'mcupr_org', 'label' => __( 'Statistics: my own colour', 'mcupr' ), 'description' => __( 'Used when “My own colour” is chosen above. The text turns white or black, whichever reads better.', 'mcupr' ) ) ) );
 		$wp_customize->add_setting( 'mcupr_vc_toggle', array( 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 		$wp_customize->add_control( 'mcupr_vc_toggle', array( 'section' => 'mcupr_org', 'type' => 'checkbox', 'label' => __( 'Statistics: let visitors shrink the card', 'mcupr' ), 'description' => __( 'A small button on the card makes it one line and opens it again; the choice stays in the visitor’s browser.', 'mcupr' ) ) );
 		$wp_customize->add_setting( 'mcupr_vc_start', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );

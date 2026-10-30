@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.80.0 =
+* Footer: arrange the parts on a board in the Customizer (drag a part into a column, or choose its column and use the arrows; a Hidden place), three widget areas of your own that sit on the board like the other parts (Appearance → Widgets → Footer – part 1–3), the copyright line can be written ({year} and {name} are filled in), and the visitor statistics card can have another colour (ready-made or your own; the text turns white or black for a readable 4.5:1).
+
 = 1.79.0 =
 * Footer: the three columns are balanced (contact | map and links | visitor statistics), and each part – contact details, map, policy links, statistics – can be moved to any column, or the contact details and links hidden, in Customizer → Footer; parts in one column sit one under the other, an empty column is left out.
 

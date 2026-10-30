@@ -73,7 +73,7 @@ foreach ( $policy as $row ) {
 	</div>
 	<div class="fbar border-t border-line py-4 text-[.9375rem] text-muted">
 		<div class="px-6">
-			<p class="m-0">© <?php echo esc_html( wp_date( 'Y' ) ); ?> <?php echo esc_html( mcupr_org_name() ); ?>. <?php mcupr_e( 'rights' ); ?></p>
+			<p class="m-0"><?php echo mcupr_copyright_html(); // phpcs:ignore WordPress.Security.EscapeOutput ?></p>
 			<p class="m-0">
 				<?php
 				// the site creator is credited in the About dialog

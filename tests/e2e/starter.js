@@ -2057,41 +2057,100 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
     }
     // @end footer-stats
     // @only footer-layout
-    // The footer's parts sit in balanced columns, and each can be moved to another column (or hidden) in the Customizer
+    // The footer board in the Customizer (drag, column list, arrows, keyboard) and what it does to the footer: columns, hidden parts,
+    // widget parts, the copyright line, the colour of the statistics card
     {
-      const setModF = (n, v) => require('child_process').execFileSync('php', [require('path').join(__dirname, '..', 'php', 'set-mod.php'), require('path').join(__dirname, '..', '.site-starter'), n, v]);
+      const pth = require('path'), cp = require('child_process');
+      const phpS = (f, ...a) => cp.execFileSync('php', [pth.join(__dirname, '..', 'php', f), pth.join(__dirname, '..', '.site-starter'), ...a]);
+      const setModF = (n, v) => phpS('set-mod.php', n, v);
+      const layout = (o) => setModF('mcupr_footer_layout', JSON.stringify(o));
       const cF = await br.newContext({ viewport: { width: 1366, height: 900 }, userAgent: 'Mozilla/5.0 (X11; Linux x86_64) Chrome/120 e2e-footer-layout-' + Date.now() });
       const pF = await cF.newPage();
-      const shape = () => pF.evaluate(() => { const g = document.querySelector('#colophon .fgrid'); const cols = [...g.children].map((c) => ({ parts: [...c.children].map((e) => (e.classList.contains('fcontact') || e.tagName === 'ADDRESS') ? 'contact' : e.classList.contains('fmap-col') ? 'map' : e.classList.contains('flinks') ? 'links' : e.classList.contains('fstat') ? 'stats' : '?'), h: Math.round(c.lastElementChild.getBoundingClientRect().bottom - c.getBoundingClientRect().top), l: Math.round(c.getBoundingClientRect().left) })); return { cls: g.className, cols, side: document.documentElement.scrollWidth > innerWidth + 1 }; });
+      const shape = () => pF.evaluate(() => { const g = document.querySelector('#colophon .fgrid'); const kind = (e) => (e.tagName === 'ADDRESS' || e.classList.contains('fcontact')) ? 'contact' : e.classList.contains('fmap-col') ? 'map' : e.classList.contains('flinks') ? 'links' : e.classList.contains('fstat') ? 'stats' : e.classList.contains('fwidgets') ? 'widgets' : '?'; const cols = [...g.children].map((c) => ({ parts: [...c.children].map(kind), h: Math.round(c.lastElementChild.getBoundingClientRect().bottom - c.getBoundingClientRect().top), l: Math.round(c.getBoundingClientRect().left) })); return { cls: g.className, cols, side: document.documentElement.scrollWidth > innerWidth + 1 }; });
+      const fmt = (d) => d.cols.map((c) => c.parts.join('+')).join(' | ');
+      const resetAll = () => { for (const n of ['mcupr_footer_layout', 'mcupr_copyright', 'mcupr_vc_color', 'mcupr_vc_color_custom']) { setModF(n, '--remove'); } phpS('set-widget.php', 'footer-part-1', '', '--remove'); phpS('set-widget.php', 'footer-part-3', '', '--remove'); };
       try {
+        resetAll();
         await pF.goto(B + '/', { waitUntil: 'load' });
         const d0 = await shape();
         const hs = d0.cols.map((c) => c.h);
-        ok(d0.cols.length === 3 && d0.cols.map((c) => c.parts.join('+')).join(' | ') === 'contact | map+links | stats' && Math.max(...hs) / Math.min(...hs) < 1.8 && !d0.side, 'footer layout 1366px: contact | map and links | statistics, the contents of the columns within 1.8 times of each other in height (' + hs.join(', ') + ')');
-        setModF('mcupr_footer_col_stats', '1');
+        ok(d0.cols.length === 3 && fmt(d0) === 'contact | map+links | stats' && Math.max(...hs) / Math.min(...hs) < 1.8 && !d0.side, 'footer layout 1366px: contact | map and links | statistics, the contents of the columns within 1.8 times of each other in height (' + hs.join(', ') + ')');
+        // saved boards: order, hidden, an empty column
+        layout({ 1: ['stats', 'contact'], 2: [], 3: ['links', 'map'], 0: [] });
         await pF.reload({ waitUntil: 'load' });
         const d1 = await shape();
-        ok(d1.cols.map((c) => c.parts.join('+')).join(' | ') === 'contact+stats | map+links', 'footer layout: statistics moved to column 1 sit under the contact details, the empty third column is left out (' + d1.cols.map((c) => c.parts.join('+')).join(' | ') + ')');
-        setModF('mcupr_footer_col_map', '3'); setModF('mcupr_footer_col_links', '3');
+        ok(d1.cols.length === 2 && d1.cls.includes('fgrid-2') && fmt(d1) === 'stats+contact | links+map', 'footer layout: the order of each column follows the board, and an empty column is left out (' + fmt(d1) + ')');
+        layout({ 1: ['contact'], 2: ['map'], 3: ['stats'], 0: ['links'] });
         await pF.reload({ waitUntil: 'load' });
-        const d2 = await shape();
-        ok(d2.cols.length === 2 && d2.cls.includes('fgrid-2') && d2.cols[1].parts.join('+') === 'map+links', 'footer layout: an empty column is left out and the other two share the width (' + d2.cols.map((c) => c.parts.join('+')).join(' | ') + ')');
-        setModF('mcupr_footer_col_contact', '0');
+        ok(!(await shape()).cols.some((c) => c.parts.includes('links')), 'footer layout: a part in "Hidden" is not shown');
+        // a widget part
+        phpS('set-widget.php', 'footer-part-1', 'e2e box', 'e2e footer widget text');
+        layout({ 1: ['contact', 'w1'], 2: ['map', 'links'], 3: ['stats'], 0: [] });
         await pF.reload({ waitUntil: 'load' });
-        const d3 = await shape();
-        ok(!d3.cols.some((c) => c.parts.includes('contact')), 'footer layout: the contact details can be hidden');
+        const dw = await shape();
+        const wtxt = await pF.evaluate(() => (document.querySelector('#colophon .fwidgets') || {}).textContent || '');
+        ok(fmt(dw) === 'contact+widgets | map+links | stats' && /e2e box/.test(wtxt) && /e2e footer widget text/.test(wtxt), 'footer layout: a widget put in "Footer – part 1" sits under the contact details (' + fmt(dw) + ')');
+        await pF.addScriptTag({ content: axeSource() }).catch(() => {});
+        const axW = await pF.evaluate(() => axe.run(document.querySelector('#colophon'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }));
+        ok(axW.violations.length === 0, 'footer axe with a widget part: ' + (axW.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
         for (const [w, h] of [[900, 800], [390, 800], [320, 700]]) {
           await pF.setViewportSize({ width: w, height: h });
-          const m = await shape();
-          ok(!m.side, 'footer layout ' + w + 'px: no sideways scroll with the columns moved');
+          ok(!(await shape()).side, 'footer layout ' + w + 'px: no sideways scroll with a widget part and moved columns');
         }
-        for (const b of ['contact', 'map', 'links', 'stats']) { setModF('mcupr_footer_col_' + b, '--remove'); }
         await pF.setViewportSize({ width: 390, height: 800 });
+        layout({ 1: ['contact'], 2: ['map', 'links'], 3: ['stats', 'w1'], 0: [] });
         await pF.reload({ waitUntil: 'load' });
-        const stack = await shape();
-        ok(new Set(stack.cols.map((c) => c.l)).size === 1 && stack.cols.length === 3, 'footer layout 390px: the columns stack one under the other (all start at the same left edge: ' + stack.cols.map((c) => c.l).join(',') + ')');
+        const st = await shape();
+        ok(new Set(st.cols.map((c) => c.l)).size === 1 && st.cols.length === 3, 'footer layout 390px: the columns stack one under the other (all start at the same left edge: ' + st.cols.map((c) => c.l).join(',') + ')');
+        await pF.setViewportSize({ width: 1366, height: 900 });
+        // the copyright line
+        setModF('mcupr_copyright', 'Copyright {year} {name} <strong>e2e-copy</strong>');
+        await pF.reload({ waitUntil: 'load' });
+        const cr = await pF.evaluate(() => (document.querySelector('#colophon .fbar p') || {}).innerHTML || '');
+        ok(/Copyright \d{4} /.test(cr) && /<strong>e2e-copy<\/strong>/.test(cr) && !/\{year\}|\{name\}/.test(cr), 'footer: the copyright line is the one written in the Customizer, with the year and the name filled in (' + cr.replace(/\s+/g, ' ').slice(0, 90) + ')');
+        setModF('mcupr_copyright', '--remove');
+        // the colour of the statistics card
+        const axCard = async () => { await pF.addScriptTag({ content: axeSource() }).catch(() => {}); return pF.evaluate(() => axe.run(document.querySelector('#fstat'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] })); };
+        for (const [mode, custom, label] of [['dark', '', 'dark slate'], ['green', '', 'green'], ['blue', '', 'blue'], ['purple', '', 'purple'], ['red', '', 'red'], ['custom', '#ffd54f', 'my own light yellow'], ['custom', '#808080', 'my own mid grey']]) {
+          setModF('mcupr_vc_color', mode); if (custom) { setModF('mcupr_vc_color_custom', custom); }
+          await pF.reload({ waitUntil: 'load' });
+          const cc = await pF.evaluate(() => { const c = document.querySelector('#fstat'); return { bg: c.style.getPropertyValue('--vc-bg'), fg: c.style.getPropertyValue('--vc-fg'), color: getComputedStyle(c).color }; });
+          const ax = await axCard();
+          ok(!!cc.bg && !!cc.fg && ax.violations.length === 0, 'footer statistics colour ' + label + ': the card has it and the text reads (' + cc.bg + ' on ' + cc.fg + '; axe ' + (ax.violations.map((v) => v.id).join(', ') || '0 violations') + ')');
+        }
+        // the board in the Customizer
+        const cz = await cF.newPage();
+        await cz.setViewportSize({ width: 1366, height: 2600 }); // (the whole board in view: a drag cannot scroll the panel for the test)
+        resetAll();
+        await cz.goto(B + '/wp-admin/customize.php?autofocus[section]=mcupr_footer', { waitUntil: 'domcontentloaded' });
+        if (/wp-login/.test(cz.url())) { await cz.fill('#user_login', 'e2eadmin'); await cz.fill('#user_pass', 'e2e-Admin-pass-1'); await cz.click('#wp-submit'); await cz.waitForURL(/customize/, { waitUntil: 'domcontentloaded' }); }
+        await cz.waitForSelector('.mcupr-fl-chip', { timeout: 60000 });
+        const board = () => cz.evaluate(() => { const o = {}; document.querySelectorAll('.mcupr-fl-zone').forEach((z) => { o[z.getAttribute('data-zone')] = [...z.querySelectorAll('.mcupr-fl-chip')].map((c) => c.getAttribute('data-id')); }); return o; });
+        const b0 = await board();
+        ok(JSON.stringify(b0) === JSON.stringify({ 0: [], 1: ['contact', 'w1'], 2: ['map', 'links', 'w2'], 3: ['stats', 'w3'] }), 'customizer board: seven parts in three columns and a "Hidden" place, as the footer is arranged at first (' + JSON.stringify(b0) + ')');
+        await cz.selectOption('.mcupr-fl-chip[data-id="stats"] select', '1');
+        let b1 = await board();
+        ok(b1[1].includes('stats') && !b1[3].includes('stats'), 'customizer board: the column list of a part moves it (stats to column 1)');
+        await cz.click('.mcupr-fl-chip[data-id="stats"] .mcupr-fl-b[aria-label^="Move up"], .mcupr-fl-chip[data-id="stats"] .mcupr-fl-b[aria-label^="เลื่อนขึ้น"]');
+        b1 = await board();
+        ok(b1[1].indexOf('stats') === b1[1].length - 2, 'customizer board: the up arrow moves it one place up (' + b1[1].join(',') + ')');
+        await cz.dragAndDrop('.mcupr-fl-chip[data-id="map"] .mcupr-fl-h', '.mcupr-fl-zone[data-zone="0"] ul');
+        const b2 = await board();
+        ok(b2[0].includes('map') && !b2[2].includes('map'), 'customizer board: dragging a part into "Hidden" hides it (' + JSON.stringify(b2[0]) + ')');
+        await cz.dragAndDrop('.mcupr-fl-chip[data-id="w3"] .mcupr-fl-h', '.mcupr-fl-zone[data-zone="1"] .mcupr-fl-chip[data-id="contact"]', { targetPosition: { x: 40, y: 3 } });
+        const b3 = await board();
+        ok(b3[1][0] === 'w3', 'customizer board: dropping on the upper half of a part puts the dragged one before it (' + b3[1].join(',') + ')');
+        await cz.focus('.mcupr-fl-chip[data-id="links"] select');
+        await cz.keyboard.press('ArrowDown');
+        const val = await cz.evaluate(() => wp.customize('mcupr_footer_layout').get());
+        const parsed = JSON.parse(val);
+        ok(parsed['1'].includes('stats') && parsed['0'].includes('map') && parsed['1'][0] === 'w3' && Object.values(parsed).flat().length === 7, 'customizer board: the setting holds the whole arrangement as JSON, every part once (' + val.slice(0, 80) + '…)');
+        await cz.waitForFunction(() => { const f = document.querySelector('#customize-preview iframe'); return f && f.contentDocument && f.contentDocument.querySelectorAll('#colophon .fgrid .fcol').length > 0; }, null, { timeout: 60000 });
+        const prev = await cz.waitForFunction(() => { const f = document.querySelector('#customize-preview iframe'); const d = f && f.contentDocument; if (!d) { return false; } const cols = [...d.querySelectorAll('#colophon .fgrid .fcol')]; return cols.length === 2 && cols[0].querySelector('.fstat') ? cols.length : false; }, null, { timeout: 60000 }).then(() => true).catch(() => false);
+        ok(prev, 'customizer board: the preview shows the footer arranged as the board says (map hidden, statistics in column 1)');
+        await cz.close();
       } finally {
-        for (const b of ['contact', 'map', 'links', 'stats']) { setModF('mcupr_footer_col_' + b, '--remove'); }
+        resetAll();
         await cF.close();
       }
     }
