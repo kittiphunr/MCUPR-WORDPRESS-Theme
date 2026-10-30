@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.79.0 =
+* Footer: the three columns are balanced (contact | map and links | visitor statistics), and each part – contact details, map, policy links, statistics – can be moved to any column, or the contact details and links hidden, in Customizer → Footer; parts in one column sit one under the other, an empty column is left out.
+
 = 1.78.0 =
 * Footer statistics card: now under the contact details, in three sizes like the widgets of a phone (large, medium – four tiles, small – one line) chosen in the Customizer, and a button on the card lets a visitor shrink it to one line and open it again (kept in the browser, no cookie; can be switched off).
 

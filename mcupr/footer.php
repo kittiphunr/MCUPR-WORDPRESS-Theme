@@ -63,21 +63,13 @@ foreach ( $policy as $row ) {
 		</div>
 		<?php mcupr_social_links(); ?>
 	</div>
-	<div class="fgrid px-6 pb-10<?php echo $policy_links ? '' : ' fgrid-2'; ?>">
-		<div><?php mcupr_contact_list(); ?><?php if ( function_exists( 'mcupr_vc_card' ) ) { mcupr_vc_card(); } ?></div>
-
-		<div class="fmap-col"><?php mcupr_map_card(); ?></div>
-
-		<?php if ( $policy_links ) : ?>
-		<nav class="flinks" aria-label="<?php echo esc_attr( mcupr_t( 'footer_nav' ) ); ?>">
-			<h2 class="flinks-h"><?php mcupr_e( 'footer_nav' ); ?></h2>
-			<ul class="footer-menu">
-				<?php foreach ( $policy_links as $row ) : ?>
-					<li><a href="<?php echo esc_url( $row[0] ); ?>"><?php mcupr_e( $row[1] ); ?></a></li>
-				<?php endforeach; ?>
-			</ul>
-		</nav>
-		<?php endif; ?>
+	<?php $fcols = mcupr_footer_layout( mcupr_footer_present( $policy_links ) ); ?>
+	<div class="fgrid px-6 pb-10 fgrid-<?php echo (int) max( 1, count( $fcols ) ); ?>">
+		<?php foreach ( $fcols as $fblocks ) : ?>
+		<div class="fcol">
+			<?php foreach ( $fblocks as $fb ) { mcupr_footer_block( $fb, $policy_links ); } ?>
+		</div>
+		<?php endforeach; ?>
 	</div>
 	<div class="fbar border-t border-line py-4 text-[.9375rem] text-muted">
 		<div class="px-6">
