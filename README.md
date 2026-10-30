@@ -2173,3 +2173,8 @@ MCUPR → นำเข้า/ส่งออกตั้งค่า → ส่�
 - **Google Drive / Docs / Photos → QR code:** การ์ดไฟล์ โฟลเดอร์ อัลบั้ม (ใต้เนื้อหาหรือในเนื้อหา) และลิงก์ในข้อความที่ไปยัง `drive.google.com`, `docs.google.com`, `photos.google.com`, `photos.app.goo.gl` กลายเป็นกล่อง QR ขนาด 28 มม. พร้อมชื่อ คำว่า "สแกนเพื่อเปิด" (4 ภาษา) และที่อยู่ ลิงก์ในข้อความยังคงคำเดิมและมี QR ต่อท้ายย่อหน้า QR วาดด้วย qrcode-generator 2.0.4 (MIT, `assets/vendor/qrcode/`) ซึ่งโหลดเฉพาะบทความที่มีลิงก์ Google (ตรวจจาก `_mcupr_gdrive`, `_mcupr_gphotos` และเนื้อหา) ถ้าไม่มีไลบรารีจะเหลือชื่อกับที่อยู่ตัวหนังสือ
 - **แก้บั๊กปุ่ม "ดาวน์โหลด PDF":** ฟังก์ชันสร้างไฟล์ชื่อ `window.mcuprPdf` ชนกับค่าตั้งของตัวอ่าน PDF (`pdf-view.js`) ในหน้าที่มี PDF แสดงอยู่ ปุ่มจึงไม่ทำงานเลย เปลี่ยนเป็น `window.mcuprPdfExport`
 - **เทสต์:** e2e `print-media` (10 ข้อ: ตารางภาพ วิดีโอ PDF ลำดับ QR ทั้ง 3 ชนิดถอดรหัสด้วย jsQR ได้ที่อยู่เดิมตรงตัว ไม่เหลือการ์ด Google ดาวน์โหลด PDF ได้จริงและแผ่นมีภาพ วิดีโอ QR ข้อความ พิมพ์จริงด้วย `page.pdf()`) ใช้ `jsqr` เป็น devDependency ของ `tests/` รันเดี่ยว: `bash only.sh e2e print-media`
+
+## v1.80.4 (build 1059) – ถอด symlink `node_modules` ออกจาก repo
+
+- **ปัญหา:** repo เก็บ symlink `node_modules` (ชี้ไปโฟลเดอร์บนเครื่องหนึ่ง) ไว้โดยไม่ได้ตั้งใจ เพราะ `.gitignore` เขียนว่า `node_modules/` ซึ่งครอบคลุมเฉพาะโฟลเดอร์ ไม่ครอบคลุม symlink
+- **แก้:** ถอดออกจาก repo และเปลี่ยน `.gitignore` เป็น `node_modules` (ครอบคลุมทั้งโฟลเดอร์และ symlink) ไม่กระทบโค้ดของธีมและไม่อยู่ในไฟล์ zip; รันคำสั่งสร้าง CSS/`npm install` ตามเดิมได้ (README ส่วน "สร้าง Tailwind")
