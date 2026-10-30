@@ -741,7 +741,7 @@
 	/* the page band is pulled up under the floating header: keep --hdr-h (header height + its top margin) current */
 	var hdr = document.getElementById('masthead');
 	if (hdr && window.ResizeObserver) {
-		var syncHdr = function () { root.style.setProperty('--hdr-h', (hdr.offsetHeight + (parseFloat(getComputedStyle(hdr).marginTop) || 0)) + 'px'); };
+		var syncHdr = function () { root.style.setProperty('--hdr-h', (hdr.offsetHeight + (parseFloat(getComputedStyle(hdr).marginTop) || 0)) + 'px'); root.style.setProperty('--hdr-w', hdr.offsetWidth + 'px'); }; // (--hdr-w: the sidebar menus keep the breadcrumb clear of the tools capsule)
 		new ResizeObserver(syncHdr).observe(hdr);
 	}
 
