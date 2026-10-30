@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.80.1 =
+* Icon lists (a menu item, the home page blocks) show the icons themselves in a searchable grid; the first screen of the Customizer gives every section of the theme its own icon (the footer, loading screen, cookies and credit were "Other"); the animated icons (Lordicon) are taken out of the theme, with their player, settings and tests (build 1056)
+
 = 1.80.0 =
 * Footer: arrange the parts on a board in the Customizer (drag a part into a column, or choose its column and use the arrows; a Hidden place), three widget areas of your own that sit on the board like the other parts (Appearance → Widgets → Footer – part 1–3), the copyright line can be written ({year} and {name} are filled in), and the visitor statistics card can have another colour (ready-made or your own; the text turns white or black for a readable 4.5:1). (build 1055)
 

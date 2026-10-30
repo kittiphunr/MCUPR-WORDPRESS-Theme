@@ -290,6 +290,7 @@ function mcupr_cz_pane_data() {
 					$item( 'mcupr_logos', 'image', __( 'Logos of the site and of each unit', 'mcupr' ) ),
 					$item( 'mcupr_org', 'building', __( 'Name, address, phone, e-mail, map and languages', 'mcupr' ) ),
 					$item( 'mcupr_langs', 'globe', __( 'Add or remove languages; the texts of each language in its own tab', 'mcupr' ) ),
+					$item( 'mcupr_footer', 'footer', __( 'Arrange the footer, its map, social links, statistics and copyright', 'mcupr' ) ),
 				),
 			),
 			array(
@@ -309,12 +310,14 @@ function mcupr_cz_pane_data() {
 					$item( 'background_image', 'image', '' ),
 					$item( 'mcupr_display', 'sliders', __( 'Menu place, motion, news and reading tools', 'mcupr' ) ),
 					$item( 'mcupr_print', 'printer', __( 'Header and footer of the A4 print', 'mcupr' ) ),
+					$item( 'mcupr_loading', 'loader', __( 'The logo shown while a page loads', 'mcupr' ) ),
 				),
 			),
 			array(
 				'title' => __( 'Pages required by the government standard', 'mcupr' ),
 				'items' => array(
 					$item( 'mcupr_policy', 'shield', __( 'Privacy, cookie and accessibility pages', 'mcupr' ) ),
+					$item( 'mcupr_cookies', 'lock', __( 'The cookie notice and what visitors may choose', 'mcupr' ) ),
 				),
 			),
 			array(
@@ -329,6 +332,7 @@ function mcupr_cz_pane_data() {
 				'items' => array(
 					$item( 'mcupr_shortcodes', 'code', __( 'Your own HTML or shortcode blocks', 'mcupr' ) ),
 					$item( 'custom_css', 'brush', __( 'Extra styling, for developers', 'mcupr' ) ),
+					$item( 'mcupr_credit', 'user', __( 'Who made the website: name, role, photo and contact', 'mcupr' ) ),
 				),
 			),
 		),

@@ -340,3 +340,17 @@ function mcupr_set_cookie( $name, $value, $expires, $httponly = true, $path = '/
 		);
 	}
 }
+
+/** The animated icons (Lordicon) were taken out of the theme: their saved settings are removed once, so nothing is left in the database. */
+add_action(
+	'admin_init',
+	static function () {
+		if ( get_option( 'mcupr_lord_cleaned' ) ) {
+			return;
+		}
+		foreach ( array( 'mcupr_lord_on', 'mcupr_lord_trigger', 'mcupr_lord_map' ) as $mod ) {
+			remove_theme_mod( $mod );
+		}
+		update_option( 'mcupr_lord_cleaned', 1, false );
+	}
+);

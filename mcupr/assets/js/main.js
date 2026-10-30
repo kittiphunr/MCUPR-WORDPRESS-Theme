@@ -134,7 +134,6 @@
 		applyColors();
 		sync();
 		Cursor.sync();
-		Lord.sync();
 	}
 
 	/* Reflect the saved state in any controls that are on the page (the dialog is built on demand). */
@@ -1253,39 +1252,6 @@
 	/* A dot that tracks the pointer and a ring that trails it. The ring grows over
 	   links/buttons and becomes a labelled "view" bubble over clickable cards/images.
 	   Mouse only; off with reduced motion, high-contrast, the large-cursor option and TV mode. */
-	/* Animated icons (Lordicon, chosen in the Customizer): each .lord holds the normal SVG; once the player is loaded the moving icon
-	   takes its place. If the player or the icon file cannot be loaded, or animations are off, the normal SVG stays. */
-	var Lord = (function () {
-		var loading = null;
-		function player() {
-			if (!loading) {
-				loading = i18n.lordUrl ? import(i18n.lordUrl).then(function () { return customElements.whenDefined('lord-icon'); }) : Promise.reject(new Error('no player'));
-			}
-			return loading;
-		}
-		function make(box) {
-			if (box.getAttribute('data-lord-state')) { return; }
-			box.setAttribute('data-lord-state', 'wait');
-			var icon = document.createElement('lord-icon');
-			icon.setAttribute('src', box.getAttribute('data-lord'));
-			icon.setAttribute('trigger', box.getAttribute('data-lord-trigger') || 'hover');
-			icon.setAttribute('current-color', '');
-			icon.setAttribute('aria-hidden', 'true');
-			var host = box.closest('a,button');
-			if (host) { icon.target = host; }
-			icon.addEventListener('ready', function () { box.setAttribute('data-lord-state', 'live'); });
-			icon.addEventListener('error', function () { box.setAttribute('data-lord-state', 'fail'); icon.remove(); });
-			box.appendChild(icon);
-		}
-		function sync() {
-			if (!i18n.lordUrl || !motionOn()) { return; }
-			var boxes = $$('.lord[data-lord]').filter(function (b) { return !b.getAttribute('data-lord-state'); });
-			if (!boxes.length) { return; }
-			player().then(function () { boxes.forEach(make); }, function () { /* the normal icons stay */ });
-		}
-		return { sync: sync };
-	})();
-
 	var Cursor = (function () {
 		if (!finePointer) { return { sync: function () {} }; }
 		var CLICKABLE = 'a, button, [role="button"], [role="radio"], [role="switch"], label, summary';

@@ -2056,6 +2056,76 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await c1.close(); await c2.close();
     }
     // @end footer-stats
+    // @only icon-picker
+    // The icon picker (a menu item, the blocks of the home page) and the icons of the first screen of the Customizer
+    {
+      const axeIn = async (pg, sel) => { await pg.addScriptTag({ content: axeSource() }).catch(() => {}); return pg.evaluate((s) => axe.run(document.querySelector(s), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }), sel); };
+      const cF = await br.newContext({ viewport: { width: 1366, height: 1000 } });
+      try {
+        // Appearance → Menus
+        const mp = await cF.newPage();
+        await mp.goto(B + '/wp-login.php');
+        await mp.fill('#user_login', 'e2eadmin'); await mp.fill('#user_pass', 'e2e-Admin-pass-1'); await mp.click('#wp-submit'); await mp.waitForURL(/wp-admin/);
+        await mp.goto(B + '/wp-admin/nav-menus.php', { waitUntil: 'domcontentloaded' });
+        await mp.waitForSelector('#menu-to-edit .menu-item .item-edit', { timeout: 60000 });
+        await mp.click('#menu-to-edit .menu-item:first-child .item-edit');
+        const btn = mp.locator('#menu-to-edit .menu-item:first-child .mcupr-ip-btn');
+        await btn.waitFor({ state: 'visible', timeout: 20000 });
+        ok((await mp.locator('#menu-to-edit .menu-item:first-child select.mcupr-ip-sel').evaluate((e) => e.getBoundingClientRect().width)) <= 1, 'icon picker (menus): the list of names is replaced by a button, the select stays in the page as the field');
+        await btn.click();
+        const pop = mp.locator('#menu-to-edit .menu-item:first-child .mcupr-ip-pop');
+        await pop.waitFor({ state: 'visible' });
+        const cnt = await pop.evaluate((e) => ({ all: e.querySelectorAll('.mcupr-ip-i').length, withSvg: e.querySelectorAll('.mcupr-ip-i svg').length, focus: document.activeElement && document.activeElement.className }));
+        ok(cnt.all >= 40 && cnt.withSvg >= cnt.all - 1, 'icon picker (menus): the grid shows the icons themselves (' + cnt.all + ' choices, ' + cnt.withSvg + ' drawn)');
+        await mp.fill('#menu-to-edit .menu-item:first-child .mcupr-ip-q', 'home');
+        const some = await pop.evaluate((e) => ({ vis: [...e.querySelectorAll('.mcupr-ip-i')].filter((b) => !b.hidden).map((b) => b.getAttribute('data-v')) }));
+        ok(some.vis.includes('home') && some.vis.length < cnt.all / 2, 'icon picker (menus): the search narrows the grid (' + some.vis.join(', ') + ')');
+        await mp.fill('#menu-to-edit .menu-item:first-child .mcupr-ip-q', '');
+        const ax = await axeIn(mp, '#menu-to-edit .menu-item:first-child .mcupr-ip');
+        ok(ax.violations.length === 0, 'icon picker (menus) axe, open: ' + (ax.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        await mp.click('#menu-to-edit .menu-item:first-child .mcupr-ip-i[data-v="home"]');
+        const picked = await mp.evaluate(() => { const it = document.querySelector('#menu-to-edit .menu-item:first-child'); return { v: it.querySelector('select.mcupr-ip-sel').value, name: it.querySelector('.mcupr-ip-name').textContent, svg: !!it.querySelector('.mcupr-ip-btn .mcupr-ip-cur svg'), open: !it.querySelector('.mcupr-ip-pop').hidden, focus: document.activeElement.className }; });
+        ok(picked.v === 'home' && picked.name === 'home' && picked.svg && !picked.open && /mcupr-ip-btn/.test(picked.focus), 'icon picker (menus): a click chooses it, the select holds it, the button shows it, the grid closes and the button has the focus');
+        await btn.press('Enter');
+        await pop.waitFor({ state: 'visible' });
+        await mp.keyboard.press('Escape');
+        const esc = await mp.evaluate(() => ({ open: !document.querySelector('#menu-to-edit .menu-item:first-child .mcupr-ip-pop').hidden, focus: document.activeElement.className }));
+        ok(!esc.open && /mcupr-ip-btn/.test(esc.focus), 'icon picker (menus): Enter opens it, Escape closes it and returns to the button');
+        await btn.press('Enter');
+        await mp.keyboard.press('ArrowDown');
+        const arrow = await mp.evaluate(() => document.activeElement.className);
+        await mp.keyboard.press('ArrowRight');
+        const arrow2 = await mp.evaluate(() => document.activeElement.getAttribute('data-v'));
+        ok(/mcupr-ip-i/.test(arrow) && !!arrow2, 'icon picker (menus): the arrow keys move into the grid and along it');
+        await mp.close();
+        // Customizer: the first screen, and an icon list of the home page blocks
+        const cz = await cF.newPage();
+        await cz.goto(B + '/wp-admin/customize.php', { waitUntil: 'domcontentloaded' });
+        await cz.waitForSelector('.mcupr-cz-row', { timeout: 60000 });
+        await cz.waitForTimeout(800);
+        const rows = await cz.evaluate(() => { const o = {}; document.querySelectorAll('.mcupr-cz-row').forEach((r) => { const li = r.closest('li'); const id = li && li.id ? li.id.replace(/^accordion-(section|panel)-/, '') : '?'; const s = r.querySelector('.mcupr-cz-ic svg'); o[id] = s ? { circles: s.querySelectorAll('circle').length, rects: s.querySelectorAll('rect').length, paths: s.querySelectorAll('path').length } : null; }); return o; });
+        const dots = Object.keys(rows).filter((k) => rows[k] && rows[k].circles === 3 && rows[k].paths === 0);
+        ok(!dots.length, 'customizer first screen: no section is left with the three-dots icon (' + (dots.join(', ') || 'none') + ')');
+        ok(['mcupr_footer', 'mcupr_loading', 'mcupr_cookies', 'mcupr_credit', 'mcupr_langs'].every((k) => rows[k] && (rows[k].rects + rows[k].paths + rows[k].circles) > 0), 'customizer first screen: the footer, loading screen, cookies, credit and languages have icons of their own');
+        ok(!(await cz.locator('#accordion-section-mcupr_lordicon').count()), 'customizer first screen: there is no "animated icons" section any more');
+        const ctl = await cz.evaluate(() => (window.mcuprIcons && mcuprIcons.controls || [])[0] || '');
+        ok(!!ctl, 'icon picker (Customizer): the theme names its icon lists (' + ctl + ')');
+        await cz.evaluate((id) => wp.customize.control(id).focus(), ctl);
+        const cb = cz.locator('#customize-control-' + ctl + ' .mcupr-ip-btn');
+        await cb.waitFor({ state: 'visible', timeout: 20000 });
+        await cb.click();
+        await cz.waitForSelector('#customize-control-' + ctl + ' .mcupr-ip-pop', { state: 'visible' });
+        const axc = await axeIn(cz, '#customize-control-' + ctl);
+        ok(axc.violations.length === 0, 'icon picker (Customizer) axe, open: ' + (axc.violations.map((v) => v.id + '(' + v.nodes.length + ')').join(', ') || '0 violations'));
+        await cz.click('#customize-control-' + ctl + ' .mcupr-ip-i[data-v="bell"]');
+        const val = await cz.evaluate((id) => wp.customize(id).get(), ctl);
+        ok(val === 'bell', 'icon picker (Customizer): choosing an icon sets the setting (' + val + ')');
+        await cz.close();
+      } finally {
+        await cF.close();
+      }
+    }
+    // @end icon-picker
     // @only footer-layout
     // The footer board in the Customizer (drag, column list, arrows, keyboard) and what it does to the footer: columns, hidden parts,
     // widget parts, the copyright line, the colour of the statistics card
@@ -5501,56 +5571,6 @@ const flip = (on) => execSync("php -r '$_SERVER[\"HTTP_HOST\"]=\"localhost:8090\
     ok(sf2.status() === 206 && (await sf2.text()) === '%PDF-', 'e-books: an open book streams the file in pieces (206)');
     phpB('foreach(get_posts(array("post_type"=>"mcupr_book","post_status"=>"any","numberposts"=>-1,"fields"=>"ids")) as $x){wp_delete_post($x,true);} foreach(get_terms(array("taxonomy"=>"mcupr_shelf","hide_empty"=>false,"fields"=>"ids")) as $t){wp_delete_term($t,"mcupr_shelf");}');
     await bc.close();
-  }
-  // animated icons (Lordicon): the normal SVG until the player is ready, then the moving icon; nothing moves when animations are off
-  {
-    const { execSync: execL } = require('child_process');
-    const fsL = require('fs');
-    const phpL = (code) => { const f = require('os').tmpdir() + '/e2e-lord-' + process.pid + '.php'; fsL.writeFileSync(f, '<?php $_SERVER["HTTP_HOST"]="localhost:8090"; require ' + JSON.stringify(require('path').resolve(__dirname, '../.site-starter/wp-load.php')) + '; ' + code); return execL('php ' + f + ' 2>/dev/null', { encoding: 'utf8' }).trim(); };
-    const lottie = fsL.readFileSync(require('path').resolve(__dirname, '../fixtures/lord-test.json'), 'utf8');
-    phpL('set_theme_mod( "mcupr_lord_on", true ); set_theme_mod( "mcupr_lord_map", "news = /lord-test.json\npin = /lord-missing.json" ); set_theme_mod( "mcupr_lord_trigger", "hover" );');
-    const routeL = async (c) => { await c.route('**/lord-test.json', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: lottie })); await c.route('**/lord-missing.json', (r) => r.fulfill({ status: 404, body: 'no' })); };
-    const lc = await br.newContext({ viewport: { width: 1366, height: 900 } });
-    await lc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* */ } });
-    await routeL(lc);
-    const lp = await lc.newPage();
-    const lerr = [];
-    lp.on('pageerror', (e) => lerr.push(String(e)));
-    await lp.goto(B + '/');
-    await lp.waitForSelector('.lord[data-lord-state="live"]', { state: 'attached', timeout: 20000 });
-    const li = await lp.evaluate(() => {
-      const b = Array.from(document.querySelectorAll('.lord[data-lord-state="live"]')).find((x) => x.getBoundingClientRect().width > 0) || document.querySelector('.lord[data-lord-state="live"]');
-      const r = b.getBoundingClientRect(); const ic = b.querySelector('lord-icon'); const sv = b.querySelector(':scope > svg');
-      return { w: Math.round(r.width), h: Math.round(r.height), has: !!ic, op: ic ? getComputedStyle(ic).opacity : '', svOp: sv ? getComputedStyle(sv).opacity : '', trig: ic && ic.getAttribute('trigger'), hidden: ic && ic.getAttribute('aria-hidden'), pw: sv ? sv.getAttribute('width') : '' };
-    });
-    ok(li.has && li.w === +li.pw && li.h === +li.pw, 'animated icons: the moving icon has the size of the line icon it replaces (' + li.w + '×' + li.h + ')');
-    ok(li.op === '1' && li.svOp === '0' && li.trig === 'hover' && li.hidden === 'true', 'animated icons: once ready the moving icon shows (hover trigger, hidden from screen readers) and the line icon is hidden');
-    await lp.waitForSelector('.lord[data-lord-state="fail"]', { state: 'attached', timeout: 20000 });
-    const lf = await lp.evaluate(() => { const b = document.querySelector('.lord[data-lord-state="fail"]'); const sv = b.querySelector(':scope > svg'); return { ic: !!b.querySelector('lord-icon'), op: getComputedStyle(sv).opacity }; });
-    ok(!lf.ic && lf.op === '1', 'animated icons: an icon file that cannot be loaded leaves the normal line icon');
-    ok(lerr.length === 0, 'animated icons: no script error' + (lerr.length ? ': ' + lerr.slice(0, 2).join(' | ') : ''));
-    // the About dialog carries the credit Lordicon asks for
-    ok(/<a [^>]*href="https:\/\/lordicon\.com\/"[^>]*>Lordicon<\/a>/.test(await lp.content()), 'animated icons: the About dialog credits Lordicon (a link to lordicon.com)');
-    await lc.close();
-    // animations off by the visitor: the player is not even fetched, the line icons stay
-    const oc = await br.newContext({ viewport: { width: 1366, height: 900 } });
-    await oc.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); localStorage.setItem('mcupr_prefs', JSON.stringify({ motion: '1' })); } catch (e) { /* */ } });
-    await routeL(oc);
-    const op = await oc.newPage();
-    let fetched = false;
-    op.on('request', (rq) => { if (/vendor\/lordicon\/lordicon\.js/.test(rq.url())) { fetched = true; } });
-    await op.goto(B + '/');
-    await op.waitForTimeout(1500);
-    const off = await op.evaluate(() => ({ n: document.querySelectorAll('.lord').length, live: document.querySelectorAll('.lord[data-lord-state]').length, op: getComputedStyle(document.querySelector('.lord > svg')).opacity }));
-    ok(off.n > 0 && off.live === 0 && off.op === '1' && !fetched, 'animated icons: with animations off the player is not downloaded and the line icons stay');
-    await oc.close();
-    // nothing listed: no .lord box at all, no player
-    phpL('remove_theme_mod( "mcupr_lord_map" ); remove_theme_mod( "mcupr_lord_on" ); remove_theme_mod( "mcupr_lord_trigger" );');
-    const nc = await br.newContext({ viewport: { width: 1366, height: 900 } });
-    const np = await nc.newPage();
-    await np.goto(B + '/');
-    ok((await np.evaluate(() => document.querySelectorAll('.lord').length)) === 0 && !/lordicon/i.test(await np.content()), 'animated icons: when nothing is listed the page has no .lord box, no credit and does not name the player');
-    await nc.close();
   }
   // "I am…" picker over the home quick links (the starter file marks its quick links for kinds of visitor)
   {
