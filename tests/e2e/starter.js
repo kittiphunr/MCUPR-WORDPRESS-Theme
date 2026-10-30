@@ -2056,6 +2056,71 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
       await c1.close(); await c2.close();
     }
     // @end footer-stats
+    // @only print-media
+    // Print and "Download PDF" of a page carry the activity photos, the address of each video (with its cover) and the PDFs shown on the page
+    {
+      const cp = require('child_process'), pth = require('path'), fsP = require('fs'), osP = require('os');
+      const fx = JSON.parse(cp.execFileSync('php', [pth.join(__dirname, '..', 'php', 'printmedia-fixture.php'), pth.join(__dirname, '..', '.site-starter'), 'make']).toString().split('\n').filter((l) => l.startsWith('{')).pop());
+      const ctxP = await br.newContext({ viewport: { width: 1280, height: 900 } });
+      await ctxP.addInitScript(() => { try { localStorage.setItem('mcupr_consent', '1'); } catch (e) { /* none */ } });
+      try {
+        const pm = await ctxP.newPage();
+        await pm.goto(B + fx.media, { waitUntil: 'load' });
+        const d = await pm.evaluate(() => { const doc = window.mcuprDoc.build(); const g = doc.querySelectorAll('.pd-gal-g img'); return { gal: g.length, head: (doc.querySelector('.pd-gal h2') || {}).textContent || '', srcs: [...g].map((i) => i.getAttribute('src')), vid: [...doc.querySelectorAll('.pd-vid .pd-note')].map((n) => n.textContent), pdf: [...doc.querySelectorAll('.pd-note')].map((n) => n.textContent).filter((x) => /Budget report e2e/.test(x)), btn: doc.querySelectorAll('.vid-btn, .post-gal, [data-lb]').length, text: doc.textContent.includes('e2e-print-text'), order: [...doc.children].map((c) => c.className.split(' ')[0]) }; });
+        ok(d.gal === fx.n && /\d/.test(d.head) && d.srcs.every((s) => /^https?:|^\//.test(s || '')), 'print document: the ' + d.gal + ' activity photos are in it, in a grid under the text, with their heading (' + d.head + ')');
+        ok(d.vid.length === 1 && /youtube\.com\/watch\?v=dQw4w9WgXcQ/.test(d.vid[0]) && d.btn === 0 && d.text, 'print document: the video is its address (no play button, no lightbox links), and the text is there (' + d.vid[0] + ')');
+        ok(d.order.indexOf('pd-body') < d.order.indexOf('pd-gal'), 'print document: the photos come after the text');
+        ok(d.pdf.length === 1 && /\.pdf$/.test(d.pdf[0]), 'print document: a PDF shown on the page is its name and address (' + d.pdf[0] + ')');
+        // Google Drive / Docs / Photos: a QR code that opens the same address, not a card or a link
+        const qrs = await pm.evaluate(async () => {
+          const doc = window.mcuprDoc.build(), out = [];
+          for (const b of doc.querySelectorAll('.pd-qr')) {
+            const im = b.querySelector('img'); const c = document.createElement('canvas'); c.width = c.height = 300;
+            await new Promise((r) => { im.onload = im.onerror = r; if (im.complete) { r(); } });
+            const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, 300, 300); x.drawImage(im, 0, 0, 300, 300);
+            out.push({ data: Array.from(x.getImageData(0, 0, 300, 300).data), title: (b.querySelector('b') || {}).textContent || '', scan: (b.querySelector('span') || {}).textContent || '' });
+          }
+          return { qrs: out, cards: doc.querySelectorAll('.gemb').length, links: [...doc.querySelectorAll('a')].filter((a) => /google\.com|goo\.gl/.test(a.href)).length };
+        });
+        const jsQR = require('jsqr');
+        const urls = qrs.qrs.map((q) => { const r = jsQR(Uint8ClampedArray.from(q.data), 300, 300); return r ? r.data : null; });
+        ok(['https://drive.google.com/file/d/1QrFileId123/view', 'https://photos.app.goo.gl/QrAlbum123', 'https://docs.google.com/document/d/1AbCdEfGh/edit'].every((u) => urls.includes(u)) && urls.length === 3, 'print document: the Drive file, the Photos album and the Docs link in the text are each a QR code that decodes to the same address (' + urls.join(' , ') + ')');
+        ok(qrs.cards === 0 && qrs.links <= 1 && qrs.qrs.every((q) => q.scan), 'print document: no Google card is left (a link in the text keeps its words), each QR has its "scan" line (' + qrs.qrs.map((q) => q.title).join(' | ') + ')');
+        const pl = await ctxP.newPage();
+        await pl.goto(B + fx.plain, { waitUntil: 'load' });
+        const none = await pl.evaluate(() => { const doc = window.mcuprDoc.build(); return { gal: doc.querySelectorAll('.pd-gal').length, vid: doc.querySelectorAll('.pd-vid').length }; });
+        ok(none.gal === 0 && none.vid === 0, 'print document: a post without photos or video has neither');
+        await pl.close();
+        // "Download PDF": the sheet that is drawn into the PDF holds the photos and the video address too
+        const dp = await ctxP.newPage();
+        await dp.addInitScript(() => { let real; Object.defineProperty(window, 'html2canvas', { configurable: true, get() { return real && ((el, o) => { window.__pdfSheet = { imgs: el.querySelectorAll('.pd-gal-g img').length, vid: [...el.querySelectorAll('.pd-vid .pd-note')].map((n) => n.textContent).join('|'), text: el.textContent.includes('e2e-print-text'), qr: el.querySelectorAll('.pd-qr img').length }; return real(el, o); }); }, set(v) { real = v; } }); });
+        await dp.goto(B + fx.media, { waitUntil: 'load' });
+        const [dl] = await Promise.all([dp.waitForEvent('download', { timeout: 120000 }), dp.locator('[data-pdf]').first().click()]);
+        await dl.path();
+        const sheet = await dp.evaluate(() => window.__pdfSheet || null);
+        ok(!!sheet && sheet.imgs === fx.n && /youtube\.com\/watch/.test(sheet.vid) && sheet.text && sheet.qr === 3, 'Download PDF: the sheet drawn into the PDF holds the ' + fx.n + ' photos, the video address, 3 QR codes and the text (' + JSON.stringify(sheet) + ')');
+        await dp.close();
+        // on paper: the photos are drawn and the PDF holds them
+        await pm.emulateMedia({ media: 'print' });
+        await pm.waitForTimeout(400); // (the document is made when the page goes to print)
+        const shown = await pm.evaluate(() => [...document.querySelectorAll('body > .print-doc .pd-gal-g img')].map((i) => { const r = i.getBoundingClientRect(); return r.width > 20 && r.height > 20; }));
+        ok(shown.length === fx.n && shown.every(Boolean), 'print: the photos are drawn on the sheet (' + shown.length + ' of them with a size)');
+        const pdf = await pm.pdf({ preferCSSPageSize: true, printBackground: true });
+        const dir = fsP.mkdtempSync(pth.join(osP.tmpdir(), 'mcupr-pm-')); const file = pth.join(dir, 'p.pdf'); fsP.writeFileSync(file, pdf);
+        let txt = '', imgs = '';
+        try { txt = cp.execFileSync('pdftotext', [file, '-']).toString(); imgs = cp.execFileSync('pdfimages', ['-list', file]).toString(); } catch (e) { /* poppler not installed */ }
+        if (txt) {
+          const n = imgs.split('\n').filter((l) => /^\s*\d+\s+\d+\s+image/.test(l)).length;
+          ok(/e2e-print-text/.test(txt) && /youtube\.com\/watch/.test(txt) && n >= fx.n, 'print: the PDF of the print has the text, the video address and at least ' + fx.n + ' pictures (' + n + ' pictures)');
+        }
+        await pm.emulateMedia({ media: 'screen' });
+        await pm.close();
+      } finally {
+        await ctxP.close();
+        cp.execFileSync('php', [pth.join(__dirname, '..', 'php', 'printmedia-fixture.php'), pth.join(__dirname, '..', '.site-starter'), 'clean']);
+      }
+    }
+    // @end print-media
     // @only crumb-capsule
     // The breadcrumb of a band or a Cover head shares its line with the tools capsule in the sidebar menus: it ends before the capsule
     // and the last words (the title of the page) are shortened with "…"; a short title is shown whole; the other menus are not touched

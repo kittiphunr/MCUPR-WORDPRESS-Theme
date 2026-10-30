@@ -215,6 +215,7 @@ return array(
 	'pl_total'      => array( 'ผู้ตอบทั้งหมด %d ครั้ง', '%d votes in total', '共 %d 票', '合計 %d 票' ),
 	'quick_links'   => array( 'ลิงก์ด่วน', 'Quick links', '快速链接', 'クイックリンク' ),
 	'posted_on'     => array( 'เผยแพร่เมื่อ', 'Published', '发布于', '公開日' ),
+	'qr_scan'       => array( 'สแกนเพื่อเปิด', 'Scan to open', '扫码打开', '読み取って開く' ),
 	'prev'          => array( 'ก่อนหน้า', 'Previous', '上一页', '前へ' ),
 	'next'          => array( 'ถัดไป', 'Next', '下一页', '次へ' ),
 	'pagination'    => array( 'การแบ่งหน้า', 'Pagination', '分页', 'ページ送り' ),

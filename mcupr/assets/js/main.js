@@ -445,7 +445,7 @@
 			};
 			var load = function (i) {
 				if (i >= urls.length) { return Promise.resolve(); }
-				if (i === urls.length - 1 && window.mcuprPdf) { return Promise.resolve(); }
+				if (i === urls.length - 1 && window.mcuprPdfExport) { return Promise.resolve(); }
 				return new Promise(function (ok, no) {
 					if ((i === 0 && window.html2canvas) || (i === 1 && window.jspdf)) { ok(); return; }
 					var s = document.createElement('script');
@@ -455,7 +455,7 @@
 					document.head.appendChild(s);
 				}).then(function () { return load(i + 1); });
 			};
-			load(0).then(function () { return window.mcuprPdf(pdf); }).then(function () { done(''); }, function () { done(pdf.getAttribute('data-pdf-fail') || 'PDF failed'); });
+			load(0).then(function () { return window.mcuprPdfExport(pdf); }).then(function () { done(''); }, function () { done(pdf.getAttribute('data-pdf-fail') || 'PDF failed'); });
 		}
 	});
 

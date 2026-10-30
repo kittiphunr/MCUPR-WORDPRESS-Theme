@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.80.3 =
+* พิมพ์และดาวน์โหลด PDF: ภาพกิจกรรม วิดีโอ PDF และลิงก์ Google Drive/Photos เป็น QR code (build 1058)
+
 = 1.80.2 =
 * The breadcrumb of a page band or a Cover head no longer runs under the tools capsule in the sidebar menus: it ends before the capsule and the last words (the title of the page) are shortened with an ellipsis, the whole title is in its tooltip (build 1057)
 
