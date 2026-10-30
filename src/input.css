@@ -1303,6 +1303,11 @@ html[data-motion="1"] .tool-play { transition: none; }
 .pd-note { margin: .5em 0; font-size: 9.5pt; color: #555; overflow-wrap: anywhere; }
 .pd-vid { margin: .6em 0; break-inside: avoid; }
 .pd-vid img { display: block; max-width: 60%; height: auto; margin: 0 0 .3em; border-radius: 1mm; }
+.pd-qr { display: flex; align-items: center; gap: 4mm; margin: .6em 0; break-inside: avoid; }
+.pd-qr img { display: block; flex: none; width: 28mm; height: 28mm; background: #fff; }
+.pd-qr-t { display: flex; flex-direction: column; gap: .15em; min-width: 0; font-size: 10pt; line-height: 1.4; color: #111; }
+.pd-qr-t b { font-size: 11pt; }
+.pd-qr-t small { font-size: 8.5pt; color: #555; overflow-wrap: anywhere; }
 .pd-gal { margin: 1.2em 0 0; }
 .pd-gal h2 { margin: 0 0 .5em; font-size: 13pt; line-height: 1.35; color: #111; break-after: avoid; }
 .pd-gal-g { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2mm; }

@@ -2071,6 +2071,21 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         ok(d.vid.length === 1 && /youtube\.com\/watch\?v=dQw4w9WgXcQ/.test(d.vid[0]) && d.btn === 0 && d.text, 'print document: the video is its address (no play button, no lightbox links), and the text is there (' + d.vid[0] + ')');
         ok(d.order.indexOf('pd-body') < d.order.indexOf('pd-gal'), 'print document: the photos come after the text');
         ok(d.pdf.length === 1 && /\.pdf$/.test(d.pdf[0]), 'print document: a PDF shown on the page is its name and address (' + d.pdf[0] + ')');
+        // Google Drive / Docs / Photos: a QR code that opens the same address, not a card or a link
+        const qrs = await pm.evaluate(async () => {
+          const doc = window.mcuprDoc.build(), out = [];
+          for (const b of doc.querySelectorAll('.pd-qr')) {
+            const im = b.querySelector('img'); const c = document.createElement('canvas'); c.width = c.height = 300;
+            await new Promise((r) => { im.onload = im.onerror = r; if (im.complete) { r(); } });
+            const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, 300, 300); x.drawImage(im, 0, 0, 300, 300);
+            out.push({ data: Array.from(x.getImageData(0, 0, 300, 300).data), title: (b.querySelector('b') || {}).textContent || '', scan: (b.querySelector('span') || {}).textContent || '' });
+          }
+          return { qrs: out, cards: doc.querySelectorAll('.gemb').length, links: [...doc.querySelectorAll('a')].filter((a) => /google\.com|goo\.gl/.test(a.href)).length };
+        });
+        const jsQR = require('jsqr');
+        const urls = qrs.qrs.map((q) => { const r = jsQR(Uint8ClampedArray.from(q.data), 300, 300); return r ? r.data : null; });
+        ok(['https://drive.google.com/file/d/1QrFileId123/view', 'https://photos.app.goo.gl/QrAlbum123', 'https://docs.google.com/document/d/1AbCdEfGh/edit'].every((u) => urls.includes(u)) && urls.length === 3, 'print document: the Drive file, the Photos album and the Docs link in the text are each a QR code that decodes to the same address (' + urls.join(' , ') + ')');
+        ok(qrs.cards === 0 && qrs.links <= 1 && qrs.qrs.every((q) => q.scan), 'print document: no Google card is left (a link in the text keeps its words), each QR has its "scan" line (' + qrs.qrs.map((q) => q.title).join(' | ') + ')');
         const pl = await ctxP.newPage();
         await pl.goto(B + fx.plain, { waitUntil: 'load' });
         const none = await pl.evaluate(() => { const doc = window.mcuprDoc.build(); return { gal: doc.querySelectorAll('.pd-gal').length, vid: doc.querySelectorAll('.pd-vid').length }; });
@@ -2078,12 +2093,12 @@ const { B, ok, launch, shot, axeSource, finish } = require('./lib');
         await pl.close();
         // "Download PDF": the sheet that is drawn into the PDF holds the photos and the video address too
         const dp = await ctxP.newPage();
-        await dp.addInitScript(() => { let real; Object.defineProperty(window, 'html2canvas', { configurable: true, get() { return real && ((el, o) => { window.__pdfSheet = { imgs: el.querySelectorAll('.pd-gal-g img').length, vid: [...el.querySelectorAll('.pd-vid .pd-note')].map((n) => n.textContent).join('|'), text: el.textContent.includes('e2e-print-text') }; return real(el, o); }); }, set(v) { real = v; } }); });
+        await dp.addInitScript(() => { let real; Object.defineProperty(window, 'html2canvas', { configurable: true, get() { return real && ((el, o) => { window.__pdfSheet = { imgs: el.querySelectorAll('.pd-gal-g img').length, vid: [...el.querySelectorAll('.pd-vid .pd-note')].map((n) => n.textContent).join('|'), text: el.textContent.includes('e2e-print-text'), qr: el.querySelectorAll('.pd-qr img').length }; return real(el, o); }); }, set(v) { real = v; } }); });
         await dp.goto(B + fx.media, { waitUntil: 'load' });
         const [dl] = await Promise.all([dp.waitForEvent('download', { timeout: 120000 }), dp.locator('[data-pdf]').first().click()]);
         await dl.path();
         const sheet = await dp.evaluate(() => window.__pdfSheet || null);
-        ok(!!sheet && sheet.imgs === fx.n && /youtube\.com\/watch/.test(sheet.vid) && sheet.text, 'Download PDF: the sheet drawn into the PDF holds the ' + fx.n + ' photos, the video address and the text (' + JSON.stringify(sheet) + ')');
+        ok(!!sheet && sheet.imgs === fx.n && /youtube\.com\/watch/.test(sheet.vid) && sheet.text && sheet.qr === 3, 'Download PDF: the sheet drawn into the PDF holds the ' + fx.n + ' photos, the video address, 3 QR codes and the text (' + JSON.stringify(sheet) + ')');
         await dp.close();
         // on paper: the photos are drawn and the PDF holds them
         await pm.emulateMedia({ media: 'print' });

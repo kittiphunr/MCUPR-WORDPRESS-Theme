@@ -132,7 +132,20 @@ function mcupr_print_doc_data() {
 		'foot_h'   => $o['foot_h'],
 		'side'     => $o['side'],
 		'foot_img' => (bool) $o['foot_img'],
+		'scan'     => mcupr_t( 'qr_scan' ),
 	);
+}
+
+/** Does this page link to Google Drive / Docs / Photos (a card under the text or a link in it)? Then its A4 document carries a QR code instead (print-doc.js). */
+function mcupr_print_needs_qr() {
+	$post = get_queried_object();
+	if ( ! $post instanceof WP_Post ) {
+		return false;
+	}
+	if ( get_post_meta( $post->ID, '_mcupr_gdrive', true ) || get_post_meta( $post->ID, '_mcupr_gphotos', true ) ) {
+		return true;
+	}
+	return (bool) preg_match( '#(?:drive|docs|photos)\.google\.com|photos\.app\.goo\.gl#i', $post->post_content );
 }
 add_action(
 	'wp_enqueue_scripts',
@@ -141,7 +154,12 @@ add_action(
 		if ( ! $d ) {
 			return;
 		}
-		wp_register_script( 'mcupr-print-doc', get_theme_file_uri( 'assets/js/print-doc.js' ), array(), MCUPR_VERSION, true );
+		$deps = array();
+		if ( mcupr_print_needs_qr() ) {
+			wp_register_script( 'mcupr-qrcode', get_theme_file_uri( 'assets/vendor/qrcode/qrcode.js' ), array(), '2.0.4', true );
+			$deps[] = 'mcupr-qrcode';
+		}
+		wp_register_script( 'mcupr-print-doc', get_theme_file_uri( 'assets/js/print-doc.js' ), $deps, MCUPR_VERSION, true );
 		wp_add_inline_script( 'mcupr-print-doc', 'window.mcuprDoc=' . wp_json_encode( $d ) . ';', 'before' );
 		wp_enqueue_script( 'mcupr-print-doc' );
 	}

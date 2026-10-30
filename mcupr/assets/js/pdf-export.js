@@ -110,7 +110,7 @@
 		return window.html2canvas(el, { scale: SCALE, backgroundColor: '#ffffff', useCORS: true, logging: false, windowWidth: CSS_W + 40 });
 	}
 
-	window.mcuprPdf = function (btn) {
+	window.mcuprPdfExport = function (btn) {
 		if (!window.html2canvas || !window.jspdf) { return Promise.reject(new Error('missing')); }
 		var built = build();
 		if (!built) { return Promise.reject(new Error('missing')); }

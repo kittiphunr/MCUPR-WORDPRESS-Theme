@@ -1,5 +1,6 @@
 /* The A4 document of a page: the title, a line of date and category, the text of the page, the activity photos under it, the address of
-   each video (and a picture of it) and of each PDF shown on the page; nothing of the website around it
+   each video (and a picture of it) and of each PDF shown on the page, a QR code in place of each Google Drive / Docs / Photos link;
+   nothing of the website around it
    (no menu, breadcrumbs, counters, share buttons, "previous / next"). Print and "Download PDF" are both made from this one document,
    so they look the same: the letterhead of Customizer → Print on A4 is around it (assets in inc/print.php). */
 (function () {
@@ -23,8 +24,51 @@
 		});
 	}
 
+	/* Google Drive / Docs / Photos cannot be opened from paper or from a PDF picture: a QR code (drawn by assets/vendor/qrcode, loaded only on a
+	   page that has such a link) and the name of the file take the place of the card or the link. */
+	function isGoogle(a) { return /^(?:drive|docs|photos)\.google\.com$|^photos\.app\.goo\.gl$/i.test(a.hostname || ''); }
+	function qrBlock(url, title) {
+		var img = null;
+		try {
+			var q = window.qrcode(0, 'M');
+			q.addData(url);
+			q.make();
+			img = document.createElement('img');
+			img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(q.createSvgTag({ cellSize: 4, margin: 4, scalable: true }));
+			img.alt = '';
+		} catch (e) { img = null; }
+		var box = document.createElement('div'), t = document.createElement('div');
+		box.className = 'pd-qr';
+		t.className = 'pd-qr-t';
+		var b = document.createElement('b'), c = document.createElement('span'), u = document.createElement('small');
+		b.textContent = title || '';
+		c.textContent = img ? (D.scan || '') : '';
+		u.textContent = url;
+		[b, c, u].forEach(function (n) { if (n.textContent) { t.appendChild(n); } });
+		if (img) { box.appendChild(img); } else { box.className += ' pd-qr-none'; }
+		box.appendChild(t);
+		return box;
+	}
+	function cards(scope) {
+		[].forEach.call(scope.querySelectorAll('.gemb'), function (g) {
+			var a = g.querySelector('a.gemb-open'), n = g.querySelector('.gemb-name');
+			if (a && a.getAttribute('href')) { g.replaceWith(qrBlock(a.href, n ? n.textContent.replace(/\s+/g, ' ').trim() : '')); } else { g.remove(); }
+		});
+	}
+	function googleLinks(body) {
+		var seen = {};
+		[].forEach.call(body.querySelectorAll('a[href]'), function (a) {
+			if (!isGoogle(a) || a.closest('.pd-qr') || seen[a.href] || !window.qrcode) { return; }
+			seen[a.href] = 1;
+			var blk = a.closest('p, li, h1, h2, h3, h4, h5, h6, figure, td, blockquote') || a;
+			blk.insertAdjacentElement('afterend', qrBlock(a.href, a.textContent.replace(/\s+/g, ' ').trim()));
+		});
+	}
+
 	function clean(body) {
 		videos(body);
+		cards(body);
+		googleLinks(body);
 		[].forEach.call(body.querySelectorAll(JUNK), function (n) { n.remove(); });
 		[].forEach.call(body.querySelectorAll('iframe, video, audio, embed, object'), function (n) {
 			var src = n.getAttribute('src') || (n.querySelector && n.querySelector('source') ? n.querySelector('source').getAttribute('src') : '') || '';
@@ -35,7 +79,7 @@
 				n.replaceWith(p);
 			} else { n.remove(); }
 		});
-		if (D.noimg) { [].forEach.call(body.querySelectorAll('img, picture, figure'), function (n) { n.remove(); }); }
+		if (D.noimg) { [].forEach.call(body.querySelectorAll('img, picture, figure'), function (n) { if (!n.closest('.pd-qr')) { n.remove(); } }); } // (a QR code is not a picture to leave out)
 		[].forEach.call(body.querySelectorAll('img'), function (img) { img.setAttribute('loading', 'eager'); img.removeAttribute('data-src'); img.removeAttribute('srcset'); img.removeAttribute('sizes'); });
 		[].forEach.call(body.querySelectorAll('[id]'), function (n) { n.removeAttribute('id'); });
 	}
@@ -89,6 +133,13 @@
 				doc.appendChild(sec);
 			}
 		}
+		[].forEach.call(document.querySelectorAll('.gemb'), function (g) {
+			if (!after(target, g)) { return; }
+			var tmp = document.createElement('div');
+			tmp.appendChild(g.cloneNode(true));
+			cards(tmp);
+			while (tmp.firstChild) { doc.appendChild(tmp.firstChild); }
+		});
 		[].forEach.call(document.querySelectorAll('.pdfv[data-src]'), function (v) {
 			if (!after(target, v)) { return; }
 			var t = v.querySelector('.pdfv-t'), p = document.createElement('p');
