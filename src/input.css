@@ -1151,6 +1151,17 @@ html[data-contrast] .fcontact > div, html[data-contrast] .flinks .footer-menu a 
 	/* the band reaches the top of the frame; the capsule floats on it */
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child,
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: 1.2rem; } /* the middle of the breadcrumb is on the middle of the tools capsule */
+	/* the breadcrumb of a band or a Cover head is on the line of the tools capsule: it ends before the capsule, and the last words (the title of the page) are shortened with "…" instead of running under it */
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child nav[aria-label],
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child nav[aria-label] { display: block; margin-right: calc(var(--hdr-w, 0px) + .75rem); }
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child nav[aria-label] ol,
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child nav[aria-label] ol { flex-wrap: nowrap; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child nav[aria-label] li,
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child nav[aria-label] li { flex: none; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child nav[aria-label] li:last-child,
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child nav[aria-label] li:last-child { display: flex; flex: 0 1 auto; min-width: 0; }
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child nav[aria-label] li:last-child [aria-current],
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child nav[aria-label] li:last-child [aria-current] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	/* the content is as wide as the frame (a small gap each side, the same as the header capsule's), and the home hero starts at the top edge of the capsule */
 	html:is([data-menu="side"],[data-menu="hybrid"]) .wrap { width: calc(100% - 1.5rem); max-width: 120rem; }
 	html:is([data-menu="side"],[data-menu="hybrid"]) .site-footer { padding-bottom: .75rem; } /* the footer card is as far from the bottom of the frame as from its sides */
