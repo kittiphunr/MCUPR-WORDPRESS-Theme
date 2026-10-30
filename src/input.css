@@ -1301,6 +1301,12 @@ html[data-motion="1"] .tool-play { transition: none; }
 .pd-body th, .pd-body td { padding: .25em .5em; border: .2mm solid #999; text-align: left; }
 .pd-body blockquote { margin: .6em 0; padding-left: 1em; border-left: .8mm solid #bbb; break-inside: avoid; }
 .pd-note { margin: .5em 0; font-size: 9.5pt; color: #555; overflow-wrap: anywhere; }
+.pd-vid { margin: .6em 0; break-inside: avoid; }
+.pd-vid img { display: block; max-width: 60%; height: auto; margin: 0 0 .3em; border-radius: 1mm; }
+.pd-gal { margin: 1.2em 0 0; }
+.pd-gal h2 { margin: 0 0 .5em; font-size: 13pt; line-height: 1.35; color: #111; break-after: avoid; }
+.pd-gal-g { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2mm; }
+.pd-gal-g img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 1mm; break-inside: avoid; }
 @media print {
 	html.printing-doc body > :not(.print-doc):not(.print-sheet) { display: none !important; } /* only the document and the letterhead are on paper */
 	html.printing-doc .print-doc { display: block; }
