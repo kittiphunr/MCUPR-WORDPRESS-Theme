@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.80.5 =
+* จัดข้อความแปลไทยของหน้าผู้ดูแลให้สคริปต์สร้างตรงกับไฟล์ที่ใช้งาน (build 1060)
+
 = 1.80.4 =
 * ถอด symlink node_modules ออกจาก repo (ผมไม่ได้ตั้งใจ commit) และให้ .gitignore ครอบคลุมทั้งโฟลเดอร์และ symlink (build 1059)
 
