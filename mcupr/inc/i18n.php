@@ -94,6 +94,11 @@ function mcupr_t( $key, $lang = '' ) {
 	return isset( $row[ $i ] ) && '' !== $row[ $i ] ? $row[ $i ] : $row[1];
 }
 
+/** "1.80.0 (build 1055)": the version of the theme with its build number (VERSIONING.md). */
+function mcupr_version_label() {
+	return MCUPR_VERSION . ' (' . mcupr_t( 'build' ) . ' ' . MCUPR_BUILD . ')';
+}
+
 function mcupr_e( $key ) {
 	echo esc_html( mcupr_t( $key ) );
 }

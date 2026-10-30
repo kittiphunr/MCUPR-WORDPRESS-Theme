@@ -247,7 +247,7 @@ $checks = array(
 				if ( $credit ) {
 					echo esc_html( mcupr_t( 'about_credit' ) . ' ' . $credit ) . ' · ';
 				}
-				echo esc_html( mcupr_t( 'about_build' ) . ' MCUPR ' . MCUPR_VERSION );
+				echo esc_html( mcupr_t( 'about_build' ) . ' MCUPR ' . mcupr_version_label() );
 				?>
 			</p>
 		</section>
