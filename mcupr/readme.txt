@@ -32,6 +32,9 @@ SweetAlert2: MIT License.
 == Changelog ==
 
 
+= 1.80.4 =
+* ถอด symlink node_modules ออกจาก repo (ผมไม่ได้ตั้งใจ commit) และให้ .gitignore ครอบคลุมทั้งโฟลเดอร์และ symlink (build 1059)
+
 = 1.80.3 =
 * พิมพ์และดาวน์โหลด PDF: ภาพกิจกรรม วิดีโอ PDF และลิงก์ Google Drive/Photos เป็น QR code (build 1058)
 
