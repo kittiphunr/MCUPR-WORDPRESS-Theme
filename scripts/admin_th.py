@@ -2229,6 +2229,7 @@ TH = {
 "To check: %1$d pictures (JPEG and PNG in the library: %2$d).": "รอตรวจ: %1$d รูป (JPEG และ PNG ในคลังทั้งหมด %2$d รูป)",
 "Turns every JPEG and PNG in the Media Library into WebP at the size set below, and deletes the original files and old thumbnails from the website. Each picture keeps its entry in the library (title, description, alt text, folder) and every place it is used – pages, widgets, settings – is changed to the new file.": "แปลงรูป JPEG และ PNG ทุกรูปในคลังสื่อเป็น WebP ตามขนาดที่ตั้งไว้ด้านล่าง และลบไฟล์ต้นฉบับกับภาพย่อเก่าออกจากเว็บ แต่ละรูปยังอยู่ในคลังเหมือนเดิม (ชื่อ คำอธิบาย ข้อความแทนภาพ โฟลเดอร์) และทุกที่ที่ใช้รูป ทั้งหน้า วิดเจ็ต และการตั้งค่า จะถูกเปลี่ยนไปใช้ไฟล์ใหม่",
 "Bottom bar on phones": "แถบล่างบนมือถือ",
+"This SVG file could not be read, or it cannot be made safe.": "อ่านไฟล์ SVG นี้ไม่ได้ หรือทำให้ปลอดภัยไม่ได้",
 "Home, News, the menu button, Events and Search at the bottom of the screen on phones and small tablets.": "หน้าแรก ข่าว ปุ่มเมนู กิจกรรม และค้นหา ที่ด้านล่างของจอบนมือถือและแท็บเล็ตเล็ก",
 "Leave empty to show the name of the site.": "เว้นว่างไว้เพื่อแสดงชื่อเว็บไซต์",
 "Leave empty to use the logo of the site.": "เว้นว่างไว้เพื่อใช้โลโก้ของเว็บไซต์",

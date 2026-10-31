@@ -1936,6 +1936,7 @@ The old address (wp-login.php and wp-admin) no longer shows the form. If you los
 	'These are left out of the page (visitors see nothing in their place; an editor who is logged in sees a note). Everything else on those pages is printed as before.' => 'วิดเจ็ตเหล่านี้จะถูกข้ามไป (ผู้เข้าชมไม่เห็นอะไรตรงนั้น ส่วนผู้ดูแลที่ล็อกอินจะเห็นกล่องแจ้ง) ส่วนอื่นของหน้ายังแสดงผลเหมือนเดิม',
 	'These fonts were chosen in Elementor but no copy of them is on the server, so the pages fall back to the font of the theme. Ask your web team to add them, or change the font of those elements.' => 'แบบอักษรเหล่านี้ถูกเลือกไว้ใน Elementor แต่ไม่มีสำเนาอยู่บนเซิร์ฟเวอร์ หน้าจึงใช้แบบอักษรของธีมแทน แจ้งทีมเว็บให้เพิ่มไฟล์ หรือเปลี่ยนแบบอักษรขององค์ประกอบนั้น',
 	'Third column above the footer credits.' => 'คอลัมน์ที่ 3 เหนือส่วนเครดิตท้ายเว็บ',
+	'This SVG file could not be read, or it cannot be made safe.' => 'อ่านไฟล์ SVG นี้ไม่ได้ หรือทำให้ปลอดภัยไม่ได้',
 	'This address cannot be used (it must start with https://, http:// or webcal://).' => 'ที่อยู่นี้ใช้ไม่ได้ (ต้องขึ้นต้นด้วย https://, http:// หรือ webcal://)',
 	'This address is not recognised (use YouTube, Vimeo or a link to an .mp4 file).' => 'ไม่รู้จักลิงก์นี้ (ใช้ลิงก์ YouTube, Vimeo หรือไฟล์ .mp4)',
 	'This capability lets somebody take the whole site over. Give it to this role?' => 'สิทธิ์นี้อาจถูกใช้ยึดเว็บไซต์ทั้งเว็บได้ ยืนยันให้สิทธิ์นี้กับบทบาทนี้?',
