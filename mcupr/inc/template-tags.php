@@ -256,6 +256,29 @@ add_filter(
 	3
 );
 
+/**
+ * The "Download" button of a page: one button that opens a small menu to choose the file – PDF, PNG picture or JPG picture.
+ * Behaviour: assets/js/main.js (the menu, the libraries) and assets/js/pdf-export.js (the file).
+ *
+ * @param string $variant 'act' (the tool bar) or 'tile' (the tool box of an article).
+ * @param string $target  CSS selector of the text of the page.
+ * @param string $title   Title of the page (the name of the file).
+ * @param string $url     Address of the page.
+ */
+function mcupr_download_menu( $variant, $target, $title, $url ) {
+	$tile = 'tile' === $variant;
+	$size = $tile ? 20 : 18;
+	$id   = wp_unique_id( 'dl-menu-' );
+	$data = ' data-pdf-target="' . esc_attr( $target ) . '" data-pdf-site="' . esc_attr( get_bloginfo( 'name' ) ) . '" data-pdf-title="' . esc_attr( $title ) . '" data-pdf-url="' . esc_url( $url ) . '"';
+	$out  = '<div class="dl' . ( $tile ? ' dl-tile' : '' ) . '" data-dl>';
+	$out .= '<button type="button" class="' . ( $tile ? 'tool-tile' : 'tool-act' ) . '" data-dl-btn aria-haspopup="menu" aria-expanded="false" aria-controls="' . esc_attr( $id ) . '">' . mcupr_feather( 'download', $size ) . '<span>' . esc_html( mcupr_t( 'download' ) ) . '</span>' . mcupr_feather( 'chevron-down', 14, 'dl-caret' ) . '</button>';
+	$out .= '<div class="dl-menu" id="' . esc_attr( $id ) . '" role="menu" hidden>';
+	foreach ( array( 'pdf' => array( 'file-text', 'dl_pdf', 'pdf_busy', 'pdf_fail' ), 'png' => array( 'image', 'dl_png', 'img_busy', 'img_fail' ), 'jpg' => array( 'image', 'dl_jpg', 'img_busy', 'img_fail' ) ) as $fmt => $m ) {
+		$out .= '<button type="button" class="dl-item" role="menuitem" tabindex="-1" data-pdf data-pdf-fmt="' . esc_attr( $fmt ) . '"' . $data . ' data-pdf-busy="' . esc_attr( mcupr_t( $m[2] ) ) . '" data-pdf-fail="' . esc_attr( mcupr_t( $m[3] ) ) . '">' . mcupr_feather( $m[0], 18 ) . '<span>' . esc_html( mcupr_t( $m[1] ) ) . '</span></button>';
+	}
+	return $out . '</div></div>';
+}
+
 /** Remember whether the tool buttons were printed. */
 function mcupr_tools_rendered( $set = false ) {
 	static $done = false;
