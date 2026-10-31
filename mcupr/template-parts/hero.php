@@ -26,7 +26,8 @@ foreach ( $extra as $e ) {
 	$slides[] = array( 'eyebrow' => '', 'l1' => '', 'l2' => $e['title'], 'sub' => $e['sub'], 'btn1' => array( $e['btn'], $e['url'] ), 'btn2' => array( '', '' ) );
 }
 ?>
-<div class="wrap hero-wrap mt-6"><section class="hero hero-<?php echo esc_attr( $hero['height'] ); ?> relative isolate flex flex-col overflow-hidden rounded-3xl px-3 py-16 min-[400px]:px-6 <?php echo $left ? 'items-start justify-center text-left min-[900px]:px-14' : 'items-center justify-center text-center'; ?> <?php echo $hero_img ? 'bg-neutral-800 text-white' : 'bg-gradient-to-br from-primary to-brand2 text-on-primary'; ?>"<?php echo $multi ? ' data-hero data-auto="' . ( get_theme_mod( 'mcupr_hero_auto', false ) ? '1' : '0' ) . '" role="group" aria-roledescription="carousel" aria-label="' . esc_attr( mcupr_t( 'hero_label' ) ) . '"' : ''; ?>>
+<div class="wrap hero-wrap mt-6"><section class="hero hero-<?php echo esc_attr( $hero['height'] ); ?><?php echo $hero_img ? ' hero-has-img' : ''; ?> relative isolate flex flex-col overflow-hidden rounded-3xl px-3 py-16 min-[400px]:px-6 <?php echo $left ? 'items-start justify-center text-left min-[900px]:px-14' : 'items-center justify-center text-center'; ?> <?php echo $hero_img ? 'bg-neutral-800 text-white' : 'bg-gradient-to-br from-primary to-brand2 text-on-primary'; ?>"<?php echo $multi ? ' data-hero data-auto="' . ( get_theme_mod( 'mcupr_hero_auto', false ) ? '1' : '0' ) . '" role="group" aria-roledescription="carousel" aria-label="' . esc_attr( mcupr_t( 'hero_label' ) ) . '"' : ''; ?>>
+	<div class="hero-card">
 	<?php if ( $hero_img ) : ?>
 		<?php
 		// The LCP element: right size (srcset), eager, high priority, decoded off the main thread.
@@ -74,6 +75,8 @@ foreach ( $extra as $e ) {
 			<button type="button" class="hero-arrow hero-pause" data-hero-pause hidden aria-pressed="false" aria-label="<?php echo esc_attr( mcupr_t( 'hero_pause' ) ); ?>"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg></button>
 		</div>
 	<?php endif; ?>
+
+	</div><!-- .hero-card: on phones the photo and the words only (4:3); the search and the quick links sit under it -->
 
 	<?php mcupr_hero_search(); // phones: the search bar sits under the words and the buttons, above the quick links ?>
 

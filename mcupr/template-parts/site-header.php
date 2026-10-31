@@ -98,6 +98,11 @@ $name = mcupr_org_name();
 				?>
 				<?php remove_filter( 'nav_menu_item_id', '__return_empty_string' ); ?>
 			<?php endif; ?>
+			<div class="nav-tools" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'utility_nav' ) ); ?>">
+				<button type="button" class="nav-tool" data-nav-tool="#lang-toggle"><?php echo mcupr_icon( 'globe', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( mcupr_t( 'language' ) . ' · ' . mcupr_lang_label() ); ?></span></button>
+				<button type="button" class="nav-tool" data-nav-tool="#a11y-toggle"><?php echo mcupr_icon( 'sliders', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'settings_btn' ); ?></span></button>
+				<button type="button" class="nav-tool" data-nav-tool="#about-toggle"><?php echo mcupr_icon( 'help', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'about' ); ?></span></button>
+			</div>
 			<div class="sb-cap sb-foot">
 				<svg class="sb-ring" aria-hidden="true" focusable="false"><rect class="sb-ring-track" pathLength="100"/><rect class="sb-ring-spin" pathLength="100"/><rect class="sb-ring-bar" pathLength="100"/></svg>
 				<button type="button" class="sb-btn" data-sb-toggle aria-expanded="true">

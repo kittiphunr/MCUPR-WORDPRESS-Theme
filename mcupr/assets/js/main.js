@@ -597,6 +597,14 @@
 		navBtn.addEventListener('click', function () { setNav(navBtn.getAttribute('aria-expanded') !== 'true', false); });
 		if (fab) { fab.addEventListener('click', function () { setNav(navBtn.getAttribute('aria-expanded') !== 'true', false); }); }
 		if (dockBtn) { dockBtn.addEventListener('click', function () { setNav(navBtn.getAttribute('aria-expanded') !== 'true', false); }); }
+		/* language, display settings and "about" are no longer in a top bar on a phone: they sit in the menu drawer and press the header buttons that open the dialogs */
+		$$('[data-nav-tool]').forEach(function (b) {
+			b.addEventListener('click', function () {
+				var target = $(b.getAttribute('data-nav-tool'));
+				setNav(false, false);
+				if (target) { target.click(); }
+			});
+		});
 
 		/* sidebar rail: collapse / expand (remembered) */
 		var sbBtn = $('[data-sb-toggle]', nav);
