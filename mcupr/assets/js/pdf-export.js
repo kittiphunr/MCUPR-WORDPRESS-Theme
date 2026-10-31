@@ -106,12 +106,119 @@
 		return pages;
 	}
 
-	function draw(el) {
-		return window.html2canvas(el, { scale: SCALE, backgroundColor: '#ffffff', useCORS: true, logging: false, windowWidth: CSS_W + 40 });
+	function draw(el, scale) {
+		return window.html2canvas(el, { scale: scale || SCALE, backgroundColor: '#ffffff', useCORS: true, logging: false, windowWidth: CSS_W + 40 });
+	}
+
+	/* a file for the visitor, with the page's name */
+	function save(blob, name) {
+		var url = URL.createObjectURL(blob);
+		var a = document.createElement('a');
+		a.href = url;
+		a.download = name;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		setTimeout(function () { URL.revokeObjectURL(url); }, 20000);
+	}
+	function toBlob(canvas) {
+		return new Promise(function (ok, no) { canvas.toBlob(function (b) { if (b) { ok(b); } else { no(new Error('blob')); } }, 'image/png'); });
+	}
+
+	/* a ZIP file without compression (PNG is compressed already): files = [{ name, data: Uint8Array }] → Blob. One download for many pictures. */
+	var CRC = null;
+	function crc32(u8) {
+		if (!CRC) {
+			CRC = new Uint32Array(256);
+			for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) { c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; } CRC[n] = c >>> 0; }
+		}
+		var crc = 0xFFFFFFFF;
+		for (var i = 0; i < u8.length; i++) { crc = CRC[(crc ^ u8[i]) & 0xFF] ^ (crc >>> 8); }
+		return (crc ^ 0xFFFFFFFF) >>> 0;
+	}
+	function zipStore(files) {
+		var enc = new TextEncoder(), d = new Date();
+		var time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+		var parts = [], central = [], offset = 0;
+		files.forEach(function (f) {
+			var name = enc.encode(f.name), crc = crc32(f.data), size = f.data.length;
+			var lh = new DataView(new ArrayBuffer(30));
+			lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+			lh.setUint16(10, time, true); lh.setUint16(12, date, true); lh.setUint32(14, crc, true); lh.setUint32(18, size, true); lh.setUint32(22, size, true);
+			lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+			var ch = new DataView(new ArrayBuffer(46));
+			ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+			ch.setUint16(12, time, true); ch.setUint16(14, date, true); ch.setUint32(16, crc, true); ch.setUint32(20, size, true); ch.setUint32(24, size, true);
+			ch.setUint16(28, name.length, true); ch.setUint32(42, offset, true);
+			parts.push(lh.buffer, name, f.data);
+			central.push(ch.buffer, name);
+			offset += 30 + name.length + size;
+		});
+		var csize = 0;
+		central.forEach(function (c) { csize += c.byteLength !== undefined ? c.byteLength : c.length; });
+		var end = new DataView(new ArrayBuffer(22));
+		end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, csize, true); end.setUint32(16, offset, true);
+		return new Blob(parts.concat(central, [end.buffer]), { type: 'application/zip' });
+	}
+
+	/* "Download image": the same document as a PNG. One long picture (letterhead on top, footer below) when it is not taller than a
+	   canvas can be; a longer one is saved as one picture per A4 sheet (the sheets of the PDF), numbered, in one ZIP file. */
+	function exportImage(btn, built, headPic, footPic, bg, total, pages) {
+		var clip = built.clip, sheet = built.sheet, name = fileName(btn.getAttribute('data-pdf-title') || D.title || window.mcuprFullTitle || document.title);
+		var headPx = headPic ? HEAD_H * PX_MM : 0, footPx = footPic ? FOOT_H * PX_MM : 0, W = MM_W * PX_MM, sidePx = SIDE * PX_MM;
+		var allH = headPx + PAD * PX_MM + total + PAD * PX_MM + footPx;
+		var s1 = Math.min(SCALE, ONE_SHOT / allH);
+		if (s1 >= 1) { // one long picture
+			return draw(clip, s1).then(function (body) {
+				var c = document.createElement('canvas');
+				c.width = Math.round(W * s1);
+				c.height = Math.round(allH * s1);
+				var ctx = c.getContext('2d');
+				ctx.fillStyle = '#fff';
+				ctx.fillRect(0, 0, c.width, c.height);
+				if (headPic) { ctx.drawImage(headPic, 0, 0, c.width, Math.round(headPx * s1)); }
+				ctx.drawImage(body, Math.round(sidePx * s1), Math.round((headPx + PAD * PX_MM) * s1));
+				if (footPic) { ctx.drawImage(footPic, 0, c.height - Math.round(footPx * s1), c.width, Math.round(footPx * s1)); }
+				return toBlob(c);
+			}).then(function (blob) { save(blob, name + '.png'); });
+		}
+		var chain = Promise.resolve(), made = [];
+		pages.forEach(function (pg, i) {
+			var st = pg[0], e = pg[1];
+			chain = chain.then(function () {
+				clip.style.height = (e - st) + 'px';
+				sheet.style.marginTop = (-st) + 'px';
+				return draw(clip, SCALE);
+			}).then(function (body) {
+				var k = SCALE * PX_MM, c = document.createElement('canvas');
+				c.width = Math.round(MM_W * k);
+				c.height = Math.round(MM_H * k);
+				var ctx = c.getContext('2d');
+				ctx.fillStyle = '#fff';
+				ctx.fillRect(0, 0, c.width, c.height);
+				if (bg) { var im = document.querySelector('.print-sheet .print-bg-img'); if (im) { try { ctx.drawImage(im, 0, 0, c.width, c.height); } catch (er) { /* no background */ } } }
+				ctx.drawImage(body, Math.round(SIDE * k), Math.round((HEAD_H + PAD) * k), Math.round(CONTENT_W * k), Math.round((e - st) / CSS_W * CONTENT_W * k));
+				if (headPic) { ctx.drawImage(headPic, 0, 0, c.width, Math.round(HEAD_H * k)); }
+				if (footPic) { ctx.drawImage(footPic, 0, c.height - Math.round(FOOT_H * k), c.width, Math.round(FOOT_H * k)); }
+				if (!D.foot_img) {
+					ctx.fillStyle = '#787878';
+					ctx.font = Math.round(8 * k / 2.83) + 'px sans-serif';
+					ctx.textAlign = 'right';
+					ctx.fillText((i + 1) + ' / ' + pages.length, c.width - Math.round(SIDE * k), c.height - Math.round(2.5 * k));
+				}
+				var lab = btn.querySelector('span');
+				if (lab && pages.length > 1) { lab.textContent = (btn.getAttribute('data-pdf-busy') || '') + ' ' + (i + 1) + '/' + pages.length; }
+				return toBlob(c);
+			}).then(function (blob) { return blob.arrayBuffer(); }).then(function (buf) {
+				made.push({ name: name + '-' + (i + 1) + '.png', data: new Uint8Array(buf) });
+			});
+		});
+		return chain.then(function () { save(zipStore(made), name + '-images.zip'); });
 	}
 
 	window.mcuprPdfExport = function (btn) {
-		if (!window.html2canvas || !window.jspdf) { return Promise.reject(new Error('missing')); }
+		var asImage = 'png' === btn.getAttribute('data-pdf-fmt');
+		if (!window.html2canvas || ( ! asImage && ! window.jspdf ) ) { return Promise.reject(new Error('missing')); }
 		var built = build();
 		if (!built) { return Promise.reject(new Error('missing')); }
 		var clip = built.clip, sheet = built.sheet;
@@ -121,6 +228,7 @@
 			var total = Math.ceil(sheet.getBoundingClientRect().height);
 			if (total < 10 || total > PAGE_H * MAX_PAGES) { throw new Error('size'); }
 			var pages = plan(total, candidates(sheet));
+			if (asImage) { return exportImage(btn, built, headPic, footPic, bg, total, pages); }
 			var jsPDF = window.jspdf.jsPDF;
 			var pdf = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
 			var headUrl = headPic ? headPic.toDataURL('image/jpeg', 0.9) : '', footUrl = footPic ? footPic.toDataURL('image/jpeg', 0.9) : '';

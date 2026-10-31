@@ -433,7 +433,7 @@
 		if (e.target.closest('[data-print]')) { if (window.mcuprDoc && window.mcuprDoc.print) { window.mcuprDoc.print(); } else { window.print(); } } /* the A4 document (print-doc.js) is put together just before the printing starts */
 		var pdf = e.target.closest('[data-pdf]');
 		if (pdf && !pdf.hasAttribute('aria-busy')) {
-			/* the PDF is made in the browser; the libraries (about 600 KB) are fetched only now, one after the other */
+			/* the PDF (or the image) is made in the browser; the libraries (about 600 KB; an image needs only html2canvas) are fetched only now, one after the other */
 			var urls = (window.mcuprI18n && window.mcuprI18n.pdfScripts) || [];
 			var label = $('span', pdf), was = label ? label.textContent : '';
 			pdf.setAttribute('aria-busy', 'true');
@@ -447,7 +447,7 @@
 				if (i >= urls.length) { return Promise.resolve(); }
 				if (i === urls.length - 1 && window.mcuprPdfExport) { return Promise.resolve(); }
 				return new Promise(function (ok, no) {
-					if ((i === 0 && window.html2canvas) || (i === 1 && window.jspdf)) { ok(); return; }
+					if ((i === 0 && window.html2canvas) || (i === 1 && (window.jspdf || pdf.getAttribute('data-pdf-fmt') === 'png'))) { ok(); return; } /* an image needs html2canvas only */
 					var s = document.createElement('script');
 					s.src = urls[i];
 					s.onload = ok;
@@ -455,7 +455,7 @@
 					document.head.appendChild(s);
 				}).then(function () { return load(i + 1); });
 			};
-			load(0).then(function () { return window.mcuprPdfExport(pdf); }).then(function () { done(''); }, function () { done(pdf.getAttribute('data-pdf-fail') || 'PDF failed'); });
+			load(0).then(function () { return window.mcuprPdfExport(pdf); }).then(function () { done(''); }, function () { done(pdf.getAttribute('data-pdf-fail') || 'Download failed'); });
 		}
 	});
 
