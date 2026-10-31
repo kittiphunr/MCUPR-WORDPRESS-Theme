@@ -76,12 +76,13 @@ $name = mcupr_org_name();
 				<span class="text-lg font-bold"><?php mcupr_e( 'menu' ); ?></span>
 				<button type="button" class="inline-flex size-11 cursor-pointer items-center justify-center rounded-full border-0 bg-surface p-0 text-fg" data-close-nav aria-label="<?php echo esc_attr( mcupr_t( 'close_menu' ) ); ?>"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
 			</div>
-			<div class="nav-tools" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'utility_nav' ) ); ?>">
-				<button type="button" class="nav-tool" data-nav-tool="#search-toggle"><?php echo mcupr_icon( 'search', 24 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'search' ); ?></span></button>
-				<button type="button" class="nav-tool" data-nav-tool="#lang-toggle"><?php echo mcupr_icon( 'globe', 24 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><b class="nav-tool-badge" aria-hidden="true"><?php echo esc_html( mcupr_lang_badge() ); ?></b><span><?php mcupr_e( 'language' ); ?></span></button>
-				<button type="button" class="nav-tool" data-nav-tool="#a11y-toggle"><?php echo mcupr_icon( 'sliders', 24 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'settings_btn' ); ?></span></button>
-				<button type="button" class="nav-tool" data-nav-tool="#about-toggle"><?php echo mcupr_icon( 'help', 24 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'about' ); ?></span></button>
-			</div>
+			<button type="button" class="nav-back" data-nav-back hidden><?php echo mcupr_icon( 'chevron', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'nav_back' ); ?></span></button>
+			<form class="nav-search" role="search" method="get" action="<?php echo esc_url( mcupr_home_url() ); ?>">
+				<?php echo mcupr_icon( 'search', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+				<label class="sr-only" for="nav-s"><?php mcupr_e( 'search' ); ?></label>
+				<input type="search" id="nav-s" name="s" placeholder="<?php echo esc_attr( mcupr_t( 'search_ph' ) ); ?>" autocomplete="off" enterkeyhint="search">
+				<?php if ( isset( $_GET['lang'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?><input type="hidden" name="lang" value="<?php echo esc_attr( mcupr_lang() ); ?>"><?php endif; ?>
+			</form>
 			<a class="sb-brand" href="<?php echo esc_url( mcupr_home_url() ); ?>" tabindex="-1" aria-hidden="true">
 				<?php echo $logo ? $logo : '<span class="badge-logo">' . mcupr_icon( 'cap', 22 ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				<span class="t"><b><?php echo esc_html( $name ); ?></b><?php if ( $alt ) : ?><small><?php echo esc_html( $alt ); ?></small><?php endif; ?></span>
@@ -104,11 +105,31 @@ $name = mcupr_org_name();
 				?>
 				<?php remove_filter( 'nav_menu_item_id', '__return_empty_string' ); ?>
 			<?php endif; ?>
+			<?php
+			// "Latest" of the phone's start menu: the three newest news items.
+			$recent = function_exists( 'mcupr_dock_enabled' ) && mcupr_dock_enabled() ? get_posts( array( 'numberposts' => 3, 'no_found_rows' => true, 'ignore_sticky_posts' => true ) ) : array();
+			if ( $recent ) :
+				?>
+			<section class="nav-recent" aria-labelledby="nav-recent-h">
+				<h2 id="nav-recent-h"><?php mcupr_e( 'latest_news' ); ?></h2>
+				<ul>
+					<?php foreach ( $recent as $rp ) : ?>
+						<li><a href="<?php echo esc_url( get_permalink( $rp ) ); ?>"><span class="nr-t"><?php echo esc_html( get_the_title( $rp ) ); ?></span><span class="nr-d"><?php echo esc_html( get_the_date( '', $rp ) ); ?></span></a></li>
+					<?php endforeach; ?>
+				</ul>
+			</section>
+			<?php endif; ?>
 			<div class="sb-cap sb-foot">
 				<svg class="sb-ring" aria-hidden="true" focusable="false"><rect class="sb-ring-track" pathLength="100"/><rect class="sb-ring-spin" pathLength="100"/><rect class="sb-ring-bar" pathLength="100"/></svg>
 				<button type="button" class="sb-btn" data-sb-toggle aria-expanded="true">
 					<span class="ic"><?php echo mcupr_icon( 'panel', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><span class="t" data-sb-toggle-label data-collapse="<?php echo esc_attr( mcupr_t( 'collapse_menu' ) ); ?>" data-expand="<?php echo esc_attr( mcupr_t( 'expand_menu' ) ); ?>"><?php mcupr_e( 'collapse_menu' ); ?></span>
 				</button>
+			</div>
+			<div class="nav-tools" role="group" aria-label="<?php echo esc_attr( mcupr_t( 'utility_nav' ) ); ?>">
+				<button type="button" class="nav-tool" data-nav-tool="#search-toggle"><?php echo mcupr_icon( 'search', 24 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'search' ); ?></span></button>
+				<button type="button" class="nav-tool" data-nav-tool="#lang-toggle"><?php echo mcupr_icon( 'globe', 24 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><b class="nav-tool-badge" aria-hidden="true"><?php echo esc_html( mcupr_lang_badge() ); ?></b><span><?php mcupr_e( 'language' ); ?></span></button>
+				<button type="button" class="nav-tool" data-nav-tool="#a11y-toggle"><?php echo mcupr_icon( 'sliders', 24 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'settings_btn' ); ?></span></button>
+				<button type="button" class="nav-tool" data-nav-tool="#about-toggle"><?php echo mcupr_icon( 'help', 24 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'about' ); ?></span></button>
 			</div>
 		</nav>
 	</div>
