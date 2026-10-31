@@ -36,7 +36,7 @@ function mcupr_dock_markup() {
 		return;
 	}
 	$items = array_values( mcupr_dock_items() );
-	$half  = (int) ceil( count( $items ) / 2 );
+	$half  = (int) ceil( ( count( $items ) + 1 ) / 2 ); // +1: the settings button that closes the right side
 	$one   = static function ( $it ) {
 		$cur = ! empty( $it['current'] );
 		return '<a class="dock-i" href="' . esc_url( $it['url'] ) . '"' . ( $cur ? ' aria-current="page"' : '' ) . ' data-dock="' . esc_attr( $it['key'] ) . '"><span class="dock-ic">' . mcupr_icon( $it['icon'], 22 ) . '</span><span class="dock-t">' . esc_html( $it['label'] ) . '</span></a>'; // phpcs:ignore WordPress.Security.EscapeOutput
@@ -49,9 +49,29 @@ function mcupr_dock_markup() {
 	foreach ( array_slice( $items, $half ) as $it ) {
 		echo $one( $it ); // phpcs:ignore WordPress.Security.EscapeOutput
 	}
+	echo mcupr_dock_settings(); // phpcs:ignore WordPress.Security.EscapeOutput
 	echo "</nav>\n";
 }
 add_action( 'wp_footer', 'mcupr_dock_markup', 5 );
+
+/**
+ * The last place of the bar: Settings. On a phone the top bar is gone, so language, display settings and "about the
+ * website" open from here (a small sheet over the bar); each one presses the matching hidden header button, so the
+ * dialogs are the same as on a computer (assets/js/main.js).
+ */
+function mcupr_dock_settings() {
+	$acts = array(
+		array( '#lang-toggle', 'globe', mcupr_t( 'language' ) . ' · ' . mcupr_lang_label() ),
+		array( '#a11y-toggle', 'sliders', mcupr_t( 'settings_btn' ) ),
+		array( '#about-toggle', 'help', mcupr_t( 'about' ) ),
+	);
+	$out   = '<button type="button" class="dock-i dock-tools" aria-haspopup="true" aria-expanded="false" aria-controls="dock-sheet" data-dock-tools><span class="dock-ic">' . mcupr_icon( 'sliders', 22 ) . '</span><span class="dock-t">' . esc_html( mcupr_t( 'dock_settings' ) ) . '</span></button>';
+	$out  .= '<div class="dock-sheet" id="dock-sheet" hidden>';
+	foreach ( $acts as $a ) {
+		$out .= '<button type="button" class="dock-act" data-dock-act="' . esc_attr( $a[0] ) . '">' . mcupr_icon( $a[1], 20 ) . '<span>' . esc_html( $a[2] ) . '</span></button>';
+	}
+	return $out . '</div>';
+}
 
 /** Tell the stylesheet there is a bar (so it can keep the page and the floating buttons clear of it). */
 add_filter(

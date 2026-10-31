@@ -597,6 +597,22 @@
 		navBtn.addEventListener('click', function () { setNav(navBtn.getAttribute('aria-expanded') !== 'true', false); });
 		if (fab) { fab.addEventListener('click', function () { setNav(navBtn.getAttribute('aria-expanded') !== 'true', false); }); }
 		if (dockBtn) { dockBtn.addEventListener('click', function () { setNav(navBtn.getAttribute('aria-expanded') !== 'true', false); }); }
+		/* the Settings button of the bottom bar: language, display settings and "about" (the top bar is gone on a phone) press the header buttons that open the dialogs */
+		var dockTools = $('[data-dock-tools]');
+		var dockSheet = $('#dock-sheet');
+		if (dockTools && dockSheet) {
+			var setSheet = function (open) { dockSheet.hidden = !open; dockTools.setAttribute('aria-expanded', String(open)); };
+			dockTools.addEventListener('click', function () { setSheet(dockSheet.hidden); });
+			dockSheet.addEventListener('click', function (e) {
+				var b = e.target.closest('[data-dock-act]');
+				if (!b) { return; }
+				setSheet(false);
+				var target = $(b.getAttribute('data-dock-act'));
+				if (target) { target.click(); }
+			});
+			document.addEventListener('click', function (e) { if (!dockSheet.hidden && !dockSheet.contains(e.target) && !dockTools.contains(e.target)) { setSheet(false); } });
+			document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !dockSheet.hidden) { setSheet(false); dockTools.focus(); } });
+		}
 
 		/* sidebar rail: collapse / expand (remembered) */
 		var sbBtn = $('[data-sb-toggle]', nav);
