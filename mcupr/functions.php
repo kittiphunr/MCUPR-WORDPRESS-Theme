@@ -10,8 +10,8 @@ defined( 'ABSPATH' ) || exit;
 define( 'MCUPR_MIN_WP', '5.9' );
 define( 'MCUPR_MIN_PHP', '7.0' );
 
-define( 'MCUPR_VERSION', '1.84.1' );
-define( 'MCUPR_BUILD', 1063 );
+define( 'MCUPR_VERSION', '1.84.2' );
+define( 'MCUPR_BUILD', 1064 );
 define( 'MCUPR_DIR', get_template_directory() );
 define( 'MCUPR_URI', get_template_directory_uri() );
 

@@ -26,7 +26,7 @@ $mcupr_locs  = get_nav_menu_locations();
 if ( ! empty( $mcupr_locs[ $mcupr_loc ] ) ) {
 	foreach ( (array) wp_get_nav_menu_items( $mcupr_locs[ $mcupr_loc ] ) as $mcupr_it ) {
 		if ( ! (int) $mcupr_it->menu_item_parent && '' !== $mcupr_it->url && '#' !== $mcupr_it->url && count( $mcupr_links ) < 8 ) {
-			$mcupr_links[] = array( $mcupr_it->title, $mcupr_it->url );
+			$mcupr_links[] = array( $mcupr_it->title, $mcupr_it->url, mcupr_menu_item_icon( $mcupr_it ) );
 		}
 	}
 }
@@ -34,23 +34,25 @@ $mcupr_news = get_posts( array( 'posts_per_page' => 3, 'post_status' => 'publish
 ?>
 <div class="wrap">
 	<div class="nf">
-		<p class="nf-code" aria-hidden="true">404</p>
-		<h1 class="nf-title"><?php mcupr_e( 'not_found' ); ?></h1>
-		<p class="nf-text"><?php mcupr_e( 'not_found_txt' ); ?></p>
-		<div class="nf-search"><?php get_search_form(); ?></div>
-		<?php if ( '' !== $mcupr_guess ) : ?>
-			<p class="nf-guess"><a href="<?php echo esc_url( add_query_arg( 's', rawurlencode( $mcupr_guess ), mcupr_home_url() ) ); ?>"><?php echo esc_html( sprintf( mcupr_t( 'nf_search_for' ), $mcupr_guess ) ); ?></a></p>
-		<?php endif; ?>
-		<p class="nf-actions">
-			<a class="btn" href="<?php echo esc_url( mcupr_home_url() ); ?>"><?php mcupr_e( 'back_home' ); ?></a>
-			<a class="nf-btn2" href="<?php echo esc_url( mcupr_news_url() ); ?>"><?php mcupr_e( 'all_news' ); ?></a>
-		</p>
+		<section class="nf-hero" aria-labelledby="nf-h1">
+			<p class="nf-code" aria-hidden="true"><span>4</span><span class="nf-mark"><?php echo mcupr_icon( 'search', 64 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><span>4</span></p>
+			<h1 class="nf-title" id="nf-h1"><?php mcupr_e( 'not_found' ); ?></h1>
+			<p class="nf-text"><?php mcupr_e( 'not_found_txt' ); ?></p>
+			<div class="nf-search"><?php get_search_form(); ?></div>
+			<?php if ( '' !== $mcupr_guess ) : ?>
+				<p class="nf-guess"><a href="<?php echo esc_url( add_query_arg( 's', rawurlencode( $mcupr_guess ), mcupr_home_url() ) ); ?>"><?php echo mcupr_icon( 'search', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( sprintf( mcupr_t( 'nf_search_for' ), $mcupr_guess ) ); ?></span></a></p>
+			<?php endif; ?>
+			<p class="nf-actions">
+				<a class="btn nf-btn1" href="<?php echo esc_url( mcupr_home_url() ); ?>"><?php echo mcupr_icon( 'home', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'back_home' ); ?></span></a>
+				<a class="nf-btn2" href="<?php echo esc_url( mcupr_news_url() ); ?>"><?php echo mcupr_icon( 'news', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'all_news' ); ?></span></a>
+			</p>
+		</section>
 		<?php if ( $mcupr_links ) : ?>
 			<nav class="nf-sec" aria-labelledby="nf-try">
 				<h2 id="nf-try"><?php mcupr_e( 'nf_try' ); ?></h2>
-				<ul class="nf-chips">
+				<ul class="nf-tiles">
 					<?php foreach ( $mcupr_links as $mcupr_l ) : ?>
-						<li><a href="<?php echo esc_url( $mcupr_l[1] ); ?>"><?php echo esc_html( $mcupr_l[0] ); ?></a></li>
+						<li><a href="<?php echo esc_url( $mcupr_l[1] ); ?>"><span class="nf-t-ic" aria-hidden="true"><?php echo mcupr_icon( $mcupr_l[2] ? $mcupr_l[2] : 'link', 22 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><span class="nf-t-t"><?php echo esc_html( $mcupr_l[0] ); ?></span></a></li>
 					<?php endforeach; ?>
 				</ul>
 			</nav>
@@ -58,9 +60,12 @@ $mcupr_news = get_posts( array( 'posts_per_page' => 3, 'post_status' => 'publish
 		<?php if ( $mcupr_news ) : ?>
 			<section class="nf-sec" aria-labelledby="nf-news">
 				<h2 id="nf-news"><?php mcupr_e( 'nf_latest' ); ?></h2>
-				<ul class="nf-news">
+				<ul class="nf-cards">
 					<?php foreach ( $mcupr_news as $mcupr_p ) : ?>
-						<li><a href="<?php echo esc_url( get_permalink( $mcupr_p ) ); ?>"><span class="nf-n-t"><?php echo esc_html( get_the_title( $mcupr_p ) ); ?></span><span class="nf-n-d"><?php mcupr_date( $mcupr_p ); ?></span></a></li>
+						<li><a href="<?php echo esc_url( get_permalink( $mcupr_p ) ); ?>">
+							<span class="nf-c-img"><?php echo has_post_thumbnail( $mcupr_p ) ? get_the_post_thumbnail( $mcupr_p, 'medium', array( 'alt' => '', 'loading' => 'lazy' ) ) : mcupr_icon( 'news', 28 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="nf-c-body"><span class="nf-n-t"><?php echo esc_html( get_the_title( $mcupr_p ) ); ?></span><span class="nf-n-d"><?php mcupr_date( $mcupr_p ); ?></span></span>
+						</a></li>
 					<?php endforeach; ?>
 				</ul>
 			</section>
