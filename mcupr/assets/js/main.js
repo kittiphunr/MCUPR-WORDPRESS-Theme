@@ -566,11 +566,13 @@
 	var fab = $('#nav-fab');
 	var dockBtn = $('[data-dock-menu]');
 	var overlay = $('#nav-overlay');
+	var leaveSub = null; /* set below: back from a sub-menu of the phone's start menu */
 	var desktopMq = window.matchMedia ? window.matchMedia('(min-width: 1100px)') : { matches: true };
 
 	function setNav(open, returnFocus) {
 		if (!nav || !navBtn) { return; }
 		nav.classList.toggle('is-open', open);
+		if (!open && leaveSub) { leaveSub(); }
 		navBtn.setAttribute('aria-expanded', String(open));
 		navBtn.setAttribute('aria-label', navBtn.getAttribute(open ? 'data-label-close' : 'data-label-open') || '');
 		if (fab) { fab.setAttribute('aria-expanded', String(open)); fab.setAttribute('aria-label', navBtn.getAttribute(open ? 'data-label-close' : 'data-label-open') || ''); }
@@ -636,6 +638,33 @@
 		var closeNav = $('[data-close-nav]', nav);
 		if (closeNav) { closeNav.addEventListener('click', function () { setNav(false, true); }); }
 		if (desktopMq.addEventListener) { desktopMq.addEventListener('change', function () { setNav(false, false); }); }
+
+		/* the phone's start menu: the main menu is a grid of icons; one with a sub-menu opens its list in the same panel, with a Back button */
+		var phoneMq = window.matchMedia ? window.matchMedia('(max-width: 899px)') : { matches: false };
+		var backBtn = $('[data-nav-back]', nav);
+		leaveSub = function () {
+			nav.classList.remove('nav-sub');
+			if (backBtn) { backBtn.hidden = true; }
+			$$('.menu > li.is-open', nav).forEach(function (li) {
+				li.classList.remove('is-open');
+				var t = li.querySelector(':scope > .submenu-toggle');
+				if (t) { t.setAttribute('aria-expanded', 'false'); }
+			});
+		};
+		nav.addEventListener('click', function (e) {
+			if (!phoneMq.matches || !root.hasAttribute('data-dock')) { return; }
+			var a = e.target.closest('.menu > li.menu-item-has-children > a, .menu > li.page_item_has_children > a');
+			if (!a || !nav.contains(a)) { return; }
+			e.preventDefault();
+			var li = a.parentNode;
+			li.classList.add('is-open');
+			var t = li.querySelector(':scope > .submenu-toggle');
+			if (t) { t.setAttribute('aria-expanded', 'true'); }
+			nav.classList.add('nav-sub');
+			if (backBtn) { backBtn.hidden = false; backBtn.focus(); }
+			nav.scrollTop = 0;
+		});
+		if (backBtn) { backBtn.addEventListener('click', function () { leaveSub(); var first = $('.menu > li > a', nav); if (first) { first.focus(); } }); }
 
 		/* only one dropdown / mega panel open at a time (desktop): opening one closes the others */
 		function closeOthers(li) {
