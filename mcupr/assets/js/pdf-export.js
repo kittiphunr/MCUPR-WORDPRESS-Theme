@@ -121,9 +121,13 @@
 		a.remove();
 		setTimeout(function () { URL.revokeObjectURL(url); }, 20000);
 	}
-	function toBlob(canvas) {
-		return new Promise(function (ok, no) { canvas.toBlob(function (b) { if (b) { ok(b); } else { no(new Error('blob')); } }, 'image/png'); });
+	/* the format of the file a button asks for: pdf, png or jpg (the buttons of the Download menu carry data-pdf-fmt) */
+	function format(btn) { var f = btn.getAttribute('data-pdf-fmt'); return 'png' === f || 'jpg' === f ? f : 'pdf'; }
+	function toBlob(canvas, fmt) {
+		return new Promise(function (ok, no) { canvas.toBlob(function (b) { if (b) { ok(b); } else { no(new Error('blob')); } }, 'jpg' === fmt ? 'image/jpeg' : 'image/png', 0.92); });
 	}
+	/* where the page-by-page sign goes: the Download button that holds the menu, else the button itself */
+	function labelOf(btn) { var host = btn.closest('[data-dl]'), b = host ? host.querySelector('[data-dl-btn]') : btn; return b ? b.querySelector('span') : null; }
 
 	/* a ZIP file without compression (PNG is compressed already): files = [{ name, data: Uint8Array }] → Blob. One download for many pictures. */
 	var CRC = null;
@@ -161,9 +165,10 @@
 		return new Blob(parts.concat(central, [end.buffer]), { type: 'application/zip' });
 	}
 
-	/* "Download image": the same document as a PNG. One long picture (letterhead on top, footer below) when it is not taller than a
+	/* "Download image": the same document as a PNG or JPG. One long picture (letterhead on top, footer below) when it is not taller than a
 	   canvas can be; a longer one is saved as one picture per A4 sheet (the sheets of the PDF), numbered, in one ZIP file. */
 	function exportImage(btn, built, headPic, footPic, bg, total, pages) {
+		var fmt = format(btn);
 		var clip = built.clip, sheet = built.sheet, name = fileName(btn.getAttribute('data-pdf-title') || D.title || window.mcuprFullTitle || document.title);
 		var headPx = headPic ? HEAD_H * PX_MM : 0, footPx = footPic ? FOOT_H * PX_MM : 0, W = MM_W * PX_MM, sidePx = SIDE * PX_MM;
 		var allH = headPx + PAD * PX_MM + total + PAD * PX_MM + footPx;
@@ -179,8 +184,8 @@
 				if (headPic) { ctx.drawImage(headPic, 0, 0, c.width, Math.round(headPx * s1)); }
 				ctx.drawImage(body, Math.round(sidePx * s1), Math.round((headPx + PAD * PX_MM) * s1));
 				if (footPic) { ctx.drawImage(footPic, 0, c.height - Math.round(footPx * s1), c.width, Math.round(footPx * s1)); }
-				return toBlob(c);
-			}).then(function (blob) { save(blob, name + '.png'); });
+				return toBlob(c, fmt);
+			}).then(function (blob) { save(blob, name + '.' + fmt); });
 		}
 		var chain = Promise.resolve(), made = [];
 		pages.forEach(function (pg, i) {
@@ -206,18 +211,18 @@
 					ctx.textAlign = 'right';
 					ctx.fillText((i + 1) + ' / ' + pages.length, c.width - Math.round(SIDE * k), c.height - Math.round(2.5 * k));
 				}
-				var lab = btn.querySelector('span');
+				var lab = labelOf(btn);
 				if (lab && pages.length > 1) { lab.textContent = (btn.getAttribute('data-pdf-busy') || '') + ' ' + (i + 1) + '/' + pages.length; }
-				return toBlob(c);
+				return toBlob(c, fmt);
 			}).then(function (blob) { return blob.arrayBuffer(); }).then(function (buf) {
-				made.push({ name: name + '-' + (i + 1) + '.png', data: new Uint8Array(buf) });
+				made.push({ name: name + '-' + (i + 1) + '.' + fmt, data: new Uint8Array(buf) });
 			});
 		});
 		return chain.then(function () { save(zipStore(made), name + '-images.zip'); });
 	}
 
 	window.mcuprPdfExport = function (btn) {
-		var asImage = 'png' === btn.getAttribute('data-pdf-fmt');
+		var asImage = 'pdf' !== format(btn);
 		if (!window.html2canvas || ( ! asImage && ! window.jspdf ) ) { return Promise.reject(new Error('missing')); }
 		var built = build();
 		if (!built) { return Promise.reject(new Error('missing')); }
@@ -261,7 +266,7 @@
 							pdf.setTextColor(120);
 							pdf.text((i + 1) + ' / ' + pages.length, MM_W - SIDE, MM_H - 2.5, { align: 'right' });
 						}
-						var lab = btn.querySelector('span');
+						var lab = labelOf(btn);
 						if (lab && pages.length > 1) { lab.textContent = (btn.getAttribute('data-pdf-busy') || '') + ' ' + (i + 1) + '/' + pages.length; }
 						return keep;
 					}

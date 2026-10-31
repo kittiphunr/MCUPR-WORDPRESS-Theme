@@ -40,8 +40,7 @@ $attrs  = $listen ? ' data-listen data-target="' . esc_attr( $target ) . '" data
 	<?php endif; ?>
 	<div class="tool-ag">
 		<button type="button" class="tool-act" data-print><?php echo mcupr_feather( 'printer', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'print' ); ?></span></button>
-		<button type="button" class="tool-act" data-pdf data-pdf-target="<?php echo esc_attr( $target ); ?>" data-pdf-site="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" data-pdf-title="<?php echo esc_attr( $title ); ?>" data-pdf-url="<?php echo esc_url( get_permalink() ); ?>" data-pdf-busy="<?php echo esc_attr( mcupr_t( 'pdf_busy' ) ); ?>" data-pdf-fail="<?php echo esc_attr( mcupr_t( 'pdf_fail' ) ); ?>" data-pdf-label="<?php echo esc_attr( mcupr_t( 'pdf' ) ); ?>"><?php echo mcupr_feather( 'download', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'pdf' ); ?></span></button>
-		<button type="button" class="tool-act" data-pdf data-pdf-fmt="png" data-pdf-target="<?php echo esc_attr( $target ); ?>" data-pdf-site="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" data-pdf-title="<?php echo esc_attr( $title ); ?>" data-pdf-url="<?php echo esc_url( get_permalink() ); ?>" data-pdf-busy="<?php echo esc_attr( mcupr_t( 'img_busy' ) ); ?>" data-pdf-fail="<?php echo esc_attr( mcupr_t( 'img_fail' ) ); ?>" data-pdf-label="<?php echo esc_attr( mcupr_t( 'img' ) ); ?>"><?php echo mcupr_feather( 'image', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php mcupr_e( 'img' ); ?></span></button>
+		<?php echo mcupr_download_menu( 'act', $target, $title, get_permalink() ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 	</div>
 	<?php if ( '' !== $views ) : ?>
 		<span class="tool-views"><?php echo $views; // phpcs:ignore WordPress.Security.EscapeOutput ?></span>

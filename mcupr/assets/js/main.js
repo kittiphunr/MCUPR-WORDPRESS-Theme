@@ -432,22 +432,26 @@
 		}
 		if (e.target.closest('[data-print]')) { if (window.mcuprDoc && window.mcuprDoc.print) { window.mcuprDoc.print(); } else { window.print(); } } /* the A4 document (print-doc.js) is put together just before the printing starts */
 		var pdf = e.target.closest('[data-pdf]');
-		if (pdf && !pdf.hasAttribute('aria-busy')) {
-			/* the PDF (or the image) is made in the browser; the libraries (about 600 KB; an image needs only html2canvas) are fetched only now, one after the other */
+		var host = pdf ? pdf.closest('[data-dl]') : null; /* the Download button: the busy sign shows on it while a menu item makes the file */
+		var holder = host ? $('[data-dl-btn]', host) : pdf;
+		if (pdf && host) { dlClose(host, false); }
+		if (pdf && !holder.hasAttribute('aria-busy')) {
+			/* the file (PDF or picture) is made in the browser; the libraries (about 600 KB; a picture needs only html2canvas) are fetched only now, one after the other */
 			var urls = (window.mcuprI18n && window.mcuprI18n.pdfScripts) || [];
-			var label = $('span', pdf), was = label ? label.textContent : '';
-			pdf.setAttribute('aria-busy', 'true');
+			var label = $('span', holder), was = label ? label.textContent : '';
+			holder.setAttribute('aria-busy', 'true');
 			if (label) { label.textContent = pdf.getAttribute('data-pdf-busy') || was; }
 			var done = function (msg) {
-				pdf.removeAttribute('aria-busy');
+				holder.removeAttribute('aria-busy');
 				if (label) { label.textContent = was; }
 				if (msg) { announce(msg); }
 			};
+			var asPicture = (pdf.getAttribute('data-pdf-fmt') || 'pdf') !== 'pdf';
 			var load = function (i) {
 				if (i >= urls.length) { return Promise.resolve(); }
 				if (i === urls.length - 1 && window.mcuprPdfExport) { return Promise.resolve(); }
 				return new Promise(function (ok, no) {
-					if ((i === 0 && window.html2canvas) || (i === 1 && (window.jspdf || pdf.getAttribute('data-pdf-fmt') === 'png'))) { ok(); return; } /* an image needs html2canvas only */
+					if ((i === 0 && window.html2canvas) || (i === 1 && (window.jspdf || asPicture))) { ok(); return; } /* a picture needs html2canvas only */
 					var s = document.createElement('script');
 					s.src = urls[i];
 					s.onload = ok;
@@ -457,6 +461,37 @@
 			};
 			load(0).then(function () { return window.mcuprPdfExport(pdf); }).then(function () { done(''); }, function () { done(pdf.getAttribute('data-pdf-fail') || 'Download failed'); });
 		}
+	});
+
+	/* ---------------------------------------------------------------- the Download menu (PDF, PNG or JPG): a button that opens a small menu */
+	function dlClose(host, focusBtn) {
+		var b = $('[data-dl-btn]', host), m = $('.dl-menu', host);
+		if (!m || m.hidden) { return; }
+		m.hidden = true;
+		b.setAttribute('aria-expanded', 'false');
+		if (focusBtn) { b.focus(); }
+	}
+	document.addEventListener('click', function (e) {
+		var btn = e.target.closest('[data-dl-btn]');
+		$$('[data-dl]').forEach(function (h) { if (!btn || !h.contains(btn)) { if (!h.contains(e.target) || !e.target.closest('.dl-item')) { dlClose(h, false); } } });
+		if (!btn) { return; }
+		var host = btn.closest('[data-dl]'), m = $('.dl-menu', host), open = m.hidden;
+		m.hidden = !open;
+		btn.setAttribute('aria-expanded', String(open));
+		if (open) { var first = $('.dl-item', m); if (first) { first.focus(); } }
+	});
+	document.addEventListener('keydown', function (e) {
+		var host = e.target.closest ? e.target.closest('[data-dl]') : null;
+		if (!host) { return; }
+		var m = $('.dl-menu', host), items = $$('.dl-item', m), i = items.indexOf(document.activeElement);
+		if (e.key === 'Escape' && !m.hidden) { e.preventDefault(); dlClose(host, true); return; }
+		if (m.hidden && (e.key === 'ArrowDown' || e.key === 'ArrowUp') && e.target.closest('[data-dl-btn]')) { e.preventDefault(); $('[data-dl-btn]', host).click(); return; }
+		if (m.hidden) { return; }
+		if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+		else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+		else if (e.key === 'Home') { e.preventDefault(); items[0].focus(); }
+		else if (e.key === 'End') { e.preventDefault(); items[items.length - 1].focus(); }
+		else if (e.key === 'Tab') { dlClose(host, false); }
 	});
 
 	/* ---------------------------------------------------------------- the search page: choosing what to search in searches again at once */
