@@ -3746,16 +3746,15 @@ h1, h2, h3, h4 { line-height: 1.4; }
 }
 html[data-contrast] .hero-quick { border: 2px solid var(--text); box-shadow: none; }
 
-/* the Settings button of the bottom bar and its small sheet (inc/mobile-dock.php) */
-.dock-sheet { position: absolute; right: .6rem; bottom: calc(100% + 1.4rem); min-width: 15rem; max-width: calc(100vw - 1.2rem); padding: .4rem; border: 1px solid var(--border); border-radius: 1.3rem; background: var(--bg); box-shadow: 0 16px 38px rgb(15 23 42 / .22); }
-.dock-sheet[hidden] { display: none; }
-.dock-act { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 3rem; padding: .4rem .85rem; border: 0; border-radius: .95rem; background: none; color: var(--text); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
-.dock-act:hover, .dock-act:focus-visible { background: var(--tint); }
-.dock-act svg { flex: none; color: var(--link); }
-.dock-tools { padding-inline: .1rem; border: 0; background: none; font-family: inherit; cursor: pointer; }
-.dock-tools[aria-expanded="true"] { color: var(--primary); font-weight: 800; }
-.dock-tools[aria-expanded="true"] .dock-ic { background: var(--tint); }
-html[data-contrast] .dock-sheet { border: 2px solid var(--text); box-shadow: none; }
+/* language, display settings and "about" in the menu drawer of a phone (template-parts/site-header.php): the top bar is gone there */
+.nav-tools { display: none; }
+@media (max-width: 899px) {
+	html[data-dock] .nav-tools { display: grid; gap: .25rem; margin: .75rem 1rem 1rem; padding-top: .75rem; border-top: 1px solid var(--border); }
+	.nav-tool { display: flex; align-items: center; gap: .8rem; width: 100%; min-height: 3rem; padding: .4rem .85rem; border: 0; border-radius: 1rem; background: var(--surface); color: var(--text); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+	.nav-tool:hover, .nav-tool:focus-visible { background: var(--tint); }
+	.nav-tool svg { flex: none; color: var(--link); }
+}
+html[data-contrast] .nav-tool { border: 2px solid var(--text); background: var(--bg); }
 
 /* ===== Bottom bar of a phone: a floating pill (inc/mobile-dock.php) =====
    Lifted off the screen edge with soft glass and a shadow; the page you are on is a tinted pill behind its icon; the round menu
@@ -3766,10 +3765,9 @@ html[data-contrast] .dock-sheet { border: 2px solid var(--text); box-shadow: non
 	html .dock-i { gap: .15rem; font-size: .7rem; font-weight: 600; letter-spacing: .01em; -webkit-tap-highlight-color: transparent; }
 	html .dock-ic { width: 3.1rem; height: 2rem; transition: background-color .2s, color .2s, transform .15s; }
 	html .dock-i:active .dock-ic { transform: scale(.9); }
-	html .dock-i[aria-current="page"] .dock-ic, html .dock-tools[aria-expanded="true"] .dock-ic { background: color-mix(in srgb, var(--primary) 14%, var(--bg)); color: var(--primary); }
+	html .dock-i[aria-current="page"] .dock-ic { background: color-mix(in srgb, var(--primary) 14%, var(--bg)); color: var(--primary); }
 	html .dock-i[aria-current="page"]::after { display: none; }
 	html:not([data-contrast]) .dock-main { width: 3.7rem; height: 3.7rem; margin: -1.75rem .3rem 0; background: linear-gradient(145deg, var(--primary), var(--brand-2)); color: var(--on-primary); box-shadow: 0 0 0 .35rem var(--bg), 0 10px 22px color-mix(in srgb, var(--primary) 45%, transparent); }
 	html:not([data-contrast]) .dock-main[aria-expanded="true"] { background: var(--bar-bg); color: var(--bar-fg); }
-	html .dock-sheet { right: .5rem; bottom: calc(100% + 1.5rem); border-radius: 1.4rem; }
 }
 html[data-contrast] .m-dock { border-radius: 1.6rem; }

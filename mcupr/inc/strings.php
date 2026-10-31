@@ -53,7 +53,6 @@ return array(
 	'latest_news'   => array( 'ข่าวประชาสัมพันธ์ล่าสุด', 'Latest news', '最新新闻', '最新ニュース' ),
 	'dock_news'     => array( 'ข่าว', 'News', '新闻', 'ニュース' ),
 	'dock_events'   => array( 'กิจกรรม', 'Events', '活动', 'イベント' ),
-	'dock_settings' => array( 'ตั้งค่า', 'Settings', '设置', '設定' ),
 	'dock_nav'      => array( 'เมนูด่วนด้านล่าง', 'Quick navigation', '底部快捷导航', 'クイックナビゲーション' ),
 	'hero_search_ph' => array( 'ค้นหาข่าว กิจกรรม เอกสาร…', 'Search news, events, documents…', '搜索新闻、活动、文件…', 'ニュース・イベント・文書を検索…' ),
 	'sp_hint'       => array( 'พิมพ์คำที่ต้องการค้นหา เช่น ชื่อข่าว กิจกรรม หรือเอกสาร', 'Type what you are looking for: a news title, an event or a document.', '请输入要搜索的内容，例如新闻标题、活动或文件。', '探したい言葉（ニュースの題名、イベント、文書など）を入力してください。' ),
