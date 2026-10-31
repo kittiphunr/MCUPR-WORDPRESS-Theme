@@ -3,6 +3,7 @@
 $site = isset( $argv[1] ) ? $argv[1] : __DIR__ . '/../.site-starter';
 require rtrim( $site, '/' ) . '/wp-load.php';
 $fails = 0;
+require_once ABSPATH . 'wp-admin/includes/file.php';
 function t( $ok, $label ) { global $fails; echo ( $ok ? 'PASS ' : 'FAIL ' ) . $label . "\n"; if ( ! $ok ) { $fails++; } }
 
 /* who may */

@@ -166,6 +166,7 @@ add_action(
 		$take( 'mcupr-blocks' );
 		$take( 'mcupr-speed' );
 		$take( 'mcupr-images' );
+		$take( 'mcupr-categories' );
 		$take( 'mcupr-files' );
 		$take( 'mcupr-elementor' );
 		$take( 'mcupr-settings-io' );
