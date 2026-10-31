@@ -1151,9 +1151,9 @@ html[data-contrast] .fcontact > div, html[data-contrast] .flinks .footer-menu a 
 	/* the band reaches the top of the frame; the capsule floats on it */
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child,
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child { margin-top: calc(-1 * var(--hdr-h, 5.5rem)); padding-top: 1.2rem; } /* the middle of the breadcrumb is on the middle of the tools capsule */
-	/* the breadcrumb of a band or a Cover head is on the line of the tools capsule: it ends before the capsule, and the last words (the title of the page) are shortened with "…" instead of running under it */
+	/* the breadcrumb of a band or a Cover head is on the line of the tools capsule: it hugs its words and at most ends before the capsule, and the last words (the title of the page) are shortened with "…" instead of running under it */
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child nav[aria-label],
-	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child nav[aria-label] { display: block; margin-right: calc(var(--hdr-w, 0px) + .75rem); }
+	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child nav[aria-label] { display: block; width: fit-content; max-width: calc(100% - var(--hdr-w, 0px) - .75rem); } /* the pill is as wide as its words, never past the capsule */
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child nav[aria-label] ol,
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > article > .mcu-wheel:first-child nav[aria-label] ol { flex-wrap: nowrap; }
 	html:is([data-menu="side"],[data-menu="hybrid"]) #content > .mcu-wheel:first-child nav[aria-label] li,
