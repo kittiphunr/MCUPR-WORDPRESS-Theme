@@ -64,6 +64,7 @@ function mcupr_cc_page_caps() {
 		'mcupr-forum'            => 'mcupr_manage_forum',
 		'mcupr-books'            => 'mcupr_manage_theme',
 		'mcupr-images'           => 'mcupr_manage_theme',
+		'mcupr-categories'       => 'manage_categories',
 		'mcupr-status'           => 'mcupr_manage_theme',
 		'mcupr-speed'            => 'mcupr_manage_theme',
 		'mcupr-elementor'        => 'mcupr_manage_theme',

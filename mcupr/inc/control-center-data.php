@@ -28,8 +28,8 @@ function mcupr_cc_data_all() {
 			// ------------------------------------------------------------ content
 			'posts'    => array(
 				'cat' => 'content', 'icon' => 'file-text', 'title' => 'ข่าวและบทความ', 'open' => 'adm:edit.php', 'add' => 'adm:post-new.php', 'cap' => 'edit_posts',
-				'links' => array( array( 'หมวดหมู่ข่าว', 'adm:edit-tags.php?taxonomy=category' ), array( 'ป้ายกำกับ', 'adm:edit-tags.php?taxonomy=post_tag' ) ),
-				'screens' => array( 'adm:edit.php', 'adm:post-new.php', 'adm:edit-tags.php?taxonomy=category' ),
+				'links' => array( array( 'หมวดหมู่ข่าว', 'adm:edit-tags.php?taxonomy=category' ), array( 'จัดระเบียบหมวดหมู่', 'page:mcupr-categories' ), array( 'ป้ายกำกับ', 'adm:edit-tags.php?taxonomy=post_tag' ) ),
+				'screens' => array( 'adm:edit.php', 'adm:post-new.php', 'adm:edit-tags.php?taxonomy=category', 'page:mcupr-categories' ),
 				'desc' => 'ข่าวประชาสัมพันธ์ที่ขึ้นหน้าแรกและหน้าข่าว เรียงจากใหม่ไปเก่า',
 				'what' => 'ข่าวหนึ่งเรื่องคือหนึ่งโพสต์ ขึ้นหน้าแรกอัตโนมัติ ใส่หมวดหมู่เพื่อให้ผู้อ่านกรองได้ รูปเด่นของโพสต์จะเป็นภาพปกของการ์ดข่าว',
 				'steps' => array( 'กด "เพิ่มใหม่" แล้วพิมพ์หัวข้อและเนื้อหา', 'กล่องด้านขวา "รูปเด่น" ให้เลือกรูปปก (ควรเป็นรูปแนวนอน)', 'เลือกหมวดหมู่ที่เกี่ยวข้อง', 'กด "เผยแพร่" (หรือ "บันทึกฉบับร่าง" ถ้ายังไม่พร้อม)' ),
