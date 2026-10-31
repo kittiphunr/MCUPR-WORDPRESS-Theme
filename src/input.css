@@ -3827,3 +3827,10 @@ html[data-contrast][data-dock] .site-nav { background: var(--bg); -webkit-backdr
 	html:not([data-contrast]) .dock-main[aria-expanded="true"] { background: var(--bar-bg); color: var(--bar-fg); }
 }
 html[data-contrast] .m-dock { border-radius: 1.6rem; }
+
+/* Home on a phone: the search bar, its filter list and its live results are in front of the quick-links panel under it
+   (the panel is a later sibling with its own layer, so without this they open BEHIND it) */
+@media (max-width: 899px) {
+	html .hero .hero-search { z-index: 6; }
+	html .hero .hs-results:not([hidden]) { z-index: 5; }
+}
